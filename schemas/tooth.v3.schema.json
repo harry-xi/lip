@@ -133,7 +133,11 @@
 									"type": "string"
 								}
 							}
-						}
+						},
+						"required": [
+							"download_urls",
+							"type"
+						]
 					}
 				}
 			}

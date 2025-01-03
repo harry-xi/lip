@@ -47,7 +47,6 @@ jobs:
           -c Release
           -o bin
           -r ${{ matrix.runtime }}
-          -p:AssemblyName=lip
           -p:OptimizationPreference=Size
           -p:PublishAot=true
 

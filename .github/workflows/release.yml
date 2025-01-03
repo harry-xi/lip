@@ -1,0 +1,112 @@
+on:
+  release:
+    types: 
+      - published
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: macos-latest
+            runtime: osx-arm64
+          - runs-on: macos-latest
+            runtime: osx-x64
+          - runs-on: ubuntu-latest
+            runtime: linux-arm64
+          - runs-on: ubuntu-latest
+            runtime: linux-x64
+          - runs-on: windows-latest
+            runtime: win-arm64
+          - runs-on: windows-latest
+            runtime: win-x64
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - run: |
+          dotnet publish Lip/Lip.csproj \
+            -c Release \
+            -o bin \
+            -r ${{ matrix.runtime }} \
+            -p:OptimizationPreference=Size \
+            -p:PublishAot=true \
+            -p:StripSymbols=true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.runtime }}-${{ github.sha }}
+          path: bin/
+
+  update-release-notes:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: extract-release-notes
+        uses: ffurrer2/extract-release-notes@v2
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.extract-release-notes.outputs.release_notes }}
+
+  upload-to-release:
+    needs:
+      - build
+      - update-release-notes
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime:
+          - linux-arm64
+          - linux-x64
+          - osx-arm64
+          - osx-x64
+          - win-arm64
+          - win-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.runtime }}-${{ github.sha }}
+          path: artifact/
+
+      - run: |
+          cp CHANGELOG.md LICENSE README.md artifact/
+
+      - name: Pack artifact (Windows)
+        if: startsWith(matrix.runtime, 'win') == true
+        run: |
+          zip -r ../${{ github.event.repository.name }}-${{ matrix.runtime }}.zip *
+        working-directory: artifact
+  
+      - name: Pack artifact (Others)
+        if: startsWith(matrix.runtime, 'win') == false
+        run: |
+          tar -czvf ../${{ github.event.repository.name }}-${{ matrix.runtime }}.tar.gz *
+        working-directory: artifact
+
+      - name: Upload artifact to release (Windows)
+        if: startsWith(matrix.runtime, 'win') == true
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ github.event.repository.name }}-${{ matrix.runtime }}.zip
+
+      - name: Upload artifact to release (Others)
+        if: startsWith(matrix.runtime, 'win') == false
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ github.event.repository.name }}-${{ matrix.runtime }}.tar.gz

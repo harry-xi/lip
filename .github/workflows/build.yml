@@ -1,0 +1,75 @@
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: macos-latest
+            runtime: osx-arm64
+          - runs-on: macos-latest
+            runtime: osx-x64
+          - runs-on: ubuntu-latest
+            runtime: linux-arm64
+          - runs-on: ubuntu-latest
+            runtime: linux-x64
+          - runs-on: windows-latest
+            runtime: win-arm64
+          - runs-on: windows-latest
+            runtime: win-x64
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - run: |
+          dotnet publish Lip/Lip.csproj \
+            -c Release \
+            -o bin \
+            -r ${{ matrix.runtime }} \
+            -p:OptimizationPreference=Size \
+            -p:PublishAot=true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.runtime }}-${{ github.sha }}
+          path: bin/
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - run: |
+          dotnet test Lip.Tests/Lip.Tests.csproj
+
+  check-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - run: |
+          dotnet format --verify-no-changes Lip
+          dotnet format --verify-no-changes Lip.Tests

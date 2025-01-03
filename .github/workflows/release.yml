@@ -29,13 +29,13 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - run: |
-          dotnet publish Lip/Lip.csproj \
-            -c Release \
-            -o bin \
-            -r ${{ matrix.runtime }} \
-            -p:OptimizationPreference=Size \
-            -p:PublishAot=true \
+      - run: >
+          dotnet publish Lip/Lip.csproj
+            -c Release
+            -o bin
+            -r ${{ matrix.runtime }}
+            -p:OptimizationPreference=Size
+            -p:PublishAot=true
             -p:StripSymbols=true
 
       - uses: actions/upload-artifact@v4

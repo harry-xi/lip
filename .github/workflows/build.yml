@@ -9,18 +9,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runs-on: macos-latest
-            runtime: osx-arm64
-          - runs-on: macos-latest
-            runtime: osx-x64
-          - runs-on: ubuntu-latest
-            runtime: linux-arm64
-          - runs-on: ubuntu-latest
-            runtime: linux-x64
-          - runs-on: windows-latest
-            runtime: win-arm64
-          - runs-on: windows-latest
-            runtime: win-x64
+          - runtime: osx-arm64
+            runs-on: macos-latest
+          - runtime: osx-x64
+            runs-on: macos-latest
+          - runtime: linux-arm64
+            runs-on: ubuntu-latest
+          - runtime: linux-x64
+            runs-on: ubuntu-latest
+          - runtime: win-arm64
+            runs-on: windows-latest
+          - runtime: win-x64
+            runs-on: windows-latest
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -29,13 +29,26 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - if: matrix.runtime == 'linux-arm64'
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo bash -c 'cat > /etc/apt/sources.list.d/arm64.list <<EOF
+          deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted
+          deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main restricted
+          deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main restricted universe multiverse
+          EOF'
+          sudo sed -i -e 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
+          sudo sed -i -e 's/deb mirror/deb [arch=amd64] mirror/g' /etc/apt/sources.list
+          sudo apt update
+          sudo apt install -y clang llvm binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu zlib1g-dev:arm64
+
       - run: >
           dotnet publish Lip/Lip.csproj
-            -c Release
-            -o bin
-            -r ${{ matrix.runtime }}
-            -p:OptimizationPreference=Size
-            -p:PublishAot=true
+          -c Release
+          -o bin
+          -r ${{ matrix.runtime }}
+          -p:OptimizationPreference=Size
+          -p:PublishAot=true
 
       - uses: actions/upload-artifact@v4
         with:

@@ -9,18 +9,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runs-on: macos-latest
-            runtime: osx-arm64
-          - runs-on: macos-latest
-            runtime: osx-x64
-          - runs-on: ubuntu-latest
-            runtime: linux-arm64
-          - runs-on: ubuntu-latest
-            runtime: linux-x64
-          - runs-on: windows-latest
-            runtime: win-arm64
-          - runs-on: windows-latest
-            runtime: win-x64
+          - runtime: linux-arm64
+            runs-on: ubuntu-latest
+          - runtime: linux-x64
+            runs-on: ubuntu-latest
+          - runtime: osx-arm64
+            runs-on: macos-latest
+          - runtime: osx-x64
+            runs-on: macos-latest
+          - runtime: win-arm64
+            runs-on: windows-latest
+          - runtime: win-x64
+            runs-on: windows-latest
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -31,12 +31,12 @@ jobs:
 
       - run: >
           dotnet publish Lip/Lip.csproj
-            -c Release
-            -o bin
-            -r ${{ matrix.runtime }}
-            -p:OptimizationPreference=Size
-            -p:PublishAot=true
-            -p:StripSymbols=true
+          -c Release
+          -o bin
+          -r ${{ matrix.runtime }}
+          -p:OptimizationPreference=Size
+          -p:PublishAot=true
+          -p:StripSymbols=true
 
       - uses: actions/upload-artifact@v4
         with:

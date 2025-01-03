@@ -20,7 +20,7 @@ jobs:
         working-directory: docs
 
       - run: |
-          mkdocs build -f docs/mkdocs.yml -d ../site
+          mkdocs build
 
       - uses: actions/upload-pages-artifact@v3
         with:

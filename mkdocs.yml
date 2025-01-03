@@ -1,29 +1,36 @@
 site_name: lip Docs
 repo_url: https://github.com/futrime/lip
 
-docs_dir: .
-exclude_docs: |
-  /mkdocs.yml
-  /requirements.txt
-
 nav:
+  - index.md
   - User Guide:
-    - user-guide/index.md
     - user-guide/getting-started.md
     - user-guide/installation.md
     - user-guide/basic-use.md
-    - Topic Guides: []
-    - Reference: []
-    - Commands: []
-  - Packaging Guide:
-    - packaging-guide/index.md
-  - Marketplace: https://bedrinth.com
+    - user-guide/faq.md
+    - Commands:
+      - user-guide/commands/lip.md
+      - user-guide/commands/lip-cache.md
+      - user-guide/commands/lip-config.md
+      - user-guide/commands/lip-init.md
+      - user-guide/commands/lip-install.md
+      - user-guide/commands/lip-list.md
+      - user-guide/commands/lip-pack.md
+      - user-guide/commands/lip-prune.md
+      - user-guide/commands/lip-run.md
+      - user-guide/commands/lip-uninstall.md
+      - user-guide/commands/lip-update.md
+      - user-guide/commands/lip-view.md
+    - user-guide/tooth-json.md
+  - Get Packages: https://bedrinth.com
 
 theme:
   name: material
   features:
-    - navigation.tabs
-    - navigation.tabs.sticky
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.sections
   favicon: img/favicon.ico
   logo: img/logo.webp
   palette:
@@ -78,6 +85,9 @@ plugins:
 
         - locale: zh
           name: 中文
-          nav_translations: {}
+          nav_translations:
+            User Guide: 用户指南
+            Commands: 命令
+            Get Packages: 获取软件包
 
   - search

@@ -1,0 +1,61 @@
+# lip install
+
+## Usage
+
+```shell
+lip install [<package> ...]
+```
+
+## Description
+
+Install packages and their dependencies from various sources.
+
+A `<package>` can be any of the following (in order of priority):
+
+- A directory containing a `tooth.json` file
+- An archive (`.zip`, `.tar`, `.tgz` or `.tar.gz`) containing a directory with a `tooth.json` file
+- A [package specifier](#) referencing a Git repository
+
+If no `<package>` is specified and the current directory contains a `tooth.json` file, lip will install the package in the current directory. Be aware that this may cause file conflicts.
+
+When using a package specifier, lip will use Goproxy to download the package if the `download.goproxy` configuration is enabled. Otherwise, packages are downloaded directly from their Git repositories.
+
+Package prerequisites must be installed manually. lip will not proceed with installation if it detects missing prerequisites.
+
+When resolving dependencies, lip follows these rules:
+- Selects the latest stable version that meets the specified constraints
+- Falls back to the latest pre-release version if no stable version is available
+- Installs dependencies in topological order (dependencies before dependents)
+- Rejects installation if it detects circular dependencies
+
+lip maintains a dependency graph to track relationships between packages. When uninstalling packages, lip checks this graph to ensure all dependent packages are handled appropriately. If dependents are found, you'll be prompted to either uninstall them or cancel the operation.
+
+Pre-release versions can be installed by explicitly specifying the version number. While packages can declare pre-release versions as dependencies, lip ignores pre-release versions when evaluating version ranges or wildcards.
+
+## Options
+
+- `--dry-run`
+
+  Do not actually install any packages. Be aware that files will still be downloaded and cached.
+
+- `-f, --force`
+
+  Force the installation of the package. When a dependency is already installed but its version is not compatible with the specified version, lip will uninstall the existing dependency and install the new version.
+
+  This may break the dependency graph and cause all future installations and updates without `--force` to fail.
+
+- `--ignore-scripts`
+
+  Do not run any scripts during installation.
+
+- `--no-dependencies`
+
+  Do not install dependencies. Also bypass prerequisite checks.
+
+- `--save`
+
+  Save the installed packages to the `tooth.json` file as dependencies.
+
+- `--save-prerequisites`
+
+  Save the installed packages to the `tooth.json` file as prerequisites.

@@ -16,9 +16,9 @@ A `<package>` can be any of the following (in order of priority):
 - An archive (`.zip`, `.tar`, `.tgz` or `.tar.gz`) containing a directory with a `tooth.json` file
 - A [package specifier](#) referencing a Git repository
 
-If no `<package>` is specified and the current directory contains a `tooth.json` file, lip will install the package in the current directory. Be aware that this may cause file conflicts.
+If no `<package>` is specified and the current directory contains a `tooth.json` file, lip will install the package in the current directory. Inplace file placement will not be performed.
 
-When using a package specifier, lip will use Goproxy to download the package if the `download.goproxy` configuration is enabled. Otherwise, packages are downloaded directly from their Git repositories.
+When using a package specifier, lip will use Goproxy to download the package if a Go module proxy is set in configuration. Otherwise, packages are downloaded directly from their Git repositories.
 
 Package prerequisites must be installed manually. lip will not proceed with installation if it detects missing prerequisites.
 
@@ -59,3 +59,27 @@ Pre-release versions can be installed by explicitly specifying the version numbe
 - `--save-prerequisites`
 
   Save the installed packages to the `tooth.json` file as prerequisites.
+
+## Package Specifier
+
+A package specifier is a string that identifies a package, a sub-directory path, and a version.
+
+The format is `<package>[#<path>][@<version>]`.
+
+- `<package>` is the identifier of the package.
+- `<version>` is the version of the package. If omitted, lip will install the latest version.
+- `<path>` is an optional sub-directory path within the package, which must be a valid relative path beginning with a directory or a file name.
+
+Examples:
+
+- `github.com/futrime/example-package`
+- `github.com/futrime/example-package#cmd/example-package`
+- `github.com/futrime/example-package@v1.0.0`
+- `github.com/futrime/example-package#cmd/example-package@v1.0.0-beta.1`
+
+Wrong examples:
+
+- `github.com/futrime/example-package#/cmd/example-package/`
+- `github.com/futrime/example-package#~cmd/example-package/`
+- `github.com/futrime/example-package#../cmd/example-package/`
+- `github.com/futrime/example-package#./cmd/example-package/`

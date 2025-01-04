@@ -12,7 +12,7 @@ lip cache list
 
 Inspect and manage lip’s cache.
 
-lip stores cache data in `%LocalAppData%\lip-cache` for Windows and `~/.cache/lip` for POSIX-like systems by default. This can be configured by configuration item `cache.dir`.
+lip stores cache data in `%LocalAppData%\lip-cache` for Windows and `~/.cache/lip` for POSIX-like systems by default.
 
 ## Sub-commands
 
@@ -24,7 +24,7 @@ lip cache add <package-spec>
 
 Add a package to the cache. `<package-spec>` is a [package specifier](#), e.g. `github.com/futrime/example-package#subpack@1.0.0`.
 
-If the configuration item `download.goproxy` is set, lip will download the package via Goproxy. Otherwise, lip will download the package directly from the Git repository.
+If a Go module proxy is set in configuration, lip will download the package via Goproxy. Otherwise, lip will download the package directly from the Git repository.
 
 ### clean
 

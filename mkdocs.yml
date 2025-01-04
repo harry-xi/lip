@@ -21,7 +21,8 @@ nav:
       - user-guide/commands/lip-uninstall.md
       - user-guide/commands/lip-update.md
       - user-guide/commands/lip-view.md
-    - user-guide/tooth-json.md
+    - Files:
+      - user-guide/files/tooth-json.md
   - Get Packages: https://bedrinth.com
 
 theme:
@@ -88,6 +89,6 @@ plugins:
           nav_translations:
             User Guide: 用户指南
             Commands: 命令
+            Files: 文件
             Get Packages: 获取软件包
-
   - search

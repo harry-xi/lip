@@ -399,4 +399,29 @@ public class PackageManifestTests
 
         Assert.Throws<ArgumentException>("value", () => PackageManifest.FromBytes(bytes));
     }
+
+    [Fact]
+    public void ToBytes_MinimumInput_Serialized()
+    {
+        var manifest = new PackageManifest
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            Tooth = "",
+            Version = "1.0.0"
+        };
+
+        byte[] bytes = manifest.ToBytes();
+
+        string json = Encoding.UTF8.GetString(bytes);
+
+        Assert.Equal("""
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "",
+                "version": "1.0.0"
+            }
+            """, json);
+    }
 }

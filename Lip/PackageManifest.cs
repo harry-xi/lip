@@ -216,6 +216,8 @@ public partial record PackageManifest
     private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
     {
         AllowTrailingCommas = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        IndentSize = 4,
         ReadCommentHandling = JsonCommentHandling.Skip,
         WriteIndented = true,
     };
@@ -273,5 +275,11 @@ public partial record PackageManifest
         );
 
         return manifest;
+    }
+
+    public byte[] ToBytes()
+    {
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
+        return bytes;
     }
 }

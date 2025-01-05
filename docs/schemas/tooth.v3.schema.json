@@ -199,6 +199,7 @@
     },
     "required": [
         "format_version",
+        "format_uuid",
         "tooth",
         "version"
     ]

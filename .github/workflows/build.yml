@@ -35,7 +35,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
 
       - if: matrix.runtime == 'linux-arm64'
         run: |
@@ -77,7 +77,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
 
       - run: |
           dotnet test Lip.Tests/Lip.Tests.csproj
@@ -89,7 +89,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
 
       - run: |
           dotnet format --verify-no-changes Lip

@@ -1,14 +1,30 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Lip;
 
-public record PackageManifest
+public partial record PackageManifest
 {
     public record AssetType
     {
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public enum TypeEnum
+        {
+            [JsonStringEnumMemberName("self")]
+            Self,
+            [JsonStringEnumMemberName("tar")]
+            Tar,
+            [JsonStringEnumMemberName("tgz")]
+            Tgz,
+            [JsonStringEnumMemberName("uncompressed")]
+            Uncompressed,
+            [JsonStringEnumMemberName("zip")]
+            Zip,
+        }
+
         [JsonPropertyName("type")]
-        public required string Type { get; init; }
+        public required TypeEnum Type { get; init; }
 
         [JsonPropertyName("urls")]
         public List<string>? Urls { get; init; }
@@ -23,7 +39,7 @@ public record PackageManifest
         public List<string>? Remove { get; init; }
     }
 
-    public record InfoType
+    public partial record InfoType
     {
         [JsonPropertyName("name")]
         public string? Name { get; init; }
@@ -35,16 +51,47 @@ public record PackageManifest
         public string? Author { get; init; }
 
         [JsonPropertyName("tags")]
-        public List<string>? Tags { get; init; }
+        public List<string>? Tags
+        {
+            get => _tags;
+            init
+            {
+                if (value is not null)
+                {
+                    foreach (string tag in value)
+                    {
+                        if (!TagGeneratedRegex().IsMatch(tag))
+                        {
+                            throw new ArgumentException($"Tag {tag} must match the regex pattern {TagGeneratedRegex()}");
+                        }
+                    }
+                }
+                _tags = value;
+            }
+        }
 
         [JsonPropertyName("avatar_url")]
         public string? AvatarUrl { get; init; }
+
+        private List<string>? _tags;
+
+        [GeneratedRegex("^[a-z0-9-]+(:[a-z0-9-]+)?$")]
+        private static partial Regex TagGeneratedRegex();
     }
 
     public record PlaceType
     {
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public enum TypeEnum
+        {
+            [JsonStringEnumMemberName("file")]
+            File,
+            [JsonStringEnumMemberName("dir")]
+            Dir,
+        }
+
         [JsonPropertyName("type")]
-        public required string Type { get; init; }
+        public required TypeEnum Type { get; init; }
 
         [JsonPropertyName("src")]
         public required string Src { get; init; }
@@ -119,19 +166,29 @@ public record PackageManifest
         public ScriptsType? Scripts { get; init; }
     }
 
+    private const int DefaultFormatVersion = 3;
+    private const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
+
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
+    {
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        WriteIndented = true,
+    };
+
     [JsonPropertyName("format_version")]
     public required int FormatVersion
     {
-        get => 3;
-        init => _ = value == 3 ? 0
-            : throw new ArgumentException("FormatVersion must be 3", nameof(value));
+        get => DefaultFormatVersion;
+        init => _ = value == DefaultFormatVersion ? 0
+            : throw new ArgumentException($"FormatVersion must be {DefaultFormatVersion}", nameof(value));
     }
 
     [JsonPropertyName("format_uuid")]
     public required string FormatUuid
     {
-        get => "289f771f-2c9a-4d73-9f3f-8492495a924d";
-        init => _ = value == "289f771f-2c9a-4d73-9f3f-8492495a924d" ? 0
+        get => DefaultFormatUuid;
+        init => _ = value == DefaultFormatUuid ? 0
             : throw new ArgumentException("FormatUuid must be 114514", nameof(value));
     }
 
@@ -139,7 +196,22 @@ public record PackageManifest
     public required string Tooth { get; init; }
 
     [JsonPropertyName("version")]
-    public required string Version { get; init; }
+    public required string Version
+    {
+        get
+        {
+            return _version;
+        }
+        init
+        {
+            if (!VersionGeneratedRegex().IsMatch(value))
+            {
+                throw new ArgumentException($"Version {value} must match the regex pattern {VersionGeneratedRegex()}");
+            }
+
+            _version = value;
+        }
+    }
 
     [JsonPropertyName("info")]
     public InfoType? Info { get; init; }
@@ -147,11 +219,7 @@ public record PackageManifest
     [JsonPropertyName("variants")]
     public VariantType[]? Variants { get; init; }
 
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
-    {
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-    };
+    private string _version = string.Empty;
 
     public static PackageManifest? FromBytes(byte[] bytes)
     {
@@ -169,6 +237,11 @@ public record PackageManifest
                 {
                     foreach (KeyValuePair<string, JsonElement> kvp in variant.Scripts.AdditionalProperties)
                     {
+                        if (!ScriptNameGeneratedRegex().IsMatch(kvp.Key))
+                        {
+                            throw new JsonException($"Script name {kvp.Key} must match the regex pattern {ScriptNameGeneratedRegex()}");
+                        }
+
                         if (kvp.Value.ValueKind != JsonValueKind.Array)
                         {
                             throw new JsonException("Self-defined scripts must be arrays of strings.");
@@ -188,4 +261,10 @@ public record PackageManifest
 
         return manifest;
     }
+
+    [GeneratedRegex("^[a-z0-9]+(_[a-z0-9]+)*$")]
+    private static partial Regex ScriptNameGeneratedRegex();
+
+    [GeneratedRegex(@"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")]
+    private static partial Regex VersionGeneratedRegex();
 }

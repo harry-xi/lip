@@ -120,9 +120,9 @@ Defines how package files should be handled.
 The asset type:
 
 - `self`: Files from the package itself
-- `uncompressed`: Single uncompressed file
 - `tar`: TAR archive
-- `tar.gz`: Gzipped TAR archive
+- `tgz`: Gzipped TAR archive
+- `uncompressed`: Single uncompressed file
 - `zip`: ZIP archive
 
 ### variants[].assets[].urls (required)
@@ -180,4 +180,4 @@ Built-in script hooks:
 - `uninstall`: After file removal
 - `post_uninstall`: After uninstallation
 
-Custom scripts can be run using `lip run <script>`.
+Custom scripts can be run using `lip run <script>`. Custom script names should match`^[a-z0-9]+(_[a-z0-9]+)*$`.

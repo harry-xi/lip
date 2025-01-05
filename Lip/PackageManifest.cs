@@ -5,7 +5,7 @@ using Semver;
 
 namespace Lip;
 
-public partial record PackageManifest
+public record PackageManifest
 {
     public record AssetType
     {
@@ -61,12 +61,9 @@ public partial record PackageManifest
                 {
                     foreach (string tag in value)
                     {
-                        if (!TagGeneratedRegex().IsMatch(tag))
+                        if (!StringValidator.IsTagValid(tag))
                         {
-                            throw new ArgumentException(
-                                $"Tag {tag} does not match the regex pattern {TagGeneratedRegex()}.",
-                                nameof(value)
-                            );
+                            throw new ArgumentException($"Tag {tag} is invalid.", nameof(value));
                         }
                     }
                 }
@@ -78,9 +75,6 @@ public partial record PackageManifest
         public string? AvatarUrl { get; init; }
 
         private List<string>? _tags;
-
-        [GeneratedRegex("^[a-z0-9-]+(:[a-z0-9-]+)?$")]
-        private static partial Regex TagGeneratedRegex();
     }
 
     public record PlaceType
@@ -146,7 +140,7 @@ public partial record PackageManifest
 
                     // Ignore all properties that don't match the script name and value pattern.
 
-                    if (!ScriptNameGeneratedRegex().IsMatch(key))
+                    if (!StringValidator.IsScriptNameValid(key))
                     {
                         continue;
                     }
@@ -187,9 +181,6 @@ public partial record PackageManifest
                 }
             }
         }
-
-        [GeneratedRegex("^[a-z0-9]+(_[a-z0-9]+)*$")]
-        private static partial Regex ScriptNameGeneratedRegex();
     }
 
     public record VariantType
@@ -250,9 +241,9 @@ public partial record PackageManifest
         }
         init
         {
-            if (!SemVersion.TryParse(value, out _))
+            if (!StringValidator.IsVersionValid(value))
             {
-                throw new ArgumentException($"Version {value} is not a valid semantic version.", nameof(value));
+                throw new ArgumentException($"Version {value} is invalid.", nameof(value));
             }
 
             _version = value;

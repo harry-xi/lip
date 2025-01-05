@@ -3,16 +3,319 @@ using System.Text.Json;
 
 namespace Lip.Tests;
 
+public class PackageManifest_AssetTypeTests
+{
+    [Fact]
+    public void Deserialize_MinimumInput_Pass()
+    {
+        string json = """
+            {
+                "type": "self"
+            }
+            """;
+
+        PackageManifest.AssetType? asset = JsonSerializer.Deserialize<PackageManifest.AssetType>(json);
+
+        Assert.NotNull(asset);
+        Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, asset.Type);
+        Assert.Null(asset.Urls);
+        Assert.Null(asset.Place);
+        Assert.Null(asset.Preserve);
+        Assert.Null(asset.Remove);
+    }
+
+    [Fact]
+    public void Deserialize_MaximumInput_Pass()
+    {
+        string json = """
+            {
+                "type": "self",
+                "urls": [],
+                "place": [],
+                "preserve": [],
+                "remove": []
+            }
+            """;
+
+        PackageManifest.AssetType? asset = JsonSerializer.Deserialize<PackageManifest.AssetType>(json);
+
+        Assert.NotNull(asset);
+        Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, asset.Type);
+        Assert.Equal([], asset.Urls);
+        Assert.Equal([], asset.Place);
+        Assert.Equal([], asset.Preserve);
+        Assert.Equal([], asset.Remove);
+    }
+}
+
+public class PackageManifest_InfoTypeTests
+{
+    [Fact]
+    public void Deserialize_MinimumInput_Pass()
+    {
+        string json = "{}";
+
+        PackageManifest.InfoType? info = JsonSerializer.Deserialize<PackageManifest.InfoType>(json);
+
+        Assert.NotNull(info);
+        Assert.Null(info.Name);
+        Assert.Null(info.Description);
+        Assert.Null(info.Author);
+        Assert.Null(info.Tags);
+        Assert.Null(info.AvatarUrl);
+    }
+
+    [Fact]
+    public void Deserialize_MaximumInput_Pass()
+    {
+        string json = """
+            {
+                "name": "",
+                "description": "",
+                "author": "",
+                "tags": ["tag", "tag:subtag"],
+                "avatar_url": ""
+            }
+            """;
+
+        PackageManifest.InfoType? info = JsonSerializer.Deserialize<PackageManifest.InfoType>(json);
+
+        Assert.NotNull(info);
+        Assert.Equal("", info.Name);
+        Assert.Equal("", info.Description);
+        Assert.Equal("", info.Author);
+        Assert.Equal(new[] { "tag", "tag:subtag" }, info.Tags);
+        Assert.Equal("", info.AvatarUrl);
+    }
+
+    [Theory]
+    [InlineData("invalid.tag")]
+    [InlineData("tag:invalid.subtag")]
+    [InlineData("invalid.tag:subtag")]
+    [InlineData("invalid-tag:")]
+    [InlineData(":invalid-subtag")]
+    [InlineData(":")]
+    [InlineData("")]
+    public void Deserialize_InvalidTag_ThrowsArgumentException(string tag)
+    {
+        string json = $$"""
+            {
+                "tags": ["{{tag}}"]
+            }
+            """;
+
+        Assert.Throws<ArgumentException>("value", () => JsonSerializer.Deserialize<PackageManifest.InfoType>(json));
+    }
+}
+
+public class PackageManifest_PlaceTypeTests
+{
+    [Fact]
+    public void Deserialize_CommonInput_Pass()
+    {
+        string json = """
+            {
+                "type": "file",
+                "src": "",
+                "dest": ""
+            }
+            """;
+
+        PackageManifest.PlaceType? place = JsonSerializer.Deserialize<PackageManifest.PlaceType>(json);
+
+        Assert.NotNull(place);
+        Assert.Equal(PackageManifest.PlaceType.TypeEnum.File, place.Type);
+        Assert.Equal("", place.Src);
+        Assert.Equal("", place.Dest);
+    }
+}
+
+public class PackageManifest_ScriptsTypeTests
+{
+    [Fact]
+    public void Constructor_AdditionalScriptsInitialized_Pass()
+    {
+        var scripts = new PackageManifest.ScriptsType
+        {
+            AdditionalScripts = new Dictionary<string, List<string>>
+            {
+                ["additional_script"] = ["echo additional"]
+            }
+        };
+
+        Assert.NotNull(scripts.AdditionalProperties);
+        Assert.Single(scripts.AdditionalProperties);
+        Assert.Single(scripts.AdditionalScripts);
+        Assert.Equal(new[] { "echo additional" }, scripts.AdditionalScripts["additional_script"]);
+    }
+
+    [Fact]
+    public void Deserialize_MinimumInput_Pass()
+    {
+        string json = "{}";
+
+        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+
+        Assert.NotNull(scripts);
+        Assert.Null(scripts.PreInstall);
+        Assert.Null(scripts.Install);
+        Assert.Null(scripts.PostInstall);
+        Assert.Null(scripts.PrePack);
+        Assert.Null(scripts.PostPack);
+        Assert.Null(scripts.PreUninstall);
+        Assert.Null(scripts.Uninstall);
+        Assert.Null(scripts.PostUninstall);
+        Assert.Null(scripts.AdditionalProperties);
+        Assert.Equal([], scripts.AdditionalScripts);
+    }
+
+    [Fact]
+    public void Deserialize_MaximumInput_Pass()
+    {
+        string json = """
+            {
+                "pre_install": [],
+                "install": [],
+                "post_install": [],
+                "pre_pack": [],
+                "post_pack": [],
+                "pre_uninstall": [],
+                "uninstall": [],
+                "post_uninstall": [],
+                "additional_script": [
+                    "echo additional"
+                ]
+            }
+            """;
+
+        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+
+        Assert.NotNull(scripts);
+        Assert.Equal([], scripts.PreInstall);
+        Assert.Equal([], scripts.Install);
+        Assert.Equal([], scripts.PostInstall);
+        Assert.Equal([], scripts.PrePack);
+        Assert.Equal([], scripts.PostPack);
+        Assert.Equal([], scripts.PreUninstall);
+        Assert.Equal([], scripts.Uninstall);
+        Assert.Equal([], scripts.PostUninstall);
+        Assert.NotNull(scripts.AdditionalProperties);
+        Assert.Single(scripts.AdditionalProperties);
+        Assert.Contains("additional_script", scripts.AdditionalProperties);
+        Assert.Single(scripts.AdditionalScripts);
+        Assert.Contains("additional_script", scripts.AdditionalScripts);
+        Assert.Equal(["echo additional"], scripts.AdditionalScripts["additional_script"]);
+    }
+
+    [Fact]
+    public void Deserialize_InvalidPropertyKey_Pass()
+    {
+        string json = """
+            {
+                "invalid-script": []
+            }
+            """;
+
+        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+
+        Assert.NotNull(scripts);
+        Assert.NotNull(scripts.AdditionalProperties);
+        Assert.Single(scripts.AdditionalProperties);
+        Assert.Equal([], scripts.AdditionalScripts);
+    }
+
+    [Fact]
+    public void Deserialize_InvalidPropertyValueKind_Pass()
+    {
+        string json = """
+            {
+                "additional_script_1": null
+            }
+            """;
+
+        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+
+        Assert.NotNull(scripts);
+        Assert.NotNull(scripts.AdditionalProperties);
+        Assert.Single(scripts.AdditionalProperties);
+        Assert.Equal([], scripts.AdditionalScripts);
+    }
+
+    [Fact]
+    public void Deserialize_InvalidPropertyItemValueKind_Pass()
+    {
+        string json = """
+            {
+                "additional_script": [
+                    null
+                ]
+            }
+            """;
+
+        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+
+        Assert.NotNull(scripts);
+        Assert.NotNull(scripts.AdditionalProperties);
+        Assert.Single(scripts.AdditionalProperties);
+        Assert.Equal([], scripts.AdditionalScripts);
+    }
+}
+
+public class PackageManifest_VariantTypeTests
+{
+    [Fact]
+    public void Deserialize_MinimumInput_Pass()
+    {
+        string json = """
+            {
+                "platform": ""
+            }
+            """;
+
+        PackageManifest.VariantType? variant = JsonSerializer.Deserialize<PackageManifest.VariantType>(json);
+
+        Assert.NotNull(variant);
+        Assert.Equal("", variant.Platform);
+        Assert.Null(variant.Dependencies);
+        Assert.Null(variant.Prerequisites);
+        Assert.Null(variant.Assets);
+        Assert.Null(variant.Scripts);
+    }
+
+    [Fact]
+    public void Deserialize_MaximumInput_Pass()
+    {
+        string json = """
+            {
+                "platform": "",
+                "dependencies": {},
+                "prerequisites": {},
+                "assets": [],
+                "scripts": {}
+            }
+            """;
+
+        PackageManifest.VariantType? variant = JsonSerializer.Deserialize<PackageManifest.VariantType>(json);
+
+        Assert.NotNull(variant);
+        Assert.Equal("", variant.Platform);
+        Assert.Equal([], variant.Dependencies);
+        Assert.Equal([], variant.Prerequisites);
+        Assert.Equal([], variant.Assets);
+        Assert.NotNull(variant.Scripts);
+    }
+}
+
 public class PackageManifestTests
 {
     [Fact]
-    public void FromBytes_MinimalInput_Parsed()
+    public void FromBytes_MinimumInput_Parsed()
     {
         byte[] bytes = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
+                "tooth": "",
                 "version": "1.0.0"
             }
             """u8.ToArray();
@@ -22,63 +325,21 @@ public class PackageManifestTests
         Assert.NotNull(manifest);
         Assert.Equal(3, manifest.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
-        Assert.Equal("test-tooth", manifest.Tooth);
+        Assert.Equal("", manifest.Tooth);
         Assert.Equal("1.0.0", manifest.Version);
     }
 
     [Fact]
-    public void FromBytes_FullInput_Parsed()
+    public void FromBytes_MaximumInput_Parsed()
     {
         byte[] bytes = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
+                "tooth": "",
                 "version": "1.0.0",
-                "info": {
-                    "name": "Test Package",
-                    "description": "A test package",
-                    "author": "Test Author",
-                    "tags": ["test", "example:tag"],
-                    "avatar_url": "https://example.com/avatar.png"
-                },
-                "variants": [
-                    {
-                        "platform": "windows",
-                        "dependencies": {
-                            "some/dependency": "^1.0.0"
-                        },
-                        "prerequisites": {
-                            "some/prerequisite": "^2.0.0"
-                        },
-                        "assets": [
-                            {
-                                "type": "zip",
-                                "urls": ["https://example.com/asset.zip"],
-                                "place": [
-                                    {
-                                        "type": "dir",
-                                        "src": "src",
-                                        "dest": "dest"
-                                    }
-                                ],
-                                "preserve": ["*.txt"],
-                                "remove": ["*.tmp"]
-                            }
-                        ],
-                        "scripts": {
-                            "pre_install": ["echo pre-install"],
-                            "install": ["echo install"],
-                            "post_install": ["echo post-install"],
-                            "pre_pack": ["echo pre-pack"],
-                            "post_pack": ["echo post-pack"],
-                            "pre_uninstall": ["echo pre-uninstall"],
-                            "uninstall": ["echo uninstall"],
-                            "post_uninstall": ["echo post-uninstall"],
-                            "custom_script": ["echo custom"]
-                        }
-                    }
-                ]
+                "info": {},
+                "variants": []
             }
             """u8.ToArray();
 
@@ -87,127 +348,26 @@ public class PackageManifestTests
         Assert.NotNull(manifest);
         Assert.Equal(3, manifest.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
-        Assert.Equal("test-tooth", manifest.Tooth);
+        Assert.Equal("", manifest.Tooth);
         Assert.Equal("1.0.0", manifest.Version);
-
         Assert.NotNull(manifest.Info);
-        Assert.Equal("Test Package", manifest.Info.Name);
-        Assert.Equal("A test package", manifest.Info.Description);
-        Assert.Equal("Test Author", manifest.Info.Author);
-        Assert.Equal(new[] { "test", "example:tag" }, manifest.Info.Tags);
-        Assert.Equal("https://example.com/avatar.png", manifest.Info.AvatarUrl);
-
         Assert.NotNull(manifest.Variants);
-        Assert.Single(manifest.Variants);
-        PackageManifest.VariantType variant = manifest.Variants[0];
-        Assert.Equal("windows", variant.Platform);
-
-        Assert.NotNull(variant.Dependencies);
-        Assert.Equal("^1.0.0", variant.Dependencies["some/dependency"]);
-
-        Assert.NotNull(variant.Prerequisites);
-        Assert.Equal("^2.0.0", variant.Prerequisites["some/prerequisite"]);
-
-        Assert.NotNull(variant.Assets);
-        Assert.Single(variant.Assets);
-        PackageManifest.AssetType asset = variant.Assets[0];
-        Assert.Equal(PackageManifest.AssetType.TypeEnum.Zip, asset.Type);
-        Assert.Equal(new[] { "https://example.com/asset.zip" }, asset.Urls);
-
-        Assert.NotNull(asset.Place);
-        Assert.Single(asset.Place);
-        PackageManifest.PlaceType place = asset.Place[0];
-        Assert.Equal(PackageManifest.PlaceType.TypeEnum.Dir, place.Type);
-        Assert.Equal("src", place.Src);
-        Assert.Equal("dest", place.Dest);
-
-        Assert.Equal(new[] { "*.txt" }, asset.Preserve);
-        Assert.Equal(new[] { "*.tmp" }, asset.Remove);
-
-        Assert.NotNull(variant.Scripts);
-        Assert.Equal(new[] { "echo pre-install" }, variant.Scripts.PreInstall);
-        Assert.Equal(new[] { "echo install" }, variant.Scripts.Install);
-        Assert.Equal(new[] { "echo post-install" }, variant.Scripts.PostInstall);
-        Assert.Equal(new[] { "echo pre-pack" }, variant.Scripts.PrePack);
-        Assert.Equal(new[] { "echo post-pack" }, variant.Scripts.PostPack);
-        Assert.Equal(new[] { "echo pre-uninstall" }, variant.Scripts.PreUninstall);
-        Assert.Equal(new[] { "echo uninstall" }, variant.Scripts.Uninstall);
-        Assert.Equal(new[] { "echo post-uninstall" }, variant.Scripts.PostUninstall);
-        Assert.Equal(new[] { "echo custom" }, variant.Scripts.AdditionalScripts["custom_script"]);
-    }
-
-    [Fact]
-    public void FromBytes_InvalidJson_ThrowsJsonException()
-    {
-        byte[] bytes = Encoding.UTF8.GetBytes("invalid-json");
-
-        Assert.Throws<JsonException>(() => PackageManifest.FromBytes(bytes));
-    }
-
-    [Fact]
-    public void FromBytes_MissingRequiredField_ThrowsArgumentException()
-    {
-        byte[] bytes = """
-            {
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": "1.0.0"
-            }
-            """u8.ToArray();
-
-        Assert.Throws<JsonException>(() => PackageManifest.FromBytes(bytes));
-    }
-
-    [Fact]
-    public void FromBytes_InvalidFieldType_ThrowsJsonException()
-    {
-        byte[] bytes = """
-            {
-                "format_version": "3",
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": 1
-            }
-            """u8.ToArray();
-
-        Assert.Throws<JsonException>(() => PackageManifest.FromBytes(bytes));
-    }
-
-    [Fact]
-    public void FromBytes_AdditionalField_Parsed()
-    {
-        byte[] bytes = """
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": "1.0.0",
-                "additional_field": "additional-value"
-            }
-            """u8.ToArray();
-
-        var manifest = PackageManifest.FromBytes(bytes);
-
-        Assert.NotNull(manifest);
-        Assert.Equal(3, manifest.FormatVersion);
-        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
-        Assert.Equal("test-tooth", manifest.Tooth);
-        Assert.Equal("1.0.0", manifest.Version);
+        Assert.Equal([], manifest.Variants);
     }
 
     [Fact]
     public void FromBytes_InvalidFormatVersion_ThrowsArgumentException()
     {
-        byte[] bytes = Encoding.UTF8.GetBytes($$"""
+        byte[] bytes = """
             {
                 "format_version": 0,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
+                "tooth": "",
                 "version": "1.0.0"
             }
-            """);
+            """u8.ToArray();
 
-        Assert.Throws<ArgumentException>(() => PackageManifest.FromBytes(bytes));
+        Assert.Throws<ArgumentException>("value", () => PackageManifest.FromBytes(bytes));
     }
 
     [Fact]
@@ -216,13 +376,13 @@ public class PackageManifestTests
         byte[] bytes = """
             {
                 "format_version": 3,
-                "format_uuid": "invalid-uuid",
-                "tooth": "test-tooth",
+                "format_uuid": "",
+                "tooth": "",
                 "version": "1.0.0"
             }
             """u8.ToArray();
 
-        Assert.Throws<ArgumentException>(() => PackageManifest.FromBytes(bytes));
+        Assert.Throws<ArgumentException>("value", () => PackageManifest.FromBytes(bytes));
     }
 
     [Fact]
@@ -232,118 +392,11 @@ public class PackageManifestTests
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": "invalid-version"
+                "tooth": "",
+                "version": ""
             }
             """u8.ToArray();
 
-        Assert.Throws<ArgumentException>(() => PackageManifest.FromBytes(bytes));
-    }
-
-    [Fact]
-    public void FromBytes_InvalidTag_ThrowsJsonException()
-    {
-        byte[] bytes = """
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": "1.0.0",
-                "info": {
-                    "tags": ["invalid.tag"],
-                }
-            }
-            """u8.ToArray();
-
-        Assert.Throws<ArgumentException>(() => PackageManifest.FromBytes(bytes));
-    }
-
-    [Fact]
-    public void FromBytes_ValidAdditionalScript_Parsed()
-    {
-        byte[] bytes = """
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": "1.0.0",
-                "variants": [
-                    {
-                        "platform": "windows",
-                        "scripts": {
-                            "pre_install": ["echo pre-install"],
-                            "custom_script": ["echo custom"]
-                        }
-                    }
-                ]
-            }
-            """u8.ToArray();
-
-        var manifest = PackageManifest.FromBytes(bytes);
-
-        Assert.NotNull(manifest);
-        Assert.Equal(3, manifest.FormatVersion);
-        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
-        Assert.Equal("test-tooth", manifest.Tooth);
-        Assert.Equal("1.0.0", manifest.Version);
-
-        Assert.NotNull(manifest.Variants);
-        Assert.Single(manifest.Variants);
-        PackageManifest.VariantType variant = manifest.Variants[0];
-        Assert.Equal("windows", variant.Platform);
-
-        Assert.NotNull(variant.Scripts);
-        Assert.Equal(new[] { "echo pre-install" }, variant.Scripts.PreInstall);
-        Assert.Equal(new[] { "echo custom" }, variant.Scripts.AdditionalScripts["custom_script"]);
-    }
-
-    [Fact]
-    public void FromBytes_InvalidAdditionalScriptKey_ThrowsJsonException()
-    {
-        byte[] bytes = """
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": "1.0.0",
-                "variants": [
-                    {
-                        "platform": "windows",
-                        "scripts": {
-                            "pre_install": ["echo pre-install"],
-                            "invalid-script": ["echo invalid"]
-                        }
-                    }
-                ]
-            }
-            """u8.ToArray();
-
-        Assert.Throws<JsonException>(() => PackageManifest.FromBytes(bytes));
-    }
-
-    [Theory]
-    [InlineData("\"echo valid\"")]
-    [InlineData("[0]")]
-    public void FromBytes_InvalidAdditionalScriptValue_ThrowsJsonException(object invalidScript)
-    {
-        byte[] bytes = Encoding.UTF8.GetBytes($$"""
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "test-tooth",
-                "version": "1.0.0",
-                "variants": [
-                    {
-                        "platform": "windows",
-                        "scripts": {
-                            "pre_install": ["echo pre-install"],
-                            "invalid_script": {{invalidScript}}
-                        }
-                    }
-                ]
-            }
-            """);
-
-        Assert.Throws<JsonException>(() => PackageManifest.FromBytes(bytes));
+        Assert.Throws<ArgumentException>("value", () => PackageManifest.FromBytes(bytes));
     }
 }

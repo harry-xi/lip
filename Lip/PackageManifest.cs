@@ -62,7 +62,10 @@ public partial record PackageManifest
                     {
                         if (!TagGeneratedRegex().IsMatch(tag))
                         {
-                            throw new ArgumentException($"Tag {tag} must match the regex pattern {TagGeneratedRegex()}");
+                            throw new ArgumentException(
+                                $"Tag {tag} does not match the regex pattern {TagGeneratedRegex()}.",
+                                nameof(value)
+                            );
                         }
                     }
                 }
@@ -100,7 +103,7 @@ public partial record PackageManifest
         public required string Dest { get; init; }
     }
 
-    public record ScriptsType
+    public partial record ScriptsType
     {
         [JsonPropertyName("pre_install")]
         public List<string>? PreInstall { get; init; }
@@ -135,17 +138,57 @@ public partial record PackageManifest
             get
             {
                 var additionalScripts = new Dictionary<string, List<string>>();
-                if (AdditionalProperties is not null)
+                foreach (KeyValuePair<string, JsonElement> kvp in AdditionalProperties ?? [])
                 {
-                    foreach (KeyValuePair<string, JsonElement> kvp in AdditionalProperties)
+                    string key = kvp.Key;
+                    JsonElement value = kvp.Value;
+
+                    // Ignore all properties that don't match the script name and value pattern.
+
+                    if (!ScriptNameGeneratedRegex().IsMatch(key))
                     {
-                        List<string>? scripts = JsonSerializer.Deserialize<List<string>>(kvp.Value.GetRawText());
-                        additionalScripts[kvp.Key] = scripts ?? [];
+                        continue;
                     }
+
+                    if (value.ValueKind != JsonValueKind.Array)
+                    {
+                        continue;
+                    }
+
+                    bool allStrings = true;
+                    foreach (JsonElement element in value.EnumerateArray())
+                    {
+                        if (element.ValueKind != JsonValueKind.String)
+                        {
+                            allStrings = false;
+                            break;
+                        }
+                    }
+                    if (!allStrings)
+                    {
+                        continue;
+                    }
+
+                    // The value will always be an array of strings, since we've checked that above.
+                    List<string> scripts = value.Deserialize<List<string>>()!;
+
+                    additionalScripts[kvp.Key] = scripts;
                 }
                 return additionalScripts;
             }
+            init
+            {
+                AdditionalProperties ??= [];
+
+                foreach (KeyValuePair<string, List<string>> kvp in value)
+                {
+                    AdditionalProperties[kvp.Key] = JsonSerializer.SerializeToElement(kvp.Value);
+                }
+            }
         }
+
+        [GeneratedRegex("^[a-z0-9]+(_[a-z0-9]+)*$")]
+        private static partial Regex ScriptNameGeneratedRegex();
     }
 
     public record VariantType
@@ -181,7 +224,7 @@ public partial record PackageManifest
     {
         get => DefaultFormatVersion;
         init => _ = value == DefaultFormatVersion ? 0
-            : throw new ArgumentException($"FormatVersion must be {DefaultFormatVersion}", nameof(value));
+            : throw new ArgumentException($"Format version is not {DefaultFormatVersion}.", nameof(value));
     }
 
     [JsonPropertyName("format_uuid")]
@@ -189,7 +232,7 @@ public partial record PackageManifest
     {
         get => DefaultFormatUuid;
         init => _ = value == DefaultFormatUuid ? 0
-            : throw new ArgumentException("FormatUuid must be 114514", nameof(value));
+            : throw new ArgumentException($"Format UUID is not {DefaultFormatUuid}", nameof(value));
     }
 
     [JsonPropertyName("tooth")]
@@ -206,7 +249,7 @@ public partial record PackageManifest
         {
             if (!VersionGeneratedRegex().IsMatch(value))
             {
-                throw new ArgumentException($"Version {value} must match the regex pattern {VersionGeneratedRegex()}");
+                throw new ArgumentException($"Version {value} does not match the regex pattern {VersionGeneratedRegex()}", nameof(value));
             }
 
             _version = value;
@@ -228,42 +271,8 @@ public partial record PackageManifest
             s_jsonSerializerOptions
         );
 
-        // Validate additional properties of scripts.
-        if (manifest?.Variants is not null)
-        {
-            foreach (VariantType variant in manifest.Variants)
-            {
-                if (variant.Scripts?.AdditionalProperties is not null)
-                {
-                    foreach (KeyValuePair<string, JsonElement> kvp in variant.Scripts.AdditionalProperties)
-                    {
-                        if (!ScriptNameGeneratedRegex().IsMatch(kvp.Key))
-                        {
-                            throw new JsonException($"Script name {kvp.Key} must match the regex pattern {ScriptNameGeneratedRegex()}");
-                        }
-
-                        if (kvp.Value.ValueKind != JsonValueKind.Array)
-                        {
-                            throw new JsonException("Self-defined scripts must be arrays of strings.");
-                        }
-
-                        foreach (JsonElement element in kvp.Value.EnumerateArray())
-                        {
-                            if (element.ValueKind != JsonValueKind.String)
-                            {
-                                throw new JsonException("Self-defined scripts must be arrays of strings.");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         return manifest;
     }
-
-    [GeneratedRegex("^[a-z0-9]+(_[a-z0-9]+)*$")]
-    private static partial Regex ScriptNameGeneratedRegex();
 
     [GeneratedRegex(@"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")]
     private static partial Regex VersionGeneratedRegex();

@@ -56,7 +56,7 @@ A brief description of the package.
 
 The package author's name.
 
-### info.tags (optional)    
+### info.tags (optional)
 
 Package tags in either of these formats:
 
@@ -153,6 +153,7 @@ Source path specification:
 ### variants[].assets[].place[].dest (required)
 
 Destination path:
+
 - For file placement: Target file path
 - For directory/glob placement: Target directory path
 

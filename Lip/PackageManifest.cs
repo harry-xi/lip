@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Semver;
 
 namespace Lip;
 
@@ -224,7 +225,7 @@ public partial record PackageManifest
     {
         get => DefaultFormatVersion;
         init => _ = value == DefaultFormatVersion ? 0
-            : throw new ArgumentException($"Format version is not {DefaultFormatVersion}.", nameof(value));
+            : throw new ArgumentException($"Format version is not equal to {DefaultFormatVersion}.", nameof(value));
     }
 
     [JsonPropertyName("format_uuid")]
@@ -232,7 +233,7 @@ public partial record PackageManifest
     {
         get => DefaultFormatUuid;
         init => _ = value == DefaultFormatUuid ? 0
-            : throw new ArgumentException($"Format UUID is not {DefaultFormatUuid}", nameof(value));
+            : throw new ArgumentException($"Format UUID is not equal to {DefaultFormatUuid}.", nameof(value));
     }
 
     [JsonPropertyName("tooth")]
@@ -247,9 +248,9 @@ public partial record PackageManifest
         }
         init
         {
-            if (!VersionGeneratedRegex().IsMatch(value))
+            if (!SemVersion.TryParse(value, out _))
             {
-                throw new ArgumentException($"Version {value} does not match the regex pattern {VersionGeneratedRegex()}", nameof(value));
+                throw new ArgumentException($"Version {value} is not a valid semantic version.", nameof(value));
             }
 
             _version = value;
@@ -262,7 +263,7 @@ public partial record PackageManifest
     [JsonPropertyName("variants")]
     public VariantType[]? Variants { get; init; }
 
-    private string _version = string.Empty;
+    private string _version = "0.0.0";
 
     public static PackageManifest? FromBytes(byte[] bytes)
     {
@@ -273,7 +274,4 @@ public partial record PackageManifest
 
         return manifest;
     }
-
-    [GeneratedRegex(@"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")]
-    private static partial Regex VersionGeneratedRegex();
 }

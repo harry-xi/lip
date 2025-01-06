@@ -1,7 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using Semver;
 
 namespace Lip;
 
@@ -255,12 +253,12 @@ public record PackageManifest
 
     private string _version = "0.0.0";
 
-    public static PackageManifest? FromBytes(byte[] bytes)
+    public static PackageManifest FromBytes(byte[] bytes)
     {
         PackageManifest? manifest = JsonSerializer.Deserialize<PackageManifest>(
             bytes,
             s_jsonSerializerOptions
-        );
+        ) ?? throw new ArgumentException("Failed to deserialize package manifest.", nameof(bytes));
 
         return manifest;
     }

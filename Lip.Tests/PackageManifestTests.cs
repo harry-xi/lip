@@ -6,7 +6,7 @@ namespace Lip.Tests;
 public class PackageManifest_AssetTypeTests
 {
     [Fact]
-    public void Deserialize_MinimumInput_Pass()
+    public void Deserialize_MinimumJson_Passes()
     {
         string json = """
             {
@@ -25,7 +25,7 @@ public class PackageManifest_AssetTypeTests
     }
 
     [Fact]
-    public void Deserialize_MaximumInput_Pass()
+    public void Deserialize_MaximumJson_Passes()
     {
         string json = """
             {
@@ -51,7 +51,7 @@ public class PackageManifest_AssetTypeTests
 public class PackageManifest_InfoTypeTests
 {
     [Fact]
-    public void Deserialize_MinimumInput_Pass()
+    public void Deserialize_MinimumJson_Passes()
     {
         string json = "{}";
 
@@ -66,7 +66,7 @@ public class PackageManifest_InfoTypeTests
     }
 
     [Fact]
-    public void Deserialize_MaximumInput_Pass()
+    public void Deserialize_MaximumJson_Passes()
     {
         string json = """
             {
@@ -111,7 +111,7 @@ public class PackageManifest_InfoTypeTests
 public class PackageManifest_PlaceTypeTests
 {
     [Fact]
-    public void Deserialize_CommonInput_Pass()
+    public void Deserialize_CommonInput_Passes()
     {
         string json = """
             {
@@ -133,7 +133,7 @@ public class PackageManifest_PlaceTypeTests
 public class PackageManifest_ScriptsTypeTests
 {
     [Fact]
-    public void Constructor_AdditionalScriptsInitialized_Pass()
+    public void Constructor_AdditionalScriptsInitialized_Passes()
     {
         var scripts = new PackageManifest.ScriptsType
         {
@@ -150,7 +150,7 @@ public class PackageManifest_ScriptsTypeTests
     }
 
     [Fact]
-    public void Deserialize_MinimumInput_Pass()
+    public void Deserialize_MinimumJson_Passes()
     {
         string json = "{}";
 
@@ -170,7 +170,7 @@ public class PackageManifest_ScriptsTypeTests
     }
 
     [Fact]
-    public void Deserialize_MaximumInput_Pass()
+    public void Deserialize_MaximumJson_Passes()
     {
         string json = """
             {
@@ -208,7 +208,7 @@ public class PackageManifest_ScriptsTypeTests
     }
 
     [Fact]
-    public void Deserialize_InvalidPropertyKey_Pass()
+    public void Deserialize_InvalidPropertyKey_Passes()
     {
         string json = """
             {
@@ -225,7 +225,7 @@ public class PackageManifest_ScriptsTypeTests
     }
 
     [Fact]
-    public void Deserialize_InvalidPropertyValueKind_Pass()
+    public void Deserialize_InvalidPropertyValueKind_Passes()
     {
         string json = """
             {
@@ -242,7 +242,7 @@ public class PackageManifest_ScriptsTypeTests
     }
 
     [Fact]
-    public void Deserialize_InvalidPropertyItemValueKind_Pass()
+    public void Deserialize_InvalidPropertyItemValueKind_Passes()
     {
         string json = """
             {
@@ -264,7 +264,7 @@ public class PackageManifest_ScriptsTypeTests
 public class PackageManifest_VariantTypeTests
 {
     [Fact]
-    public void Deserialize_MinimumInput_Pass()
+    public void Deserialize_MinimumJson_Passes()
     {
         string json = """
             {
@@ -282,7 +282,7 @@ public class PackageManifest_VariantTypeTests
     }
 
     [Fact]
-    public void Deserialize_MaximumInput_Pass()
+    public void Deserialize_MaximumJson_Passes()
     {
         string json = """
             {
@@ -306,7 +306,7 @@ public class PackageManifest_VariantTypeTests
 public class PackageManifestTests
 {
     [Fact]
-    public void FromBytes_MinimumInput_Parsed()
+    public void FromBytes_MinimumJson_Passes()
     {
         byte[] bytes = """
             {
@@ -319,7 +319,6 @@ public class PackageManifestTests
 
         var manifest = PackageManifest.FromBytes(bytes);
 
-        Assert.NotNull(manifest);
         Assert.Equal(3, manifest.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
         Assert.Equal("", manifest.Tooth);
@@ -327,7 +326,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void FromBytes_MaximumInput_Parsed()
+    public void FromBytes_MaximumJson_Passes()
     {
         byte[] bytes = """
             {
@@ -342,7 +341,6 @@ public class PackageManifestTests
 
         var manifest = PackageManifest.FromBytes(bytes);
 
-        Assert.NotNull(manifest);
         Assert.Equal(3, manifest.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
         Assert.Equal("", manifest.Tooth);
@@ -350,6 +348,12 @@ public class PackageManifestTests
         Assert.NotNull(manifest.Info);
         Assert.NotNull(manifest.Variants);
         Assert.Equal([], manifest.Variants);
+    }
+
+    [Fact]
+    public void FromBytes_NullJson_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>("bytes", () => PackageManifest.FromBytes("null"u8.ToArray()));
     }
 
     [Fact]
@@ -398,7 +402,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void ToBytes_MinimumInput_Serialized()
+    public void ToBytes_MinimumJson_Passes()
     {
         var manifest = new PackageManifest
         {

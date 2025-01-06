@@ -22,7 +22,7 @@ lip stores cache data in `%LocalAppData%\lip-cache` for Windows and `~/.cache/li
 lip cache add <package-spec>
 ```
 
-Add a package to the cache. `<package-spec>` is a [package specifier](#), e.g. `github.com/futrime/example-package#subpack@1.0.0`.
+Add a package to the cache. `<package-spec>` is a [package specifier](./lip-install.md#package-specifier), e.g. `github.com/futrime/example-package#subpack@1.0.0`.
 
 If a Go module proxy is set in configuration, lip will download the package via Goproxy. Otherwise, lip will download the package directly from the Git repository.
 

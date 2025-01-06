@@ -277,7 +277,6 @@ public class PackageManifest_VariantTypeTests
         Assert.NotNull(variant);
         Assert.Equal("", variant.Platform);
         Assert.Null(variant.Dependencies);
-        Assert.Null(variant.Prerequisites);
         Assert.Null(variant.Assets);
         Assert.Null(variant.Scripts);
     }
@@ -289,7 +288,6 @@ public class PackageManifest_VariantTypeTests
             {
                 "platform": "",
                 "dependencies": {},
-                "prerequisites": {},
                 "assets": [],
                 "scripts": {}
             }
@@ -300,7 +298,6 @@ public class PackageManifest_VariantTypeTests
         Assert.NotNull(variant);
         Assert.Equal("", variant.Platform);
         Assert.Equal([], variant.Dependencies);
-        Assert.Equal([], variant.Prerequisites);
         Assert.Equal([], variant.Assets);
         Assert.NotNull(variant.Scripts);
     }

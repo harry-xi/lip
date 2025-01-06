@@ -191,9 +191,6 @@ public record PackageManifest
         [JsonPropertyName("dependencies")]
         public Dictionary<string, string>? Dependencies { get; init; }
 
-        [JsonPropertyName("prerequisites")]
-        public Dictionary<string, string>? Prerequisites { get; init; }
-
         [JsonPropertyName("assets")]
         public List<AssetType>? Assets { get; init; }
 

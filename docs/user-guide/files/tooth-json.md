@@ -107,10 +107,6 @@ Version constraints:
 
 Version parsing uses [WalkerCodeRanger/semver](https://github.com/WalkerCodeRanger/semver).
 
-### variants[].prerequisites (optional)
-
-Required packages that must be pre-installed. Uses the same format as dependencies but won't be installed automatically. Installation will fail if prerequisites are missing.
-
 ### variants[].assets (optional)
 
 Defines how package files should be handled.

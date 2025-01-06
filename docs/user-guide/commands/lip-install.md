@@ -14,15 +14,14 @@ A `<package>` can be any of the following (in order of priority):
 
 - A directory containing a `tooth.json` file
 - An archive (`.zip`, `.tar`, `.tgz` or `.tar.gz`) containing a directory with a `tooth.json` file
-- A [package specifier](#) referencing a Git repository
+- A [package specifier](#package-specifier) referencing a Git repository
 
 If no `<package>` is specified and the current directory contains a `tooth.json` file, lip will install the package in the current directory. Inplace file placement will not be performed.
 
 When using a package specifier, lip will use Goproxy to download the package if a Go module proxy is set in configuration. Otherwise, packages are downloaded directly from their Git repositories.
 
-Package prerequisites must be installed manually. lip will not proceed with installation if it detects missing prerequisites.
-
 When resolving dependencies, lip follows these rules:
+
 - Selects the latest stable version that meets the specified constraints
 - Falls back to the latest pre-release version if no stable version is available
 - Installs dependencies in topological order (dependencies before dependents)
@@ -55,10 +54,6 @@ Pre-release versions can be installed by explicitly specifying the version numbe
 - `--save`
 
   Save the installed packages to the `tooth.json` file as dependencies.
-
-- `--save-prerequisites`
-
-  Save the installed packages to the `tooth.json` file as prerequisites.
 
 ## Package Specifier
 

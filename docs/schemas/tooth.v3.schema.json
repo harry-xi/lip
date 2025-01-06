@@ -57,14 +57,6 @@
                             }
                         }
                     },
-                    "prerequisites": {
-                        "type": "object",
-                        "patternProperties": {
-                            "^.*$": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "assets": {
                         "type": "array",
                         "items": {

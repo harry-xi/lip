@@ -12,7 +12,7 @@ Set up a new package in the current directory.
 
 Initialize and writes a new `tooth.json` file in the current directory. The `tooth.json` file must not already exist.
 
-If a [package specifier](#) (`<package-spec>`) is specified, the package will be initialized with the specified package.
+If a [package specifier](./lip-install.md#package-specifier) (`<package-spec>`) is specified, the package will be initialized with the specified package.
 
 ## Options
 

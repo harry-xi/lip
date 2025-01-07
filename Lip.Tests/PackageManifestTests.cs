@@ -266,16 +266,12 @@ public class PackageManifest_VariantTypeTests
     [Fact]
     public void Deserialize_MinimumJson_Passes()
     {
-        string json = """
-            {
-                "platform": ""
-            }
-            """;
+        string json = "{}";
 
         PackageManifest.VariantType? variant = JsonSerializer.Deserialize<PackageManifest.VariantType>(json);
 
         Assert.NotNull(variant);
-        Assert.Equal("", variant.Platform);
+        Assert.Null(variant.Platform);
         Assert.Null(variant.Dependencies);
         Assert.Null(variant.Assets);
         Assert.Null(variant.Scripts);
@@ -286,6 +282,7 @@ public class PackageManifest_VariantTypeTests
     {
         string json = """
             {
+                "label": "",
                 "platform": "",
                 "dependencies": {},
                 "assets": [],
@@ -296,6 +293,7 @@ public class PackageManifest_VariantTypeTests
         PackageManifest.VariantType? variant = JsonSerializer.Deserialize<PackageManifest.VariantType>(json);
 
         Assert.NotNull(variant);
+        Assert.Equal("", variant.Label);
         Assert.Equal("", variant.Platform);
         Assert.Equal([], variant.Dependencies);
         Assert.Equal([], variant.Assets);

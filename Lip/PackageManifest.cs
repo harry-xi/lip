@@ -183,8 +183,11 @@ public record PackageManifest
 
     public record VariantType
     {
+        [JsonPropertyName("label")]
+        public string? Label { get; init; }
+
         [JsonPropertyName("platform")]
-        public required string Platform { get; init; }
+        public string? Platform { get; init; }
 
         [JsonPropertyName("dependencies")]
         public Dictionary<string, string>? Dependencies { get; init; }
@@ -251,7 +254,7 @@ public record PackageManifest
     [JsonPropertyName("variants")]
     public VariantType[]? Variants { get; init; }
 
-    private string _version = "0.0.0";
+    private string _version = "0.0.0"; // The default value does never get used.
 
     public static PackageManifest FromBytes(byte[] bytes)
     {

@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using Semver;
 
 namespace Lip;
 
@@ -32,7 +31,7 @@ public static partial class StringValidator
     /// <returns>True if the version is valid; otherwise, false.</returns>
     public static bool IsVersionValid(string version)
     {
-        return SemVersion.TryParse(version, out _);
+        return Semver.SemVersion.TryParse(version, out _);
     }
 
     [GeneratedRegex("^[a-z0-9]+(_[a-z0-9]+)*$")]

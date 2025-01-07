@@ -199,8 +199,8 @@ public record PackageManifest
         public ScriptsType? Scripts { get; init; }
     }
 
-    private const int DefaultFormatVersion = 3;
-    private const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
+    public const int DefaultFormatVersion = 3;
+    public const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
 
     private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
     {

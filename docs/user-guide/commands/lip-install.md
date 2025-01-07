@@ -14,7 +14,7 @@ A `<package>` can be any of the following (in order of priority):
 
 - A directory containing a `tooth.json` file
 - An archive (`.zip`, `.tar`, `.tgz` or `.tar.gz`) containing a directory with a `tooth.json` file
-- A [package specifier](#package-specifier) referencing a Git repository
+- A [package specifier](./lip-init.md#package-specifier) referencing a Git repository
 
 If no `<package>` is specified and the current directory contains a `tooth.json` file, lip will install the package in the current directory. Inplace file placement will not be performed.
 
@@ -54,27 +54,3 @@ Pre-release versions can be installed by explicitly specifying the version numbe
 - `--save`
 
   Save the installed packages to the `tooth.json` file as dependencies.
-
-## Package Specifier
-
-A package specifier is a string that identifies a package, a sub-directory path, and a version.
-
-The format is `<package>[#<path>][@<version>]`.
-
-- `<package>` is the identifier of the package.
-- `<version>` is the version of the package. If omitted, lip will install the latest version.
-- `<path>` is an optional sub-directory path within the package, which must be a valid relative path beginning with a directory or a file name.
-
-Examples:
-
-- `github.com/futrime/example-package`
-- `github.com/futrime/example-package#cmd/example-package`
-- `github.com/futrime/example-package@v1.0.0`
-- `github.com/futrime/example-package#cmd/example-package@v1.0.0-beta.1`
-
-Wrong examples:
-
-- `github.com/futrime/example-package#/cmd/example-package/`
-- `github.com/futrime/example-package#~cmd/example-package/`
-- `github.com/futrime/example-package#../cmd/example-package/`
-- `github.com/futrime/example-package#./cmd/example-package/`

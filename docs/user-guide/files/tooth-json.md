@@ -18,7 +18,7 @@ The format's unique identifier. Currently only `289f771f-2c9a-4d73-9f3f-8492495a
 
 ### tooth (required)
 
-The package's unique identifier in Go module path format (a URL without scheme and suffix). You may optionally specify a subdirectory path.
+The package's tooth path, a unique identifier in Go module path format (a URL without scheme and suffix). You may optionally specify a subdirectory path.
 
 Examples:
 
@@ -79,7 +79,14 @@ Note: For platform compatibility checks, lip ignores variants using glob pattern
 
 ### variants[].label (optional)
 
-The label for this variant. Users can install a specific variant by label with `lip install <tooth>#<label>@<version>`. Should match `^[a-z0-9]+(_[a-z0-9]+)*$`.
+The label for this variant. Users can install a specific variant by label with `lip install <tooth>#<label>@<version>`. Should either match `^[a-z0-9]+(_[a-z0-9]+)*$ or be a glob pattern. If omitted, the variant is considered the default.
+
+For a variant label to be recognized, there must be at least one variant with a non-globbed label defined in the variants array. Glob patterns in label fields only take effect when their corresponding non-globbed labels are also defined. For example:
+
+- Having only `label_*` does not indicate support for any label
+- To support `label_a` and `label_b`, you need either:
+  - Two separate variants with exact labels
+  - One variant with exact label and another with `label_*`
 
 ### variants[].platform (optional)
 
@@ -93,7 +100,12 @@ The target platform for this variant. Valid values:
 - `win-x64`
 - Glob patterns (e.g., `linux-*`)
 
-If not specified, the variant applies to all platforms, i.e. `*`.
+For platform variant to be recognized, there must be at least one non-globbed platform variant defined in the variants array. Glob patterns in platform fields only take effect when their corresponding non-globbed platforms are also defined. For example:
+
+- Having only `linux-*` does not indicate support for any Linux platform
+- To support `linux-x64` and `linux-arm64`, you need either:
+  - Two separate variants with exact platforms
+  - One variant with exact platform and another with `linux-*`
 
 ### variants[].dependencies (optional)
 

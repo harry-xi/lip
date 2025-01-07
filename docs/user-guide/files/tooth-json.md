@@ -77,7 +77,11 @@ lip processes variants in order, applying all that match the current platform. W
 
 Note: For platform compatibility checks, lip ignores variants using glob patterns. To support multiple platforms, define separate variants for each, even if they're empty.
 
-### variants[].platform (required)
+### variants[].label (optional)
+
+The label for this variant. Users can install a specific variant by label with `lip install <tooth>#<label>@<version>`. Should match `^[a-z0-9]+(_[a-z0-9]+)*$`.
+
+### variants[].platform (optional)
 
 The target platform for this variant. Valid values:
 
@@ -88,6 +92,8 @@ The target platform for this variant. Valid values:
 - `win-arm64`
 - `win-x64`
 - Glob patterns (e.g., `linux-*`)
+
+If not specified, the variant applies to all platforms, i.e. `*`.
 
 ### variants[].dependencies (optional)
 

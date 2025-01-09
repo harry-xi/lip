@@ -50,6 +50,13 @@ jobs:
       matrix:
         project:
           - Lip.CLI
+        runtime:
+          - linux-arm64
+          - linux-x64
+          - osx-arm64
+          - osx-x64
+          - win-arm64
+          - win-x64
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-22.04
@@ -116,16 +123,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - run: |
-          dotnet restore ${{ matrix.project }}
-
-      - run: >
-          dotnet build ${{ matrix.project }}
-          -c Release
-          --no-restore
-
-      - run: >
           dotnet test ${{ matrix.project }}
-          --no-build
 
   check-style:
     strategy:

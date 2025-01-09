@@ -2,17 +2,20 @@ on:
   pull_request:
     paths:
       - .github/workflows/build.yml
-      - Lip/**
-      - Lip.Tests/**
+      - '**.cs'
+      - '**.csproj'
   push:
     paths:
       - .github/workflows/build.yml
-      - Lip/**
-      - Lip.Tests/**
+      - '**.cs'
+      - '**.csproj'
   workflow_dispatch:
 
+env:
+  DOTNET_VERSION: 9.0.x
+
 jobs:
-  build:
+  build-lip:
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +38,42 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - run: |
+          dotnet restore Lip
+
+      - run: >
+          dotnet build Lip
+          -c Release
+          --no-restore
+
+  build-app:
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - Lip.CLI
+        include:
+          - runtime: linux-arm64
+            runs-on: ubuntu-22.04
+          - runtime: linux-x64
+            runs-on: ubuntu-latest
+          - runtime: osx-arm64
+            runs-on: macos-latest
+          - runtime: osx-x64
+            runs-on: macos-latest
+          - runtime: win-arm64
+            runs-on: windows-latest
+          - runtime: win-x64
+            runs-on: windows-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - if: matrix.runtime == 'linux-arm64'
         run: |
@@ -51,7 +89,7 @@ jobs:
           sudo apt install -y clang llvm binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu zlib1g-dev:arm64
 
       - run: >
-          dotnet publish Lip/Lip.csproj
+          dotnet publish ${{ matrix.project }}
           -c Release
           -o bin
           -r ${{ matrix.runtime }}
@@ -60,13 +98,15 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
   test:
     strategy:
       fail-fast: false
       matrix:
+        project:
+          - Lip.Tests
         runs-on:
           - macos-latest
           - ubuntu-latest
@@ -77,20 +117,36 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - run: |
-          dotnet test Lip.Tests/Lip.Tests.csproj
+          dotnet restore ${{ matrix.project }}
+
+      - run: >
+          dotnet build ${{ matrix.project }}
+          -c Release
+          --no-restore
+
+      - run: >
+          dotnet test ${{ matrix.project }}
+          --no-build
 
   check-style:
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - Lip
+          - Lip.Tests
+          - Lip.CLI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - run: |
-          dotnet format --verify-no-changes Lip
-          dotnet format --verify-no-changes Lip.Tests
+      - run: >
+          dotnet format ${{ matrix.project }}
+          --verify-no-changes

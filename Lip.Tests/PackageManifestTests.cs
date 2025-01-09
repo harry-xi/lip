@@ -421,6 +421,6 @@ public class PackageManifestTests
                 "tooth": "",
                 "version": "1.0.0"
             }
-            """, json);
+            """.ReplaceLineEndings(), json.ReplaceLineEndings());
     }
 }

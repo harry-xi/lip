@@ -70,7 +70,7 @@ public class RuntimeConfigurationTests
     {
         var runtimeConfiguration = new RuntimeConfiguration();
 
-        string expected = $$"""
+        Assert.Equal($$"""
             {
                 "cache": "{{(OperatingSystem.IsWindows() ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip-cache").Replace("\\", "\\\\") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "lip"))}}",
                 "color": true,
@@ -82,8 +82,6 @@ public class RuntimeConfigurationTests
                 "proxy": "",
                 "script_shell": "{{(OperatingSystem.IsWindows() ? "cmd.exe" : "/bin/sh")}}"
             }
-            """;
-
-        Assert.Equal(expected, Encoding.UTF8.GetString(runtimeConfiguration.ToBytes()));
+            """.ReplaceLineEndings(), Encoding.UTF8.GetString(runtimeConfiguration.ToBytes()).ReplaceLineEndings());
     }
 }

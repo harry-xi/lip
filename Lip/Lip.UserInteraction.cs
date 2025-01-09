@@ -1,4 +1,4 @@
-namespace Lip;
+﻿namespace Lip;
 
 public partial class Lip
 {

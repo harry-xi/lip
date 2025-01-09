@@ -3,11 +3,16 @@ on:
     types:
       - published
 
+env:
+  DOTNET_VERSION: 9.0.x
+
 jobs:
-  build:
+  build-app:
     strategy:
       fail-fast: false
       matrix:
+        project:
+          - Lip.CLI
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-22.04
@@ -27,7 +32,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - if: matrix.runtime == 'linux-arm64'
         run: |
@@ -43,16 +48,16 @@ jobs:
           sudo apt install -y clang llvm binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu zlib1g-dev:arm64
 
       - run: >
-          dotnet publish Lip/Lip.csproj
-          -c Release
-          -o bin
-          -r ${{ matrix.runtime }}
+          dotnet publish ${{ matrix.project }}
+          --configuration Release
+          --output bin
+          --runtime ${{ matrix.runtime }}
           -p:OptimizationPreference=Size
           -p:PublishAot=true
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
   update-release-notes:
@@ -71,7 +76,7 @@ jobs:
 
   upload-to-release:
     needs:
-      - build
+      - build-app
       - update-release-notes
     permissions:
       contents: write
@@ -79,6 +84,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        project:
+          - Lip.CLI
         runtime:
           - linux-arm64
           - linux-x64
@@ -91,33 +98,29 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: artifact/
 
       - run: |
-          cp CHANGELOG.md LICENSE README.md artifact/
+          cp CHANGELOG.md COPYING README.md artifact/
 
-      - name: Pack artifact (Windows)
-        if: startsWith(matrix.runtime, 'win') == true
+      - if: startsWith(matrix.runtime, 'win') == true
         run: |
           zip -r ../${{ github.event.repository.name }}-${{ matrix.runtime }}.zip *
         working-directory: artifact
 
-      - name: Pack artifact (Others)
-        if: startsWith(matrix.runtime, 'win') == false
+      - if: startsWith(matrix.runtime, 'win') == false
         run: |
           tar -czvf ../${{ github.event.repository.name }}-${{ matrix.runtime }}.tar.gz *
         working-directory: artifact
 
-      - name: Upload artifact to release (Windows)
-        if: startsWith(matrix.runtime, 'win') == true
+      - if: startsWith(matrix.runtime, 'win') == true
         uses: softprops/action-gh-release@v2
         with:
           files: |
             ${{ github.event.repository.name }}-${{ matrix.runtime }}.zip
 
-      - name: Upload artifact to release (Others)
-        if: startsWith(matrix.runtime, 'win') == false
+      - if: startsWith(matrix.runtime, 'win') == false
         uses: softprops/action-gh-release@v2
         with:
           files: |

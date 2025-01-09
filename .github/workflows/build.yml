@@ -40,13 +40,9 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - run: |
-          dotnet restore Lip
-
       - run: >
           dotnet build Lip
-          -c Release
-          --no-restore
+          --configuration Release
 
   build-app:
     strategy:
@@ -90,9 +86,9 @@ jobs:
 
       - run: >
           dotnet publish ${{ matrix.project }}
-          -c Release
-          -o bin
-          -r ${{ matrix.runtime }}
+          --configuration Release
+          --output bin
+          --runtime ${{ matrix.runtime }}
           -p:OptimizationPreference=Size
           -p:PublishAot=true
 

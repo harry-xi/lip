@@ -17,7 +17,7 @@ public static class ConditionWaiter
     /// <param name="interval">The interval to check the condition.</param>
     /// <returns></returns>
     /// <exception cref="TimeoutException"></exception>
-    public static async Task AsyncWaitFor(Func<bool> condition, TimeSpan? timeout = null, TimeSpan? interval = null)
+    public static async Task WaitForAsync(Func<bool> condition, TimeSpan? timeout = null, TimeSpan? interval = null)
     {
         var sw = Stopwatch.StartNew();
         while (!condition())

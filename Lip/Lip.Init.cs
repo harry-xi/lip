@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace Lip;
 
@@ -24,7 +25,7 @@ public partial class Lip
     {
         string workspace = args.Workspace ?? _filesystem.Directory.GetCurrentDirectory();
 
-        // Check if the workspace is a valid directory.
+        // Check if the workspace is a directory.
         if (!_filesystem.Directory.Exists(workspace))
         {
             throw new DirectoryNotFoundException($"The directory '{workspace}' does not exist.");
@@ -54,12 +55,12 @@ public partial class Lip
         }
         else
         {
-            string tooth = args.InitTooth ?? await PromptUserInteraction(UserInteractionEventType.InitTooth) ?? DefaultTooth;
-            string version = args.InitVersion ?? await PromptUserInteraction(UserInteractionEventType.InitVersion) ?? DefaultVersion;
-            string? name = args.InitName ?? await PromptUserInteraction(UserInteractionEventType.InitName);
-            string? description = args.InitDescription ?? await PromptUserInteraction(UserInteractionEventType.InitDescription);
-            string? author = args.InitAuthor ?? await PromptUserInteraction(UserInteractionEventType.InitAuthor);
-            string? avatarUrl = args.InitAvatarUrl ?? await PromptUserInteraction(UserInteractionEventType.InitAvatarUrl);
+            string tooth = args.InitTooth ?? await _userInteraction.PromptForInputAsync("Enter the tooth path (e.g. {DefaultTooth}):", DefaultTooth) ?? DefaultTooth;
+            string version = args.InitVersion ?? await _userInteraction.PromptForInputAsync("Enter the package version (e.g. {DefaultVersion}):", DefaultVersion) ?? DefaultVersion;
+            string? name = args.InitName ?? await _userInteraction.PromptForInputAsync("Enter the package name:");
+            string? description = args.InitDescription ?? await _userInteraction.PromptForInputAsync("Enter the package description:");
+            string? author = args.InitAuthor ?? await _userInteraction.PromptForInputAsync("Enter the package author:");
+            string? avatarUrl = args.InitAvatarUrl ?? await _userInteraction.PromptForInputAsync("Enter the author's avatar URL:");
 
             manifest = new()
             {
@@ -77,8 +78,7 @@ public partial class Lip
             };
 
             string jsonString = Encoding.UTF8.GetString(manifest.ToBytes());
-            string? response = (await PromptUserInteraction(UserInteractionEventType.InitConfirm, [jsonString]))?.ToLower();
-            if (response != "y")
+            if (!await _userInteraction.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", jsonString))
             {
                 throw new OperationCanceledException("Operation canceled by the user.");
             }
@@ -95,11 +95,11 @@ public partial class Lip
                 throw new InvalidOperationException($"The file '{manifestPath}' already exists. Use the -f or --force option to overwrite it.");
             }
 
-            _logger.Warning($"The file '{manifestPath}' already exists. Overwriting it.");
+            _logger.LogWarning("The file '{ManifestPath}' already exists. Overwriting it.", manifestPath);
         }
 
         await _filesystem.File.WriteAllBytesAsync(manifestPath, manifest!.ToBytes());
 
-        _logger.Information($"Successfully initialized the package manifest file '{manifestPath}'.");
+        _logger.LogInformation("Successfully initialized the package manifest file '{ManifestPath}'.", manifestPath);
     }
 }

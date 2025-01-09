@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Lip;
 
+/// <summary>
+/// Represents the runtime configuration.
+/// </summary>
 public record RuntimeConfiguration
 {
     private static readonly string s_defaultCache = OperatingSystem.IsWindows()

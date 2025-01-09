@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace Lip;
 
+/// <summary>
+/// Represents the package manifest.
+/// </summary>
 public record PackageManifest
 {
     public record AssetType
@@ -256,6 +259,11 @@ public record PackageManifest
 
     private string _version = "0.0.0"; // The default value does never get used.
 
+    /// <summary>
+    /// Deserializes a package manifest from the specified byte array.
+    /// </summary>
+    /// <param name="bytes">The byte array to deserialize.</param>
+    /// <returns>The deserialized package manifest.</returns>
     public static PackageManifest FromBytes(byte[] bytes)
     {
         PackageManifest? manifest = JsonSerializer.Deserialize<PackageManifest>(
@@ -266,6 +274,10 @@ public record PackageManifest
         return manifest;
     }
 
+    /// <summary>
+    /// Serializes the package manifest to a byte array.
+    /// </summary>
+    /// <returns>The serialized package manifest.</returns>
     public byte[] ToBytes()
     {
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);

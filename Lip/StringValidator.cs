@@ -2,6 +2,9 @@
 
 namespace Lip;
 
+/// <summary>
+/// Provides utility methods for validating various strings.
+/// </summary>
 public static partial class StringValidator
 {
     /// <summary>

@@ -1,29 +1,121 @@
 ﻿using System.IO.Abstractions.TestingHelpers;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Lip.Tests;
 
 public partial class LipTests
 {
-    private static readonly string s_workspacePath = OperatingSystem.IsWindows() ? Path.Combine("C:", "path", "to", "workspace") : Path.Combine("/", "path", "to", "workspace");
+    public static readonly string WorkspacePath = OperatingSystem.IsWindows() ? Path.Combine("C:", "path", "to", "workspace") : Path.Combine("/", "path", "to", "workspace");
 
-    public static Mock<Serilog.ILogger> CreateMockLogger()
+    [Fact]
+    public async Task Init_Interactive_Passes()
     {
-        var logger = new Mock<Serilog.ILogger>();
-        logger.Setup(l => l.Warning(It.IsAny<string>()));
-        logger.Setup(l => l.Information(It.IsAny<string>()));
-        return logger;
+        // Arrange.
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
+        {
+            { WorkspacePath, new MockDirectoryData() },
+        }, currentDirectory: WorkspacePath);
+
+        Mock<ILogger> logger = new();
+
+        Mock<IUserInteraction> userInteraction = new();
+        userInteraction.Setup(u => u.PromptForInputAsync(
+            "Enter the tooth path (e.g. {DefaultTooth}):",
+            "example.com/org/package").Result)
+            .Returns("example.com/org/package");
+        userInteraction.Setup(u => u.PromptForInputAsync("Enter the package version (e.g. {DefaultVersion}):", "0.1.0").Result)
+            .Returns("0.1.0");
+        userInteraction.Setup(u => u.PromptForInputAsync("Enter the package name:").Result)
+            .Returns("Example Package");
+        userInteraction.Setup(u => u.PromptForInputAsync("Enter the package description:").Result)
+            .Returns("An example package.");
+        userInteraction.Setup(u => u.PromptForInputAsync("Enter the package author:").Result)
+            .Returns("Example Author");
+        userInteraction.Setup(u => u.PromptForInputAsync("Enter the author's avatar URL:").Result)
+            .Returns("https://example.com/avatar.png");
+        userInteraction.Setup(u => u.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
+            .Returns(true);
+
+        Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
+
+        Lip.InitArgs args = new();
+
+        // Act.
+        await lip.Init(args);
+
+        // Assert.
+        Assert.True(fileSystem.File.Exists(Path.Combine(WorkspacePath, "tooth.json")));
+        Assert.Equal(
+            """
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "example.com/org/package",
+                "version": "0.1.0",
+                "info": {
+                    "name": "Example Package",
+                    "description": "An example package.",
+                    "author": "Example Author",
+                    "avatar_url": "https://example.com/avatar.png"
+                }
+            }
+            """.ReplaceLineEndings(),
+            fileSystem.File.ReadAllText(Path.Combine(WorkspacePath, "tooth.json")).ReplaceLineEndings());
     }
 
     [Fact]
-    public async Task Init_NoInteraction_Passes()
+    public async Task Init_WithDefaultValues_Passes()
     {
+        // Arrange.
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_workspacePath, new MockDirectoryData() },
-        }, currentDirectory: s_workspacePath);
-        Mock<Serilog.ILogger> logger = CreateMockLogger();
-        Lip lip = new(new(), fileSystem, logger.Object);
+            { WorkspacePath, new MockDirectoryData() },
+        }, currentDirectory: WorkspacePath);
+
+        Mock<ILogger> logger = new();
+
+        Mock<IUserInteraction> userInteraction = new();
+
+        Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
+
+        Lip.InitArgs args = new()
+        {
+            Yes = true,
+        };
+
+        // Act.
+        await lip.Init(args);
+
+        // Assert.
+        Assert.True(fileSystem.File.Exists(Path.Combine(WorkspacePath, "tooth.json")));
+        Assert.Equal("""
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "example.com/org/package",
+                "version": "0.1.0",
+                "info": {}
+            }
+            """.ReplaceLineEndings(),
+            fileSystem.File.ReadAllText(Path.Combine(WorkspacePath, "tooth.json")).ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task Init_WithInitialValues_Passes()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
+        {
+            { WorkspacePath, new MockDirectoryData() },
+        }, currentDirectory: WorkspacePath);
+
+        Mock<ILogger> logger = new();
+
+        Mock<IUserInteraction> userInteraction = new();
+
+        Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
+
         Lip.InitArgs args = new()
         {
             InitAuthor = "Example Author",
@@ -35,10 +127,11 @@ public partial class LipTests
             Yes = true,
         };
 
+        // Act.
         await lip.Init(args);
 
-        logger.Verify(l => l.Information(It.IsAny<string>()), Times.Exactly(1));
-        Assert.True(fileSystem.File.Exists(Path.Combine(s_workspacePath, "tooth.json")));
+        // Assert.
+        Assert.True(fileSystem.File.Exists(Path.Combine(WorkspacePath, "tooth.json")));
         Assert.Equal("""
             {
                 "format_version": 3,
@@ -52,144 +145,89 @@ public partial class LipTests
                     "avatar_url": "https://example.com/avatar.png"
                 }
             }
-            """, fileSystem.File.ReadAllText(Path.Combine(s_workspacePath, "tooth.json")));
+            """.ReplaceLineEndings(),
+            fileSystem.File.ReadAllText(Path.Combine(WorkspacePath, "tooth.json")).ReplaceLineEndings());
     }
 
     [Fact]
-    public async Task Init_Interactive_Passes()
+    public async Task Init_WorkspaceNotExists_ThrowsDirectoryNotFoundException()
     {
-        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
-        {
-            { s_workspacePath, new MockDirectoryData() },
-        }, currentDirectory: s_workspacePath);
-        Mock<Serilog.ILogger> logger = CreateMockLogger();
-        Lip lip = new(new(), fileSystem, logger.Object);
-        Lip.InitArgs args = new();
-        lip.OnUserInteractionPrompted += (sender, e) =>
-        {
-            if (e.EventType == Lip.UserInteractionEventType.InitTooth)
-            {
-                e.Input = "example.com/org/package";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitVersion)
-            {
-                e.Input = "0.1.0";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitName)
-            {
-                e.Input = "Example Package";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitDescription)
-            {
-                e.Input = "An example package.";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitAuthor)
-            {
-                e.Input = "Example Author";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitAvatarUrl)
-            {
-                e.Input = "https://example.com/avatar.png";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitConfirm)
-            {
-                e.Input = "y";
-            }
-        };
+        // Arrange.
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>(), currentDirectory: WorkspacePath);
 
-        await lip.Init(args);
+        Mock<ILogger> logger = new();
 
-        logger.Verify(l => l.Information(It.IsAny<string>()), Times.Exactly(1));
-        Assert.True(fileSystem.File.Exists(Path.Combine(s_workspacePath, "tooth.json")));
-        Assert.Equal("""
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "example.com/org/package",
-                "version": "0.1.0",
-                "info": {
-                    "name": "Example Package",
-                    "description": "An example package.",
-                    "author": "Example Author",
-                    "avatar_url": "https://example.com/avatar.png"
-                }
-            }
-            """, fileSystem.File.ReadAllText(Path.Combine(s_workspacePath, "tooth.json")));
-    }
+        Mock<IUserInteraction> userInteraction = new();
 
-    [Fact]
-    public async Task Init_IteractiveCancelled_ThrowsOperationCanceledException()
-    {
-        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
-        {
-            { s_workspacePath, new MockDirectoryData() },
-        }, currentDirectory: s_workspacePath);
-        Mock<Serilog.ILogger> logger = CreateMockLogger();
-        Lip lip = new(new(), fileSystem, logger.Object);
-        Lip.InitArgs args = new();
-        lip.OnUserInteractionPrompted += (sender, e) =>
-        {
-            if (e.EventType == Lip.UserInteractionEventType.InitTooth)
-            {
-                e.Input = "example.com/org/package";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitVersion)
-            {
-                e.Input = "0.1.0";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitName)
-            {
-                e.Input = "Example Package";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitDescription)
-            {
-                e.Input = "An example package.";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitAuthor)
-            {
-                e.Input = "Example Author";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitAvatarUrl)
-            {
-                e.Input = "https://example.com/avatar.png";
-            }
-            else if (e.EventType == Lip.UserInteractionEventType.InitConfirm)
-            {
-                e.Input = "n";
-            }
-        };
+        Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => lip.Init(args));
-    }
-
-    [Fact]
-    public async Task Init_WorkspaceDoesNotExist_ThrowsDirectoryNotFoundException()
-    {
-        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>(), currentDirectory: s_workspacePath);
-        Mock<Serilog.ILogger> logger = CreateMockLogger();
-        Lip lip = new(new(), fileSystem, logger.Object);
         Lip.InitArgs args = new()
         {
             Workspace = @"invalid_workspace",
             Yes = true,
         };
 
+        // Act and assert.
         await Assert.ThrowsAsync<DirectoryNotFoundException>(() => lip.Init(args));
     }
 
     [Fact]
-    public async Task Init_FileExists_ThrowsInvalidOperationException()
+    public async Task Init_OperationCanceled_ThrowsOperationCanceledException()
     {
+        // Arrange.
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_workspacePath, new MockDirectoryData() },
-            { Path.Combine(s_workspacePath, "tooth.json"), new MockFileData("content") },
-        }, currentDirectory: s_workspacePath);
-        Mock<Serilog.ILogger> logger = CreateMockLogger();
-        Lip lip = new(new(), fileSystem, logger.Object);
+            { WorkspacePath, new MockDirectoryData() },
+        }, currentDirectory: WorkspacePath);
+
+        Mock<ILogger> logger = new();
+
+        Mock<IUserInteraction> userInteraction = new();
+        userInteraction.Setup(u => u.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
+            .Returns(false);
+        
+        Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
+
         Lip.InitArgs args = new()
         {
-            Workspace = @"C:\path\to\workspace",
+            InitAuthor = "Example Author",
+            InitAvatarUrl = "https://example.com/avatar.png",
+            InitDescription = "An example package.",
+            InitName = "Example Package",
+            InitTooth = "example.com/org/package",
+            InitVersion = "0.1.0",
+        };
+
+        // Act and assert.
+        await Assert.ThrowsAsync<OperationCanceledException>(() => lip.Init(args));
+    }
+
+    [Fact]
+    public async Task Init_ManifestFileExists_ThrowsInvalidOperationException()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
+        {
+            { WorkspacePath, new MockDirectoryData() },
+            { Path.Combine(WorkspacePath, "tooth.json"), new MockFileData("content") },
+        }, currentDirectory: WorkspacePath);
+
+        Mock<ILogger> logger = new();
+
+        Mock<IUserInteraction> userInteraction = new();
+        userInteraction.Setup(u => u.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
+            .Returns(false);
+        
+        Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
+
+        Lip.InitArgs args = new()
+        {
+            InitAuthor = "Example Author",
+            InitAvatarUrl = "https://example.com/avatar.png",
+            InitDescription = "An example package.",
+            InitName = "Example Package",
+            InitTooth = "example.com/org/package",
+            InitVersion = "0.1.0",
             Yes = true,
         };
 
@@ -197,26 +235,54 @@ public partial class LipTests
     }
 
     [Fact]
-    public async Task Init_ForceFileExists_Passes()
+    public async Task Init_ForcesOverwriteManifestFile_Passes()
     {
+        // Arrange.
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_workspacePath, new MockDirectoryData() },
-            { Path.Combine(s_workspacePath, "tooth.json"), new MockFileData("content") },
-        }, currentDirectory: s_workspacePath);
-        Mock<Serilog.ILogger> logger = CreateMockLogger();
-        Lip lip = new(new(), fileSystem, logger.Object);
+            { WorkspacePath, new MockDirectoryData() },
+            { Path.Combine(WorkspacePath, "tooth.json"), new MockFileData("content") },
+        }, currentDirectory: WorkspacePath);
+
+        Mock<ILogger> logger = new();
+
+        Mock<IUserInteraction> userInteraction = new();
+        userInteraction.Setup(u => u.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
+            .Returns(false);
+        
+        Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
+
         Lip.InitArgs args = new()
         {
             Force = true,
-            Workspace = @"C:\path\to\workspace",
+            InitAuthor = "Example Author",
+            InitAvatarUrl = "https://example.com/avatar.png",
+            InitDescription = "An example package.",
+            InitName = "Example Package",
+            InitTooth = "example.com/org/package",
+            InitVersion = "0.1.0",
             Yes = true,
         };
 
+        // Act.
         await lip.Init(args);
 
-        logger.Verify(l => l.Information(It.IsAny<string>()), Times.Exactly(1));
-        logger.Verify(l => l.Warning(It.IsAny<string>()), Times.Exactly(1));
-        Assert.True(fileSystem.File.Exists(Path.Combine(s_workspacePath, "tooth.json")));
+        // Assert.
+        Assert.True(fileSystem.File.Exists(Path.Combine(WorkspacePath, "tooth.json")));
+        Assert.Equal("""
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "example.com/org/package",
+                "version": "0.1.0",
+                "info": {
+                    "name": "Example Package",
+                    "description": "An example package.",
+                    "author": "Example Author",
+                    "avatar_url": "https://example.com/avatar.png"
+                }
+            }
+            """.ReplaceLineEndings(),
+            fileSystem.File.ReadAllText(Path.Combine(WorkspacePath, "tooth.json")).ReplaceLineEndings());
     }
 }

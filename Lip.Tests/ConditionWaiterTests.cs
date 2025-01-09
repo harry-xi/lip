@@ -7,7 +7,7 @@ public class ConditionWaiterTests
     [Fact]
     public async Task WaitAsync_TrueCondition_Passes()
     {
-        await ConditionWaiter.AsyncWaitFor(() => true);
+        await ConditionWaiter.WaitForAsync(() => true);
     }
 
     [Fact]
@@ -20,13 +20,13 @@ public class ConditionWaiterTests
             condition = true;
         });
 
-        await ConditionWaiter.AsyncWaitFor(() => condition);
+        await ConditionWaiter.WaitForAsync(() => condition);
     }
 
     [Fact]
     public async Task WaitAsync_FalseConditionWithTimeout_ThrowsTimeoutException()
     {
-        await Assert.ThrowsAsync<TimeoutException>(() => ConditionWaiter.AsyncWaitFor(() => false,
+        await Assert.ThrowsAsync<TimeoutException>(() => ConditionWaiter.WaitForAsync(() => false,
             timeout: TimeSpan.FromMilliseconds(500)));
     }
 
@@ -40,7 +40,7 @@ public class ConditionWaiterTests
             condition = true;
         });
 
-        await ConditionWaiter.AsyncWaitFor(() => condition, timeout: TimeSpan.FromMilliseconds(500));
+        await ConditionWaiter.WaitForAsync(() => condition, timeout: TimeSpan.FromMilliseconds(500));
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class ConditionWaiterTests
             condition = true;
         });
 
-        await Assert.ThrowsAsync<TimeoutException>(() => ConditionWaiter.AsyncWaitFor(() => condition,
+        await Assert.ThrowsAsync<TimeoutException>(() => ConditionWaiter.WaitForAsync(() => condition,
             timeout: TimeSpan.FromMilliseconds(500)));
     }
 
@@ -67,7 +67,7 @@ public class ConditionWaiterTests
             condition = true;
         });
 
-        await ConditionWaiter.AsyncWaitFor(() => condition, timeout: TimeSpan.FromMilliseconds(500),
+        await ConditionWaiter.WaitForAsync(() => condition, timeout: TimeSpan.FromMilliseconds(500),
             interval: TimeSpan.FromMilliseconds(100));
     }
 }

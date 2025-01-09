@@ -1,4 +1,4 @@
-namespace Lip;
+﻿namespace Lip;
 
 /// <summary>
 /// Represents a user interaction interface.

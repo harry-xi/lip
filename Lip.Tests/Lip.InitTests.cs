@@ -185,7 +185,7 @@ public partial class LipTests
         Mock<IUserInteraction> userInteraction = new();
         userInteraction.Setup(u => u.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
             .Returns(false);
-        
+
         Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
 
         Lip.InitArgs args = new()
@@ -217,7 +217,7 @@ public partial class LipTests
         Mock<IUserInteraction> userInteraction = new();
         userInteraction.Setup(u => u.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
             .Returns(false);
-        
+
         Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
 
         Lip.InitArgs args = new()
@@ -249,7 +249,7 @@ public partial class LipTests
         Mock<IUserInteraction> userInteraction = new();
         userInteraction.Setup(u => u.ConfirmAsync("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
             .Returns(false);
-        
+
         Lip lip = new(new(), fileSystem, logger.Object, userInteraction.Object);
 
         Lip.InitArgs args = new()

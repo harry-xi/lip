@@ -17,14 +17,14 @@ public static class ConditionWaiter
     /// <param name="interval">The interval to check the condition.</param>
     /// <returns></returns>
     /// <exception cref="TimeoutException"></exception>
-    public static async Task WaitForAsync(Func<bool> condition, TimeSpan? timeout = null, TimeSpan? interval = null)
+    public static async Task WaitFor(Func<bool> condition, TimeSpan? timeout = null, TimeSpan? interval = null)
     {
         var sw = Stopwatch.StartNew();
         while (!condition())
         {
             if (timeout is not null && sw.Elapsed > timeout.Value)
             {
-                throw new TimeoutException();
+                throw new TimeoutException("The condition was not met within the specified timeout.");
             }
 
             await Task.Delay(interval ?? s_defaultInterval);

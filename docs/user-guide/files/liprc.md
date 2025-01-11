@@ -1,9 +1,6 @@
 # .liprc
 
-The `.liprc` file serves as the configuration file for lip, enabling you to configure settings such as caching, proxies, and script execution. This JSON-formatted file can be placed in two locations:
-
-- `~/.liprc` for user-wide settings
-- `/path/to/my/project/.liprc` for project-specific settings
+The `.liprc` file serves as the configuration file for lip, enabling you to configure settings such as caching, proxies, and script execution. This JSON-formatted file is placed at `~/.liprc`.
 
 Project-specific settings take precedence over user-wide settings. All configuration fields are optional.
 

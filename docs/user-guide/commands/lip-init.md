@@ -67,10 +67,6 @@ lip init --init-name "my-mod" \
 
   The version to use.
 
-- `-w, --workspace <path>`
-
-  Specify where to create the tooth.json file.
-
 - `-y, --yes`
 
   Skip confirmation prompts.

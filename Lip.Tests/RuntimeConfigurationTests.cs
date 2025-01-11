@@ -7,12 +7,17 @@ public class RuntimeConfigurationTests
     [Fact]
     public void FromBytes_MinimumJson_Passes()
     {
-        var runtimeConfiguration = RuntimeConfiguration.FromBytes("{}"u8.ToArray());
+        // Arrange.
+        byte[] jsonBytes = Encoding.UTF8.GetBytes("{}");
 
+        // Act.
+        var runtimeConfiguration = RuntimeConfig.FromBytes(jsonBytes);
+
+        // Assert.
         Assert.Equal(
             OperatingSystem.IsWindows()
-                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip-cache")
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "lip"),
+                ? Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip-cache")
+                : Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "lip"),
             runtimeConfiguration.Cache
         );
         Assert.True(runtimeConfiguration.Color);
@@ -32,22 +37,27 @@ public class RuntimeConfigurationTests
     [Fact]
     public void FromBytes_MaximumJson_Passes()
     {
-        var runtimeConfiguration = RuntimeConfiguration.FromBytes(
-            """
+        // Arrange.
+        byte[] jsonBytes = Encoding.UTF8.GetBytes(
+            @"
             {
-                "cache": "cache",
-                "color": false,
-                "git": "git",
-                "github_proxy": "github_proxy",
-                "go_module_proxy": "go_module_proxy",
-                "https_proxy": "https_proxy",
-                "noproxy": "noproxy",
-                "proxy": "proxy",
-                "script_shell": "script_shell"
+                ""cache"": ""cache"",
+                ""color"": false,
+                ""git"": ""git"",
+                ""github_proxy"": ""github_proxy"",
+                ""go_module_proxy"": ""go_module_proxy"",
+                ""https_proxy"": ""https_proxy"",
+                ""noproxy"": ""noproxy"",
+                ""proxy"": ""proxy"",
+                ""script_shell"": ""script_shell""
             }
-            """u8.ToArray()
+            "
         );
 
+        // Act.
+        var runtimeConfiguration = RuntimeConfig.FromBytes(jsonBytes);
+
+        // Arrange.
         Assert.Equal("cache", runtimeConfiguration.Cache);
         Assert.False(runtimeConfiguration.Color);
         Assert.Equal("git", runtimeConfiguration.Git);
@@ -62,17 +72,29 @@ public class RuntimeConfigurationTests
     [Fact]
     public void FromBytes_NullJson_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>("bytes", () => RuntimeConfiguration.FromBytes("null"u8.ToArray()));
+        // Arrange.
+        byte[] jsonBytes = Encoding.UTF8.GetBytes("null");
+
+        // Act.
+        ArgumentException exception = Assert.Throws<ArgumentException>("bytes", () => RuntimeConfig.FromBytes(jsonBytes));
+
+        // Assert.
+        Assert.Equal("Failed to deserialize runtime configuration. (Parameter 'bytes')", exception.Message);
     }
 
     [Fact]
     public void ToBytes_MinimumJson_Passes()
     {
-        var runtimeConfiguration = new RuntimeConfiguration();
+        // Arrange.
+        var runtimeConfiguration = new RuntimeConfig();
 
+        // Act.
+        byte[] jsonBytes = runtimeConfiguration.ToBytes();
+
+        // Assert.
         Assert.Equal($$"""
             {
-                "cache": "{{(OperatingSystem.IsWindows() ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip-cache").Replace("\\", "\\\\") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "lip"))}}",
+                "cache": "{{(OperatingSystem.IsWindows() ? Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip-cache").Replace("\\", "\\\\") : Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "lip"))}}",
                 "color": true,
                 "git": "git",
                 "github_proxy": "",
@@ -82,6 +104,6 @@ public class RuntimeConfigurationTests
                 "proxy": "",
                 "script_shell": "{{(OperatingSystem.IsWindows() ? "cmd.exe" : "/bin/sh")}}"
             }
-            """.ReplaceLineEndings(), Encoding.UTF8.GetString(runtimeConfiguration.ToBytes()).ReplaceLineEndings());
+            """.ReplaceLineEndings(), Encoding.UTF8.GetString(jsonBytes).ReplaceLineEndings());
     }
 }

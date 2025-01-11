@@ -178,6 +178,11 @@ public record PackageManifest
 
                 foreach (KeyValuePair<string, List<string>> kvp in value)
                 {
+                    if (!StringValidator.IsScriptNameValid(kvp.Key))
+                    {
+                        throw new ArgumentException($"Script name {kvp.Key} is invalid.", nameof(value));
+                    }
+
                     AdditionalProperties[kvp.Key] = JsonSerializer.SerializeToElement(kvp.Value);
                 }
             }
@@ -219,7 +224,7 @@ public record PackageManifest
     {
         get => DefaultFormatVersion;
         init => _ = value == DefaultFormatVersion ? 0
-            : throw new ArgumentException($"Format version is not equal to {DefaultFormatVersion}.", nameof(value));
+            : throw new ArgumentException($"Format version '{value}' is not equal to {DefaultFormatVersion}.", nameof(value));
     }
 
     [JsonPropertyName("format_uuid")]
@@ -227,7 +232,7 @@ public record PackageManifest
     {
         get => DefaultFormatUuid;
         init => _ = value == DefaultFormatUuid ? 0
-            : throw new ArgumentException($"Format UUID is not equal to {DefaultFormatUuid}.", nameof(value));
+            : throw new ArgumentException($"Format UUID '{value}' is not equal to {DefaultFormatUuid}.", nameof(value));
     }
 
     [JsonPropertyName("tooth")]
@@ -244,7 +249,7 @@ public record PackageManifest
         {
             if (!StringValidator.IsVersionValid(value))
             {
-                throw new ArgumentException($"Version {value} is invalid.", nameof(value));
+                throw new ArgumentException($"Version '{value}' is invalid.", nameof(value));
             }
 
             _version = value;

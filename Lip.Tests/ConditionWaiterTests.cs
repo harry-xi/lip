@@ -1,73 +1,117 @@
-﻿using System.Threading;
-
-namespace Lip.Tests;
+﻿namespace Lip.Tests;
 
 public class ConditionWaiterTests
 {
     [Fact]
     public async Task WaitAsync_TrueCondition_Passes()
     {
-        await ConditionWaiter.WaitForAsync(() => true);
+        // Arrange.
+        static bool condition() => true;
+
+        // Act.
+        await ConditionWaiter.WaitFor(condition);
+
+        // No assertion is needed.
     }
 
     [Fact]
     public async Task WaitAsync_FalseConditionTurnsTrue_Passes()
     {
-        bool condition = false;
-        _ = Task.Run(async () =>
+        // Arrange.
+        bool innerCondition = false;
+        async Task delayAndSetCondition()
         {
             await Task.Delay(500);
-            condition = true;
-        });
+            innerCondition = true;
+        }
+        bool condition() => innerCondition;
 
-        await ConditionWaiter.WaitForAsync(() => condition);
+        // Act.
+        var task = Task.Run(delayAndSetCondition);
+        await ConditionWaiter.WaitFor(condition);
+        await task;
+
+        // No assertion is needed.
     }
 
     [Fact]
     public async Task WaitAsync_FalseConditionWithTimeout_ThrowsTimeoutException()
     {
-        await Assert.ThrowsAsync<TimeoutException>(() => ConditionWaiter.WaitForAsync(() => false,
-            timeout: TimeSpan.FromMilliseconds(500)));
+        // Arrange.
+        static bool condition() => false;
+        TimeSpan timeout = TimeSpan.FromMilliseconds(500);
+
+        // Act.
+        TimeoutException exception = await Assert.ThrowsAsync<TimeoutException>(
+            () => ConditionWaiter.WaitFor(condition, timeout));
+
+        // Assert.
+        Assert.Equal("The condition was not met within the specified timeout.", exception.Message);
     }
 
     [Fact]
     public async Task WaitAsync_FalseConditionTurnsTrueBeforeTimeout_Passes()
     {
-        bool condition = false;
-        _ = Task.Run(async () =>
+        // Arrange.
+        bool innerCondition = false;
+        async Task delayAndSetCondition()
         {
-            await Task.Delay(250);
-            condition = true;
-        });
+            await Task.Delay(500);
+            innerCondition = true;
+        }
+        bool condition() => innerCondition;
+        TimeSpan timeout = TimeSpan.FromMilliseconds(1000);
 
-        await ConditionWaiter.WaitForAsync(() => condition, timeout: TimeSpan.FromMilliseconds(500));
+        // Act
+        var task = Task.Run(delayAndSetCondition);
+        await ConditionWaiter.WaitFor(condition, timeout);
+        await task;
+
+        // No assertion is needed.
     }
 
     [Fact]
     public async Task WaitAsync_FalseConditionTurnsTrueAfterTimeout_ThrowsTimeoutException()
     {
-        bool condition = false;
-        _ = Task.Run(async () =>
+        // Arrange.
+        bool innerCondition = false;
+        async Task delayAndSetCondition()
         {
-            await Task.Delay(750);
-            condition = true;
-        });
+            await Task.Delay(1000);
+            innerCondition = true;
+        }
+        bool condition() => innerCondition;
+        TimeSpan timeout = TimeSpan.FromMilliseconds(500);
 
-        await Assert.ThrowsAsync<TimeoutException>(() => ConditionWaiter.WaitForAsync(() => condition,
-            timeout: TimeSpan.FromMilliseconds(500)));
+        // Act
+        var task = Task.Run(delayAndSetCondition);
+        TimeoutException exception = await Assert.ThrowsAsync<TimeoutException>(
+            () => ConditionWaiter.WaitFor(condition, timeout));
+        await task;
+
+        // Assert.
+        Assert.Equal("The condition was not met within the specified timeout.", exception.Message);
     }
 
     [Fact]
-    public async Task WaitAsync_FalseConditionTurnsTrueBeforeTimeoutWithCustomInterval_Passes()
+    public async Task WaitAsync_FalseConditionTurnsTrueBeforeTimeoutWithInterval_Passes()
     {
-        bool condition = false;
-        _ = Task.Run(async () =>
+        // Arrange.
+        bool innerCondition = false;
+        async Task delayAndSetCondition()
         {
-            await Task.Delay(250);
-            condition = true;
-        });
+            await Task.Delay(500);
+            innerCondition = true;
+        }
+        bool condition() => innerCondition;
+        TimeSpan timeout = TimeSpan.FromMilliseconds(1000);
+        TimeSpan interval = TimeSpan.FromMilliseconds(50);
 
-        await ConditionWaiter.WaitForAsync(() => condition, timeout: TimeSpan.FromMilliseconds(500),
-            interval: TimeSpan.FromMilliseconds(100));
+        // Act
+        var task = Task.Run(delayAndSetCondition);
+        await ConditionWaiter.WaitFor(condition, timeout, interval);
+        await task;
+
+        // No assertion is needed.
     }
 }

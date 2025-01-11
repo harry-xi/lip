@@ -6,11 +6,11 @@ namespace Lip;
 /// <summary>
 /// Represents the runtime configuration.
 /// </summary>
-public record RuntimeConfiguration
+public record RuntimeConfig
 {
     private static readonly string s_defaultCache = OperatingSystem.IsWindows()
-        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip-cache")
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "lip");
+        ? Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip-cache")
+        : Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "lip");
 
     private static readonly string s_defaultScriptShell = OperatingSystem.IsWindows()
         ? "cmd.exe"
@@ -52,9 +52,9 @@ public record RuntimeConfiguration
     [JsonPropertyName("script_shell")]
     public string ScriptShell { get; init; } = s_defaultScriptShell;
 
-    public static RuntimeConfiguration FromBytes(byte[] bytes)
+    public static RuntimeConfig FromBytes(byte[] bytes)
     {
-        return JsonSerializer.Deserialize<RuntimeConfiguration>(
+        return JsonSerializer.Deserialize<RuntimeConfig>(
             bytes,
             s_jsonSerializerOptions
         ) ?? throw new ArgumentException("Failed to deserialize runtime configuration.", nameof(bytes));

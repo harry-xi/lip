@@ -128,10 +128,10 @@ public class PathManagerTests
         PathManager pathManager = new(fileSystem);
 
         // Act.
-        string recordPath = pathManager.PackageRecordPath;
+        string recordPath = pathManager.PackageLockPath;
 
         // Assert.
-        Assert.Equal(Path.Join(s_workingDir, "tooth.lock"), recordPath);
+        Assert.Equal(Path.Join(s_workingDir, "tooth_lock.json"), recordPath);
     }
 
     [Fact]

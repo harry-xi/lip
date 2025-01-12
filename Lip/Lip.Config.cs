@@ -6,9 +6,9 @@ namespace Lip;
 
 public partial class Lip
 {
-    public record ConfigDeleteArgs {}
-    public record ConfigGetArgs {}
-    public record ConfigSetArgs {}
+    public record ConfigDeleteArgs { }
+    public record ConfigGetArgs { }
+    public record ConfigSetArgs { }
 
     public async Task ConfigDelete(List<string> keys, ConfigDeleteArgs _)
     {
@@ -39,7 +39,7 @@ public partial class Lip
             throw new ArgumentException("No configuration keys provided.", nameof(keys));
         }
 
-        Dictionary<string, string> allKeyValuePairs =  ConfigList(new());
+        Dictionary<string, string> allKeyValuePairs = ConfigList(new());
 
         Dictionary<string, string> keyValuePairs = keys.ToDictionary(
             key => key,

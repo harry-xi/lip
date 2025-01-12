@@ -1,4 +1,4 @@
-using System.IO.Abstractions.TestingHelpers;
+﻿using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -36,7 +36,7 @@ public class LipConfigTests
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
-        
+
         Assert.Equal($$"""
         {
             "cache": "/custom/cache",

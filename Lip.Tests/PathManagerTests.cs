@@ -1,11 +1,11 @@
-using System.IO.Abstractions.TestingHelpers;
+﻿using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Tests;
 
 public class PathManagerTests
 {
     private static readonly string s_cacheDir = OperatingSystem.IsWindows()
-        ? Path.Join("C:", "path", "to", "cache") 
+        ? Path.Join("C:", "path", "to", "cache")
         : Path.Join("/", "path", "to", "cache");
     private static readonly string s_workingDir = OperatingSystem.IsWindows()
         ? Path.Join("C:", "current", "dir")

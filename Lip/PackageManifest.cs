@@ -1,6 +1,9 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using DotNet.Globbing;
+using Scriban;
+using System.Text;
+using Scriban.Parsing;
 
 namespace Lip;
 
@@ -379,5 +382,31 @@ public record PackageManifest
     {
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
         return bytes;
+    }
+
+    /// <summary>
+    /// Parses the template and renders the package manifest.
+    /// </summary>
+    /// <returns>The rendered package manifest.</returns>
+    public PackageManifest WithTemplateParsed()
+    {
+        string templateText = Encoding.UTF8.GetString(ToBytes());
+        Template template = Template.Parse(templateText);
+        
+        if (template.HasErrors)
+        {
+            StringBuilder sb = new();
+            foreach (LogMessage message in template.Messages)
+            {
+                sb.Append(message.ToString());
+            }
+            throw new FormatException($"Failed to parse template: {sb}");
+        }
+
+        JsonElement jsonElement = JsonSerializer.SerializeToElement(this);
+
+        string renderedText = template.Render(jsonElement);
+
+        return FromBytes(Encoding.UTF8.GetBytes(renderedText));
     }
 }

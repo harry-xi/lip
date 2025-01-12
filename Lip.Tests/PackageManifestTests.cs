@@ -879,4 +879,72 @@ public class PackageManifestTests
             }
             """.ReplaceLineEndings(), Encoding.UTF8.GetString(bytes).ReplaceLineEndings());
     }
+
+    [Fact]
+    public void WithTemplateParsed_CommonInput_Passes()
+    {
+        // Arrange.
+        var manifest = new PackageManifest
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            Tooth = "",
+            Version = "1.0.0",
+            Variants = [
+                new(){
+                    Assets = [
+                        new(){
+                            Type = PackageManifest.AssetType.TypeEnum.Zip,
+                            Urls = ["https://example.com/{{version}}.zip"]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Act.
+        PackageManifest result = manifest.WithTemplateParsed();
+
+        // Assert.
+        Assert.Equal(3, result.FormatVersion);
+        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", result.FormatUuid);
+        Assert.Equal("", result.Tooth);
+        Assert.Equal("1.0.0", result.Version);
+        Assert.NotNull(result.Variants);
+        Assert.Single(result.Variants);
+        Assert.NotNull(result.Variants[0].Assets);
+        Assert.Single(result.Variants[0].Assets!);
+        Assert.Equal(new[] { "https://example.com/1.0.0.zip" }, result.Variants[0].Assets![0].Urls);
+    }
+
+    [Fact]
+    public void WithTemplateParsed_InvalidTemplate_ThrowsArgumentException()
+    {
+        // Arrange.
+        var manifest = new PackageManifest
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            Tooth = "",
+            Version = "1.0.0",
+            Variants = [
+                new(){
+                    Assets = [
+                        new(){
+                            Type = PackageManifest.AssetType.TypeEnum.Zip,
+                            Urls = ["https://example.com/{{{invalid}}.zip"]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Act.
+        FormatException exception = Assert.Throws<FormatException>(() => manifest.WithTemplateParsed());
+
+        // Assert.
+        Assert.Equal(
+            "Failed to parse template: <input>(12,56) : error : Unexpected token `}` Expecting a colon : after identifier `invalid` for object initializer member name<input>(12,56) : error : Invalid token found `}`. Expecting <EOL>/end of line.",
+            exception.Message);
+    }
 }

@@ -4,7 +4,7 @@
 
 ```shell
 lip config set <key>=<value> [<key>=<value> ...]
-lip config get [<key> [<key> ...]]
+lip config get <key> [<key> ...]
 lip config delete <key> [<key> ...]
 lip config list
 ```
@@ -31,7 +31,7 @@ Set a configuration value. `<key>` is the configuration key, e.g. `cache.dir`. `
 lip config get [<key> [<key> ...]]
 ```
 
-Get a configuration value. `<key>` is the configuration key, e.g. `cache.dir`. If no `<key>` is specified, list all configuration values.
+Get a configuration value. `<key>` is the configuration key, e.g. `cache.dir`.
 
 ### delete
 

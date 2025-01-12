@@ -842,7 +842,7 @@ public class PackageManifestTests
         Assert.Equal(["echo pre-install-2"], variant.Scripts.PreInstall);
         Assert.Equal(["echo install-2"], variant.Scripts.Install);
         Assert.Equal(["echo post-install-2"], variant.Scripts.PostInstall);
-        Assert.Equal(["echo pre-pack-2"], variant.Scripts.PrePack); 
+        Assert.Equal(["echo pre-pack-2"], variant.Scripts.PrePack);
         Assert.Equal(["echo post-pack-2"], variant.Scripts.PostPack);
         Assert.Equal(["echo pre-uninstall-2"], variant.Scripts.PreUninstall);
         Assert.Equal(["echo uninstall-2"], variant.Scripts.Uninstall);

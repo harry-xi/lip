@@ -1,8 +1,8 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using DotNet.Globbing;
 using Scriban;
-using System.Text;
 using Scriban.Parsing;
 
 namespace Lip;
@@ -392,7 +392,7 @@ public record PackageManifest
     {
         string templateText = Encoding.UTF8.GetString(ToBytes());
         Template template = Template.Parse(templateText);
-        
+
         if (template.HasErrors)
         {
             StringBuilder sb = new();

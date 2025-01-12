@@ -79,7 +79,7 @@ Note: For platform compatibility checks, lip ignores variants using glob pattern
 
 ### variants[].label (optional)
 
-The label for this variant. Users can install a specific variant by label with `lip install <tooth>#<label>@<version>`. Should either match `^[a-z0-9]+(_[a-z0-9]+)*$ or be a glob pattern. If omitted, the variant is considered the default.
+The label for this variant. Users can install a specific variant by label with `lip install <tooth>#<label>@<version>`. Should either match `^[a-z0-9]+(_[a-z0-9]+)*$ or be a glob pattern. If omitted or empty, the variant is considered the default.
 
 For a variant label to be recognized, there must be at least one variant with a non-globbed label defined in the variants array. Glob patterns in label fields only take effect when their corresponding non-globbed labels are also defined. For example:
 
@@ -106,6 +106,8 @@ For platform variant to be recognized, there must be at least one non-globbed pl
 - To support `linux-x64` and `linux-arm64`, you need either:
   - Two separate variants with exact platforms
   - One variant with exact platform and another with `linux-*`
+
+If omitted or empty, the variant is considered platform-agnostic, i.e.. glob pattern `*`.
 
 ### variants[].dependencies (optional)
 
@@ -181,7 +183,7 @@ Paths or glob patterns for files to remove during uninstallation. Cannot overlap
 
 ### variants[].scripts (optional)
 
-Commands to execute in the workspace. Define as key-value pairs where keys are script names and values are commands.
+Commands to execute in the workspace. Define as key-value pairs where keys are script names and values are commands. If more than matched variants define the same script, only the last one is used.
 
 Built-in script hooks:
 

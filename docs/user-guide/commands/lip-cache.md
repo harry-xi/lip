@@ -12,7 +12,7 @@ lip cache list
 
 Inspect and manage lip’s cache.
 
-lip stores cache data in `%LocalAppData%\lip-cache` for Windows and `~/.cache/lip` for POSIX-like systems by default.
+lip stores cache data in `%LocalAppData%\lip` for Windows and `~/.local/share/lip` for POSIX-like systems by default.
 
 ## Sub-commands
 

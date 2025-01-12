@@ -7,14 +7,13 @@ lip config set <key>=<value> [<key>=<value> ...]
 lip config get [<key> [<key> ...]]
 lip config delete <key> [<key> ...]
 lip config list
-lip config edit
 ```
 
 ## Description
 
 Manage the lip configuration files.
 
-lip stores configuration files in `~/.liprc`.
+lip stores configuration files at `%APPDATA%\lip\runtime_config.json` for Windows and `~/.config/lip/runtime_config.json` for POSIX-like systems.
 
 ## Sub-commands
 
@@ -49,11 +48,3 @@ lip config list
 ```
 
 List all configuration values.
-
-### edit
-
-```shell
-lip config edit
-```
-
-Edit the configuration file. This will open the configuration file in the default editor, which is determined by the `EDITOR` or `VISUAL` environment variable, or `%SYSTEMROOT%\notepad.exe` on Windows, or `vi` POSIX-like systems.

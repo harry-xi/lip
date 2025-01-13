@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 namespace Lip.Tests;
@@ -114,7 +114,7 @@ public class PackageLockTests
         ArgumentException exception = Assert.Throws<ArgumentException>(
             "value", () => PackageLock.FromBytes(bytes));
         Assert.Equal(
-            "Format UUID 'invalid-uuid' is not equal to 289f771f-2c9a-4d73-9f3f-8492495a924d. (Parameter 'value')", 
+            "Format UUID 'invalid-uuid' is not equal to 289f771f-2c9a-4d73-9f3f-8492495a924d. (Parameter 'value')",
             exception.Message);
     }
 

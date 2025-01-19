@@ -81,7 +81,7 @@ public class PackageManifestTests
             "description": "",
             "author": "",
             "tags": ["tag", "tag:subtag"],
-            "avatar_url": ""
+            "avatar_url": "https://example.com/avatar.png"
         }
         """;
 
@@ -94,7 +94,7 @@ public class PackageManifestTests
         Assert.Equal("", info.Description);
         Assert.Equal("", info.Author);
         Assert.Equal(new[] { "tag", "tag:subtag" }, info.Tags);
-        Assert.Equal("", info.AvatarUrl);
+        Assert.Equal("https://example.com/avatar.png", info.AvatarUrl);
     }
 
     [Theory]
@@ -105,7 +105,7 @@ public class PackageManifestTests
     [InlineData(":invalid-subtag")]
     [InlineData(":")]
     [InlineData("")]
-    public void InfoType_Deserialize_InvalidTag_ThrowsArgumentException(string tag)
+    public void InfoType_Deserialize_InvalidTag_Throws(string tag)
     {
         // Arrange.
         string json = $$"""
@@ -115,11 +115,11 @@ public class PackageManifestTests
         """;
 
         // Act.
-        ArgumentException exception = Assert.Throws<ArgumentException>(
-            "value", () => JsonSerializer.Deserialize<PackageManifest.InfoType>(json));
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => JsonSerializer.Deserialize<PackageManifest.InfoType>(json));
 
         // Assert.
-        Assert.Equal($"Tag {tag} is invalid. (Parameter 'value')", exception.Message);
+        Assert.Equal($"Tag '{tag}' is invalid.", exception.Message);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class PackageManifestTests
     [InlineData("invalid.script")]
     [InlineData("invalid script")]
     [InlineData("invalidScript")]
-    public void ScriptsType_Constructor_InvalidAdditionalScriptName_ThrowsArgumentException(string scriptName)
+    public void ScriptsType_Constructor_InvalidAdditionalScriptName_Throws(string scriptName)
     {
         // Arrange.
         Dictionary<string, List<string>> additionalScripts = new()
@@ -182,11 +182,12 @@ public class PackageManifestTests
         };
 
         // Act.
-        ArgumentException exception = Assert.Throws<ArgumentException>(
-            "value", () => new PackageManifest.ScriptsType { AdditionalScripts = additionalScripts });
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.ScriptsType { AdditionalScripts = additionalScripts });
 
         // Assert.
-        Assert.Equal($"Script name {scriptName} is invalid. (Parameter 'value')", exception.Message);
+        Assert.Equal(scriptName, exception.Key);
+        Assert.Equal($"Script name '{scriptName}' is invalid.", exception.Message);
     }
 
     [Fact]
@@ -414,20 +415,22 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void FromBytes_NullJson_ThrowsArgumentException()
+    public void FromBytes_NullJson_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("null");
 
         // Act.
-        ArgumentException exception = Assert.Throws<ArgumentException>("bytes", () => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
-        Assert.Equal("Failed to deserialize package manifest. (Parameter 'bytes')", exception.Message);
+        Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
+        Assert.NotNull(exception.InnerException);
+
     }
 
     [Fact]
-    public void FromBytes_InvalidFormatVersion_ThrowsArgumentException()
+    public void FromBytes_InvalidFormatVersion_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("""
@@ -440,14 +443,17 @@ public class PackageManifestTests
             """);
 
         // Act.
-        ArgumentException exception = Assert.Throws<ArgumentException>("value", () => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
-        Assert.Equal("Format version '0' is not equal to 3. (Parameter 'value')", exception.Message);
+        Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
+        Assert.NotNull(exception.InnerException);
+        Assert.IsType<SchemaViolationException>(exception.InnerException);
+        Assert.Equal("Format version '0' is not equal to 3.", exception.InnerException.Message);
     }
 
     [Fact]
-    public void FromBytes_InvalidFormatUuid_ThrowsArgumentException()
+    public void FromBytes_InvalidFormatUuid_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("""
@@ -460,14 +466,17 @@ public class PackageManifestTests
             """);
 
         // Act.
-        ArgumentException exception = Assert.Throws<ArgumentException>("value", () => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
-        Assert.Equal("Format UUID 'invalid-uuid' is not equal to 289f771f-2c9a-4d73-9f3f-8492495a924d. (Parameter 'value')", exception.Message);
+        Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
+        Assert.NotNull(exception.InnerException);
+        Assert.IsType<SchemaViolationException>(exception.InnerException);
+        Assert.Equal("Format UUID 'invalid-uuid' is not equal to 289f771f-2c9a-4d73-9f3f-8492495a924d.", exception.InnerException.Message);
     }
 
     [Fact]
-    public void FromBytes_InvalidVersion_ThrowsArgumentException()
+    public void FromBytes_InvalidVersion_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("""
@@ -480,10 +489,13 @@ public class PackageManifestTests
             """);
 
         // Act.
-        ArgumentException exception = Assert.Throws<ArgumentException>("value", () => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
-        Assert.Equal("Version '0.0.0.0' is invalid. (Parameter 'value')", exception.Message);
+        Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
+        Assert.NotNull(exception.InnerException);
+        Assert.IsType<SchemaViolationException>(exception.InnerException);
+        Assert.Equal("Version '0.0.0.0' is invalid.", exception.InnerException.Message);
     }
 
     [Fact]
@@ -759,14 +771,14 @@ public class PackageManifestTests
                 Platform = "platform",
                 Dependencies = new Dictionary<string, string>
                 {
-                { "dependency1", "1.0.0" }
+                { "github.com/futrime/tooth", "1.0.0" }
                 },
                 Assets =
                 [
                 new()
                 {
                     Type = PackageManifest.AssetType.TypeEnum.Self,
-                    Urls = ["url1"]
+                    Urls = ["https://example.com/1"]
                 }
                 ],
                 Scripts = new PackageManifest.ScriptsType
@@ -791,14 +803,14 @@ public class PackageManifestTests
                 Platform = "platform",
                 Dependencies = new Dictionary<string, string>
                 {
-                { "dependency2", "2.0.0" }
+                { "github.com/futrime/tooth2", "2.0.0" }
                 },
                 Assets =
                 [
                 new()
                 {
                     Type = PackageManifest.AssetType.TypeEnum.Self,
-                    Urls = ["url2"]
+                    Urls = ["https://example.com/2"]
                 }
                 ],
                 Scripts = new PackageManifest.ScriptsType
@@ -830,14 +842,14 @@ public class PackageManifestTests
         Assert.Equal("platform", variant.Platform);
         Assert.NotNull(variant.Dependencies);
         Assert.Equal(2, variant.Dependencies.Count);
-        Assert.Equal("1.0.0", variant.Dependencies["dependency1"]);
-        Assert.Equal("2.0.0", variant.Dependencies["dependency2"]);
+        Assert.Equal("1.0.0", variant.Dependencies["github.com/futrime/tooth"]);
+        Assert.Equal("2.0.0", variant.Dependencies["github.com/futrime/tooth2"]);
         Assert.NotNull(variant.Assets);
         Assert.Equal(2, variant.Assets.Count);
         Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, variant.Assets[0].Type);
-        Assert.Equal(["url1"], variant.Assets[0].Urls);
+        Assert.Equal(["https://example.com/1"], variant.Assets[0].Urls);
         Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, variant.Assets[1].Type);
-        Assert.Equal(["url2"], variant.Assets[1].Urls);
+        Assert.Equal(["https://example.com/2"], variant.Assets[1].Urls);
         Assert.NotNull(variant.Scripts);
         Assert.Equal(["echo pre-install-2"], variant.Scripts.PreInstall);
         Assert.Equal(["echo install-2"], variant.Scripts.Install);
@@ -918,7 +930,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void WithTemplateParsed_InvalidTemplate_ThrowsArgumentException()
+    public void WithTemplateParsed_InvalidTemplate_Throws()
     {
         // Arrange.
         var manifest = new PackageManifest

@@ -59,7 +59,8 @@ public static partial class StringValidator
     {
         // Split the package specifier into tooth path and variant label.
         string[] toothPathAndVariantLabel = packageSpecifier.Split('#');
-        if (toothPathAndVariantLabel.Length != 2)
+
+        if (toothPathAndVariantLabel.Length < 1 || toothPathAndVariantLabel.Length > 2)
         {
             return false;
         }
@@ -70,10 +71,13 @@ public static partial class StringValidator
             return false;
         }
 
-        string variantLabel = toothPathAndVariantLabel[1];
-        if (!CheckVariantLabel(variantLabel))
+        if (toothPathAndVariantLabel.Length == 2)
         {
-            return false;
+            string variantLabel = toothPathAndVariantLabel[1];
+            if (!CheckVariantLabel(variantLabel))
+            {
+                return false;
+            }
         }
 
         return true;

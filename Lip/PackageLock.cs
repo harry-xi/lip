@@ -78,7 +78,7 @@ public record PackageLock
         try
         {
             return JsonSerializer.Deserialize<PackageLock>(bytes, s_jsonSerializerOptions)
-                ?? throw new JsonException("Package lock bytes deserialized to null.");
+                ?? throw new JsonException("JSON bytes deserialized to null.");
         }
         catch (Exception ex) when (ex is JsonException || ex is SchemaViolationException)
         {

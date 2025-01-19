@@ -47,12 +47,19 @@ public record RuntimeConfig
         ? "cmd.exe"
         : "/bin/sh";
 
-    public static RuntimeConfig FromBytes(byte[] bytes)
+    public static RuntimeConfig FromJsonBytes(byte[] bytes)
     {
-        return JsonSerializer.Deserialize<RuntimeConfig>(
-            bytes,
-            s_jsonSerializerOptions
-        ) ?? throw new ArgumentException("Failed to deserialize runtime configuration.", nameof(bytes));
+        try
+        {
+            return JsonSerializer.Deserialize<RuntimeConfig>(
+                bytes,
+                s_jsonSerializerOptions
+            ) ?? throw new JsonException("JSON bytes deserialized to null.");
+        }
+        catch (Exception ex) when (ex is JsonException)
+        {
+            throw new JsonException("Runtime config bytes deserialization failed.", ex);
+        }
     }
 
     public byte[] ToBytes()

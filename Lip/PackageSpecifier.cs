@@ -11,7 +11,7 @@ public partial record PackageSpecifier
         {
             if (!StringValidator.CheckToothPath(value))
             {
-                throw new ArgumentException("Invalid tooth path.");
+                throw new ArgumentException("Invalid tooth path.", nameof(value));
             }
 
             _tooth = value;
@@ -24,7 +24,7 @@ public partial record PackageSpecifier
         {
             if (!StringValidator.CheckVariantLabel(value))
             {
-                throw new ArgumentException("Invalid variant label.");
+                throw new ArgumentException("Invalid variant label.", nameof(value));
             }
 
             _variantLabel = value;

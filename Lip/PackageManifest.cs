@@ -264,7 +264,7 @@ public record PackageManifest
                 {
                     if (!StringValidator.CheckScriptName(kvp.Key))
                     {
-                        throw new SchemaViolationException(kvp.Key, $"Script name {kvp.Key} is invalid.");
+                        throw new SchemaViolationException(kvp.Key, $"Script name '{kvp.Key}' is invalid.");
                     }
 
                     AdditionalProperties[kvp.Key] = JsonSerializer.SerializeToElement(kvp.Value);
@@ -386,11 +386,11 @@ public record PackageManifest
         try
         {
             return JsonSerializer.Deserialize<PackageManifest>(bytes, s_jsonSerializerOptions)
-                ?? throw new JsonException("Package manifest bytes deserialized to null.");
+                ?? throw new JsonException("JSON bytes deserialized to null.");
         }
         catch (Exception ex) when (ex is JsonException || ex is SchemaViolationException)
         {
-            throw new JsonException("Package lock bytes deserialization failed.", ex);
+            throw new JsonException("Package manifest bytes deserialization failed.", ex);
         }
     }
 

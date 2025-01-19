@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json;
 
 namespace Lip.Tests;
 
@@ -11,7 +12,7 @@ public class RuntimeConfigTests
         byte[] jsonBytes = Encoding.UTF8.GetBytes("{}");
 
         // Act.
-        var runtimeConfiguration = RuntimeConfig.FromBytes(jsonBytes);
+        var runtimeConfiguration = RuntimeConfig.FromJsonBytes(jsonBytes);
 
         // Assert.
         Assert.Equal(
@@ -53,7 +54,7 @@ public class RuntimeConfigTests
         );
 
         // Act.
-        var runtimeConfiguration = RuntimeConfig.FromBytes(jsonBytes);
+        var runtimeConfiguration = RuntimeConfig.FromJsonBytes(jsonBytes);
 
         // Arrange.
         Assert.Equal("cache", runtimeConfiguration.Cache);
@@ -68,16 +69,18 @@ public class RuntimeConfigTests
     }
 
     [Fact]
-    public void FromBytes_NullJson_ThrowsArgumentException()
+    public void FromBytes_NullJson_Throws()
     {
         // Arrange.
         byte[] jsonBytes = Encoding.UTF8.GetBytes("null");
 
         // Act.
-        ArgumentException exception = Assert.Throws<ArgumentException>("bytes", () => RuntimeConfig.FromBytes(jsonBytes));
+        JsonException exception = Assert.Throws<JsonException>(() => RuntimeConfig.FromJsonBytes(jsonBytes));
 
         // Assert.
-        Assert.Equal("Failed to deserialize runtime configuration. (Parameter 'bytes')", exception.Message);
+        Assert.Equal("Runtime config bytes deserialization failed.", exception.Message);
+        Assert.NotNull(exception.InnerException);
+        Assert.Equal("JSON bytes deserialized to null.", exception.InnerException.Message);
     }
 
     [Fact]

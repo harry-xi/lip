@@ -37,7 +37,7 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null) : 
     public string PackageLockPath => _fileSystem.Path.Join(WorkingDir, PackageLockFileName);
 
     public string RuntimeConfigPath => _fileSystem.Path.Join(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "runtime_config.json");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
     public string WorkingDir => _fileSystem.Directory.GetCurrentDirectory();
 

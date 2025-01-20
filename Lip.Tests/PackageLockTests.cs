@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Semver;
 
 namespace Lip.Tests;
 
@@ -63,7 +64,13 @@ public class PackageLockTests
         Assert.Equal(3, lockFile.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", lockFile.FormatUuid);
         Assert.Single(lockFile.Packages);
+        Assert.Equal("example.com/pkg", lockFile.Packages[0].ToothPath);
+        Assert.Equal("1.0.0", lockFile.Packages[0].VersionText);
         Assert.Single(lockFile.Locks);
+        Assert.Equal("example.com/pkg", lockFile.Locks[0].ToothPath);
+        Assert.Equal("default", lockFile.Locks[0].VariantLabel);
+        Assert.Equal("1.0.0", lockFile.Locks[0].VersionText);
+        Assert.Equal(SemVersion.Parse("1.0.0"), lockFile.Locks[0].Version);
     }
 
     [Fact]
@@ -161,14 +168,14 @@ public class PackageLockTests
                     FormatVersion = 3,
                     FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
                     ToothPath = "example.com/pkg",
-                    Version = "1.0.0"
+                    VersionText = "1.0.0"
                 }
             ],
             Locks = [
                 new() {
                     ToothPath = "example.com/pkg",
                     VariantLabel = "default",
-                    Version = "1.0.0"
+                    VersionText = "1.0.0"
                 }
             ]
         };
@@ -208,13 +215,13 @@ public class PackageLockTests
         {
             ToothPath = "example.com/package",
             VariantLabel = "default",
-            Version = "1.0.0"
+            VersionText = "1.0.0"
         };
 
         // Assert
         Assert.Equal("example.com/package", lockType.ToothPath);
         Assert.Equal("default", lockType.VariantLabel);
-        Assert.Equal("1.0.0", lockType.Version);
+        Assert.Equal("1.0.0", lockType.VersionText);
     }
 
     [Fact]
@@ -225,7 +232,7 @@ public class PackageLockTests
         {
             ToothPath = "invalid/tooth",
             VariantLabel = "default",
-            Version = "1.0.0"
+            VersionText = "1.0.0"
         });
         Assert.Equal("Invalid tooth path 'invalid/tooth'.", exception.Message);
     }
@@ -238,7 +245,7 @@ public class PackageLockTests
         {
             ToothPath = "example.com/package",
             VariantLabel = "invalid-variant",
-            Version = "1.0.0"
+            VersionText = "1.0.0"
         });
         Assert.Equal("Invalid variant label 'invalid-variant'.", exception.Message);
     }
@@ -251,7 +258,7 @@ public class PackageLockTests
         {
             ToothPath = "example.com/package",
             VariantLabel = "default",
-            Version = "invalid-version"
+            VersionText = "invalid-version"
         });
         Assert.Equal("Invalid version 'invalid-version'.", exception.Message);
     }

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Semver;
 
 namespace Lip.Tests;
 
@@ -19,14 +20,14 @@ public class PackageManifestTests
             Type = PackageManifest.AssetType.TypeEnum.Self,
             Urls = urls?.ToList(),
             Place = null,
-            Preserve = preserve?.ToList(), 
+            Preserve = preserve?.ToList(),
             Remove = remove?.ToList()
         };
 
         // Assert.
         Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, asset.Type);
         Assert.Equal(urls, asset.Urls);
-        Assert.Null(asset.Place); 
+        Assert.Null(asset.Place);
         Assert.Equal(preserve, asset.Preserve);
         Assert.Equal(remove, asset.Remove);
     }
@@ -46,7 +47,7 @@ public class PackageManifestTests
         Assert.Equal("urls", exception.Key);
         Assert.Equal("URL 'invalid' is invalid.", exception.Message);
     }
-    
+
     [Fact]
     public void AssetType_Constructor_UnsafePreserve_Throws()
     {
@@ -254,8 +255,8 @@ public class PackageManifestTests
     public void VariantType_Constructor_ValidValues_Passes(int? dependencyIndex)
     {
         // Arrange & Act.
-        Dictionary<string, string>? dependencies = dependencyIndex.HasValue ? 
-            s_testDependencies.Skip(dependencyIndex.Value).Take(1).ToDictionary(x => x.Item1, x => x.Item2) : 
+        Dictionary<string, string>? dependencies = dependencyIndex.HasValue ?
+            s_testDependencies.Skip(dependencyIndex.Value).Take(1).ToDictionary(x => x.Item1, x => x.Item2) :
             null;
 
         var variant = new PackageManifest.VariantType
@@ -317,7 +318,8 @@ public class PackageManifestTests
         Assert.Equal(3, manifest.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
         Assert.Equal("", manifest.ToothPath);
-        Assert.Equal("1.0.0", manifest.Version);
+        Assert.Equal("1.0.0", manifest.VersionText);
+        Assert.Equal(SemVersion.Parse("1.0.0"), manifest.Version);
     }
 
     [Fact]
@@ -413,7 +415,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0"
+            VersionText = "1.0.0"
         };
         string variantLabel = "";
         string platform = "platform";
@@ -434,7 +436,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants = []
         };
         string variantLabel = "";
@@ -460,12 +462,12 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants =
             [
                 new PackageManifest.VariantType
                 {
-                    VariantLabel = manifestVariantLabel,
+                    VariantLabelRaw = manifestVariantLabel,
                     Platform = manifestPlatform,
                 }
             ]
@@ -476,6 +478,7 @@ public class PackageManifestTests
 
         // Assert.
         Assert.NotNull(variant);
+        Assert.Equal(variantLabel, variant.VariantLabelRaw);
         Assert.Equal(variantLabel, variant.VariantLabel);
         Assert.Equal(platform, variant.Platform);
         Assert.NotNull(variant.Dependencies);
@@ -503,7 +506,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants =
             [
                 new PackageManifest.VariantType
@@ -521,6 +524,7 @@ public class PackageManifestTests
 
         // Assert.
         Assert.NotNull(variant);
+        Assert.Equal("", variant.VariantLabelRaw);
         Assert.Equal("", variant.VariantLabel);
         Assert.Equal("platform", variant.Platform);
         Assert.NotNull(variant.Dependencies);
@@ -548,7 +552,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants =
             [
                 new PackageManifest.VariantType
@@ -574,6 +578,7 @@ public class PackageManifestTests
 
         // Assert.
         Assert.NotNull(variant);
+        Assert.Equal("", variant.VariantLabelRaw);
         Assert.Equal("", variant.VariantLabel);
         Assert.Equal("platform", variant.Platform);
         Assert.NotNull(variant.Dependencies);
@@ -606,12 +611,12 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants =
             [
                 new PackageManifest.VariantType
                 {
-                    VariantLabel = manifestVariantLabel,
+                    VariantLabelRaw = manifestVariantLabel,
                     Platform = manifestPlatform,
                 }
             ]
@@ -637,12 +642,12 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants =
             [
                 new PackageManifest.VariantType
                 {
-                    VariantLabel = manifestVariantLabel,
+                    VariantLabelRaw = manifestVariantLabel,
                     Platform = manifestPlatform,
                 }
             ]
@@ -664,7 +669,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants =
             [
             new()
@@ -739,6 +744,7 @@ public class PackageManifestTests
 
         // Assert.
         Assert.NotNull(variant);
+        Assert.Equal("", variant.VariantLabelRaw);
         Assert.Equal("", variant.VariantLabel);
         Assert.Equal("platform", variant.Platform);
         Assert.NotNull(variant.Dependencies);
@@ -776,7 +782,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0"
+            VersionText = "1.0.0"
         };
 
         // Act.
@@ -802,7 +808,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants = [
                 new(){
                     Assets = [
@@ -822,7 +828,7 @@ public class PackageManifestTests
         Assert.Equal(3, result.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", result.FormatUuid);
         Assert.Equal("", result.ToothPath);
-        Assert.Equal("1.0.0", result.Version);
+        Assert.Equal("1.0.0", result.VersionText);
         Assert.NotNull(result.Variants);
         Assert.Single(result.Variants);
         Assert.NotNull(result.Variants[0].Assets);
@@ -839,7 +845,7 @@ public class PackageManifestTests
             FormatVersion = 3,
             FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
             ToothPath = "",
-            Version = "1.0.0",
+            VersionText = "1.0.0",
             Variants = [
                 new(){
                     Assets = [

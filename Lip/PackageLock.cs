@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Semver;
 
 namespace Lip;
 
@@ -25,8 +26,11 @@ public record PackageLock
                 : throw new SchemaViolationException("variant", $"Invalid variant label '{value}'.");
         }
 
+        [JsonIgnore]
+        public SemVersion Version => SemVersion.Parse(VersionText);
+
         [JsonPropertyName("version")]
-        public string Version
+        public string VersionText
         {
             get => _version;
             init => _version = StringValidator.CheckVersion(value)

@@ -1,4 +1,4 @@
-using Semver;
+﻿using Semver;
 
 namespace Lip.Tests;
 

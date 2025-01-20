@@ -146,7 +146,7 @@ public class PathManagerTests
 
         // Assert.
         Assert.Equal(
-            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "runtime_config.json"),
+            Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json"),
             runtimeConfigPath);
     }
 

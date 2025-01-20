@@ -51,7 +51,7 @@ public record PackageSpecifierWithoutVersion
     }
 }
 
-public record PackageSpecifier: PackageSpecifierWithoutVersion
+public record PackageSpecifier : PackageSpecifierWithoutVersion
 {
 
     public required SemVersion Version { get; init; }

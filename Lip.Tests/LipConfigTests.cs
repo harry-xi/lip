@@ -7,7 +7,7 @@ namespace Lip.Tests;
 public class LipConfigTests
 {
     private static readonly string s_runtimeConfigPath = Path.Join(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "runtime_config.json");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
     [Fact]
     public async Task ConfigDelete_SingleItem_ResetsToDefault()

@@ -42,13 +42,13 @@ public class PackageLockTests
                     {
                         "format_version": 3,
                         "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                        "tooth": "test/package",
+                        "tooth": "example.com/pkg",
                         "version": "1.0.0"
                     }
                 ],
                 "locks": [
                     {
-                        "tooth": "test/package",
+                        "tooth": "example.com/pkg",
                         "variant": "default",
                         "version": "1.0.0"
                     }
@@ -160,13 +160,13 @@ public class PackageLockTests
                 new() {
                     FormatVersion = 3,
                     FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                    ToothPath = "test/package",
+                    ToothPath = "example.com/pkg",
                     Version = "1.0.0"
                 }
             ],
             Locks = [
                 new() {
-                    ToothPath = "test/package",
+                    ToothPath = "example.com/pkg",
                     VariantLabel = "default",
                     Version = "1.0.0"
                 }
@@ -185,13 +185,13 @@ public class PackageLockTests
                     {
                         "format_version": 3,
                         "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                        "tooth": "test/package",
+                        "tooth": "example.com/pkg",
                         "version": "1.0.0"
                     }
                 ],
                 "locks": [
                     {
-                        "tooth": "test/package",
+                        "tooth": "example.com/pkg",
                         "variant": "default",
                         "version": "1.0.0"
                     }
@@ -201,24 +201,58 @@ public class PackageLockTests
     }
 
     [Fact]
-    public void LockType_Deserialize_MinimumJson_Passes()
+    public void LockType_Constructor_ValidValues_Passes()
     {
-        // Arrange
-        string json = """
-            {
-                "tooth": "test/package",
-                "variant": "default",
-                "version": "1.0.0"
-            }
-            """;
-
-        // Act
-        PackageLock.LockType? lockType = JsonSerializer.Deserialize<PackageLock.LockType>(json);
+        // Arrange & Act
+        var lockType = new PackageLock.LockType
+        {
+            ToothPath = "example.com/package",
+            VariantLabel = "default",
+            Version = "1.0.0"
+        };
 
         // Assert
-        Assert.NotNull(lockType);
-        Assert.Equal("test/package", lockType.ToothPath);
+        Assert.Equal("example.com/package", lockType.ToothPath);
         Assert.Equal("default", lockType.VariantLabel);
         Assert.Equal("1.0.0", lockType.Version);
+    }
+
+    [Fact]
+    public void LockType_Constructor_InvalidToothPath_Throws()
+    {
+        // Arrange & Act & Assert
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(() => new PackageLock.LockType
+        {
+            ToothPath = "invalid/tooth",
+            VariantLabel = "default",
+            Version = "1.0.0"
+        });
+        Assert.Equal("Invalid tooth path 'invalid/tooth'.", exception.Message);
+    }
+
+    [Fact]
+    public void LockType_Constructor_InvalidVariantLabel_Throws()
+    {
+        // Arrange & Act & Assert
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(() => new PackageLock.LockType
+        {
+            ToothPath = "example.com/package",
+            VariantLabel = "invalid-variant",
+            Version = "1.0.0"
+        });
+        Assert.Equal("Invalid variant label 'invalid-variant'.", exception.Message);
+    }
+
+    [Fact]
+    public void LockType_Constructor_InvalidVersion_Throws()
+    {
+        // Arrange & Act & Assert
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(() => new PackageLock.LockType
+        {
+            ToothPath = "example.com/package",
+            VariantLabel = "default",
+            Version = "invalid-version"
+        });
+        Assert.Equal("Invalid version 'invalid-version'.", exception.Message);
     }
 }

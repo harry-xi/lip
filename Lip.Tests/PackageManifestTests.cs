@@ -5,154 +5,179 @@ namespace Lip.Tests;
 
 public class PackageManifestTests
 {
-    [Fact]
-    public void AssetType_Deserialize_MinimumJson_Passes()
-    {
-        // Arrange.
-        string json = """
-        {
-            "type": "self"
-        }
-        """;
-
-        // Act.
-        PackageManifest.AssetType? asset = JsonSerializer.Deserialize<PackageManifest.AssetType>(json);
-
-        // Assert.
-        Assert.NotNull(asset);
-        Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, asset.Type);
-        Assert.Null(asset.Urls);
-        Assert.Null(asset.Place);
-        Assert.Null(asset.Preserve);
-        Assert.Null(asset.Remove);
-    }
-
-    [Fact]
-    public void AssetType_Deserialize_MaximumJson_Passes()
-    {
-        // Arrange.
-        string json = """
-        {
-            "type": "self",
-            "urls": [],
-            "place": [],
-            "preserve": [],
-            "remove": []
-        }
-        """;
-
-        // Act.
-        PackageManifest.AssetType? asset = JsonSerializer.Deserialize<PackageManifest.AssetType>(json);
-
-        // Assert.
-        Assert.NotNull(asset);
-        Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, asset.Type);
-        Assert.Equal([], asset.Urls);
-        Assert.Equal([], asset.Place);
-        Assert.Equal([], asset.Preserve);
-        Assert.Equal([], asset.Remove);
-    }
-
-    [Fact]
-    public void InfoType_Deserialize_MinimumJson_Passes()
-    {
-        // Arrange.
-        string json = "{}";
-
-        // Act.
-        PackageManifest.InfoType? info = JsonSerializer.Deserialize<PackageManifest.InfoType>(json);
-
-        // Assert.
-        Assert.NotNull(info);
-        Assert.Null(info.Name);
-        Assert.Null(info.Description);
-        Assert.Null(info.Author);
-        Assert.Null(info.Tags);
-        Assert.Null(info.AvatarUrl);
-    }
-
-    [Fact]
-    public void InfoType_Deserialize_MaximumJson_Passes()
-    {
-        // Arrange.
-        string json = """
-        {
-            "name": "",
-            "description": "",
-            "author": "",
-            "tags": ["tag", "tag:subtag"],
-            "avatar_url": "https://example.com/avatar.png"
-        }
-        """;
-
-        // Act.
-        PackageManifest.InfoType? info = JsonSerializer.Deserialize<PackageManifest.InfoType>(json);
-
-        // Assert.
-        Assert.NotNull(info);
-        Assert.Equal("", info.Name);
-        Assert.Equal("", info.Description);
-        Assert.Equal("", info.Author);
-        Assert.Equal(new[] { "tag", "tag:subtag" }, info.Tags);
-        Assert.Equal("https://example.com/avatar.png", info.AvatarUrl);
-    }
-
     [Theory]
-    [InlineData("invalid.tag")]
-    [InlineData("tag:invalid.subtag")]
-    [InlineData("invalid.tag:subtag")]
-    [InlineData("invalid-tag:")]
-    [InlineData(":invalid-subtag")]
-    [InlineData(":")]
-    [InlineData("")]
-    public void InfoType_Deserialize_InvalidTag_Throws(string tag)
+    [InlineData(null, null, null)]
+    [InlineData(new string[] { "https://example.com" }, new string[] { "preserve" }, new string[] { "remove" })]
+    public void AssetType_Constructor_ValidValues_Passes(
+        string[]? urls,
+        string[]? preserve,
+        string[]? remove)
     {
-        // Arrange.
-        string json = $$"""
+        // Arrange & Act.
+        var asset = new PackageManifest.AssetType
         {
-            "tags": ["{{tag}}"]
-        }
-        """;
+            Type = PackageManifest.AssetType.TypeEnum.Self,
+            Urls = urls?.ToList(),
+            Place = null,
+            Preserve = preserve?.ToList(), 
+            Remove = remove?.ToList()
+        };
 
-        // Act.
+        // Assert.
+        Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, asset.Type);
+        Assert.Equal(urls, asset.Urls);
+        Assert.Null(asset.Place); 
+        Assert.Equal(preserve, asset.Preserve);
+        Assert.Equal(remove, asset.Remove);
+    }
+
+    [Fact]
+    public void AssetType_Constructor_InvalidUrl_Throws()
+    {
+        // Arrange & Act.
         SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => JsonSerializer.Deserialize<PackageManifest.InfoType>(json));
+            () => new PackageManifest.AssetType
+            {
+                Type = PackageManifest.AssetType.TypeEnum.Self,
+                Urls = ["invalid"]
+            });
 
         // Assert.
-        Assert.Equal($"Tag '{tag}' is invalid.", exception.Message);
+        Assert.Equal("urls", exception.Key);
+        Assert.Equal("URL 'invalid' is invalid.", exception.Message);
+    }
+    
+    [Fact]
+    public void AssetType_Constructor_UnsafePreserve_Throws()
+    {
+        // Arrange & Act.
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.AssetType
+            {
+                Type = PackageManifest.AssetType.TypeEnum.Self,
+                Preserve = ["/invalid"]
+            });
+
+        // Assert.
+        Assert.Equal("preserve", exception.Key);
+        Assert.Equal("Path '/invalid' is unsafe to preserve.", exception.Message);
     }
 
     [Fact]
-    public void PlaceType_Deserialize_CommonInput_Passes()
+    public void AssetType_Constructor_UnsafeRemove_Throws()
     {
-        // Arrange.
-        string json = """
-        {
-            "type": "file",
-            "src": "",
-            "dest": ""
-        }
-        """;
-
-        // Act.
-        PackageManifest.PlaceType? place = JsonSerializer.Deserialize<PackageManifest.PlaceType>(json);
+        // Arrange & Act.
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.AssetType
+            {
+                Type = PackageManifest.AssetType.TypeEnum.Self,
+                Remove = ["/invalid"]
+            });
 
         // Assert.
-        Assert.NotNull(place);
-        Assert.Equal(PackageManifest.PlaceType.TypeEnum.File, place.Type);
-        Assert.Equal("", place.Src);
-        Assert.Equal("", place.Dest);
+        Assert.Equal("remove", exception.Key);
+        Assert.Equal("Path '/invalid' is unsafe to remove.", exception.Message);
     }
 
     [Theory]
-    [InlineData("script")]
-    [InlineData("additional_script")]
-    public void ScriptsType_Constructor_AdditionalScriptsInitialized_Passes(string scriptName)
+    [InlineData(null, null)]
+    [InlineData(new string[] { "tag" }, "https://example.com")]
+    public void InfoType_Constructor_ValidValues_Passes(string[]? tags, string? avatarUrl)
+    {
+        // Arrange & Act.
+        var info = new PackageManifest.InfoType
+        {
+            Tags = tags?.ToList(),
+            AvatarUrl = avatarUrl
+        };
+
+        // Assert.
+        Assert.Equal(tags, info.Tags);
+        Assert.Equal(avatarUrl, info.AvatarUrl);
+    }
+
+    [Fact]
+    public void InfoType_Constructor_InvalidTag_Throws()
+    {
+        // Arrange & Act.
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.InfoType { Tags = ["invalid.tag"] });
+
+        // Assert.
+        Assert.Equal("Tag 'invalid.tag' is invalid.", exception.Message);
+    }
+
+    [Fact]
+    public void InfoType_Constructor_InvalidAvatarUrl_Throws()
+    {
+        // Arrange & Act.
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.InfoType { AvatarUrl = "invalid" });
+
+        // Assert.
+        Assert.Equal("avatar_url", exception.Key);
+        Assert.Equal("Avatar URL 'invalid' is invalid.", exception.Message);
+    }
+
+    [Fact]
+    public void PlaceType_Constructor_ValidValues_Passes()
+    {
+        // Arrange & Act.
+        var place = new PackageManifest.PlaceType
+        {
+            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Src = "/path/to/src",
+            Dest = "path/to/dest"
+        };
+
+        // Assert.
+        Assert.Equal(PackageManifest.PlaceType.TypeEnum.File, place.Type);
+        Assert.Equal("/path/to/src", place.Src);
+        Assert.Equal("path/to/dest", place.Dest);
+    }
+
+    [Fact]
+    public void PlaceType_Constructor_UnsafeDest_Throws()
+    {
+        // Arrange & Act.
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.PlaceType
+            {
+                Type = PackageManifest.PlaceType.TypeEnum.File,
+                Src = "/path/to/src",
+                Dest = "/path/to/dest"
+            });
+
+        // Assert.
+        Assert.Equal("dest", exception.Key);
+        Assert.Equal("Path '/path/to/dest' is unsafe to place.", exception.Message);
+    }
+
+    [Fact]
+    public void ScriptsType_Constructor_Trivial_Passes()
+    {
+        // Arrange & Act.
+        var scripts = new PackageManifest.ScriptsType();
+
+        // Assert.
+        Assert.Null(scripts.PreInstall);
+        Assert.Null(scripts.Install);
+        Assert.Null(scripts.PostInstall);
+        Assert.Null(scripts.PrePack);
+        Assert.Null(scripts.PostPack);
+        Assert.Null(scripts.PreUninstall);
+        Assert.Null(scripts.Uninstall);
+        Assert.Null(scripts.PostUninstall);
+        Assert.Empty(scripts.AdditionalScripts);
+    }
+
+    [Fact]
+    public void ScriptsType_Constructor_WithAdditionalScripts_Passes()
     {
         // Arrange.
         Dictionary<string, List<string>> additionalScripts = new()
         {
-            [scriptName] = ["echo additional"]
+            ["additional_script"] = ["echo additional"]
         };
 
         // Act.
@@ -162,23 +187,17 @@ public class PackageManifestTests
         };
 
         // Assert.
-        Assert.NotNull(scripts.AdditionalProperties);
-        Assert.Single(scripts.AdditionalProperties);
         Assert.Single(scripts.AdditionalScripts);
-        Assert.Equal(new[] { "echo additional" }, scripts.AdditionalScripts[scriptName]);
+        Assert.Equal(["echo additional"], scripts.AdditionalScripts["additional_script"]);
     }
 
-    [Theory]
-    [InlineData("invalid-script")]
-    [InlineData("invalid.script")]
-    [InlineData("invalid script")]
-    [InlineData("invalidScript")]
-    public void ScriptsType_Constructor_InvalidAdditionalScriptName_Throws(string scriptName)
+    [Fact]
+    public void ScriptsType_Constructor_InvalidAdditionalScriptName_Throws()
     {
         // Arrange.
         Dictionary<string, List<string>> additionalScripts = new()
         {
-            [scriptName] = ["echo invalid"]
+            ["invalid.script"] = ["echo invalid"]
         };
 
         // Act.
@@ -186,18 +205,33 @@ public class PackageManifestTests
             () => new PackageManifest.ScriptsType { AdditionalScripts = additionalScripts });
 
         // Assert.
-        Assert.Equal(scriptName, exception.Key);
-        Assert.Equal($"Script name '{scriptName}' is invalid.", exception.Message);
+        Assert.Equal("invalid.script", exception.Key);
+        Assert.Equal("Script name 'invalid.script' is invalid.", exception.Message);
     }
 
-    [Fact]
-    public void ScriptsType_Deserialize_MinimumJson_Passes()
+    [Theory]
+    [InlineData("""
+        {
+            "invalid.script.name": [""]
+        }
+        """)]
+    [InlineData("""
+        {
+            "script_name": "not array"
+        }
+        """)]
+    [InlineData("""
+        {
+            "script_name": [[]]
+        }
+        """)]
+    public void ScriptsType_Deserialize_InvalidAdditionalProperties_Ignores(string json)
     {
         // Arrange.
-        string json = "{}";
+        byte[] bytes = Encoding.UTF8.GetBytes(json);
 
         // Act.
-        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(bytes);
 
         // Assert.
         Assert.NotNull(scripts);
@@ -209,158 +243,58 @@ public class PackageManifestTests
         Assert.Null(scripts.PreUninstall);
         Assert.Null(scripts.Uninstall);
         Assert.Null(scripts.PostUninstall);
-        Assert.Null(scripts.AdditionalProperties);
-        Assert.Equal([], scripts.AdditionalScripts);
+        Assert.Empty(scripts.AdditionalScripts);
     }
 
-    [Fact]
-    public void ScriptsType_Deserialize_MaximumJson_Passes()
-    {
-        // Arrange.
-        string json = """
-        {
-            "pre_install": [],
-            "install": [],
-            "post_install": [],
-            "pre_pack": [],
-            "post_pack": [],
-            "pre_uninstall": [],
-            "uninstall": [],
-            "post_uninstall": [],
-            "additional_script": [
-                "echo additional"
-            ]
-        }
-        """;
-
-        // Act.
-        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
-
-        // Assert.
-        Assert.NotNull(scripts);
-        Assert.Equal([], scripts.PreInstall);
-        Assert.Equal([], scripts.Install);
-        Assert.Equal([], scripts.PostInstall);
-        Assert.Equal([], scripts.PrePack);
-        Assert.Equal([], scripts.PostPack);
-        Assert.Equal([], scripts.PreUninstall);
-        Assert.Equal([], scripts.Uninstall);
-        Assert.Equal([], scripts.PostUninstall);
-        Assert.NotNull(scripts.AdditionalProperties);
-        Assert.Single(scripts.AdditionalProperties);
-        Assert.Contains("additional_script", scripts.AdditionalProperties);
-        Assert.Single(scripts.AdditionalScripts);
-        Assert.Contains("additional_script", scripts.AdditionalScripts);
-        Assert.Equal(["echo additional"], scripts.AdditionalScripts["additional_script"]);
-    }
+    private static readonly (string, string)[] s_testDependencies = [("example.com/pkg", "1.0.x")];
 
     [Theory]
-    [InlineData("invalid-script")]
-    [InlineData("invalid.script")]
-    [InlineData("invalid script")]
-    [InlineData("invalidScript")]
-    public void ScriptsType_Deserialize_InvalidPropertyKey_Passes(string scriptName)
+    [InlineData(null)]
+    [InlineData(0)] // Use index to reference TestDependencies
+    public void VariantType_Constructor_ValidValues_Passes(int? dependencyIndex)
     {
-        // Arrange.
-        string json = $$"""
+        // Arrange & Act.
+        Dictionary<string, string>? dependencies = dependencyIndex.HasValue ? 
+            s_testDependencies.Skip(dependencyIndex.Value).Take(1).ToDictionary(x => x.Item1, x => x.Item2) : 
+            null;
+
+        var variant = new PackageManifest.VariantType
         {
-            "{{scriptName}}": []
-        }
-        """;
+            Dependencies = dependencies,
+        };
 
-        // Act.
-        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
-
-        // Assert.
-        Assert.NotNull(scripts);
-        Assert.NotNull(scripts.AdditionalProperties);
-        Assert.Single(scripts.AdditionalProperties);
-        Assert.Equal([], scripts.AdditionalScripts);
+        // Assert. 
+        Assert.Equal(dependencies, variant.Dependencies);
     }
 
     [Fact]
-    public void ScriptsType_Deserialize_InvalidPropertyValueKind_Passes()
+    public void VariantType_Constructor_InvalidDependencyKey_Throws()
     {
-        // Arrange.
-        string json = """
-        {
-            "additional_script_1": null
-        }
-        """;
-
-        // Act.
-        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+        // Arrange & Act.
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.VariantType
+            {
+                Dependencies = new Dictionary<string, string> { { "invalid*key", "1.0.x" } }
+            });
 
         // Assert.
-        Assert.NotNull(scripts);
-        Assert.NotNull(scripts.AdditionalProperties);
-        Assert.Single(scripts.AdditionalProperties);
-        Assert.Equal([], scripts.AdditionalScripts);
+        Assert.Equal("dependencies", exception.Key);
+        Assert.Equal("Package specifier 'invalid*key' is invalid.", exception.Message);
     }
 
     [Fact]
-    public void ScriptsType_Deserialize_InvalidPropertyItemValueKind_Passes()
+    public void VariantType_Constructor_InvalidDependencyValue_Throws()
     {
-        // Arrange.
-        string json = """
-        {
-            "additional_script": [
-                null
-            ]
-        }
-        """;
-
-        // Act.
-        PackageManifest.ScriptsType? scripts = JsonSerializer.Deserialize<PackageManifest.ScriptsType>(json);
+        // Arrange & Act.
+        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+            () => new PackageManifest.VariantType
+            {
+                Dependencies = new Dictionary<string, string> { { "example.com/pkg", "invalid.version.range" } }
+            });
 
         // Assert.
-        Assert.NotNull(scripts);
-        Assert.NotNull(scripts.AdditionalProperties);
-        Assert.Single(scripts.AdditionalProperties);
-        Assert.Equal([], scripts.AdditionalScripts);
-    }
-
-    [Fact]
-    public void VariantType_Deserialize_MinimumJson_Passes()
-    {
-        // Arrange.
-        string json = "{}";
-
-        // Act.
-        PackageManifest.VariantType? variant = JsonSerializer.Deserialize<PackageManifest.VariantType>(json);
-
-        // Assert.
-        Assert.NotNull(variant);
-        Assert.Null(variant.Platform);
-        Assert.Null(variant.Dependencies);
-        Assert.Null(variant.Assets);
-        Assert.Null(variant.Scripts);
-    }
-
-    [Fact]
-    public void VariantType_Deserialize_MaximumJson_Passes()
-    {
-        // Arrange.
-        string json = """
-        {
-            "label": "",
-            "platform": "",
-            "dependencies": {},
-            "assets": [],
-            "scripts": {}
-        }
-        """;
-
-        // Act.
-        PackageManifest.VariantType? variant = JsonSerializer.Deserialize<PackageManifest.VariantType>(json);
-
-        // Assert.
-        Assert.NotNull(variant);
-        Assert.Equal("", variant.VariantLabel);
-        Assert.Equal("", variant.Platform);
-        Assert.Equal([], variant.Dependencies);
-        Assert.Equal([], variant.Assets);
-        Assert.NotNull(variant.Scripts);
+        Assert.Equal("dependencies", exception.Key);
+        Assert.Equal("Version range 'invalid.version.range' is invalid.", exception.Message);
     }
 
     [Fact]
@@ -384,34 +318,6 @@ public class PackageManifestTests
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
         Assert.Equal("", manifest.ToothPath);
         Assert.Equal("1.0.0", manifest.Version);
-    }
-
-    [Fact]
-    public void FromBytes_MaximumJson_Passes()
-    {
-        // Arrange.
-        byte[] bytes = Encoding.UTF8.GetBytes("""
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "",
-                "version": "1.0.0",
-                "info": {},
-                "variants": []
-            }
-            """);
-
-        // Act.
-        var manifest = PackageManifest.FromJsonBytes(bytes);
-
-        // Assert.
-        Assert.Equal(3, manifest.FormatVersion);
-        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
-        Assert.Equal("", manifest.ToothPath);
-        Assert.Equal("1.0.0", manifest.Version);
-        Assert.NotNull(manifest.Info);
-        Assert.NotNull(manifest.Variants);
-        Assert.Equal([], manifest.Variants);
     }
 
     [Fact]
@@ -585,7 +491,6 @@ public class PackageManifestTests
         Assert.Null(variant.Scripts.PreUninstall);
         Assert.Null(variant.Scripts.Uninstall);
         Assert.Null(variant.Scripts.PostUninstall);
-        Assert.Equal([], variant.Scripts.AdditionalProperties);
         Assert.Equal([], variant.Scripts.AdditionalScripts);
     }
 
@@ -631,7 +536,6 @@ public class PackageManifestTests
         Assert.Null(variant.Scripts.PreUninstall);
         Assert.Null(variant.Scripts.Uninstall);
         Assert.Null(variant.Scripts.PostUninstall);
-        Assert.Equal([], variant.Scripts.AdditionalProperties);
         Assert.Equal([], variant.Scripts.AdditionalScripts);
     }
 
@@ -660,7 +564,6 @@ public class PackageManifestTests
                         PreUninstall = [],
                         Uninstall = [],
                         PostUninstall = [],
-                        AdditionalProperties = {}
                     }
                 }
             ]
@@ -686,8 +589,6 @@ public class PackageManifestTests
         Assert.Equal([], variant.Scripts.PreUninstall);
         Assert.Equal([], variant.Scripts.Uninstall);
         Assert.Equal([], variant.Scripts.PostUninstall);
-        Assert.NotNull(variant.Scripts.AdditionalProperties);
-        Assert.Empty(variant.Scripts.AdditionalProperties);
         Assert.NotNull(variant.Scripts.AdditionalScripts);
         Assert.Empty(variant.Scripts.AdditionalScripts);
     }

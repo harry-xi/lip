@@ -11,7 +11,7 @@ public record PackageLock
         public string ToothPath
         {
             get => _tooth;
-            init => _tooth = !StringValidator.CheckToothPath(value)
+            init => _tooth = StringValidator.CheckToothPath(value)
                 ? value
                 : throw new SchemaViolationException("tooth", $"Invalid tooth path '{value}'.");
         }
@@ -20,7 +20,7 @@ public record PackageLock
         public string VariantLabel
         {
             get => _variant;
-            init => _variant = !string.IsNullOrEmpty(value) && StringValidator.CheckVariantLabel(value)
+            init => _variant = StringValidator.CheckVariantLabel(value)
                 ? value
                 : throw new SchemaViolationException("variant", $"Invalid variant label '{value}'.");
         }
@@ -29,7 +29,7 @@ public record PackageLock
         public string Version
         {
             get => _version;
-            init => _version = !string.IsNullOrEmpty(value) && StringValidator.CheckVersion(value)
+            init => _version = StringValidator.CheckVersion(value)
                 ? value
                 : throw new SchemaViolationException("version", $"Invalid version '{value}'.");
         }

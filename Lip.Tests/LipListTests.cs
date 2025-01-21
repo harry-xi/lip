@@ -58,18 +58,13 @@ public class LipListTests
 
         Mock<ILogger> logger = new();
 
-        Mock<IPathManager> pathManager = new();
-        pathManager.SetupGet(m => m.PackageLockPath).Returns("tooth_lock.json");
-
         Mock<IUserInteraction> userInteraction = new();
 
         Lip lip = new(
             initialRuntimeConfig,
             fileSystem,
             logger.Object,
-            pathManager.Object,
-            userInteraction.Object,
-            runtimeIdentifier: RuntimeInformation.RuntimeIdentifier);
+            userInteraction.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -96,12 +91,9 @@ public class LipListTests
 
         Mock<ILogger> logger = new();
 
-        Mock<IPathManager> pathManager = new();
-        pathManager.SetupGet(m => m.PackageLockPath).Returns("tooth_lock.json");
-
         Mock<IUserInteraction> userInteraction = new();
 
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, pathManager.Object, userInteraction.Object);
+        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -148,12 +140,9 @@ public class LipListTests
 
         Mock<ILogger> logger = new();
 
-        Mock<IPathManager> pathManager = new();
-        pathManager.SetupGet(m => m.PackageLockPath).Returns("tooth_lock.json");
-
         Mock<IUserInteraction> userInteraction = new();
 
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, pathManager.Object, userInteraction.Object);
+        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -204,12 +193,9 @@ public class LipListTests
 
         Mock<ILogger> logger = new();
 
-        Mock<IPathManager> pathManager = new();
-        pathManager.SetupGet(m => m.PackageLockPath).Returns("tooth_lock.json");
-
         Mock<IUserInteraction> userInteraction = new();
 
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, pathManager.Object, userInteraction.Object);
+        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -260,12 +246,9 @@ public class LipListTests
 
         Mock<ILogger> logger = new();
 
-        Mock<IPathManager> pathManager = new();
-        pathManager.SetupGet(m => m.PackageLockPath).Returns("tooth_lock.json");
-
         Mock<IUserInteraction> userInteraction = new();
 
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, pathManager.Object, userInteraction.Object);
+        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());

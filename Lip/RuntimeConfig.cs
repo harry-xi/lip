@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Lip;
@@ -41,6 +42,9 @@ public record RuntimeConfig
 
     [JsonPropertyName("proxy")]
     public string Proxy { get; init; } = "";
+
+    [JsonIgnore]
+    public string RuntimeIdentifier { get; init; } = RuntimeInformation.RuntimeIdentifier;
 
     [JsonPropertyName("script_shell")]
     public string ScriptShell { get; init; } = OperatingSystem.IsWindows()

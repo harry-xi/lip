@@ -26,7 +26,7 @@ public partial class Lip
                         && package.Version == l.Version
                         && package.GetSpecifiedVariant(
                             l.VariantLabel,
-                            _runtimeIdentifier) is not null;
+                            _runtimeConfig.RuntimeIdentifier) is not null;
                 })
             })];
 

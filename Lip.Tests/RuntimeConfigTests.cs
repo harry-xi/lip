@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 
 namespace Lip.Tests;
@@ -26,6 +27,7 @@ public class RuntimeConfigTests
         Assert.Equal("", runtimeConfiguration.HttpsProxy);
         Assert.Equal("", runtimeConfiguration.NoProxy);
         Assert.Equal("", runtimeConfiguration.Proxy);
+        Assert.Equal(RuntimeInformation.RuntimeIdentifier, runtimeConfiguration.RuntimeIdentifier);
         Assert.Equal(
             OperatingSystem.IsWindows()
                 ? "cmd.exe"
@@ -65,6 +67,7 @@ public class RuntimeConfigTests
         Assert.Equal("https_proxy", runtimeConfiguration.HttpsProxy);
         Assert.Equal("noproxy", runtimeConfiguration.NoProxy);
         Assert.Equal("proxy", runtimeConfiguration.Proxy);
+        Assert.Equal(RuntimeInformation.RuntimeIdentifier, runtimeConfiguration.RuntimeIdentifier);
         Assert.Equal("script_shell", runtimeConfiguration.ScriptShell);
     }
 

@@ -135,7 +135,7 @@ public class PathManagerTests
         PathManager pathManager = new(fileSystem);
 
         // Act.
-        string manifestPath = pathManager.PackageManifestPath;
+        string manifestPath = pathManager.CurrentPackageManifestPath;
 
         // Assert.
         Assert.Equal(Path.Join(s_workingDir, "tooth.json"), manifestPath);
@@ -152,7 +152,7 @@ public class PathManagerTests
         PathManager pathManager = new(fileSystem);
 
         // Act.
-        string recordPath = pathManager.PackageLockPath;
+        string recordPath = pathManager.CurrentPackageLockPath;
 
         // Assert.
         Assert.Equal(Path.Join(s_workingDir, "tooth_lock.json"), recordPath);
@@ -193,12 +193,8 @@ public class PathManagerTests
 
     [Theory]
     [InlineData("https://example.com/asset?v=1", "https%3A%2F%2Fexample.com%2Fasset%3Fv%3D1")]
-    [InlineData("/path/to/asset", "%2Fpath%2Fto%2Fasset")]
-    [InlineData("", "")]
-    [InlineData(" ", "%20")]
-    [InlineData("!@#$%^&*()", "%21%40%23%24%25%5E%26%2A%28%29")]
-    [InlineData("../path/test", "..%2Fpath%2Ftest")]
-    [InlineData("\\special\\chars", "%5Cspecial%5Cchars")]
+    [InlineData("https://example.com/path/to/asset", "https%3A%2F%2Fexample.com%2Fpath%2Fto%2Fasset")]
+    [InlineData("https://example.com/", "https%3A%2F%2Fexample.com%2F")]
     public void GetDownloadedFileCacheDir_ArbitraryString_ReturnsEscapedPath(string url, string expectedFileName)
     {
         // Arrange.
@@ -206,7 +202,7 @@ public class PathManagerTests
         PathManager pathManager = new(fileSystem, baseCacheDir: s_cacheDir);
 
         // Act.
-        string cachePath = pathManager.GetDownloadedFileCachePath(url);
+        string cachePath = pathManager.GetDownloadedFileCachePath(new Uri(url));
 
         // Assert.
         Assert.Equal(
@@ -238,6 +234,29 @@ public class PathManagerTests
     }
 
     [Theory]
+    [InlineData("https://example.com/asset?v=1", "https%3A%2F%2Fexample.com%2Fasset%3Fv%3D1")]
+    [InlineData("/path/to/asset", "%2Fpath%2Fto%2Fasset")]
+    [InlineData("", "")]
+    [InlineData(" ", "%20")]
+    [InlineData("!@#$%^&*()", "%21%40%23%24%25%5E%26%2A%28%29")]
+    [InlineData("../path/test", "..%2Fpath%2Ftest")]
+    [InlineData("\\special\\chars", "%5Cspecial%5Cchars")]
+    public void GetGitRepoPackageManifestCachePath_ArbitraryString_ReturnsEscapedPath(string repoUrl, string expectedDirName)
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem, baseCacheDir: s_cacheDir);
+
+        // Act.
+        string repoPackageManifestPath = pathManager.GetGitRepoPackageManifestCachePath(repoUrl);
+
+        // Assert.
+        Assert.Equal(
+            Path.Join(s_cacheDir, "git_repos", expectedDirName, "tooth.json"),
+            repoPackageManifestPath);
+    }
+
+    [Theory]
     [InlineData("https://example.com/asset?v=1", "https%3A%2F%2Fexample.com%2Fasset%3Fv%3D1.json")]
     [InlineData("/path/to/asset", "%2Fpath%2Fto%2Fasset.json")]
     [InlineData("", ".json")]
@@ -245,14 +264,14 @@ public class PathManagerTests
     [InlineData("!@#$%^&*()", "%21%40%23%24%25%5E%26%2A%28%29.json")]
     [InlineData("../path/test", "..%2Fpath%2Ftest.json")]
     [InlineData("\\special\\chars", "%5Cspecial%5Cchars.json")]
-    public void GetPackageManifestCachePath_ArbitraryString_ReturnsEscapedPath(string packageName, string expectedFileName)
+    public void GetPackageManifestCachePath_ArbitraryString_ReturnsEscapedPath(string toothPath, string expectedFileName)
     {
         // Arrange.
         MockFileSystem fileSystem = new();
         PathManager pathManager = new(fileSystem, baseCacheDir: s_cacheDir);
 
         // Act.
-        string packageCacheDir = pathManager.GetPackageManifestCachePath(packageName);
+        string packageCacheDir = pathManager.GetPackageManifestCachePath(toothPath);
 
         // Assert.
         Assert.Equal(

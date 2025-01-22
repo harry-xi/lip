@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
+using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -7,11 +8,12 @@ namespace Lip.Tests;
 
 public class LipListTests
 {
-    [Fact]
-    public async Task List_ReturnsListItems()
+    [Theory]
+    [InlineData("win-x64")]
+    [InlineData("linux-x64")]
+    [InlineData("osx-x64")]
+    public async Task List_ReturnsListItems(string runtimeIdentifier)
     {
-        RuntimeConfig initialRuntimeConfig = new();
-
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
@@ -28,7 +30,7 @@ public class LipListTests
                         "variants": [
                             {
                                 "label": "variant1",
-                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}"
+                                "platform": "{{runtimeIdentifier}}"
                             }
                         ]
                     },
@@ -40,7 +42,7 @@ public class LipListTests
                         "variants": [
                             {
                                 "label": "variant2",
-                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}"
+                                "platform": "{{runtimeIdentifier}}"
                             }
                         ]
                     }
@@ -56,15 +58,11 @@ public class LipListTests
             """) }
         });
 
-        Mock<ILogger> logger = new();
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.RuntimeIdentifier).Returns(runtimeIdentifier);
 
-        Mock<IUserInteraction> userInteraction = new();
-
-        Lip lip = new(
-            initialRuntimeConfig,
-            fileSystem,
-            logger.Object,
-            userInteraction.Object);
+        Lip lip = new(new(), context.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -84,16 +82,13 @@ public class LipListTests
     [Fact]
     public async Task List_LockFileNotExists_ReturnsEmptyList()
     {
-        RuntimeConfig initialRuntimeConfig = new();
-
         // Arrange.
         var fileSystem = new MockFileSystem();
 
-        Mock<ILogger> logger = new();
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Mock<IUserInteraction> userInteraction = new();
-
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
+        Lip lip = new(new(), context.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -105,8 +100,6 @@ public class LipListTests
     [Fact]
     public async Task List_MismatchedToothPath_ReturnsListItems()
     {
-        RuntimeConfig initialRuntimeConfig = new();
-
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
@@ -122,7 +115,8 @@ public class LipListTests
                         "version": "1.0.0",
                         "variants": [
                             {
-                                "label": "variant1"
+                                "label": "variant1",
+                                "platform": "win-x64"
                             }
                         ]
                     }
@@ -138,11 +132,11 @@ public class LipListTests
             """) }
         });
 
-        Mock<ILogger> logger = new();
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.RuntimeIdentifier).Returns("win-x64");
 
-        Mock<IUserInteraction> userInteraction = new();
-
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
+        Lip lip = new(new(), context.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -158,8 +152,6 @@ public class LipListTests
     [Fact]
     public async Task List_MismatchedVersion_ReturnsListItems()
     {
-        RuntimeConfig initialRuntimeConfig = new();
-
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
@@ -175,7 +167,8 @@ public class LipListTests
                         "version": "1.0.0",
                         "variants": [
                             {
-                                "label": "variant1"
+                                "label": "variant1",
+                                "platform": "win-x64"
                             }
                         ]
                     }
@@ -191,11 +184,11 @@ public class LipListTests
             """) }
         });
 
-        Mock<ILogger> logger = new();
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.RuntimeIdentifier).Returns("win-x64");
 
-        Mock<IUserInteraction> userInteraction = new();
-
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
+        Lip lip = new(new(), context.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());
@@ -211,8 +204,6 @@ public class LipListTests
     [Fact]
     public async Task List_MismatchedVariantLabel_ReturnsListItems()
     {
-        RuntimeConfig initialRuntimeConfig = new();
-
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
@@ -228,7 +219,8 @@ public class LipListTests
                         "version": "1.0.0",
                         "variants": [
                             {
-                                "label": "variant1"
+                                "label": "variant1",
+                                "platform": "win-x64"
                             }
                         ]
                     }
@@ -244,11 +236,11 @@ public class LipListTests
             """) }
         });
 
-        Mock<ILogger> logger = new();
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.RuntimeIdentifier).Returns("win-x64");
 
-        Mock<IUserInteraction> userInteraction = new();
-
-        Lip lip = new(initialRuntimeConfig, fileSystem, logger.Object, userInteraction.Object);
+        Lip lip = new(new(), context.Object);
 
         // Act.
         List<Lip.ListItem> listItems = await lip.List(new());

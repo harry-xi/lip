@@ -15,6 +15,7 @@ public class PackageSpecifierWithoutVersionTests
         };
 
         // Assert
+        Assert.Equal("example.com/pkg#variant", packageSpecifier.Specifier);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
     }
@@ -47,12 +48,12 @@ public class PackageSpecifierWithoutVersionTests
     public void Parse_ValidSpecifierText_Passes()
     {
         // Arrange & Act
-        var packageSpecifier = PackageSpecifier.Parse("example.com/pkg#variant@1.0.0");
+        var packageSpecifier = PackageSpecifierWithoutVersion.Parse("example.com/pkg#variant");
 
         // Assert
+        Assert.Equal("example.com/pkg#variant", packageSpecifier.Specifier);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
-        Assert.Equal("1.0.0", packageSpecifier.Version.ToString());
     }
 
     [Fact]
@@ -78,6 +79,7 @@ public class PackageSpecifierTests
         };
 
         // Assert
+        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Specifier);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
         Assert.Equal("1.0.0", packageSpecifier.Version.ToString());
@@ -90,6 +92,7 @@ public class PackageSpecifierTests
         var packageSpecifier = PackageSpecifier.Parse("example.com/pkg#variant@1.0.0");
 
         // Assert
+        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Specifier);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
         Assert.Equal("1.0.0", packageSpecifier.Version.ToString());

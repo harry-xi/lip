@@ -2,12 +2,12 @@
 
 public static class GoModule
 {
-    private static readonly string[] BadWindowsNames = new[]
-    {
+    private static readonly string[] s_badWindowsNames =
+    [
         "CON", "PRN", "AUX", "NUL",
         "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
         "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
-    };
+    ];
 
     public static bool CheckPath(string path)
     {
@@ -53,7 +53,7 @@ public static class GoModule
     {
         if (!CheckPath(path))
         {
-            throw new ArgumentException($"{path} is not a valid Go module path.");
+            throw new ArgumentException($"{path} is not a valid Go module path.", nameof(path));
         }
 
         return EscapeString(path);
@@ -85,7 +85,7 @@ public static class GoModule
         if (dotIndex >= 0)
             shortName = elem[..dotIndex];
 
-        if (BadWindowsNames.Any(name => string.Equals(name, shortName, StringComparison.OrdinalIgnoreCase)))
+        if (s_badWindowsNames.Any(name => string.Equals(name, shortName, StringComparison.OrdinalIgnoreCase)))
             return false;
 
         // Windows short-name check
@@ -107,12 +107,6 @@ public static class GoModule
         bool haveUpper = false;
         foreach (char c in s)
         {
-            if (c == '!' || c >= 0x80)
-            {
-                // This should be disallowed by CheckPath, but diagnose anyway.
-                // The correctness of the escaping loop below depends on it.
-                throw new InvalidOperationException("internal error: inconsistency in EscapePath");
-            }
             if (c >= 'A' && c <= 'Z')
             {
                 haveUpper = true;

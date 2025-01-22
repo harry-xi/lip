@@ -12,11 +12,6 @@ public class CacheManager(IContext context, PathManager pathManager, Url? github
     private readonly Url? _goModuleProxy = goModuleProxy;
     private readonly PathManager _pathManager = pathManager;
 
-    // public async Task<IAssetSource> GetAsset(PackageManifest.AssetType.TypeEnum assetType, )
-    // {
-
-    // }
-
     public async Task<Stream> GetDownloadedFile(Url url)
     {
         if (url.Host == "github.com" && _githubProxy is not null)

@@ -307,9 +307,9 @@ public class PathManagerTests
     }
 
     [Theory]
-    [InlineData("C:/path/to/cache", "C:/path/to/cache/tooth.json")]
-    [InlineData("/path/to/cache", "/path/to/cache/tooth.json")]
-    public void GetPackageManifestPath_WhenCalled_ReturnsCorrectPath(string baseDir, string expectedPath)
+    [InlineData("C:/path/to/cache")]
+    [InlineData("/path/to/cache")]
+    public void GetPackageManifestPath_WhenCalled_ReturnsCorrectPath(string baseDir)
     {
         // Arrange.
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
@@ -319,9 +319,9 @@ public class PathManagerTests
         PathManager pathManager = new(fileSystem);
 
         // Act.
-        string manifestPath = pathManager.CurrentPackageManifestPath;
+        string manifestPath = pathManager.GetPackageManifestPath(baseDir);
 
         // Assert.
-        Assert.Equal(expectedPath, manifestPath);
+        Assert.Equal(Path.Join(baseDir, "tooth.json"), manifestPath);
     }
 }

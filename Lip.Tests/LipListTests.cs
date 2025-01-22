@@ -8,11 +8,8 @@ namespace Lip.Tests;
 
 public class LipListTests
 {
-    [Theory]
-    [InlineData("win-x64")]
-    [InlineData("linux-x64")]
-    [InlineData("osx-x64")]
-    public async Task List_ReturnsListItems(string runtimeIdentifier)
+    [Fact]
+    public async Task List_ReturnsListItems()
     {
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
@@ -30,7 +27,7 @@ public class LipListTests
                         "variants": [
                             {
                                 "label": "variant1",
-                                "platform": "{{runtimeIdentifier}}"
+                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}"
                             }
                         ]
                     },
@@ -42,7 +39,7 @@ public class LipListTests
                         "variants": [
                             {
                                 "label": "variant2",
-                                "platform": "{{runtimeIdentifier}}"
+                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}"
                             }
                         ]
                     }
@@ -60,7 +57,6 @@ public class LipListTests
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.RuntimeIdentifier).Returns(runtimeIdentifier);
 
         Lip lip = new(new(), context.Object);
 
@@ -103,7 +99,7 @@ public class LipListTests
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
-            { "tooth_lock.json", new MockFileData("""
+            { "tooth_lock.json", new MockFileData($$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -116,7 +112,7 @@ public class LipListTests
                         "variants": [
                             {
                                 "label": "variant1",
-                                "platform": "win-x64"
+                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}"
                             }
                         ]
                     }
@@ -134,7 +130,6 @@ public class LipListTests
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.RuntimeIdentifier).Returns("win-x64");
 
         Lip lip = new(new(), context.Object);
 
@@ -155,7 +150,7 @@ public class LipListTests
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
-            { "tooth_lock.json", new MockFileData("""
+            { "tooth_lock.json", new MockFileData($$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -168,7 +163,7 @@ public class LipListTests
                         "variants": [
                             {
                                 "label": "variant1",
-                                "platform": "win-x64"
+                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}"
                             }
                         ]
                     }
@@ -186,7 +181,6 @@ public class LipListTests
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.RuntimeIdentifier).Returns("win-x64");
 
         Lip lip = new(new(), context.Object);
 
@@ -207,7 +201,7 @@ public class LipListTests
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
-            { "tooth_lock.json", new MockFileData("""
+            { "tooth_lock.json", new MockFileData($$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -220,7 +214,7 @@ public class LipListTests
                         "variants": [
                             {
                                 "label": "variant1",
-                                "platform": "win-x64"
+                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}"
                             }
                         ]
                     }
@@ -238,7 +232,6 @@ public class LipListTests
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.RuntimeIdentifier).Returns("win-x64");
 
         Lip lip = new(new(), context.Object);
 

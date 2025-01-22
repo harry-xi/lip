@@ -1,4 +1,6 @@
-﻿namespace Lip;
+﻿using System.Runtime.InteropServices;
+
+namespace Lip;
 
 public partial class Lip
 {
@@ -24,7 +26,7 @@ public partial class Lip
                         && package.Version == l.Version
                         && package.GetSpecifiedVariant(
                             l.VariantLabel,
-                            _context.RuntimeIdentifier) is not null;
+                            RuntimeInformation.RuntimeIdentifier) is not null;
                 })
             })];
 

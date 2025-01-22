@@ -9,6 +9,5 @@ public interface IContext
     IFileSystem FileSystem { get; }
     IGit? Git { get; }
     ILogger Logger { get; }
-    string RuntimeIdentifier { get; }
     IUserInteraction UserInteraction { get; }
 }

@@ -1,6 +1,8 @@
-﻿namespace Lip.Context;
+﻿using Flurl;
+
+namespace Lip.Context;
 
 public interface IDownloader
 {
-    Task DownloadFile(Uri url, string destinationPath);
+    Task DownloadFile(Url url, string destinationPath);
 }

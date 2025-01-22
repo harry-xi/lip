@@ -105,4 +105,24 @@ public class PackageSpecifierTests
         ArgumentException exception = Assert.Throws<ArgumentException>(() => PackageSpecifier.Parse("invalid"));
         Assert.Equal("Invalid package specifier 'invalid'. (Parameter 'specifierText')", exception.Message);
     }
+
+    [Fact]
+    public void WithoutVersion_Passes()
+    {
+        // Arrange
+        var packageSpecifier = new PackageSpecifier
+        {
+            ToothPath = "example.com/pkg",
+            VariantLabel = "variant",
+            Version = SemVersion.Parse("1.0.0")
+        };
+
+        // Act
+        PackageSpecifierWithoutVersion packageSpecifierWithoutVersion = packageSpecifier.WithoutVersion();
+
+        // Assert
+        Assert.Equal("example.com/pkg#variant", packageSpecifierWithoutVersion.Specifier);
+        Assert.Equal("example.com/pkg", packageSpecifierWithoutVersion.ToothPath);
+        Assert.Equal("variant", packageSpecifierWithoutVersion.VariantLabel);
+    }
 }

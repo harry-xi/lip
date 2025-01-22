@@ -78,4 +78,13 @@ public record PackageSpecifier : PackageSpecifierWithoutVersion
             Version = SemVersion.Parse(parts[1])
         };
     }
+
+    public PackageSpecifierWithoutVersion WithoutVersion()
+    {
+        return new PackageSpecifierWithoutVersion
+        {
+            ToothPath = ToothPath,
+            VariantLabel = VariantLabel
+        };
+    }
 }

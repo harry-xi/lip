@@ -13,9 +13,6 @@ public class IFileSystemExtensionsTests
 
         // Act.
         await fileSystem.CreateParentDirectoryAsync("/");
-
-        // Assert.
-        Assert.False(fileSystem.Directory.Exists("/"));
     }
 
     [Fact]

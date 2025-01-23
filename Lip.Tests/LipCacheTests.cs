@@ -135,6 +135,70 @@ public class LipCacheTests
     }
 
     [Fact]
+    public async Task CacheAdd_MismatchedToothPath_ThrowsInvalidOperationException()
+    {
+        // Arrange.
+        string packageManifestData = $$"""
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "example.com/other-repo",
+                "version": "1.0.0"
+            }
+            """;
+
+        RuntimeConfig runtimeConfig = new()
+        {
+            Cache = s_cacheDir,
+        };
+
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
+        {
+            { Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json"), new MockFileData(packageManifestData) },
+        });
+
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        Lip lip = new(runtimeConfig, context.Object);
+
+        // Act & Assert.
+        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.CacheAdd("example.com/repo@1.0.0", new()));
+    }
+
+    [Fact]
+    public async Task CacheAdd_MismatchedVersion_ThrowsInvalidOperationException()
+    {
+        // Arrange.
+        string packageManifestData = $$"""
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "example.com/repo",
+                "version": "2.0.0"
+            }
+            """;
+
+        RuntimeConfig runtimeConfig = new()
+        {
+            Cache = s_cacheDir,
+        };
+
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
+        {
+            { Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json"), new MockFileData(packageManifestData) },
+        });
+
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        Lip lip = new(runtimeConfig, context.Object);
+
+        // Act & Assert.
+        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.CacheAdd("example.com/repo@1.0.0", new()));
+    }
+
+    [Fact]
     public async Task CacheClean_WhenCalled_CleansCache()
     {
         // Arrange.

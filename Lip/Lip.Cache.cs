@@ -21,6 +21,16 @@ public partial class Lip
         using Stream packageManifestFileStream = await _cacheManager.GetPackageManifestFile(packageSpecifier);
         PackageManifest packageManifest = PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
 
+        if (packageManifest.ToothPath != packageSpecifier.ToothPath)
+        {
+            throw new InvalidOperationException($"Tooth path in package manifest '{packageManifest.ToothPath}' does not match package specifier '{packageSpecifier.ToothPath}'.");
+        }
+
+        if (packageManifest.Version != packageSpecifier.Version)
+        {
+            throw new InvalidOperationException($"Version in package manifest '{packageManifest.Version}' does not match package specifier '{packageSpecifier.Version}'.");
+        }
+
         PackageManifest.VariantType? variant = packageManifest.GetSpecifiedVariant(
             packageSpecifier.VariantLabel, RuntimeInformation.RuntimeIdentifier);
 

@@ -1,10 +1,17 @@
 ﻿using System.IO.Abstractions;
+using System.Text.RegularExpressions;
 using Flurl;
 
 namespace Lip;
 
 public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null)
 {
+    public record GitRepoInfo
+    {
+        public required string Url { get; init; }
+        public required string Tag { get; init; }
+    }
+
     private const string DownloadedFileCacheDirName = "downloaded_files";
     private const string GitRepoCacheDirName = "git_repos";
     private const string PackageLockFileName = "tooth_lock.json";
@@ -38,10 +45,10 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null)
         return _fileSystem.Path.Join(BaseDownloadedFileCacheDir, downloadedFileName);
     }
 
-    public string GetGitRepoDirCachePath(string repoUrl, string tag)
+    public string GetGitRepoDirCachePath(GitRepoInfo repo)
     {
-        string repoDirName = Url.Encode(repoUrl);
-        string tagDirName = Url.Encode(tag);
+        string repoDirName = Url.Encode(repo.Url);
+        string tagDirName = Url.Encode(repo.Tag);
         return _fileSystem.Path.Join(BaseGitRepoCacheDir, repoDirName, tagDirName);
     }
 
@@ -55,5 +62,43 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null)
     public string GetPackageManifestPath(string baseDir)
     {
         return _fileSystem.Path.Join(baseDir, PackageManifestFileName);
+    }
+
+    public Url ParseDownloadedFileCachePath(string downloadedFileCachePath)
+    {
+        // Dynamically construct a regex pattern to match the base cache directory path.
+        Regex pattern = new($"{Regex.Escape(BaseDownloadedFileCacheDir)}{Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*)");
+        Match match = pattern.Match(downloadedFileCachePath);
+        if (!match.Success)
+        {
+            throw new InvalidOperationException($"Invalid downloaded file cache path: {downloadedFileCachePath}");
+        }
+        return Url.Parse(Url.Decode(match.Groups[1].Value, true));
+    }
+
+    public GitRepoInfo ParseGitRepoDirCachePath(string repoDirCachePath)
+    {
+        Regex pattern = new($"{Regex.Escape(BaseGitRepoCacheDir)}{Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*){Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*)");
+        Match match = pattern.Match(repoDirCachePath);
+        if (!match.Success)
+        {
+            throw new InvalidOperationException($"Invalid Git repo directory cache path: {repoDirCachePath}");
+        }
+        return new GitRepoInfo
+        {
+            Url = Url.Decode(match.Groups[1].Value, true),
+            Tag = Url.Decode(match.Groups[2].Value, true)
+        };
+    }
+
+    public string ParsePackageManifestCachePath(string packageManifestCachePath)
+    {
+        Regex pattern = new($"{Regex.Escape(BasePackageManifestCacheDir)}{Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*)\\.json");
+        Match match = pattern.Match(packageManifestCachePath);
+        if (!match.Success)
+        {
+            throw new InvalidOperationException($"Invalid package manifest cache path: {packageManifestCachePath}");
+        }
+        return Url.Decode(match.Groups[1].Value, true);
     }
 }

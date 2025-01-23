@@ -103,9 +103,6 @@ public record PackageManifest
         [JsonPropertyName("description")]
         public string? Description { get; init; }
 
-        [JsonPropertyName("author")]
-        public string? Author { get; init; }
-
         [JsonPropertyName("tags")]
         public List<string>? Tags
         {
@@ -383,12 +380,17 @@ public record PackageManifest
 
     private string _version = "0.0.0"; // The default value does never get used.
 
+    public static PackageManifest FromJsonBytesParsed(byte[] bytes)
+    {
+        return FromJsonBytesRaw(bytes).WithTemplateParsed();
+    }
+
     /// <summary>
     /// Deserializes a package manifest from the specified byte array.
     /// </summary>
     /// <param name="bytes">The byte array to deserialize.</param>
     /// <returns>The deserialized package manifest.</returns>
-    public static PackageManifest FromJsonBytes(byte[] bytes)
+    public static PackageManifest FromJsonBytesRaw(byte[] bytes)
     {
         try
         {
@@ -545,6 +547,6 @@ public record PackageManifest
 
         string renderedText = template.Render(jsonElement);
 
-        return FromJsonBytes(Encoding.UTF8.GetBytes(renderedText));
+        return FromJsonBytesRaw(Encoding.UTF8.GetBytes(renderedText));
     }
 }

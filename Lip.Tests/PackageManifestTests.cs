@@ -88,11 +88,15 @@ public class PackageManifestTests
         // Arrange & Act.
         var info = new PackageManifest.InfoType
         {
+            Name = "name",
+            Description = "description",
             Tags = tags?.ToList(),
             AvatarUrl = avatarUrl
         };
 
         // Assert.
+        Assert.Equal("name", info.Name);
+        Assert.Equal("description", info.Description);
         Assert.Equal(tags, info.Tags);
         Assert.Equal(avatarUrl, info.AvatarUrl);
     }
@@ -158,17 +162,27 @@ public class PackageManifestTests
     public void ScriptsType_Constructor_Trivial_Passes()
     {
         // Arrange & Act.
-        var scripts = new PackageManifest.ScriptsType();
+        var scripts = new PackageManifest.ScriptsType()
+        {
+            PreInstall = [],
+            Install = [],
+            PostInstall = [],
+            PrePack = [],
+            PostPack = [],
+            PreUninstall = [],
+            Uninstall = [],
+            PostUninstall = []
+        };
 
         // Assert.
-        Assert.Null(scripts.PreInstall);
-        Assert.Null(scripts.Install);
-        Assert.Null(scripts.PostInstall);
-        Assert.Null(scripts.PrePack);
-        Assert.Null(scripts.PostPack);
-        Assert.Null(scripts.PreUninstall);
-        Assert.Null(scripts.Uninstall);
-        Assert.Null(scripts.PostUninstall);
+        Assert.Empty(scripts.PreInstall);
+        Assert.Empty(scripts.Install);
+        Assert.Empty(scripts.PostInstall);
+        Assert.Empty(scripts.PrePack);
+        Assert.Empty(scripts.PostPack);
+        Assert.Empty(scripts.PreUninstall);
+        Assert.Empty(scripts.Uninstall);
+        Assert.Empty(scripts.PostUninstall);
         Assert.Empty(scripts.AdditionalScripts);
     }
 
@@ -261,11 +275,44 @@ public class PackageManifestTests
 
         var variant = new PackageManifest.VariantType
         {
+            VariantLabelRaw = "variant",
+            Platform = "platform",
             Dependencies = dependencies,
+            Assets = [],
+            Scripts = new()
         };
 
         // Assert. 
+        Assert.Equal("variant", variant.VariantLabel);
+        Assert.Equal("variant", variant.VariantLabelRaw);
+        Assert.Equal("platform", variant.Platform);
         Assert.Equal(dependencies, variant.Dependencies);
+        Assert.NotNull(variant.Assets);
+        Assert.Empty(variant.Assets);
+        Assert.NotNull(variant.Scripts);
+    }
+
+    [Fact]
+    public void VariantType_Constructor_NullVariantLabel_Passes()
+    {
+        // Arrange & Act.
+        var variant = new PackageManifest.VariantType
+        {
+            VariantLabelRaw = null,
+            Platform = "platform",
+            Dependencies = null,
+            Assets = [],
+            Scripts = new()
+        };
+
+        // Assert.
+        Assert.Equal("", variant.VariantLabel);
+        Assert.Null(variant.VariantLabelRaw);
+        Assert.Equal("platform", variant.Platform);
+        Assert.Null(variant.Dependencies);
+        Assert.NotNull(variant.Assets);
+        Assert.Empty(variant.Assets);
+        Assert.NotNull(variant.Scripts);
     }
 
     [Fact]
@@ -299,7 +346,36 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void FromBytes_MinimumJson_Passes()
+    public void FromJsonBytesParsed_NeedsParsing_Passes()
+    {
+        // Arrange.
+        byte[] bytes = Encoding.UTF8.GetBytes("""
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "",
+                "version": "1.0.0",
+                "info": {
+                    "name": "name-{{version}}",
+                },
+            }
+            """);
+
+        // Act.
+        var manifest = PackageManifest.FromJsonBytesParsed(bytes);
+
+        // Assert.
+        Assert.Equal(3, manifest.FormatVersion);
+        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", manifest.FormatUuid);
+        Assert.Equal("", manifest.ToothPath);
+        Assert.Equal("1.0.0", manifest.VersionText);
+        Assert.Equal(SemVersion.Parse("1.0.0"), manifest.Version);
+        Assert.NotNull(manifest.Info);
+        Assert.Equal("name-1.0.0", manifest.Info.Name);
+    }
+
+    [Fact]
+    public void FromJsonBytesRaw_MinimumJson_Passes()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("""
@@ -312,7 +388,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        var manifest = PackageManifest.FromJsonBytes(bytes);
+        var manifest = PackageManifest.FromJsonBytesRaw(bytes);
 
         // Assert.
         Assert.Equal(3, manifest.FormatVersion);
@@ -323,13 +399,13 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void FromBytes_NullJson_Throws()
+    public void FromJsonBytesRaw_NullJson_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("null");
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
@@ -338,7 +414,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void FromBytes_InvalidFormatVersion_Throws()
+    public void FromJsonBytesRaw_InvalidFormatVersion_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("""
@@ -351,7 +427,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
@@ -361,7 +437,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void FromBytes_InvalidFormatUuid_Throws()
+    public void FromJsonBytesRaw_InvalidFormatUuid_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("""
@@ -374,7 +450,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
@@ -384,7 +460,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void FromBytes_InvalidVersion_Throws()
+    public void FromJsonBytesRaw_InvalidVersion_Throws()
     {
         // Arrange.
         byte[] bytes = Encoding.UTF8.GetBytes("""
@@ -397,7 +473,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);

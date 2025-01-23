@@ -74,7 +74,7 @@ public class CacheManager(
 
     public async Task<Stream> GetPackageManifestFile(PackageSpecifier packageSpecifier)
     {
-        string filePath = _pathManager.GetPackageManifestCachePath(packageSpecifier.Specifier);
+        string filePath = _pathManager.GetPackageManifestCachePath(packageSpecifier.SpecifierWithoutVariant);
 
         if (_context.FileSystem.Directory.Exists(filePath))
         {
@@ -116,7 +116,7 @@ public class CacheManager(
             throw new InvalidOperationException($"Package manifest file not found for package '{packageSpecifier}' at '{srcPath}'.");
         }
 
-        string destPath = _pathManager.GetPackageManifestCachePath(packageSpecifier.Specifier);
+        string destPath = _pathManager.GetPackageManifestCachePath(packageSpecifier.SpecifierWithoutVariant);
 
         _pathManager.CreateParentDirectory(destPath);
 
@@ -152,7 +152,7 @@ public class CacheManager(
         using Stream manifestStream = entry.OpenEntryStream();
 
         // Save the package manifest file to the cache.
-        string manifestFilePath = _pathManager.GetPackageManifestCachePath(packageSpecifier.Specifier);
+        string manifestFilePath = _pathManager.GetPackageManifestCachePath(packageSpecifier.SpecifierWithoutVariant);
 
         _pathManager.CreateParentDirectory(manifestFilePath);
 

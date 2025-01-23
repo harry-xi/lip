@@ -138,6 +138,24 @@ public class PackageSpecifierTests
     }
 
     [Fact]
+    public void GetSpecifierWithoutVariant_ValidValues_Passes()
+    {
+        // Arrange
+        var packageSpecifier = new PackageSpecifier
+        {
+            ToothPath = "example.com/pkg",
+            VariantLabel = "variant",
+            Version = SemVersion.Parse("1.0.0")
+        };
+
+        // Act
+        string specifier = packageSpecifier.SpecifierWithoutVariant;
+
+        // Assert
+        Assert.Equal("example.com/pkg@1.0.0", specifier);
+    }
+
+    [Fact]
     public void Parse_ValidSpecifierText_Passes()
     {
         // Arrange & Act

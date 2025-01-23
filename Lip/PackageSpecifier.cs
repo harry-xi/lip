@@ -62,6 +62,11 @@ public record PackageSpecifierWithoutVersion
 public record PackageSpecifier : PackageSpecifierWithoutVersion
 {
     public new string Specifier => $"{base.Specifier}@{Version}";
+    public string SpecifierWithoutVariant => $"{new PackageSpecifierWithoutVersion()
+    {
+        ToothPath = ToothPath,
+        VariantLabel = ""
+    }.Specifier}@{Version}";
 
     public required SemVersion Version { get; init; }
 

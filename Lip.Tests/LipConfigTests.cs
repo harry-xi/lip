@@ -39,13 +39,11 @@ public class LipConfigTests
         {
             "cache": "/custom/cache",
             "color": true,
-            "git": "git",
             "github_proxy": "",
             "go_module_proxy": "https://goproxy.io",
             "https_proxy": "",
             "noproxy": "",
-            "proxy": "",
-            "script_shell": "{{(OperatingSystem.IsWindows() ? "cmd.exe" : "/bin/sh")}}"
+            "proxy": ""
         }
         """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -58,7 +56,7 @@ public class LipConfigTests
         {
             Cache = "/custom/cache",
             Color = false,
-            Git = "custom-git"
+            GoModuleProxy = "https://custom-proxy.io",
         };
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
@@ -72,7 +70,7 @@ public class LipConfigTests
         Lip lip = new(initialRuntimeConfig, context.Object);
 
         // Act.
-        await lip.ConfigDelete(["color", "git"], new Lip.ConfigDeleteArgs());
+        await lip.ConfigDelete(["color", "go_module_proxy"], new Lip.ConfigDeleteArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -81,13 +79,11 @@ public class LipConfigTests
         {
             "cache": "/custom/cache",
             "color": true,
-            "git": "git",
             "github_proxy": "",
             "go_module_proxy": "https://goproxy.io",
             "https_proxy": "",
             "noproxy": "",
-            "proxy": "",
-            "script_shell": "{{(OperatingSystem.IsWindows() ? "cmd.exe" : "/bin/sh")}}"
+            "proxy": ""
         }
         """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -186,11 +182,11 @@ public class LipConfigTests
 
         // Act.
         Dictionary<string, string> result = lip.ConfigGet(
-            ["cache", "color", "git"],
+            ["cache", "color"],
             new Lip.ConfigGetArgs());
 
         // Assert.
-        Assert.Equal(3, result.Count);
+        Assert.Equal(2, result.Count);
         Assert.Equal("/custom/cache", result["cache"]);
         Assert.Equal("False", result["color"]);
     }
@@ -251,13 +247,11 @@ public class LipConfigTests
         {
             Cache = "/custom/cache",
             Color = false,
-            Git = "custom-git",
             GitHubProxy = "https://github-proxy.com",
             GoModuleProxy = "https://custom-proxy.io",
             HttpsProxy = "https://https-proxy.com",
             NoProxy = "localhost",
-            Proxy = "http://custom-proxy.com",
-            ScriptShell = "/custom/shell"
+            Proxy = "http://custom-proxy.com"
         };
 
         Mock<IContext> context = new();
@@ -268,16 +262,14 @@ public class LipConfigTests
         Dictionary<string, string> result = lip.ConfigList(new Lip.ConfigListArgs());
 
         // Assert.
-        Assert.Equal(9, result.Count);
+        Assert.Equal(7, result.Count);
         Assert.Equal("/custom/cache", result["cache"]);
         Assert.Equal("False", result["color"]);
-        Assert.Equal("custom-git", result["git"]);
         Assert.Equal("https://github-proxy.com", result["github_proxy"]);
         Assert.Equal("https://custom-proxy.io", result["go_module_proxy"]);
         Assert.Equal("https://https-proxy.com", result["https_proxy"]);
         Assert.Equal("localhost", result["noproxy"]);
         Assert.Equal("http://custom-proxy.com", result["proxy"]);
-        Assert.Equal("/custom/shell", result["script_shell"]);
     }
 
     [Fact]
@@ -311,13 +303,11 @@ public class LipConfigTests
         {
             "cache": "/path/to/cache",
             "color": true,
-            "git": "git",
             "github_proxy": "",
             "go_module_proxy": "https://goproxy.io",
             "https_proxy": "",
             "noproxy": "",
-            "proxy": "",
-            "script_shell": "{{(OperatingSystem.IsWindows() ? "cmd.exe" : "/bin/sh")}}"
+            "proxy": ""
         }
         """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -342,13 +332,11 @@ public class LipConfigTests
         {
             { "cache", "/path/to/cache" },
             { "color", "false" },
-            { "git", "git" },
             { "github_proxy", "https://github.com" },
             { "go_module_proxy", "https://goproxy.io" },
             { "https_proxy", "https://proxy.com" },
             { "noproxy", "localhost" },
             { "proxy", "http://proxy.com" },
-            { "script_shell", "/bin/bash" },
         };
 
         // Act.
@@ -361,13 +349,11 @@ public class LipConfigTests
         {
             "cache": "/path/to/cache",
             "color": false,
-            "git": "git",
             "github_proxy": "https://github.com",
             "go_module_proxy": "https://goproxy.io",
             "https_proxy": "https://proxy.com",
             "noproxy": "localhost",
-            "proxy": "http://proxy.com",
-            "script_shell": "/bin/bash"
+            "proxy": "http://proxy.com"
         }
         """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }

@@ -25,9 +25,6 @@ public record RuntimeConfig
     [JsonPropertyName("color")]
     public bool Color { get; init; } = true;
 
-    [JsonPropertyName("git")]
-    public string Git { get; init; } = "git";
-
     [JsonPropertyName("github_proxy")]
     public string GitHubProxy { get; init; } = "";
 
@@ -42,11 +39,6 @@ public record RuntimeConfig
 
     [JsonPropertyName("proxy")]
     public string Proxy { get; init; } = "";
-
-    [JsonPropertyName("script_shell")]
-    public string ScriptShell { get; init; } = OperatingSystem.IsWindows()
-        ? "cmd.exe"
-        : "/bin/sh";
 
     public static RuntimeConfig FromJsonBytes(byte[] bytes)
     {

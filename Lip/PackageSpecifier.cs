@@ -4,7 +4,7 @@ namespace Lip;
 
 public record PackageSpecifierWithoutVersion
 {
-    public string Specifier => $"{ToothPath}#{VariantLabel}";
+    public string Specifier => $"{ToothPath}{(VariantLabel.Length > 0 ? "#" : "")}{VariantLabel}";
 
     public required string ToothPath
     {
@@ -49,8 +49,13 @@ public record PackageSpecifierWithoutVersion
         return new PackageSpecifierWithoutVersion
         {
             ToothPath = parts[0],
-            VariantLabel = parts[1]
+            VariantLabel = parts.ElementAtOrDefault(1) ?? ""
         };
+    }
+
+    public override string ToString()
+    {
+        return Specifier;
     }
 }
 
@@ -77,6 +82,11 @@ public record PackageSpecifier : PackageSpecifierWithoutVersion
             VariantLabel = packageSpecifierWithoutVersion.VariantLabel,
             Version = SemVersion.Parse(parts[1])
         };
+    }
+
+    public override string ToString()
+    {
+        return Specifier;
     }
 
     public PackageSpecifierWithoutVersion WithoutVersion()

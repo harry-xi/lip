@@ -160,6 +160,20 @@ public class PathManagerTests
     }
 
     [Fact]
+    public void GetPackageManifestFileName_WhenCalled_ReturnsCorrectFileName()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        // Act.
+        string manifestFileName = pathManager.PackageManifestFileName;
+
+        // Assert.
+        Assert.Equal("tooth.json", manifestFileName);
+    }
+
+    [Fact]
     public void GetRuntimeConfigPath_WhenCalled_ReturnsCorrectPath()
     {
         // Arrange.

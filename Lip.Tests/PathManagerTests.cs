@@ -206,51 +206,6 @@ public class PathManagerTests
         Assert.Equal(s_workingDir, workingDir);
     }
 
-    [Fact]
-    public void CreateParentDirectory_WhenPathIsRoot_DoesNotCreateParentDirectory()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new();
-        PathManager pathManager = new(fileSystem);
-
-        // Act.
-        pathManager.CreateParentDirectory("/");
-
-        // Assert.
-        Assert.False(fileSystem.Directory.Exists("/"));
-    }
-
-    [Fact]
-    public void CreateParentDirectory_WhenParentDirectoryDoesNotExist_CreatesParentDirectory()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new();
-        PathManager pathManager = new(fileSystem);
-
-        // Act.
-        pathManager.CreateParentDirectory("/path/to/file");
-
-        // Assert.
-        Assert.True(fileSystem.Directory.Exists("/path/to"));
-    }
-
-    [Fact]
-    public void CreateParentDirectory_WhenParentDirectoryExists_DoesNotCreateParentDirectory()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
-        {
-            { "/path/to", new MockDirectoryData() },
-        });
-        PathManager pathManager = new(fileSystem);
-
-        // Act.
-        pathManager.CreateParentDirectory("/path/to/file");
-
-        // Assert.
-        Assert.True(fileSystem.Directory.Exists("/path/to"));
-    }
-
     [Theory]
     [InlineData("https://example.com/asset?v=1", "https%3A%2F%2Fexample.com%2Fasset%3Fv%3D1")]
     [InlineData("https://example.com/path/to/asset", "https%3A%2F%2Fexample.com%2Fpath%2Fto%2Fasset")]

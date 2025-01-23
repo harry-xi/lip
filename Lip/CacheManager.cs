@@ -33,7 +33,7 @@ public class CacheManager(
 
         if (!_context.FileSystem.File.Exists(filePath))
         {
-            _pathManager.CreateParentDirectory(filePath);
+            _context.FileSystem.CreateParentDirectory(filePath);
 
             await _context.Downloader.DownloadFile(url, filePath);
         }
@@ -60,7 +60,7 @@ public class CacheManager(
 
         if (!_context.FileSystem.Directory.Exists(repoDirPath))
         {
-            _pathManager.CreateParentDirectory(repoDirPath);
+            _context.FileSystem.CreateParentDirectory(repoDirPath);
 
             await _context.Git.Clone(
                 repoUrl,
@@ -118,9 +118,9 @@ public class CacheManager(
 
         string destPath = _pathManager.GetPackageManifestCachePath(packageSpecifier.SpecifierWithoutVariant);
 
-        _pathManager.CreateParentDirectory(destPath);
+        _context.FileSystem.CreateParentDirectory(destPath);
 
-        _context.FileSystem.File.Copy(srcPath, destPath);
+        await Task.Run(() => _context.FileSystem.File.Copy(srcPath, destPath));
 
         return _context.FileSystem.File.OpenRead(destPath);
     }
@@ -136,7 +136,7 @@ public class CacheManager(
         // Build the archive download URL.
         string archiveFileNameInUrl = GetGoModuleFileNameFromVersion(version);
         string escapedGoModulePath = GoModule.EscapePath(packageSpecifier.ToothPath);
-        Url archiveFileUrl = Url.Parse($"{_goModuleProxy!}/{escapedGoModulePath}/@v/{archiveFileNameInUrl}");
+        Url archiveFileUrl = _goModuleProxy!.Clone().AppendPathSegments(escapedGoModulePath, "@v", archiveFileNameInUrl);
 
         // Download and open the archive.
         using Stream archiveStream = await GetDownloadedFile(archiveFileUrl);
@@ -154,7 +154,7 @@ public class CacheManager(
         // Save the package manifest file to the cache.
         string manifestFilePath = _pathManager.GetPackageManifestCachePath(packageSpecifier.SpecifierWithoutVariant);
 
-        _pathManager.CreateParentDirectory(manifestFilePath);
+        _context.FileSystem.CreateParentDirectory(manifestFilePath);
 
         using (Stream fileStream = _context.FileSystem.File.Create(manifestFilePath))
         {

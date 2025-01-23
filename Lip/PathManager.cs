@@ -32,22 +32,6 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null)
 
     public string WorkingDir => _fileSystem.Directory.GetCurrentDirectory();
 
-    public void CreateParentDirectory(string path)
-    {
-        string? parentDirPath = _fileSystem.Path.GetDirectoryName(path);
-
-        // If path is a root directory, do not need to create parent directory.
-        if (parentDirPath is null)
-        {
-            return;
-        }
-
-        if (!_fileSystem.Directory.Exists(parentDirPath))
-        {
-            _fileSystem.Directory.CreateDirectory(parentDirPath);
-        }
-    }
-
     public string GetDownloadedFileCachePath(Url url)
     {
         string downloadedFileName = Url.Encode(url);

@@ -275,12 +275,13 @@ public class PathManagerTests
             packageCacheDir);
     }
 
-    [Theory]
-    [InlineData("C:/path/to/cache")]
-    [InlineData("/path/to/cache")]
-    public void GetPackageManifestPath_WhenCalled_ReturnsCorrectPath(string baseDir)
+    [Fact]
+    public void GetPackageManifestPath_WhenCalled_ReturnsCorrectPath()
     {
         // Arrange.
+        string baseDir = OperatingSystem.IsWindows()
+            ? Path.Join("C:", "path", "to", "cache")
+            : Path.Join("/", "path", "to", "cache");
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
             { baseDir, new MockDirectoryData() },

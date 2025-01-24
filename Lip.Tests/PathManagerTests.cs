@@ -202,6 +202,20 @@ public class PathManagerTests
         Assert.Equal(s_workingDir, workingDir);
     }
 
+    [Fact]
+    public void GetWorkingDir_WorkingDirProvided_ReturnsWorkingDir()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem, workingDir: s_workingDir);
+
+        // Act.
+        string workingDir = pathManager.WorkingDir;
+
+        // Assert.
+        Assert.Equal(s_workingDir, workingDir);
+    }
+
     [Theory]
     [InlineData("https://example.com/asset?v=1", "https%3A%2F%2Fexample.com%2Fasset%3Fv%3D1")]
     [InlineData("https://example.com/path/to/asset", "https%3A%2F%2Fexample.com%2Fpath%2Fto%2Fasset")]

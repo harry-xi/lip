@@ -11,4 +11,5 @@ public interface IContext
     IGit? Git { get; }
     ILogger Logger { get; }
     IUserInteraction UserInteraction { get; }
+    string? WorkingDir { get; }
 }

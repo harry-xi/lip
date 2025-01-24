@@ -4,7 +4,7 @@ using Flurl;
 
 namespace Lip;
 
-public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null)
+public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, string? workingDir = null)
 {
     public record GitRepoInfo
     {
@@ -19,6 +19,7 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null)
 
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly string? _baseCacheDir = baseCacheDir;
+    private readonly string? _workingDir = workingDir;
 
     public string BaseCacheDir => _fileSystem.Path.GetFullPath(_baseCacheDir ?? throw new InvalidOperationException("Base cache directory is not provided."));
 
@@ -37,7 +38,7 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null)
     public string RuntimeConfigPath => _fileSystem.Path.Join(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
-    public string WorkingDir => _fileSystem.Directory.GetCurrentDirectory();
+    public string WorkingDir => _fileSystem.Path.GetFullPath(_workingDir ?? _fileSystem.Directory.GetCurrentDirectory());
 
     public string GetDownloadedFileCachePath(Url url)
     {

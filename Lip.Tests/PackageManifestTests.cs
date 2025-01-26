@@ -388,7 +388,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        var manifest = PackageManifest.FromJsonBytesRaw(bytes);
+        var manifest = PackageManifest.FromJsonBytes(bytes);
 
         // Assert.
         Assert.Equal(3, manifest.FormatVersion);
@@ -405,7 +405,7 @@ public class PackageManifestTests
         byte[] bytes = Encoding.UTF8.GetBytes("null");
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
@@ -427,7 +427,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
@@ -450,7 +450,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
@@ -473,7 +473,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesRaw(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);

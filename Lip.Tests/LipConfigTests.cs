@@ -21,7 +21,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -61,7 +61,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -144,7 +144,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -172,7 +172,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -280,7 +280,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -320,7 +320,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -366,7 +366,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -391,7 +391,7 @@ public class LipConfigTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();
@@ -420,7 +420,7 @@ public class LipConfigTests
         RuntimeConfig initialRuntimeConfig = new();
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToBytes()) },
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
         });
 
         Mock<IContext> context = new();

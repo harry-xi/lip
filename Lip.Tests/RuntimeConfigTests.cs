@@ -81,7 +81,7 @@ public class RuntimeConfigTests
         var runtimeConfiguration = new RuntimeConfig();
 
         // Act.
-        byte[] jsonBytes = runtimeConfiguration.ToBytes();
+        byte[] jsonBytes = runtimeConfiguration.ToJsonBytes();
 
         // Assert.
         Assert.Equal($$"""

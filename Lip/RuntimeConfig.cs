@@ -55,7 +55,7 @@ public record RuntimeConfig
         }
     }
 
-    public byte[] ToBytes()
+    public byte[] ToJsonBytes()
     {
         return JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
     }

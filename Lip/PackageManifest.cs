@@ -521,17 +521,16 @@ public record PackageManifest
     /// <returns>The serialized package manifest.</returns>
     public byte[] ToJsonBytes()
     {
-        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
-        return bytes;
+        return JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
     }
 
     /// <summary>
-    /// Serializes the package manifest to a JSON node.
+    /// Serializes the package manifest to a JSON element.
     /// </summary>
     /// <returns>The serialized package manifest.</returns>
-    public JsonNode ToJsonNode()
+    public JsonElement ToJsonElement()
     {
-        return JsonSerializer.SerializeToNode(this, s_jsonSerializerOptions)!;
+        return JsonSerializer.SerializeToElement(this, s_jsonSerializerOptions);
     }
 
     /// <summary>
@@ -553,9 +552,9 @@ public record PackageManifest
             throw new FormatException($"Failed to parse template: {sb}");
         }
 
-        JsonElement jsonElement = JsonSerializer.SerializeToElement(this);
+        JsonElement json = ToJsonElement();
 
-        string renderedText = template.Render(jsonElement);
+        string renderedText = template.Render(json);
 
         return FromJsonBytes(Encoding.UTF8.GetBytes(renderedText));
     }

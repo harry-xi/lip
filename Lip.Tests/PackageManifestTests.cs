@@ -877,7 +877,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void ToJsonNode_MinimumJson_Passes()
+    public void ToJsonElement_MinimumJson_Passes()
     {
         // Arrange.
         var manifest = new PackageManifest
@@ -889,13 +889,13 @@ public class PackageManifestTests
         };
 
         // Act.
-        JsonNode node = manifest.ToJsonNode();
+        JsonElement element = manifest.ToJsonElement();
 
         // Assert.
-        Assert.Equal(3, node["format_version"]!.GetValue<int>());
-        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", node["format_uuid"]!.GetValue<string>());
-        Assert.Equal("", node["tooth"]!.GetValue<string>());
-        Assert.Equal("1.0.0", node["version"]!.GetValue<string>());
+        Assert.Equal(3, element.GetProperty("format_version").GetInt32());
+        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", element.GetProperty("format_uuid").GetString());
+        Assert.Equal("", element.GetProperty("tooth").GetString());
+        Assert.Equal("1.0.0", element.GetProperty("version").GetString());
     }
 
     [Fact]

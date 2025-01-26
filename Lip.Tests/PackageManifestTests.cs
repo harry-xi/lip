@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Semver;
 
 namespace Lip.Tests;
@@ -850,7 +851,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void ToBytes_MinimumJson_Passes()
+    public void ToJsonBytes_MinimumJson_Passes()
     {
         // Arrange.
         var manifest = new PackageManifest
@@ -873,6 +874,28 @@ public class PackageManifestTests
                 "version": "1.0.0"
             }
             """.ReplaceLineEndings(), Encoding.UTF8.GetString(bytes).ReplaceLineEndings());
+    }
+
+    [Fact]
+    public void ToJsonNode_MinimumJson_Passes()
+    {
+        // Arrange.
+        var manifest = new PackageManifest
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            ToothPath = "",
+            VersionText = "1.0.0"
+        };
+
+        // Act.
+        JsonNode node = manifest.ToJsonNode();
+
+        // Assert.
+        Assert.Equal(3, node["format_version"]!.GetValue<int>());
+        Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", node["format_uuid"]!.GetValue<string>());
+        Assert.Equal("", node["tooth"]!.GetValue<string>());
+        Assert.Equal("1.0.0", node["version"]!.GetValue<string>());
     }
 
     [Fact]

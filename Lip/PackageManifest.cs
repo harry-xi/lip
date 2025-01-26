@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using DotNet.Globbing;
 using Scriban;
@@ -522,6 +523,15 @@ public record PackageManifest
     {
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
         return bytes;
+    }
+
+    /// <summary>
+    /// Serializes the package manifest to a JSON node.
+    /// </summary>
+    /// <returns>The serialized package manifest.</returns>
+    public JsonNode ToJsonNode()
+    {
+        return JsonSerializer.SerializeToNode(this, s_jsonSerializerOptions)!;
     }
 
     /// <summary>

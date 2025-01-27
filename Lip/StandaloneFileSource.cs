@@ -4,7 +4,7 @@ namespace Lip;
 
 public class StandaloneFileSource(IFileSystem fileSystem, string filePath) : IFileSource
 {
-    private readonly string _filePath = filePath;
+    private readonly string _filePath = fileSystem.Path.GetFullPath(filePath);
     private readonly IFileSystem _fileSystem = fileSystem;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -29,7 +29,7 @@ public class StandaloneFileSource(IFileSystem fileSystem, string filePath) : IFi
 
 public class StandaloneFileSourceEntry(IFileSystem fileSystem, string filePath) : IFileSourceEntry
 {
-    private readonly string _filePath = filePath;
+    private readonly string _filePath = fileSystem.Path.GetFullPath(filePath);
     private readonly IFileSystem _fileSystem = fileSystem;
 
     public bool IsDirectory => false;

@@ -77,4 +77,10 @@ public static class IFileSystemExtensions
     {
         return await Task.Run(() => file.OpenRead(path));
     }
+
+    /// <inheritdoc cref="IPath.Exists(string)" />
+    public static async Task<bool> ExistsAsync(this IPath path, string pathValue)
+    {
+        return await Task.Run(() => path.Exists(pathValue));
+    }
 }

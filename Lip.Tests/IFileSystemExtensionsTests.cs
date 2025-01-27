@@ -187,4 +187,18 @@ public class IFileSystemExtensionsTests
         // Assert
         Assert.Equal("test content", content);
     }
+
+    [Fact]
+    public async Task ExistsAsync_Path_ReturnsExpectedResult()
+    {
+        // Arrange
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { "/test/file.txt", new MockFileData("test") }
+        });
+
+        // Act & Assert
+        Assert.True(await fileSystem.Path.ExistsAsync("/test/file.txt"));
+        Assert.False(await fileSystem.Path.ExistsAsync("/nonexistent.txt"));
+    }
 }

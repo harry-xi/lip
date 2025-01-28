@@ -2,7 +2,6 @@
 using Flurl;
 using Lip.Context;
 using Semver;
-using SharpCompress.Archives;
 
 namespace Lip;
 
@@ -198,17 +197,18 @@ public class CacheManager(
         Url archiveFileUrl = _goModuleProxy!.Clone().AppendPathSegments(escapedGoModulePath, "@v", archiveFileNameInUrl);
 
         // Download and open the archive.
-        using Stream archiveStream = await GetDownloadedFile(archiveFileUrl);
+        using Stream _ = await GetDownloadedFile(archiveFileUrl);
 
-        IArchive archive = ArchiveFactory.Open(archiveStream);
+        string archiveFilePath = _pathManager.GetDownloadedFileCachePath(archiveFileUrl);
 
-        string archivePackageManifestPath = $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : "")}/{_pathManager.PackageManifestFileName}";
+        ArchiveFileSource archive = new(_context.FileSystem, archiveFilePath);
 
-        IArchiveEntry? entry = archive.Entries.FirstOrDefault(
-            entry => entry.Key == archivePackageManifestPath
-        ) ?? throw new InvalidOperationException($"Package manifest file not found for package '{packageSpecifier}' at {archivePackageManifestPath}.");
+        string archivePackageManifestKey = $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : "")}/{_pathManager.PackageManifestFileName}";
 
-        using Stream manifestStream = entry.OpenEntryStream();
+        IFileSourceEntry archivePackageManifestEntry = (await archive.GetFile(archivePackageManifestKey))
+            ?? throw new InvalidOperationException($"Package manifest file not found for package '{packageSpecifier}' at {archivePackageManifestKey}.");
+
+        using Stream manifestStream = await archivePackageManifestEntry.OpenRead();
 
         // Save the package manifest file to the cache.
         string manifestFilePath = _pathManager.GetPackageManifestCachePath(packageSpecifier.SpecifierWithoutVariant);

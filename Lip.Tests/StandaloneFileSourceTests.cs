@@ -5,7 +5,7 @@ namespace Lip.Tests;
 public class StandaloneFileSourceTests
 {
     [Fact]
-    public async Task AddEntry_ThrowsNotImplementedException()
+    public async Task GetAllFiles_ReturnsStandaloneFileSourceEntry()
     {
         // Arrange
         string filePath = "/path/to/file";
@@ -17,8 +17,12 @@ public class StandaloneFileSourceTests
 
         var source = new StandaloneFileSource(fileSystem, filePath);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<NotImplementedException>(() => source.AddEntry("key", new MemoryStream()));
+        // Act
+        List<IFileSourceEntry> entries = await source.GetAllFiles();
+
+        // Assert
+        Assert.Single(entries);
+        Assert.Equal("Test content", new StreamReader(await entries[0].OpenRead()).ReadToEnd());
     }
 
     [Fact]
@@ -35,11 +39,11 @@ public class StandaloneFileSourceTests
         var source = new StandaloneFileSource(fileSystem, filePath);
 
         // Act
-        IFileSourceEntry? entry = await source.GetEntry(string.Empty);
+        IFileSourceEntry? entry = await source.GetFile(string.Empty);
 
         // Assert
         Assert.NotNull(entry);
-        Assert.Equal("Test content", new StreamReader(await entry.OpenEntryStream()).ReadToEnd());
+        Assert.Equal("Test content", new StreamReader(await entry.OpenRead()).ReadToEnd());
     }
 
     [Fact]
@@ -56,52 +60,15 @@ public class StandaloneFileSourceTests
         var source = new StandaloneFileSource(fileSystem, filePath);
 
         // Act
-        IFileSourceEntry? entry = await source.GetEntry("non-empty-key");
+        IFileSourceEntry? entry = await source.GetFile("non-empty-key");
 
         // Assert
         Assert.Null(entry);
-    }
-
-    [Fact]
-    public async Task RemoveEntry_ThrowsNotImplementedException()
-    {
-        // Arrange
-        string filePath = "/path/to/file";
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { filePath, new MockFileData("Test content") }
-        });
-
-        var source = new StandaloneFileSource(fileSystem, filePath);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<NotImplementedException>(() => source.RemoveEntry("key"));
     }
 }
 
 public class StandaloneFileSourceEntryTests
 {
-    [Fact]
-    public void IsDirectory_ReturnsFalse()
-    {
-        // Arrange
-        string filePath = "/path/to/file";
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { filePath, new MockFileData("Test content") }
-        });
-
-        var entry = new StandaloneFileSourceEntry(fileSystem, filePath);
-
-        // Act
-        bool isDirectory = entry.IsDirectory;
-
-        // Assert
-        Assert.False(isDirectory);
-    }
-
     [Fact]
     public void Key_ReturnsEmptyString()
     {
@@ -123,7 +90,7 @@ public class StandaloneFileSourceEntryTests
     }
 
     [Fact]
-    public async Task OpenEntryStream_ReturnsFileStream()
+    public async Task OpenRead_ReturnsFileStream()
     {
         // Arrange
         string filePath = "/path/to/file";
@@ -136,7 +103,7 @@ public class StandaloneFileSourceEntryTests
         var entry = new StandaloneFileSourceEntry(fileSystem, filePath);
 
         // Act
-        using Stream stream = await entry.OpenEntryStream();
+        using Stream stream = await entry.OpenRead();
 
         // Assert
         Assert.Equal("Test content", new StreamReader(stream).ReadToEnd());

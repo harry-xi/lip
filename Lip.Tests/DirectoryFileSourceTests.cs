@@ -5,20 +5,26 @@ namespace Lip.Tests;
 public class DirectoryFileSourceTests
 {
     [Fact]
-    public async Task AddEntry_ThrowsNotImplementedException()
+    public async Task GetAllFiles_ReturnsDirectoryFileSourceEntry()
     {
         // Arrange
-        string filePath = "/path/to/file";
+        string rootDirPath = "/path/to/dir";
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
-            { filePath, new MockFileData("Test content") }
+            { $"{rootDirPath}/file1", new MockFileData("Test content 1") },
+            { $"{rootDirPath}/file2", new MockFileData("Test content 2") }
         });
 
-        var source = new DirectoryFileSource(fileSystem, filePath);
+        var source = new DirectoryFileSource(fileSystem, rootDirPath);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<NotImplementedException>(() => source.AddEntry("key", new MemoryStream()));
+        // Act
+        List<IFileSourceEntry> entries = await source.GetAllFiles();
+
+        // Assert
+        Assert.Equal(2, entries.Count);
+        Assert.Equal("Test content 1", new StreamReader(await entries[0].OpenRead()).ReadToEnd());
+        Assert.Equal("Test content 2", new StreamReader(await entries[1].OpenRead()).ReadToEnd());
     }
 
     [Fact]
@@ -35,11 +41,11 @@ public class DirectoryFileSourceTests
         var source = new DirectoryFileSource(fileSystem, filePath);
 
         // Act
-        IFileSourceEntry? entry = await source.GetEntry(string.Empty);
+        IFileSourceEntry? entry = await source.GetFile(string.Empty);
 
         // Assert
         Assert.NotNull(entry);
-        Assert.Equal("Test content", new StreamReader(await entry.OpenEntryStream()).ReadToEnd());
+        Assert.Equal("Test content", new StreamReader(await entry.OpenRead()).ReadToEnd());
     }
 
     [Fact]
@@ -56,76 +62,38 @@ public class DirectoryFileSourceTests
         var source = new DirectoryFileSource(fileSystem, filePath);
 
         // Act
-        IFileSourceEntry? entry = await source.GetEntry("non-empty-key");
+        IFileSourceEntry? entry = await source.GetFile("non-empty-key");
 
         // Assert
         Assert.Null(entry);
     }
 
-    [Fact]
-    public async Task RemoveEntry_ThrowsNotImplementedException()
+    [Theory]
+    [InlineData("C:\\Windows\\System32\\cmd.exe")]
+    [InlineData("/etc/passwd")]
+    [InlineData("dir/../file")]
+    public async Task GetEntry_UnsafeKey_ReturnsNull(string key)
     {
         // Arrange
-        string filePath = "/path/to/file";
+        string rootDirPath = "/path/to/dir";
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
-            { filePath, new MockFileData("Test content") }
+            { $"{rootDirPath}/file", new MockFileData("Test content") }
         });
 
-        var source = new DirectoryFileSource(fileSystem, filePath);
+        var source = new DirectoryFileSource(fileSystem, rootDirPath);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<NotImplementedException>(() => source.RemoveEntry("key"));
+        // Act
+        IFileSourceEntry? entry = await source.GetFile(key);
+
+        // Assert
+        Assert.Null(entry);
     }
 }
 
 public class DirectoryFileSourceEntryTests
 {
-    [Fact]
-    public void IsDirectory_IsFile_ReturnsFalse()
-    {
-        // Arrange
-        string filePath = "/path/to/file";
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { filePath, new MockFileData("Test content") }
-        });
-
-        string key = "file";
-
-        var entry = new DirectoryFileSourceEntry(fileSystem, filePath, key);
-
-        // Act
-        bool isDirectory = entry.IsDirectory;
-
-        // Assert
-        Assert.False(isDirectory);
-    }
-
-    [Fact]
-    public void IsDirectory_IsDirectory_ReturnsTrue()
-    {
-        // Arrange
-        string dirPath = "/path/to/dir";
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { dirPath, new MockDirectoryData() }
-        });
-
-        string key = "dir";
-
-        var entry = new DirectoryFileSourceEntry(fileSystem, dirPath, key);
-
-        // Act
-        bool isDirectory = entry.IsDirectory;
-
-        // Assert
-        Assert.True(isDirectory);
-    }
-
     [Fact]
     public void Key_ReturnsKey()
     {
@@ -149,7 +117,7 @@ public class DirectoryFileSourceEntryTests
     }
 
     [Fact]
-    public async Task OpenEntryStream_IsFile_ReturnsFileStream()
+    public async Task OpenRead_IsFile_ReturnsFileStream()
     {
         // Arrange
         string filePath = "/path/to/file";
@@ -164,28 +132,9 @@ public class DirectoryFileSourceEntryTests
         var entry = new DirectoryFileSourceEntry(fileSystem, filePath, key);
 
         // Act
-        using Stream stream = await entry.OpenEntryStream();
+        using Stream stream = await entry.OpenRead();
 
         // Assert
         Assert.Equal("Test content", new StreamReader(stream).ReadToEnd());
-    }
-
-    [Fact]
-    public async Task OpenEntryStream_IsDirectory_ThrowsNotSupportedException()
-    {
-        // Arrange
-        string dirPath = "/path/to/dir";
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { dirPath, new MockDirectoryData() }
-        });
-
-        string key = "dir";
-
-        var entry = new DirectoryFileSourceEntry(fileSystem, dirPath, key);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<NotSupportedException>(() => entry.OpenEntryStream());
     }
 }

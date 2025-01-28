@@ -2,54 +2,60 @@
 
 namespace Lip;
 
+/// <summary>
+/// A file source that reads files from a directory.
+/// </summary>
+/// <remarks>
+/// This file source assumes that no changes are made to the directory while it is in use.
+/// </remarks>
+/// <param name="fileSystem">The file system to use.</param>
+/// <param name="rootDirPath">The root directory path of all files.</param>
 public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : IFileSource
 {
-    private readonly string _rootDirPath = rootDirPath;
+    private readonly string _rootDirPath = fileSystem.Path.GetFullPath(rootDirPath);
     private readonly IFileSystem _fileSystem = fileSystem;
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public async Task<IFileSourceEntry> AddEntry(string key, Stream stream)
+    public async Task<List<IFileSourceEntry>> GetAllFiles()
     {
-        throw new NotImplementedException();
+        await Task.Delay(0); // To avoid warning.
+
+        return [.. _fileSystem.Directory.EnumerateFiles(_rootDirPath)
+            .Select(filePath => new DirectoryFileSourceEntry(
+                _fileSystem,
+                filePath,
+                _fileSystem.Path.GetRelativePath(_rootDirPath, filePath)
+                .Replace(_fileSystem.Path.DirectorySeparatorChar, '/')))
+            .Cast<IFileSourceEntry>()];
     }
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
-    public async Task<IFileSourceEntry?> GetEntry(string key)
+    public async Task<IFileSourceEntry?> GetFile(string key)
     {
-        string filePath = _fileSystem.Path.Join(_rootDirPath, key);
+        if (!StringValidator.CheckSafePlacePath(key))
+        {
+            return null;
+        }
 
-        if (await _fileSystem.Path.ExistsAsync(filePath))
+        string filePath = _fileSystem.Path.Join(_rootDirPath, key);
+        filePath = _fileSystem.Path.GetFullPath(filePath);
+
+        if (await _fileSystem.File.ExistsAsync(filePath))
         {
             return new DirectoryFileSourceEntry(_fileSystem, filePath, key);
         }
 
         return null;
     }
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public async Task RemoveEntry(string key)
-    {
-        throw new NotImplementedException();
-    }
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 }
 
 public class DirectoryFileSourceEntry(IFileSystem fileSystem, string filePath, string key) : IFileSourceEntry
 {
-    private readonly string _filePath = filePath;
+    private readonly string _filePath = fileSystem.Path.GetFullPath(filePath);
     private readonly IFileSystem _fileSystem = fileSystem;
-
-    public bool IsDirectory => _fileSystem.Directory.Exists(_filePath);
 
     public string Key { get; } = key;
 
-    public async Task<Stream> OpenEntryStream()
+    public async Task<Stream> OpenRead()
     {
-        if (IsDirectory)
-        {
-            throw new NotSupportedException("Cannot open stream for a directory.");
-        }
-
         return await _fileSystem.File.OpenReadAsync(_filePath);
     }
 }

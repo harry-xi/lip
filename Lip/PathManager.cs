@@ -1,6 +1,7 @@
 ﻿using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using Flurl;
+using Semver;
 
 namespace Lip;
 
@@ -51,6 +52,15 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         string repoDirName = Url.Encode(repo.Url);
         string tagDirName = Url.Encode(repo.Tag);
         return _fileSystem.Path.Join(BaseGitRepoCacheDir, repoDirName, tagDirName);
+    }
+
+    public string GetGoModuleArchiveEntryKey(PackageSpecifier packageSpecifier, string relativePath)
+    {
+        SemVersion version = packageSpecifier.Version;
+
+        relativePath = relativePath.Replace(_fileSystem.Path.DirectorySeparatorChar, '/');
+
+        return $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : string.Empty)}/{relativePath}";
     }
 
     public string GetPackageManifestCachePath(string packageName)

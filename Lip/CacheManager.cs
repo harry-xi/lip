@@ -203,7 +203,7 @@ public class CacheManager(
 
         ArchiveFileSource archive = new(_context.FileSystem, archiveFilePath);
 
-        string archivePackageManifestKey = $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : string.Empty)}/{_pathManager.PackageManifestFileName}";
+        string archivePackageManifestKey = _pathManager.GetGoModuleArchiveEntryKey(packageSpecifier, _pathManager.PackageManifestFileName);
 
         IFileSourceEntry archivePackageManifestEntry = (await archive.GetEntry(archivePackageManifestKey))
             ?? throw new InvalidOperationException($"Package manifest file not found for package '{packageSpecifier}' at {archivePackageManifestKey}.");

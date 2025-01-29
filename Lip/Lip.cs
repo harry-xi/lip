@@ -1,4 +1,5 @@
-﻿using Flurl;
+﻿using DotNet.Globbing;
+using Flurl;
 using Lip.Context;
 
 namespace Lip;
@@ -58,5 +59,47 @@ public partial class Lip
         byte[] packageManifestBytes = await _context.FileSystem.File.ReadAllBytesAsync(packageManifestFilePath);
 
         return PackageManifest.FromJsonBytes(packageManifestBytes);
+    }
+
+    private string? GetPlacementRelativePath(PackageManifest.PlaceType placement, string fileSourceEntryKey)
+    {
+        if (placement.Type == PackageManifest.PlaceType.TypeEnum.File)
+        {
+            string fileName = _context.FileSystem.Path.GetFileName(fileSourceEntryKey);
+
+            if (fileSourceEntryKey == placement.Src)
+            {
+                return fileName;
+            }
+
+            Glob glob = Glob.Parse(placement.Src);
+
+            if (glob.IsMatch(fileSourceEntryKey))
+            {
+                return fileName;
+            }
+
+            return null;
+        }
+        else if (placement.Type == PackageManifest.PlaceType.TypeEnum.Dir)
+        {
+            string placementSrc = placement.Src;
+
+            if (!placementSrc.EndsWith('/'))
+            {
+                placementSrc += '/';
+            }
+
+            if (!fileSourceEntryKey.StartsWith(placementSrc))
+            {
+                return null;
+            }
+
+            return fileSourceEntryKey[placementSrc.Length..];
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
     }
 }

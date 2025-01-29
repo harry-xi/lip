@@ -86,6 +86,6 @@ public class ArchiveFileSourceEntry(
             }
         }
 
-        throw new FileNotFoundException($"Entry '{Key}' not found in archive '{_archiveFilePath}'.");
+        throw new InvalidOperationException($"Entry '{Key}' not found in archive '{_archiveFilePath}'.");
     }
 }

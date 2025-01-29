@@ -191,6 +191,20 @@ public class ArchiveFileSourceEntryTests
         Assert.Equal("test content", new StreamReader(stream).ReadToEnd());
     }
 
+    [Fact]
+    public async Task OpenRead_KeyNotFound_Throws()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+
+        CreateTestFile(fileSystem, ArchiveType.Tar, CompressionType.None);
+
+        ArchiveFileSourceEntry fileSourceEntry = new(fileSystem, "archive", "path/to/entry1");
+
+        // Act and assert.
+        await Assert.ThrowsAsync<InvalidOperationException>(fileSourceEntry.OpenRead);
+    }
+
     private static void CreateTestFile(
         MockFileSystem fileSystem,
         ArchiveType archiveType,

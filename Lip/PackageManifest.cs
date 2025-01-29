@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using DotNet.Globbing;
 using Scriban;
@@ -63,7 +62,7 @@ public record PackageManifest
             {
                 value?.ForEach(preserve =>
                 {
-                    if (!StringValidator.CheckSafePlacePath(preserve))
+                    if (!StringValidator.CheckPlaceDestPath(preserve))
                     {
                         throw new SchemaViolationException("preserve", $"Path '{preserve}' is unsafe to preserve.");
                     }
@@ -81,7 +80,7 @@ public record PackageManifest
             {
                 value?.ForEach(remove =>
                 {
-                    if (!StringValidator.CheckSafePlacePath(remove))
+                    if (!StringValidator.CheckPlaceDestPath(remove))
                     {
                         throw new SchemaViolationException("remove", $"Path '{remove}' is unsafe to remove.");
                     }
@@ -170,7 +169,7 @@ public record PackageManifest
             get => _dest;
             init
             {
-                if (!StringValidator.CheckSafePlacePath(value))
+                if (!StringValidator.CheckPlaceDestPath(value))
                 {
                     throw new SchemaViolationException("dest", $"Path '{value}' is unsafe to place.");
                 }
@@ -179,7 +178,7 @@ public record PackageManifest
             }
         }
 
-        private string _dest = "";
+        private string _dest = string.Empty;
     }
 
     public partial record ScriptsType
@@ -275,7 +274,7 @@ public record PackageManifest
     public record VariantType
     {
         [JsonIgnore]
-        public string VariantLabel => VariantLabelRaw ?? "";
+        public string VariantLabel => VariantLabelRaw ?? string.Empty;
 
         [JsonPropertyName("label")]
         public string? VariantLabelRaw { get; init; }
@@ -423,7 +422,7 @@ public record PackageManifest
                 {
                     isVariantLabelMatched = true;
                 }
-                else if (variant.VariantLabel.Length > 0)
+                else if (variant.VariantLabel != string.Empty)
                 {
                     var labelGlob = Glob.Parse(variant.VariantLabel);
 
@@ -445,7 +444,7 @@ public record PackageManifest
                 {
                     isPlatformMatched = true;
                 }
-                else if (variant.Platform?.Length > 0 || variant.Platform is null)
+                else if (variant.Platform != string.Empty || variant.Platform is null)
                 {
                     var platformGlob = Glob.Parse(variant.Platform ?? "*");
 

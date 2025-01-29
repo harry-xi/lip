@@ -69,7 +69,7 @@ public static partial class StringValidator
     /// </summary>
     /// <param name="path">The path to validate.</param>
     /// <returns>True if the path is safe to place files to; otherwise, false.</returns>
-    public static bool CheckSafePlacePath(string path)
+    public static bool CheckPlaceDestPath(string path)
     {
         if (Path.IsPathFullyQualified(path) || Path.IsPathRooted(path))
         {

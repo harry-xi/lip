@@ -14,7 +14,7 @@ public partial class Lip
 
     public async Task<List<ListItem>> List(ListArgs args)
     {
-        PackageLock packageLock = await GetPackageLock();
+        PackageLock packageLock = await GetCurrentPackageLock();
 
         List<ListItem> listItems = [.. packageLock.Packages
             .Select(package => new ListItem
@@ -31,26 +31,5 @@ public partial class Lip
             })];
 
         return listItems;
-    }
-
-    private async Task<PackageLock> GetPackageLock()
-    {
-        string packageLockFilePath = _pathManager.CurrentPackageLockPath;
-
-        // If the package lock file does not exist, return an empty package lock.
-        if (!await _context.FileSystem.File.ExistsAsync(packageLockFilePath))
-        {
-            return new()
-            {
-                FormatVersion = PackageLock.DefaultFormatVersion,
-                FormatUuid = PackageLock.DefaultFormatUuid,
-                Packages = [],
-                Locks = []
-            };
-        }
-
-        byte[] packageLockBytes = await _context.FileSystem.File.ReadAllBytesAsync(packageLockFilePath);
-
-        return PackageLock.FromJsonBytes(packageLockBytes);
     }
 }

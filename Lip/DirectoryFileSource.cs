@@ -30,7 +30,7 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
 
     public async Task<IFileSourceEntry?> GetFile(string key)
     {
-        if (!StringValidator.CheckSafePlacePath(key))
+        if (!StringValidator.CheckPlaceDestPath(key))
         {
             return null;
         }

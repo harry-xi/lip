@@ -203,7 +203,7 @@ public class CacheManager(
 
         ArchiveFileSource archive = new(_context.FileSystem, archiveFilePath);
 
-        string archivePackageManifestKey = $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : "")}/{_pathManager.PackageManifestFileName}";
+        string archivePackageManifestKey = $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : string.Empty)}/{_pathManager.PackageManifestFileName}";
 
         IFileSourceEntry archivePackageManifestEntry = (await archive.GetFile(archivePackageManifestKey))
             ?? throw new InvalidOperationException($"Package manifest file not found for package '{packageSpecifier}' at {archivePackageManifestKey}.");
@@ -226,12 +226,12 @@ public class CacheManager(
     private static string GetGoModuleFileNameFromVersion(SemVersion version)
     {
         // Reference: https://go.dev/ref/mod#glos-canonical-version
-        if (version.Metadata.Length > 0)
+        if (version.Metadata != string.Empty)
         {
             throw new ArgumentException("Go module proxy does not accept version with build metadata.", nameof(version));
         }
 
         // Reference: https://go.dev/ref/mod#non-module-compat
-        return $"v{version}{(version.Major >= 2 ? "+incompatible" : "")}.zip";
+        return $"v{version}{(version.Major >= 2 ? "+incompatible" : string.Empty)}.zip";
     }
 }

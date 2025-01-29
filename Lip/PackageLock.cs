@@ -38,9 +38,9 @@ public record PackageLock
                 : throw new SchemaViolationException("version", $"Invalid version '{value}'.");
         }
 
-        private string _tooth = "";
-        private string _variant = "";
-        private string _version = "";
+        private string _tooth = string.Empty;
+        private string _variant = string.Empty;
+        private string _version = string.Empty;
     }
 
     public const int DefaultFormatVersion = 3;

@@ -205,7 +205,7 @@ public class CacheManager(
 
         string archivePackageManifestKey = $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : string.Empty)}/{_pathManager.PackageManifestFileName}";
 
-        IFileSourceEntry archivePackageManifestEntry = (await archive.GetFile(archivePackageManifestKey))
+        IFileSourceEntry archivePackageManifestEntry = (await archive.GetEntry(archivePackageManifestKey))
             ?? throw new InvalidOperationException($"Package manifest file not found for package '{packageSpecifier}' at {archivePackageManifestKey}.");
 
         using Stream manifestStream = await archivePackageManifestEntry.OpenRead();

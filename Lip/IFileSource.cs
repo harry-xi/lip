@@ -6,17 +6,17 @@
 public interface IFileSource
 {
     /// <summary>
-    /// Retrieves all files from the file source.
+    /// Retrieves all entries from the file source.
     /// </summary>
     /// <returns>All files in the file source.</returns>
-    Task<List<IFileSourceEntry>> GetAllFiles();
+    Task<List<IFileSourceEntry>> GetAllEntries();
 
     /// <summary>
-    /// Retrieves a file from the file source by its key.
+    /// Retrieves an entry from the file source by its key.
     /// </summary>
     /// <param name="key">The unique identifier of the entry to retrieve.</param>
     /// <returns>The entry if found; otherwise, null.</returns>
-    Task<IFileSourceEntry?> GetFile(string key);
+    Task<IFileSourceEntry?> GetEntry(string key);
 }
 
 /// <summary>

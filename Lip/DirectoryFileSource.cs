@@ -15,7 +15,7 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
     private readonly string _rootDirPath = fileSystem.Path.GetFullPath(rootDirPath);
     private readonly IFileSystem _fileSystem = fileSystem;
 
-    public async Task<List<IFileSourceEntry>> GetAllFiles()
+    public async Task<List<IFileSourceEntry>> GetAllEntries()
     {
         await Task.Delay(0); // To avoid warning.
 
@@ -31,7 +31,7 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
             .Cast<IFileSourceEntry>()];
     }
 
-    public async Task<IFileSourceEntry?> GetFile(string key)
+    public async Task<IFileSourceEntry?> GetEntry(string key)
     {
         if (!StringValidator.CheckPlaceDestPath(key))
         {

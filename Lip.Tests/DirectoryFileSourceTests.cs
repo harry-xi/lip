@@ -20,7 +20,7 @@ public class DirectoryFileSourceTests
         var source = new DirectoryFileSource(fileSystem, rootDirPath);
 
         // Act
-        List<IFileSourceEntry> entries = await source.GetAllFiles();
+        List<IFileSourceEntry> entries = await source.GetAllEntries();
 
         // Assert
         Assert.Equal(3, entries.Count);
@@ -46,7 +46,7 @@ public class DirectoryFileSourceTests
         var source = new DirectoryFileSource(fileSystem, filePath);
 
         // Act
-        IFileSourceEntry? entry = await source.GetFile(string.Empty);
+        IFileSourceEntry? entry = await source.GetEntry(string.Empty);
 
         // Assert
         Assert.NotNull(entry);
@@ -67,7 +67,7 @@ public class DirectoryFileSourceTests
         var source = new DirectoryFileSource(fileSystem, filePath);
 
         // Act
-        IFileSourceEntry? entry = await source.GetFile("non-empty-key");
+        IFileSourceEntry? entry = await source.GetEntry("non-empty-key");
 
         // Assert
         Assert.Null(entry);
@@ -90,7 +90,7 @@ public class DirectoryFileSourceTests
         var source = new DirectoryFileSource(fileSystem, rootDirPath);
 
         // Act
-        IFileSourceEntry? entry = await source.GetFile(key);
+        IFileSourceEntry? entry = await source.GetEntry(key);
 
         // Assert
         Assert.Null(entry);

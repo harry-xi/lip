@@ -19,7 +19,10 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
     {
         await Task.Delay(0); // To avoid warning.
 
-        return [.. _fileSystem.Directory.EnumerateFiles(_rootDirPath)
+        return [.. _fileSystem.Directory.EnumerateFiles(
+            _rootDirPath,
+            "*",
+            SearchOption.AllDirectories)
             .Select(filePath => new DirectoryFileSourceEntry(
                 _fileSystem,
                 filePath,

@@ -13,7 +13,8 @@ public class DirectoryFileSourceTests
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
         {
             { $"{rootDirPath}/file1", new MockFileData("Test content 1") },
-            { $"{rootDirPath}/file2", new MockFileData("Test content 2") }
+            { $"{rootDirPath}/file2", new MockFileData("Test content 2") },
+            { $"{rootDirPath}/dir/file3", new MockFileData("Test content 3") }
         });
 
         var source = new DirectoryFileSource(fileSystem, rootDirPath);
@@ -22,9 +23,13 @@ public class DirectoryFileSourceTests
         List<IFileSourceEntry> entries = await source.GetAllFiles();
 
         // Assert
-        Assert.Equal(2, entries.Count);
+        Assert.Equal(3, entries.Count);
+        Assert.Equal("file1", entries[0].Key);
+        Assert.Equal("file2", entries[1].Key);
+        Assert.Equal("dir/file3", entries[2].Key);
         Assert.Equal("Test content 1", new StreamReader(await entries[0].OpenRead()).ReadToEnd());
         Assert.Equal("Test content 2", new StreamReader(await entries[1].OpenRead()).ReadToEnd());
+        Assert.Equal("Test content 3", new StreamReader(await entries[2].OpenRead()).ReadToEnd());
     }
 
     [Fact]

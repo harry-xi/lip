@@ -63,7 +63,7 @@ public partial class Lip
         List<IFileSourceEntry> fileEntriesToPlace = [.. (await fileSource.GetAllEntries())
             .Where(entry => filePlacements.Any(placement => GetPlacementRelativePath(
                 placement,
-                entry.Key) is not null) || entry.Key == "tooth.json")];
+                entry.Key) is not null) || entry.Key == _pathManager.PackageManifestFileName)];
 
         using (Stream outputStream = !args.DryRun
             ? _context.FileSystem.File.Create(outputPath)

@@ -14,20 +14,13 @@ public partial class Lip
 
     public async Task<List<ListResultItem>> List(ListArgs args)
     {
-        PackageLock packageLock = await GetCurrentPackageLock();
+        PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
 
-        List<ListResultItem> listItems = [.. packageLock.Packages
-            .Select(package => new ListResultItem
+        List<ListResultItem> listItems = [.. packageLock.Locks
+            .Select(@lock => new ListResultItem
             {
-                Manifest = package,
-                Locked = packageLock.Locks.Any(l =>
-                {
-                    return package.ToothPath == l.ToothPath
-                        && package.Version == l.Version
-                        && package.GetSpecifiedVariant(
-                            l.VariantLabel,
-                            RuntimeInformation.RuntimeIdentifier) is not null;
-                })
+                Manifest = @lock.Package,
+                Locked = @lock.Locked
             })];
 
         return listItems;

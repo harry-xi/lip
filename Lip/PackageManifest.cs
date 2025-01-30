@@ -397,7 +397,7 @@ public record PackageManifest
             return JsonSerializer.Deserialize<PackageManifest>(bytes, s_jsonSerializerOptions)
                 ?? throw new JsonException("JSON bytes deserialized to null.");
         }
-        catch (Exception ex) when (ex is JsonException || ex is SchemaViolationException)
+        catch (Exception ex) when (ex is JsonException)
         {
             throw new JsonException("Package manifest bytes deserialization failed.", ex);
         }

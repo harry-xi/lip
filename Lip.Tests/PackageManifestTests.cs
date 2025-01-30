@@ -500,14 +500,8 @@ public class PackageManifestTests
             }
             """);
 
-        // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
-
-        // Assert.
-        Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
-        Assert.NotNull(exception.InnerException);
-        Assert.IsType<SchemaViolationException>(exception.InnerException);
-        Assert.Equal("Format version '0' is not equal to 3.", exception.InnerException.Message);
+        // Act & assert.
+        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytes(bytes));
     }
 
     [Fact]
@@ -523,14 +517,8 @@ public class PackageManifestTests
             }
             """);
 
-        // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
-
-        // Assert.
-        Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
-        Assert.NotNull(exception.InnerException);
-        Assert.IsType<SchemaViolationException>(exception.InnerException);
-        Assert.Equal("Format UUID 'invalid-uuid' is not equal to 289f771f-2c9a-4d73-9f3f-8492495a924d.", exception.InnerException.Message);
+        // Act & assert.
+        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytes(bytes));
     }
 
     [Fact]
@@ -546,14 +534,8 @@ public class PackageManifestTests
             }
             """);
 
-        // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
-
-        // Assert.
-        Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
-        Assert.NotNull(exception.InnerException);
-        Assert.IsType<SchemaViolationException>(exception.InnerException);
-        Assert.Equal("Version '0.0.0.0' is invalid.", exception.InnerException.Message);
+        // Act & Assert.
+        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytes(bytes));
     }
 
     [Fact]

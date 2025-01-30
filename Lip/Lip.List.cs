@@ -4,20 +4,20 @@ namespace Lip;
 
 public partial class Lip
 {
-    public record ListItem
+    public record ListArgs { }
+
+    public record ListResultItem
     {
         public required PackageManifest Manifest { get; init; }
         public required bool Locked { get; init; }
     }
 
-    public record ListArgs { }
-
-    public async Task<List<ListItem>> List(ListArgs args)
+    public async Task<List<ListResultItem>> List(ListArgs args)
     {
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        List<ListItem> listItems = [.. packageLock.Packages
-            .Select(package => new ListItem
+        List<ListResultItem> listItems = [.. packageLock.Packages
+            .Select(package => new ListResultItem
             {
                 Manifest = package,
                 Locked = packageLock.Locks.Any(l =>

@@ -118,7 +118,7 @@ public class ArchiveFileSourceTests
         // Arrange.
         MockFileSystem fileSystem = new();
 
-        CreateTestFiles(fileSystem, ArchiveType.Tar, CompressionType.None, new());
+        CreateTestFiles(fileSystem, ArchiveType.Tar, CompressionType.None, []);
 
         ArchiveFileSource fileSource = new(fileSystem, "archive");
 

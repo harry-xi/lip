@@ -57,7 +57,7 @@ public partial class Lip
 
     public async Task<CacheListResult> CacheList(CacheListArgs _)
     {
-        CacheManager.ListResult listResult = await _cacheManager.List();
+        CacheManager.CacheSummary listResult = await _cacheManager.List();
         return new CacheListResult
         {
             DownloadedFiles = [.. listResult.DownloadedFiles.Keys],

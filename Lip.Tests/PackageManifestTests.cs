@@ -1,12 +1,24 @@
 ﻿using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Semver;
 
 namespace Lip.Tests;
 
 public class PackageManifestTests
 {
+    [Fact]
+    public void AssetType_With_Passes()
+    {
+        // Arrange.
+        PackageManifest.AssetType assetType = new()
+        {
+            Type = PackageManifest.AssetType.TypeEnum.Self,
+        };
+
+        // Act.
+        assetType = assetType with { };
+    }
+
     [Theory]
     [InlineData(null, null, null)]
     [InlineData(new string[] { "https://example.com" }, new string[] { "preserve" }, new string[] { "remove" })]
@@ -81,6 +93,16 @@ public class PackageManifestTests
         Assert.Equal("Path '/invalid' is unsafe to remove.", exception.Message);
     }
 
+    [Fact]
+    public void InfoType_With_Passes()
+    {
+        // Arrange.
+        PackageManifest.InfoType infoType = new();
+
+        // Act.
+        infoType = infoType with { };
+    }
+
     [Theory]
     [InlineData(null, null)]
     [InlineData(new string[] { "tag" }, "https://example.com")]
@@ -126,6 +148,21 @@ public class PackageManifestTests
     }
 
     [Fact]
+    public void PlaceType_With_Passes()
+    {
+        // Arrange.
+        PackageManifest.PlaceType place = new()
+        {
+            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Src = "path/to/src",
+            Dest = "path/to/dest"
+        };
+
+        // Act.
+        place = place with { };
+    }
+
+    [Fact]
     public void PlaceType_Constructor_ValidValues_Passes()
     {
         // Arrange & Act.
@@ -157,6 +194,16 @@ public class PackageManifestTests
         // Assert.
         Assert.Equal("dest", exception.Key);
         Assert.Equal("Path '/path/to/dest' is unsafe to place.", exception.Message);
+    }
+
+    [Fact]
+    public void ScriptsType_With_Passes()
+    {
+        // Arrange.
+        PackageManifest.ScriptsType scripts = new();
+
+        // Act.
+        scripts = scripts with { };
     }
 
     [Fact]
@@ -262,6 +309,16 @@ public class PackageManifestTests
         Assert.Empty(scripts.AdditionalScripts);
     }
 
+    [Fact]
+    public void VariantType_With_Passes()
+    {
+        // Arrange.
+        PackageManifest.VariantType variant = new();
+
+        // Act.
+        variant = variant with { };
+    }
+
     private static readonly (string, string)[] s_testDependencies = [("example.com/pkg", "1.0.x")];
 
     [Theory]
@@ -344,6 +401,22 @@ public class PackageManifestTests
         // Assert.
         Assert.Equal("dependencies", exception.Key);
         Assert.Equal("Version range 'invalid.version.range' is invalid.", exception.Message);
+    }
+
+    [Fact]
+    public void PackageManifest_With_Passes()
+    {
+        // Arrange.
+        PackageManifest manifest = new()
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            ToothPath = "",
+            VersionText = "1.0.0"
+        };
+
+        // Act.
+        manifest = manifest with { };
     }
 
     [Fact]

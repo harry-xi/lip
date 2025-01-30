@@ -13,6 +13,51 @@ public class LipCacheTests
         : Path.Join("/", "path", "to", "cache");
 
     [Fact]
+    public void CacheAddArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.CacheAddArgs args = new();
+
+        // Act.
+        args = args with { };
+    }
+
+    [Fact]
+    public void CacheCleanArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.CacheCleanArgs args = new();
+
+        // Act.
+        args = args with { };
+    }
+
+    [Fact]
+    public void CacheListArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.CacheListArgs args = new();
+
+        // Act.
+        args = args with { };
+    }
+
+    [Fact]
+    public void CacheListResult_With_Passes()
+    {
+        // Arrange.
+        Lip.CacheListResult result = new()
+        {
+            DownloadedFiles = [],
+            GitRepos = [],
+            PackageManifestFiles = [],
+        };
+
+        // Act.
+        result = result with { };
+    }
+
+    [Fact]
     public async Task CacheAdd_ValidPackageSpecifier_AddsCache()
     {
         // Arrange.

@@ -7,6 +7,37 @@ namespace Lip.Tests;
 public class PackageLockTests
 {
     [Fact]
+    public void PackageLock_With_Passes()
+    {
+        // Arrange.
+        PackageLock packageLock = new()
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            Packages = [],
+            Locks = []
+        };
+
+        // Act.
+        packageLock = packageLock with { };
+    }
+
+    [Fact]
+    public void LockType_With_Passes()
+    {
+        // Arrange.
+        PackageLock.LockType lockType = new()
+        {
+            ToothPath = "example.com/package",
+            VariantLabel = "default",
+            VersionText = "1.0.0"
+        };
+
+        // Act.
+        lockType = lockType with { };
+    }
+
+    [Fact]
     public void FromBytes_MinimumJson_Passes()
     {
         // Arrange

@@ -16,6 +16,21 @@ public class CacheManagerTests
         : Path.Join("/", "path", "to", "cache");
 
     [Fact]
+    public void CacheSummary_With_Passes()
+    {
+        // Arrange.
+        CacheManager.CacheSummary cacheSummary = new()
+        {
+            DownloadedFiles = [],
+            GitRepos = [],
+            PackageManifestFiles = []
+        };
+
+        // Act.
+        cacheSummary = cacheSummary with { };
+    }
+
+    [Fact]
     public async Task Clean_BaseCacheDirExists_Passes()
     {
         // Arrange.
@@ -576,7 +591,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager);
 
         // Act.
-        CacheManager.ListResult listResult = await cacheManager.List();
+        CacheManager.CacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Empty(listResult.DownloadedFiles);
@@ -601,7 +616,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager);
 
         // Act.
-        CacheManager.ListResult listResult = await cacheManager.List();
+        CacheManager.CacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Single(listResult.DownloadedFiles);
@@ -628,7 +643,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager);
 
         // Act.
-        CacheManager.ListResult listResult = await cacheManager.List();
+        CacheManager.CacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Empty(listResult.DownloadedFiles);
@@ -656,7 +671,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager);
 
         // Act.
-        CacheManager.ListResult listResult = await cacheManager.List();
+        CacheManager.CacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Empty(listResult.DownloadedFiles);

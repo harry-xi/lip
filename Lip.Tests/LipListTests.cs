@@ -8,6 +8,36 @@ namespace Lip.Tests;
 public class LipListTests
 {
     [Fact]
+    public void ListArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.ListArgs listArgs = new();
+
+        // Act.
+        listArgs = listArgs with { };
+    }
+
+    [Fact]
+    public void ListResultItem_With_Passes()
+    {
+        // Arrange.
+        Lip.ListResultItem listResultItem = new()
+        {
+            Manifest = new()
+            {
+                FormatVersion = 3,
+                FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                ToothPath = "example.com/pkg1",
+                VersionText = "1.0.0"
+            },
+            Locked = true
+        };
+
+        // Act.
+        listResultItem = listResultItem with { };
+    }
+
+    [Fact]
     public async Task List_ReturnsListItems()
     {
         // Arrange.
@@ -60,7 +90,7 @@ public class LipListTests
         Lip lip = new(new(), context.Object);
 
         // Act.
-        List<Lip.ListItem> listItems = await lip.List(new());
+        List<Lip.ListResultItem> listItems = await lip.List(new());
 
         // Assert.
         Assert.Equal(2, listItems.Count);
@@ -86,7 +116,7 @@ public class LipListTests
         Lip lip = new(new(), context.Object);
 
         // Act.
-        List<Lip.ListItem> listItems = await lip.List(new());
+        List<Lip.ListResultItem> listItems = await lip.List(new());
 
         // Assert.
         Assert.Empty(listItems);
@@ -133,7 +163,7 @@ public class LipListTests
         Lip lip = new(new(), context.Object);
 
         // Act.
-        List<Lip.ListItem> listItems = await lip.List(new());
+        List<Lip.ListResultItem> listItems = await lip.List(new());
 
         // Assert.
         Assert.Single(listItems);
@@ -184,7 +214,7 @@ public class LipListTests
         Lip lip = new(new(), context.Object);
 
         // Act.
-        List<Lip.ListItem> listItems = await lip.List(new());
+        List<Lip.ListResultItem> listItems = await lip.List(new());
 
         // Assert.
         Assert.Single(listItems);
@@ -235,7 +265,7 @@ public class LipListTests
         Lip lip = new(new(), context.Object);
 
         // Act.
-        List<Lip.ListItem> listItems = await lip.List(new());
+        List<Lip.ListResultItem> listItems = await lip.List(new());
 
         // Assert.
         Assert.Single(listItems);

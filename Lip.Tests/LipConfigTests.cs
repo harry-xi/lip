@@ -10,6 +10,46 @@ public class LipConfigTests
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
     [Fact]
+    public void ConfigDeleteArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.ConfigDeleteArgs args = new();
+
+        // Act.
+        args = args with { };
+    }
+
+    [Fact]
+    public void ConfigGetArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.ConfigGetArgs args = new();
+
+        // Act.
+        args = args with { };
+    }
+
+    [Fact]
+    public void ConfigListArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.ConfigListArgs args = new();
+
+        // Act.
+        args = args with { };
+    }
+
+    [Fact]
+    public void ConfigSetArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.ConfigSetArgs args = new();
+
+        // Act.
+        args = args with { };
+    }
+
+    [Fact]
     public async Task ConfigDelete_SingleItem_ResetsToDefault()
     {
         // Arrange.

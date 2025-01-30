@@ -40,6 +40,16 @@ public class LipViewTests
         """.ReplaceLineEndings();
 
     [Fact]
+    public void ViewArgs_With_Passes()
+    {
+        // Arrange.
+        Lip.ViewArgs viewArgs = new();
+
+        // Act.
+        viewArgs = viewArgs with { };
+    }
+
+    [Fact]
     public async Task View_EmptyPath_ReturnsFullManifest()
     {
         // Arrange.

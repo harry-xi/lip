@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions.TestingHelpers;
 using Flurl;
+using Semver;
 
 namespace Lip.Tests;
 
@@ -11,6 +12,23 @@ public class PathManagerTests
     private static readonly string s_workingDir = OperatingSystem.IsWindows()
         ? Path.Join("C:", "current", "dir")
         : Path.Join("/", "current", "dir");
+
+    [Fact]
+    public void GitRepoInfo_With_Passes()
+    {
+        // Arrange.
+        PathManager.GitRepoInfo repoInfo = new()
+        {
+            Url = "https://example.com/repo",
+            Tag = "main",
+        };
+
+        // Act.
+        repoInfo = repoInfo with { };
+
+        // Assert.
+        // No need to assert anything.
+    }
 
     [Fact]
     public void GetBaseCacheDir_WithoutBaseCacheDir_Throws()
@@ -263,6 +281,29 @@ public class PathManagerTests
         Assert.Equal(
             Path.Join(s_cacheDir, "git_repos", expectedRepoDir, expectedTagDir),
             repoCacheDir);
+    }
+
+    [Theory]
+    [InlineData("1.0.0", "example.com/pkg@v1.0.0/path/to/file")]
+    [InlineData("2.0.0", "example.com/pkg@v2.0.0+incompatible/path/to/file")]
+    public void GetGoModuleArchiveEntryKey_ValidPackageSpecifier_ReturnsCorrectKey(string version, string expectedKey)
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        PackageSpecifier packageSpecifier = new()
+        {
+            ToothPath = "example.com/pkg",
+            VariantLabel = "",
+            Version = SemVersion.Parse(version),
+        };
+
+        // Act.
+        string key = pathManager.GetGoModuleArchiveEntryKey(packageSpecifier, "path/to/file");
+
+        // Assert.
+        Assert.Equal(expectedKey, key);
     }
 
     [Theory]

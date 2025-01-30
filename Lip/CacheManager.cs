@@ -11,7 +11,7 @@ public class CacheManager(
     Url? githubProxy = null,
     Url? goModuleProxy = null)
 {
-    public record ListResult
+    public record CacheSummary
     {
         public required Dictionary<Url, IFileInfo> DownloadedFiles { get; init; }
         public required Dictionary<PathManager.GitRepoInfo, IDirectoryInfo> GitRepos { get; init; }
@@ -120,7 +120,7 @@ public class CacheManager(
         }
     }
 
-    public async Task<ListResult> List()
+    public async Task<CacheSummary> List()
     {
         List<IFileInfo> downloadedFiles = [];
         if (await _context.FileSystem.Directory.ExistsAsync(_pathManager.BaseDownloadedFileCacheDir))
@@ -152,7 +152,7 @@ public class CacheManager(
             }
         }
 
-        return new ListResult()
+        return new CacheSummary()
         {
             DownloadedFiles = downloadedFiles.ToDictionary(file => _pathManager.ParseDownloadedFileCachePath(file.FullName)),
             GitRepos = gitRepos.ToDictionary(dir => _pathManager.ParseGitRepoDirCachePath(dir.FullName)),

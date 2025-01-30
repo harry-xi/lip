@@ -28,17 +28,17 @@ public partial class Lip
 
         // Run pre-pack scripts.
 
-        List<string> prePackScripts = packageManifest.GetSpecifiedVariant(
-            string.Empty,
-            RuntimeInformation.RuntimeIdentifier)?
-            .Scripts?
-            .PrePack ?? [];
-
         if (!args.IgnoreScripts)
         {
-            prePackScripts.ForEach(script =>
+            PackageManifest.VariantType? variant = packageManifest.GetSpecifiedVariant(
+                string.Empty,
+                RuntimeInformation.RuntimeIdentifier);
+            PackageManifest.ScriptsType? script = variant?.Scripts;
+            List<string>? prePackScripts = script?.PrePack;
+
+            prePackScripts?.ForEach(script =>
             {
-                _context.Logger.LogInformation("Running script:\n{script}", script);
+                _context.Logger.LogDebug("Running script: {script}", script);
                 if (!args.DryRun)
                 {
                     _context.CommandRunner.Run(
@@ -63,11 +63,11 @@ public partial class Lip
         List<IFileSourceEntry> fileEntriesToPlace = [.. (await fileSource.GetAllEntries())
             .Where(entry => filePlacements.Any(placement => GetPlacementRelativePath(
                 placement,
-                entry.Key) is not null))];
+                entry.Key) is not null) || entry.Key == "tooth.json")];
 
-        using (Stream outputStream = args.DryRun
-            ? Stream.Null
-            : _context.FileSystem.File.Create(outputPath))
+        using (Stream outputStream = !args.DryRun
+            ? _context.FileSystem.File.Create(outputPath)
+            : Stream.Null)
         using (IWriter writer = args.ArchiveFormat switch
         {
             PackArgs.ArchiveFormatType.Zip => WriterFactory.Open(
@@ -95,17 +95,17 @@ public partial class Lip
 
         // Run post-pack scripts.
 
-        List<string> postPackScripts = packageManifest.GetSpecifiedVariant(
-            string.Empty,
-            RuntimeInformation.RuntimeIdentifier)?
-            .Scripts?
-            .PostPack ?? [];
-
         if (!args.IgnoreScripts)
         {
-            postPackScripts.ForEach(script =>
+            PackageManifest.VariantType? variant = packageManifest.GetSpecifiedVariant(
+                string.Empty,
+                RuntimeInformation.RuntimeIdentifier);
+            PackageManifest.ScriptsType? script = variant?.Scripts;
+            List<string>? postPackScripts = script?.PostPack;
+
+            postPackScripts?.ForEach(script =>
             {
-                _context.Logger.LogInformation("Running script:\n{script}", script);
+                _context.Logger.LogDebug("Running script: {script}", script);
                 if (!args.DryRun)
                 {
                     _context.CommandRunner.Run(

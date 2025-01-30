@@ -69,7 +69,7 @@ public partial class Lip
 
             if (fileSourceEntryKey == placement.Src)
             {
-                return fileName;
+                return string.Empty;
             }
 
             Glob glob = Glob.Parse(placement.Src);

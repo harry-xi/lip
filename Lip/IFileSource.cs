@@ -36,3 +36,18 @@ public interface IFileSourceEntry
     /// <returns>A stream containing the entry's data.</returns>
     Task<Stream> OpenRead();
 }
+
+public static class IFileSourceExtensions
+{
+    public static async Task<Stream?> GetFileStream(this IFileSource fileSource, string key)
+    {
+        IFileSourceEntry? entry = await fileSource.GetEntry(key);
+
+        if (entry == null)
+        {
+            return null;
+        }
+
+        return await entry.OpenRead();
+    }
+}

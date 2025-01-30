@@ -483,7 +483,9 @@ public record PackageManifest
             Dependencies = matchedVariants
                 .SelectMany(variant => variant.Dependencies ?? [])
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-            Assets = [.. matchedVariants.SelectMany(variant => variant.Assets ?? [])],
+            Assets = matchedVariants
+                .SelectMany(variant => variant.Assets ?? [])
+                .ToList(),
             Scripts = new ScriptsType
             {
                 PreInstall = matchedVariants

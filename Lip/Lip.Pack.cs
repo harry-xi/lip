@@ -23,7 +23,7 @@ public partial class Lip
 
     public async Task Pack(string outputPath, PackArgs args)
     {
-        PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifest()
+        PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifestParsed()
             ?? throw new InvalidOperationException("No package manifest found.");
 
         // Run pre-pack scripts.

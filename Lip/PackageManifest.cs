@@ -382,7 +382,7 @@ public record PackageManifest
 
     public static PackageManifest FromJsonBytesParsed(byte[] bytes)
     {
-        return FromJsonBytes(bytes).WithTemplateParsed();
+        return FromJsonBytesWithTemplate(bytes).WithTemplateParsed();
     }
 
     /// <summary>
@@ -390,7 +390,7 @@ public record PackageManifest
     /// </summary>
     /// <param name="bytes">The byte array to deserialize.</param>
     /// <returns>The deserialized package manifest.</returns>
-    public static PackageManifest FromJsonBytes(byte[] bytes)
+    public static PackageManifest FromJsonBytesWithTemplate(byte[] bytes)
     {
         try
         {
@@ -555,6 +555,6 @@ public record PackageManifest
 
         string renderedText = template.Render(json);
 
-        return FromJsonBytes(Encoding.UTF8.GetBytes(renderedText));
+        return FromJsonBytesWithTemplate(Encoding.UTF8.GetBytes(renderedText));
     }
 }

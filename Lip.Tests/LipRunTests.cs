@@ -12,7 +12,7 @@ public class LipRunTests
         : Path.Join("/", "path", "to", "work");
 
     [Fact]
-    public void RunArgs_With_Passes()
+    public void RunArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.RunArgs runArgs = new();

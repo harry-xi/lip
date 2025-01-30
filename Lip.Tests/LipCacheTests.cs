@@ -13,7 +13,7 @@ public class LipCacheTests
         : Path.Join("/", "path", "to", "cache");
 
     [Fact]
-    public void CacheAddArgs_With_Passes()
+    public void CacheAddArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.CacheAddArgs args = new();
@@ -23,7 +23,7 @@ public class LipCacheTests
     }
 
     [Fact]
-    public void CacheCleanArgs_With_Passes()
+    public void CacheCleanArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.CacheCleanArgs args = new();
@@ -33,7 +33,7 @@ public class LipCacheTests
     }
 
     [Fact]
-    public void CacheListArgs_With_Passes()
+    public void CacheListArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.CacheListArgs args = new();
@@ -43,18 +43,21 @@ public class LipCacheTests
     }
 
     [Fact]
-    public void CacheListResult_With_Passes()
+    public void CacheListResult_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.CacheListResult result = new()
         {
             DownloadedFiles = [],
             GitRepos = [],
-            PackageManifestFiles = [],
         };
 
         // Act.
         result = result with { };
+
+        // Assert.
+        Assert.Empty(result.DownloadedFiles);
+        Assert.Empty(result.GitRepos);
     }
 
     [Fact]
@@ -129,8 +132,6 @@ public class LipCacheTests
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")));
         Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "tooth.json")));
-        Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json")));
-        Assert.Equal(packageManifestData, fileSystem.File.ReadAllText(Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json")));
     }
 
     [Fact]
@@ -175,8 +176,6 @@ public class LipCacheTests
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "tooth.json")));
-        Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json")));
-        Assert.Equal(packageManifestData, fileSystem.File.ReadAllText(Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json")));
     }
 
     [Fact]
@@ -199,11 +198,15 @@ public class LipCacheTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json"), new MockFileData(packageManifestData) },
+        {
+                Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "tooth.json"),
+                new MockFileData(packageManifestData)
+        },
         });
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
         Lip lip = new(runtimeConfig, context.Object);
 
@@ -231,11 +234,15 @@ public class LipCacheTests
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
-            { Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json"), new MockFileData(packageManifestData) },
+        {
+                Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "tooth.json"),
+                new MockFileData(packageManifestData)
+        },
         });
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
         Lip lip = new(runtimeConfig, context.Object);
 
@@ -282,7 +289,6 @@ public class LipCacheTests
         {
             { Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file"), new MockFileData("test") },
             { Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0"), new MockDirectoryData() },
-            { Path.Join(s_cacheDir, "package_manifests", "example.com%2Frepo%401.0.0.json"), new MockFileData("test") },
         });
 
         Mock<IContext> context = new();
@@ -296,6 +302,5 @@ public class LipCacheTests
         // Assert.
         Assert.Equal(new[] { "https://example.com/test.file" }, result.DownloadedFiles);
         Assert.Equal(new[] { "https://example.com/repo v1.0.0" }, result.GitRepos);
-        Assert.Equal(new[] { "example.com/repo@1.0.0" }, result.PackageManifestFiles);
     }
 }

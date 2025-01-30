@@ -15,7 +15,7 @@ public class LipPackTests
         : Path.Join("/", "path", "to", "workspace");
 
     [Fact]
-    public void PackArgs_With_Passes()
+    public void PackArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.PackArgs packArgs = new();

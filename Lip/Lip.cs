@@ -26,7 +26,7 @@ public partial class Lip
         Url? goModuleProxyUrl = runtimeConfig.GoModuleProxy != string.Empty ? Url.Parse(runtimeConfig.GoModuleProxy) : null;
         _cacheManager = new(_context, _pathManager, githubProxyUrl, goModuleProxyUrl);
 
-        _packageManager = new(_context, _pathManager);
+        _packageManager = new(_context, _cacheManager, _pathManager);
     }
 
     private string? GetPlacementRelativePath(PackageManifest.PlaceType placement, string fileSourceEntryKey)

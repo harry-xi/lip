@@ -10,7 +10,7 @@ public class LipInitTests
     private static readonly string s_workspacePath = OperatingSystem.IsWindows() ? Path.Join("C:", "path", "to", "workspace") : Path.Join("/", "path", "to", "workspace");
 
     [Fact]
-    public void InitArgs_With_Passes()
+    public void InitArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.InitArgs args = new();

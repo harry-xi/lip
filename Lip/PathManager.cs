@@ -16,7 +16,6 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
     private const string DownloadedFileCacheDirName = "downloaded_files";
     private const string GitRepoCacheDirName = "git_repos";
     private const string PackageLockFileName = "tooth_lock.json";
-    private const string PackageManifestCacheDirName = "package_manifests";
 
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly string? _baseCacheDir = baseCacheDir;
@@ -27,8 +26,6 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
     public string BaseDownloadedFileCacheDir => _fileSystem.Path.Join(BaseCacheDir, DownloadedFileCacheDirName);
 
     public string BaseGitRepoCacheDir => _fileSystem.Path.Join(BaseCacheDir, GitRepoCacheDirName);
-
-    public string BasePackageManifestCacheDir => _fileSystem.Path.Join(BaseCacheDir, PackageManifestCacheDirName);
 
     public string CurrentPackageManifestPath => _fileSystem.Path.Join(WorkingDir, PackageManifestFileName);
 
@@ -63,13 +60,6 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         return $"{packageSpecifier.ToothPath}@v{version}{(version.Major >= 2 ? "+incompatible" : string.Empty)}/{relativePath}";
     }
 
-    public string GetPackageManifestCachePath(string packageName)
-    {
-        string escapedPackageName = Url.Encode(packageName);
-        string packageManifestFileName = $"{escapedPackageName}.json";
-        return _fileSystem.Path.Join(BasePackageManifestCacheDir, packageManifestFileName);
-    }
-
     public string GetPackageManifestPath(string baseDir)
     {
         return _fileSystem.Path.Join(baseDir, PackageManifestFileName);
@@ -100,16 +90,5 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
             Url = Url.Decode(match.Groups[1].Value, true),
             Tag = Url.Decode(match.Groups[2].Value, true)
         };
-    }
-
-    public string ParsePackageManifestCachePath(string packageManifestCachePath)
-    {
-        Regex pattern = new($"{Regex.Escape(BasePackageManifestCacheDir)}{Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*)\\.json");
-        Match match = pattern.Match(packageManifestCachePath);
-        if (!match.Success)
-        {
-            throw new InvalidOperationException($"Invalid package manifest cache path: {packageManifestCachePath}");
-        }
-        return Url.Decode(match.Groups[1].Value, true);
     }
 }

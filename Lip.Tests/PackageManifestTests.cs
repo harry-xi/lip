@@ -7,7 +7,7 @@ namespace Lip.Tests;
 public class PackageManifestTests
 {
     [Fact]
-    public void AssetType_With_Passes()
+    public void AssetType_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         PackageManifest.AssetType assetType = new()
@@ -94,7 +94,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void InfoType_With_Passes()
+    public void InfoType_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         PackageManifest.InfoType infoType = new();
@@ -148,7 +148,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void PlaceType_With_Passes()
+    public void PlaceType_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         PackageManifest.PlaceType place = new()
@@ -197,7 +197,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void ScriptsType_With_Passes()
+    public void ScriptsType_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         PackageManifest.ScriptsType scripts = new();
@@ -310,7 +310,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void VariantType_With_Passes()
+    public void VariantType_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         PackageManifest.VariantType variant = new();
@@ -404,7 +404,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void PackageManifest_With_Passes()
+    public void PackageManifest_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         PackageManifest manifest = new()
@@ -462,7 +462,7 @@ public class PackageManifestTests
             """);
 
         // Act.
-        var manifest = PackageManifest.FromJsonBytes(bytes);
+        var manifest = PackageManifest.FromJsonBytesWithTemplate(bytes);
 
         // Assert.
         Assert.Equal(3, manifest.FormatVersion);
@@ -479,7 +479,7 @@ public class PackageManifestTests
         byte[] bytes = Encoding.UTF8.GetBytes("null");
 
         // Act.
-        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytes(bytes));
+        JsonException exception = Assert.Throws<JsonException>(() => PackageManifest.FromJsonBytesWithTemplate(bytes));
 
         // Assert.
         Assert.Equal("Package manifest bytes deserialization failed.", exception.Message);
@@ -501,7 +501,7 @@ public class PackageManifestTests
             """);
 
         // Act & assert.
-        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytes(bytes));
+        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytesWithTemplate(bytes));
     }
 
     [Fact]
@@ -518,7 +518,7 @@ public class PackageManifestTests
             """);
 
         // Act & assert.
-        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytes(bytes));
+        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytesWithTemplate(bytes));
     }
 
     [Fact]
@@ -535,7 +535,7 @@ public class PackageManifestTests
             """);
 
         // Act & Assert.
-        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytes(bytes));
+        Assert.Throws<SchemaViolationException>(() => PackageManifest.FromJsonBytesWithTemplate(bytes));
     }
 
     [Fact]

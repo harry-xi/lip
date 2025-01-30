@@ -10,7 +10,7 @@ public class LipConfigTests
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
     [Fact]
-    public void ConfigDeleteArgs_With_Passes()
+    public void ConfigDeleteArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.ConfigDeleteArgs args = new();
@@ -20,7 +20,7 @@ public class LipConfigTests
     }
 
     [Fact]
-    public void ConfigGetArgs_With_Passes()
+    public void ConfigGetArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.ConfigGetArgs args = new();
@@ -30,7 +30,7 @@ public class LipConfigTests
     }
 
     [Fact]
-    public void ConfigListArgs_With_Passes()
+    public void ConfigListArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.ConfigListArgs args = new();
@@ -40,7 +40,7 @@ public class LipConfigTests
     }
 
     [Fact]
-    public void ConfigSetArgs_With_Passes()
+    public void ConfigSetArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.ConfigSetArgs args = new();

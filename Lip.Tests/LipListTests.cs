@@ -8,7 +8,7 @@ namespace Lip.Tests;
 public class LipListTests
 {
     [Fact]
-    public void ListArgs_With_Passes()
+    public void ListArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.ListArgs listArgs = new();
@@ -18,7 +18,7 @@ public class LipListTests
     }
 
     [Fact]
-    public void ListResultItem_With_Passes()
+    public void ListResultItem_Constructor_TrivialValues_Passes()
     {
         // Arrange.
         Lip.ListResultItem listResultItem = new()

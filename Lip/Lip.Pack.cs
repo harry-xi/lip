@@ -61,7 +61,7 @@ public partial class Lip
             .ToList() ?? [];
 
         List<IFileSourceEntry> fileEntriesToPlace = [.. (await fileSource.GetAllEntries())
-            .Where(entry => filePlacements.Any(placement => GetPlacementRelativePath(
+            .Where(entry => filePlacements.Any(placement => _pathManager.GetPlacementRelativePath(
                 placement,
                 entry.Key) is not null) || entry.Key == _pathManager.PackageManifestFileName)];
 

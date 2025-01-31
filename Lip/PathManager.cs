@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions;
 using System.Text.RegularExpressions;
+using DotNet.Globbing;
 using Flurl;
 using Semver;
 
@@ -63,6 +64,53 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
     public string GetPackageManifestPath(string baseDir)
     {
         return _fileSystem.Path.Join(baseDir, PackageManifestFileName);
+    }
+
+    public string? GetPlacementRelativePath(PackageManifest.PlaceType placement, string fileSourceEntryKey)
+    {
+        if (placement.Type == PackageManifest.PlaceType.TypeEnum.File)
+        {
+            string fileName = _fileSystem.Path.GetFileName(fileSourceEntryKey);
+
+            if (fileSourceEntryKey == placement.Src)
+            {
+                // The destination is the file path, so leave empty.
+                return string.Empty;
+            }
+            else if (placement.Src != string.Empty)
+            {
+                Glob glob = Glob.Parse(placement.Src);
+
+                if (glob.IsMatch(fileSourceEntryKey))
+                {
+                    // The destination is the directory path.
+                    return fileName;
+                }
+            }
+
+            return null;
+        }
+        else if (placement.Type == PackageManifest.PlaceType.TypeEnum.Dir)
+        {
+            string placementSrc = placement.Src;
+
+            if (placementSrc != string.Empty && !placementSrc.EndsWith('/'))
+            {
+                placementSrc += '/';
+            }
+
+            if (fileSourceEntryKey.StartsWith(placementSrc))
+            {
+                // The destination is the directory root.
+                return fileSourceEntryKey[placementSrc.Length..];
+            }
+
+            return null;
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public Url ParseDownloadedFileCachePath(string downloadedFileCachePath)

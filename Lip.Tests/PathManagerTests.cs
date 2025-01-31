@@ -296,6 +296,147 @@ public class PathManagerTests
     }
 
     [Theory]
+    [InlineData("")]
+    [InlineData("file")]
+    [InlineData("dir/file")]
+    public void GetPlacementRelativePath_FilePathMatched_ReturnsEmptyString(string filePath)
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        PackageManifest.PlaceType placement = new()
+        {
+            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Src = filePath,
+            Dest = "dest"
+        };
+
+        // Act.
+        string? relativePath = pathManager.GetPlacementRelativePath(placement, filePath);
+
+        // Assert.
+        Assert.Equal(string.Empty, relativePath);
+    }
+
+    [Theory]
+    [InlineData("file", "*")]
+    [InlineData("dir/file", "dir/*")]
+    [InlineData("dir/file", "*/file")]
+    [InlineData("dir/subdir/file", "dir/**")]
+    public void GetPlacementRelativePath_GlobFilePathMatched_ReturnsFileName(string filePath, string glob)
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        PackageManifest.PlaceType placement = new()
+        {
+            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Src = glob,
+            Dest = "dest"
+        };
+
+        // Act.
+        string? relativePath = pathManager.GetPlacementRelativePath(placement, filePath);
+
+        // Assert.
+        Assert.Equal(Path.GetFileName(filePath), relativePath);
+    }
+
+    [Theory]
+    [InlineData("", "file")]
+    [InlineData("file", "")]
+    [InlineData("file", "file2")]
+    [InlineData("file", "dir/*")]
+    [InlineData("dir/subdir/file", "dir/*")]
+    public void GetPlacementRelativePath_FilePathMismatched_ReturnsNull(string filePath, string src)
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        PackageManifest.PlaceType placement = new()
+        {
+            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Src = src,
+            Dest = "dest"
+        };
+
+        // Act.
+        string? relativePath = pathManager.GetPlacementRelativePath(placement, filePath);
+
+        // Assert.
+        Assert.Null(relativePath);
+    }
+
+    [Theory]
+    [InlineData("file", "", "file")]
+    [InlineData("dir/file", "dir", "file")]
+    [InlineData("dir/file", "dir/", "file")]
+    public void GetPlacementRelativePath_DirPathMatched_ReturnsRelativePath(string filePath, string dirPath, string relativePath)
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        PackageManifest.PlaceType placement = new()
+        {
+            Type = PackageManifest.PlaceType.TypeEnum.Dir,
+            Src = dirPath,
+            Dest = "dest"
+        };
+
+        // Act.
+        string? result = pathManager.GetPlacementRelativePath(placement, filePath);
+
+        // Assert.
+        Assert.Equal(relativePath, result);
+    }
+
+    [Theory]
+    [InlineData("file", "dir")]
+    [InlineData("dir/file", "dir2")]
+    [InlineData("dir/file", "dir/file")]
+    public void GetPlacementRelativePath_DirPathMismatched_ReturnsNull(string filePath, string dirPath)
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        PackageManifest.PlaceType placement = new()
+        {
+            Type = PackageManifest.PlaceType.TypeEnum.Dir,
+            Src = dirPath,
+            Dest = "dest"
+        };
+
+        // Act.
+        string? result = pathManager.GetPlacementRelativePath(placement, filePath);
+
+        // Assert.
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetPlacementRelativePath_InvalidPlacementType_Throws()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+        PathManager pathManager = new(fileSystem);
+
+        PackageManifest.PlaceType placement = new()
+        {
+            Type = (PackageManifest.PlaceType.TypeEnum)int.MaxValue,
+            Src = "src",
+            Dest = "dest"
+        };
+
+        // Act & assert.
+        Assert.Throws<NotImplementedException>(() => pathManager.GetPlacementRelativePath(placement, "file"));
+    }
+
+    [Theory]
     [InlineData("https://example.com/asset?v=1", "https%3A%2F%2Fexample.com%2Fasset%3Fv%3D1")]
     [InlineData("https://example.com/path/to/asset", "https%3A%2F%2Fexample.com%2Fpath%2Fto%2Fasset")]
     [InlineData("https://example.com/", "https%3A%2F%2Fexample.com%2F")]

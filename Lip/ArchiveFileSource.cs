@@ -13,7 +13,7 @@ namespace Lip;
 /// <param name="archiveFilePath">The archive file path.</param>
 public class ArchiveFileSource(IFileSystem fileSystem, string archiveFilePath) : IFileSource
 {
-    private readonly string _archiveFilePath = fileSystem.Path.GetFullPath(archiveFilePath);
+    private readonly string _archiveFilePath = archiveFilePath;
     private readonly IFileSystem _fileSystem = fileSystem;
 
     public virtual async Task<List<IFileSourceEntry>> GetAllEntries()
@@ -61,7 +61,7 @@ public class ArchiveFileSourceEntry(
     string archiveFilePath,
     string key) : IFileSourceEntry
 {
-    private readonly string _archiveFilePath = fileSystem.Path.GetFullPath(archiveFilePath);
+    private readonly string _archiveFilePath = archiveFilePath;
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly string _key = key;
 

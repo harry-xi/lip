@@ -3,6 +3,7 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using Flurl;
 using Lip.Context;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using SharpCompress.Common;
@@ -104,7 +105,7 @@ public class CacheManagerTests
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
-        Assert.True(fileSystem.FileExists(Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")));
+        downloader.Verify(d => d.DownloadFile(url, Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")), Times.Once);
     }
 
     [Fact]
@@ -140,7 +141,12 @@ public class CacheManagerTests
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
-        Assert.True(fileSystem.FileExists(Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Fgithub-proxy%2Fuser%2Frepo%2Ftest.file")));
+        downloader.Verify(d => d.DownloadFile(
+            Url.Parse("https://example.com/github-proxy/user/repo/test.file"),
+            Path.Join(
+                s_cacheDir,
+                "downloaded_files",
+                "https%3A%2F%2Fexample.com%2Fgithub-proxy%2Fuser%2Frepo%2Ftest.file")), Times.Once);
     }
 
     [Fact]
@@ -167,6 +173,114 @@ public class CacheManagerTests
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
         context.Verify(c => c.Downloader.DownloadFile(It.IsAny<Url>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetDownloadedFile_MultipleUrls_Returns()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem();
+
+        var downloader = new Mock<IDownloader>();
+        downloader.Setup(d => d.DownloadFile(
+            Url.Parse("https://example.com/test.file"),
+            Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")))
+            .Callback<Url, string>((url, path) => fileSystem.AddFile(path, new MockFileData("test 1")));
+
+        downloader.Setup(d => d.DownloadFile(
+            Url.Parse("https://backup.example.com/test.file"),
+            Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fbackup.example.com%2Ftest.file")))
+            .Callback<Url, string>((url, path) => fileSystem.AddFile(path, new MockFileData("test 2")));
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.Downloader).Returns(downloader.Object);
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager);
+
+        Url url1 = Url.Parse("https://example.com/test.file");
+        Url url2 = Url.Parse("https://backup.example.com/test.file");
+
+        // Act.
+        IFileInfo file = await cacheManager.GetDownloadedFile([url1, url2]);
+
+        // Assert.
+        Assert.Equal("test 1", new StreamReader(file.OpenRead()).ReadToEnd());
+        downloader.Verify(d => d.DownloadFile(url1, Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")), Times.Once);
+        downloader.Verify(d => d.DownloadFile(url2, Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fbackup.example.com%2Ftest.file")), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetDownloadedFile_FirstUrlFailed_Returns()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem();
+
+        var downloader = new Mock<IDownloader>();
+        downloader.Setup(d => d.DownloadFile(
+            Url.Parse("https://example.com/test.file"),
+            Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")))
+            .Throws(new InvalidOperationException());
+
+        downloader.Setup(d => d.DownloadFile(
+            Url.Parse("https://backup.example.com/test.file"),
+            Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fbackup.example.com%2Ftest.file")))
+            .Callback<Url, string>((url, path) => fileSystem.AddFile(path, new MockFileData("test 2")));
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.Downloader).Returns(downloader.Object);
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager);
+
+        Url url1 = Url.Parse("https://example.com/test.file");
+        Url url2 = Url.Parse("https://backup.example.com/test.file");
+
+        // Act.
+        IFileInfo file = await cacheManager.GetDownloadedFile([url1, url2]);
+
+        // Assert.
+        Assert.Equal("test 2", new StreamReader(file.OpenRead()).ReadToEnd());
+        downloader.Verify(d => d.DownloadFile(url1, Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")), Times.Once);
+        downloader.Verify(d => d.DownloadFile(url2, Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fbackup.example.com%2Ftest.file")), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetDownloadedFile_AllUrlsFailed_Throws()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem();
+
+        var downloader = new Mock<IDownloader>();
+        downloader.Setup(d => d.DownloadFile(
+            Url.Parse("https://example.com/test.file"),
+            Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")))
+            .Throws(new InvalidOperationException());
+
+        downloader.Setup(d => d.DownloadFile(
+            Url.Parse("https://backup.example.com/test.file"),
+            Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fbackup.example.com%2Ftest.file")))
+            .Throws(new InvalidOperationException());
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.Downloader).Returns(downloader.Object);
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager);
+
+        Url url1 = Url.Parse("https://example.com/test.file");
+        Url url2 = Url.Parse("https://backup.example.com/test.file");
+
+        // Act and assert.
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheManager.GetDownloadedFile([url1, url2]));
     }
 
     [Fact]

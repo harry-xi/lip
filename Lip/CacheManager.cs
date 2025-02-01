@@ -1,6 +1,7 @@
 ﻿using System.IO.Abstractions;
 using Flurl;
 using Lip.Context;
+using Microsoft.Extensions.Logging;
 using Semver;
 
 namespace Lip;
@@ -30,23 +31,51 @@ public class CacheManager(
         }
     }
 
-    public async Task<IFileInfo> GetDownloadedFile(Url url)
+    public async Task<IFileInfo> GetDownloadedFile(Url url) => await GetDownloadedFile([url]);
+
+    public async Task<IFileInfo> GetDownloadedFile(List<Url> originalUrls)
     {
-        if (url.Host == "github.com" && _githubProxy is not null)
+        // Apply GitHub proxy to GitHub URLs.
+        List<Url> actualUrls = [.. originalUrls.Select(url =>
         {
-            url = _githubProxy.AppendPathSegment(url.Path).SetQueryParams(url.QueryParams);
+            if (url.Host == "github.com" && _githubProxy is not null)
+            {
+                return _githubProxy.AppendPathSegment(url.Path).SetQueryParams(url.QueryParams);
+            }
+
+            return url;
+        })];
+
+        foreach (Url url in actualUrls)
+        {
+            string filePath = _pathManager.GetDownloadedFileCachePath(url);
+
+            if (await _context.FileSystem.File.ExistsAsync(filePath))
+            {
+                return _context.FileSystem.FileInfo.New(filePath);
+            }
         }
 
-        string filePath = _pathManager.GetDownloadedFileCachePath(url);
-
-        if (!await _context.FileSystem.File.ExistsAsync(filePath))
+        foreach (Url url in actualUrls)
         {
+            string filePath = _pathManager.GetDownloadedFileCachePath(url);
+
             await _context.FileSystem.CreateParentDirectoryAsync(filePath);
 
-            await _context.Downloader.DownloadFile(url, filePath);
+            try
+            {
+                await _context.Downloader.DownloadFile(url, filePath);
+
+                return _context.FileSystem.FileInfo.New(filePath);
+
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", url);
+            }
         }
 
-        return _context.FileSystem.FileInfo.New(filePath);
+        throw new InvalidOperationException("All download attempts failed.");
     }
 
     public async Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier)

@@ -84,31 +84,14 @@ public class GoModuleArchiveFileSourceTests
             CompressionType.Deflate,
             new()
             {
-                { "path/to/entry1", "test content 1" },
-                { "path/to/entry2", "test content 2" }
+                { "example.com/pkg@v1.0.0/path/to/entry1", "test content 1" },
+                { "example.com/pkg@v1.0.0/path/to/entry2", "test content 2" }
             });
 
-        ArchiveFileSource fileSource = new(fileSystem, "archive");
+        GoModuleArchiveFileSource fileSource = new(fileSystem, "archive", "example.com/pkg", SemVersion.Parse("1.0.0"));
 
         // Act.
         IFileSourceEntry? file = await fileSource.GetEntry("path/to/entry3");
-
-        // Assert.
-        Assert.Null(file);
-    }
-
-    [Fact]
-    public async Task GetFile_EmptyArchive_ReturnsNull()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new();
-
-        CreateTestFiles(fileSystem, ArchiveType.Tar, CompressionType.None, []);
-
-        ArchiveFileSource fileSource = new(fileSystem, "archive");
-
-        // Act.
-        IFileSourceEntry? file = await fileSource.GetEntry("path/to/entry");
 
         // Assert.
         Assert.Null(file);

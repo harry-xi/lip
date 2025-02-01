@@ -61,7 +61,11 @@ public class CacheManager(
         {
             IFileInfo goModuleArchive = await GetGoModuleArchive(packageSpecifier);
 
-            return new ArchiveFileSource(_context.FileSystem, goModuleArchive.FullName);
+            return new GoModuleArchiveFileSource(
+                _context.FileSystem,
+                goModuleArchive.FullName,
+                packageSpecifier.ToothPath,
+                packageSpecifier.Version);
         }
         else
         {
@@ -101,11 +105,6 @@ public class CacheManager(
 
     private async Task<IDirectoryInfo> GetGitRepoDir(PackageSpecifier packageSpecifier)
     {
-        if (_context.Git is null)
-        {
-            throw new InvalidOperationException("Git client is not available.");
-        }
-
         string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
         string tag = $"v{packageSpecifier.Version}";
 
@@ -115,16 +114,11 @@ public class CacheManager(
             Tag = tag
         });
 
-        if (await _context.FileSystem.File.ExistsAsync(repoDirPath))
-        {
-            throw new InvalidOperationException($"Attempt to get Git repo directory at '{repoDirPath}' where is a file.");
-        }
-
         if (!await _context.FileSystem.Directory.ExistsAsync(repoDirPath))
         {
             await _context.FileSystem.CreateParentDirectoryAsync(repoDirPath);
 
-            await _context.Git.Clone(
+            await _context.Git!.Clone(
                 repoUrl,
                 repoDirPath,
                 branch: tag,
@@ -136,24 +130,13 @@ public class CacheManager(
 
     private async Task<IFileInfo> GetGoModuleArchive(PackageSpecifier packageSpecifier)
     {
-        if (_goModuleProxy is null)
-        {
-            throw new InvalidOperationException("Go module proxy is not available.");
-        }
-
         SemVersion version = packageSpecifier.Version;
 
-        // Reference: https://go.dev/ref/mod#glos-canonical-version
-        if (version.Metadata != string.Empty)
-        {
-            throw new ArgumentException("Go module proxy does not accept version with build metadata.", nameof(packageSpecifier));
-        }
-
-        // Reference: https://go.dev/ref/mod#non-module-compat
-        string archiveFileNameInUrl = $"v{version}{(version.Major >= 2 ? "+incompatible" : string.Empty)}.zip";
-
-        string escapedGoModulePath = GoModule.EscapePath(packageSpecifier.ToothPath);
-        Url archiveFileUrl = _goModuleProxy!.Clone().AppendPathSegments(escapedGoModulePath, "@v", archiveFileNameInUrl);
+        Url archiveFileUrl = _goModuleProxy!.Clone()
+            .AppendPathSegments(
+            GoModule.EscapePath(packageSpecifier.ToothPath),
+            "@v",
+            GoModule.EscapeVersion(GoModule.CanonicalVersion(version.ToString())) + ".zip");
 
         return await GetDownloadedFile(archiveFileUrl);
     }

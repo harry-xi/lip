@@ -5,7 +5,6 @@ using Flurl;
 using Lip.Context;
 using Moq;
 using Semver;
-using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
 using SharpCompress.Writers;
 
@@ -79,7 +78,7 @@ public class CacheManagerTests
     }
 
     [Fact]
-    public async Task GetDownloadedFile_ValidUrl_ReturnsStream()
+    public async Task GetDownloadedFile_ValidUrl_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem();
@@ -105,10 +104,11 @@ public class CacheManagerTests
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
+        Assert.True(fileSystem.FileExists(Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")));
     }
 
     [Fact]
-    public async Task GetDownloadedFIle_WithGitHubProxy_ReturnsStream()
+    public async Task GetDownloadedFIle_WithGitHubProxy_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem();
@@ -140,10 +140,11 @@ public class CacheManagerTests
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
+        Assert.True(fileSystem.FileExists(Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Fgithub-proxy%2Fuser%2Frepo%2Ftest.file")));
     }
 
     [Fact]
-    public async Task GetDownloadedFile_FileExists_ReturnsStream()
+    public async Task GetDownloadedFile_FileExists_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
@@ -165,6 +166,119 @@ public class CacheManagerTests
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
+        context.Verify(c => c.Downloader.DownloadFile(It.IsAny<Url>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetPackageFileSource_NoAvailableRemoteSource_Throws()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem();
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager);
+
+        var packageSpecifier = PackageSpecifier.Parse("example.com/repo@1.0.0");
+
+        // Act and assert.
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheManager.GetPackageFileSource(packageSpecifier));
+    }
+
+    [Fact]
+    public async Task GetPackageFileSource_GitRepoCached_Returns()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "file"), new MockFileData("content") }
+        });
+
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager);
+
+        var packageSpecifier = PackageSpecifier.Parse("example.com/repo@1.0.0");
+
+        // Act.
+        IFileSource fileSource = await cacheManager.GetPackageFileSource(packageSpecifier);
+
+        // Assert.
+        Assert.Equal("content", new StreamReader(await fileSource.GetFileStream("file") ?? Stream.Null).ReadToEnd());
+    }
+
+    [Fact]
+    public async Task GetPackageFileSource_GitRepoNotCached_Returns()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem();
+
+        var git = new Mock<IGit>();
+        git.Setup(g => g.Clone(
+            "https://example.com/repo",
+            Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0"),
+            It.IsAny<string?>(),
+            It.IsAny<int?>()))
+            .Callback<string, string, string?, int?>((url, path, _, _)
+                => fileSystem.AddFile(Path.Join(path, "file"), new MockFileData("content")));
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Git).Returns(git.Object);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager);
+
+        var packageSpecifier = PackageSpecifier.Parse("example.com/repo@1.0.0");
+
+        // Act.
+        IFileSource fileSource = await cacheManager.GetPackageFileSource(packageSpecifier);
+
+        // Assert.
+        Assert.Equal("content", new StreamReader(await fileSource.GetFileStream("file") ?? Stream.Null).ReadToEnd());
+    }
+
+    [Fact]
+    public async Task GetPackageFileSource_GoModuleCached_Returns()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem();
+
+        CreateGoModuleArchive(
+            fileSystem,
+            Path.Join(
+                s_cacheDir,
+                "downloaded_files",
+                "https%3A%2F%2Fexample.com%2Fgo-proxy%2Fexample.com%2Frepo%2F%40v%2Fv1.0.0.zip"),
+            "example.com/repo",
+            new SemVersion(1, 0, 0),
+            new Dictionary<string, string>
+            {
+                { "file", "content" }
+            });
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager, goModuleProxy: Url.Parse("https://example.com/go-proxy"));
+
+        var packageSpecifier = PackageSpecifier.Parse("example.com/repo@1.0.0");
+
+        // Act.
+        IFileSource fileSource = await cacheManager.GetPackageFileSource(packageSpecifier);
+
+        // Assert.
+        Assert.Equal("content", new StreamReader((await fileSource.GetFileStream("file"))!).ReadToEnd());
     }
 
     [Fact]
@@ -267,11 +381,13 @@ public class CacheManagerTests
 
     private static void CreateGoModuleArchive(
         MockFileSystem fileSystem,
+        string archiveFilePath,
         string goModulePath,
         SemVersion version,
         Dictionary<string, string> entries)
     {
-        using FileSystemStream fileStream = fileSystem.File.Create("archive");
+        fileSystem.Directory.CreateDirectory(fileSystem.Path.GetDirectoryName(archiveFilePath)!);
+        using FileSystemStream fileStream = fileSystem.File.Create(archiveFilePath);
 
         using IWriter writer = WriterFactory.Open(fileStream, ArchiveType.Zip, new(CompressionType.Deflate));
 

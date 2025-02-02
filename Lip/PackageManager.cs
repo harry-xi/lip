@@ -431,7 +431,7 @@ public class PackageManager(
 
     private void RemoveParentDirectoriesUntilWorkingDir(string path)
     {
-        path = _context.FileSystem.Path.GetFullPath(path);
+        path = _context.FileSystem.Path.Join(_pathManager.WorkingDir, path);
 
         string? parentDir = _context.FileSystem.Path.GetDirectoryName(path);
 

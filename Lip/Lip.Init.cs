@@ -82,6 +82,6 @@ public partial class Lip
             _context.Logger.LogWarning("The file '{ManifestPath}' already exists. Overwriting it.", manifestPath);
         }
 
-        await _context.FileSystem.File.WriteAllBytesAsync(manifestPath, manifest.ToJsonBytes());
+        await _packageManager.SaveCurrentPackageManifest(manifest);
     }
 }

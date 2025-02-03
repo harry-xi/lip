@@ -27,9 +27,11 @@ public class CacheManager(
     {
         await Task.Delay(0); // Suppress warning.
 
-        if (_context.FileSystem.Directory.Exists(_pathManager.BaseCacheDir))
+        string baseCacheDir = _pathManager.BaseCacheDir;
+
+        if (_context.FileSystem.Directory.Exists(baseCacheDir))
         {
-            _context.FileSystem.Directory.Delete(_pathManager.BaseCacheDir, recursive: true);
+            _context.FileSystem.Directory.Delete(baseCacheDir, recursive: true);
         }
     }
 
@@ -82,18 +84,24 @@ public class CacheManager(
         await Task.Delay(0); // Suppress warning.
 
         List<IFileInfo> downloadedFiles = [];
-        if (_context.FileSystem.Directory.Exists(_pathManager.BaseDownloadedFileCacheDir))
+
+        string baseDownloadedFileCacheDir = _pathManager.BaseDownloadedFileCacheDir;
+
+        if (_context.FileSystem.Directory.Exists(baseDownloadedFileCacheDir))
         {
-            foreach (IFileInfo fileInfo in _context.FileSystem.DirectoryInfo.New(_pathManager.BaseDownloadedFileCacheDir).EnumerateFiles())
+            foreach (IFileInfo fileInfo in _context.FileSystem.DirectoryInfo.New(baseDownloadedFileCacheDir).EnumerateFiles())
             {
                 downloadedFiles.Add(fileInfo);
             }
         }
 
         List<IDirectoryInfo> gitRepos = [];
-        if (_context.FileSystem.Directory.Exists(_pathManager.BaseGitRepoCacheDir))
+
+        string baseGitRepoCacheDir = _pathManager.BaseGitRepoCacheDir;
+
+        if (_context.FileSystem.Directory.Exists(baseGitRepoCacheDir))
         {
-            foreach (IDirectoryInfo dirInfo in _context.FileSystem.DirectoryInfo.New(_pathManager.BaseGitRepoCacheDir).EnumerateDirectories())
+            foreach (IDirectoryInfo dirInfo in _context.FileSystem.DirectoryInfo.New(baseGitRepoCacheDir).EnumerateDirectories())
             {
                 foreach (IDirectoryInfo subdirInfo in dirInfo.EnumerateDirectories())
                 {

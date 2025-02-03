@@ -9,8 +9,8 @@ namespace Lip;
 public class CacheManager(
     IContext context,
     PathManager pathManager,
-    Url? githubProxy = null,
-    Url? goModuleProxy = null)
+    List<Url> gitHubProxies,
+    List<Url> goModuleProxies)
 {
     public record CacheSummary
     {
@@ -19,8 +19,8 @@ public class CacheManager(
     }
 
     private readonly IContext _context = context;
-    private readonly Url? _githubProxy = githubProxy;
-    private readonly Url? _goModuleProxy = goModuleProxy;
+    private readonly List<Url> _githubProxies = gitHubProxies;
+    private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly PathManager _pathManager = pathManager;
 
     public async Task Clean()
@@ -38,59 +38,24 @@ public class CacheManager(
     public async Task<IFileInfo> GetDownloadedFile(List<Url> originalUrls)
     {
         // Apply GitHub proxy to GitHub URLs.
-        List<Url> actualUrls = [.. originalUrls.Select(url =>
+        List<Url> actualUrls = [.. originalUrls.SelectMany(url =>
         {
-            if (url.Host == "github.com" && _githubProxy is not null)
+            // For typical URLs, just return the URL.
+            if (url.Host == "github.com" && _githubProxies.Count != 0)
             {
-                return _githubProxy.AppendPathSegment(url.Path).SetQueryParams(url.QueryParams);
+                return _githubProxies.Select(proxy => proxy.AppendPathSegment(url.Path).SetQueryParams(url.QueryParams));
             }
 
-            return url;
+            return [url];
         })];
 
-        foreach (Url url in actualUrls)
-        {
-            string filePath = _pathManager.GetDownloadedFileCachePath(url);
-
-            if (_context.FileSystem.File.Exists(filePath))
-            {
-                return _context.FileSystem.FileInfo.New(filePath);
-            }
-        }
-
-        foreach (Url url in actualUrls)
-        {
-            string filePath = _pathManager.GetDownloadedFileCachePath(url);
-
-            _context.FileSystem.CreateParentDirectory(filePath);
-
-            try
-            {
-                await _context.Downloader.DownloadFile(url, filePath);
-
-                return _context.FileSystem.FileInfo.New(filePath);
-            }
-            catch (Exception ex)
-            {
-                _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", url);
-            }
-        }
-
-        throw new InvalidOperationException("All download attempts failed.");
+        return await GetDownloadedFileWithActualUrls(actualUrls);
     }
 
     public async Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier)
     {
-        // Next, try to get the package from the Git repository.
-        if (_context.Git is not null)
-        {
-            IDirectoryInfo repoDir = await GetGitRepoDir(packageSpecifier);
-
-            return new DirectoryFileSource(_context.FileSystem, repoDir.FullName);
-        }
-
         // First, try to get the package from the Go module proxy.
-        if (_goModuleProxy is not null)
+        if (_goModuleProxies.Count != 0)
         {
             IFileInfo goModuleArchive = await GetGoModuleArchive(packageSpecifier);
 
@@ -99,6 +64,14 @@ public class CacheManager(
                 goModuleArchive.FullName,
                 packageSpecifier.ToothPath,
                 packageSpecifier.Version);
+        }
+
+        // Next, try to get the package from the Git repository.
+        if (_context.Git is not null)
+        {
+            IDirectoryInfo repoDir = await GetGitRepoDir(packageSpecifier);
+
+            return new DirectoryFileSource(_context.FileSystem, repoDir.FullName);
         }
 
         throw new InvalidOperationException("No remote source is available.");
@@ -136,6 +109,39 @@ public class CacheManager(
         };
     }
 
+    public async Task<IFileInfo> GetDownloadedFileWithActualUrls(List<Url> actualUrls)
+    {
+        foreach (Url url in actualUrls)
+        {
+            string filePath = _pathManager.GetDownloadedFileCachePath(url);
+
+            if (_context.FileSystem.File.Exists(filePath))
+            {
+                return _context.FileSystem.FileInfo.New(filePath);
+            }
+        }
+
+        foreach (Url url in actualUrls)
+        {
+            string filePath = _pathManager.GetDownloadedFileCachePath(url);
+
+            _context.FileSystem.CreateParentDirectory(filePath);
+
+            try
+            {
+                await _context.Downloader.DownloadFile(url, filePath);
+
+                return _context.FileSystem.FileInfo.New(filePath);
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", url);
+            }
+        }
+
+        throw new InvalidOperationException("All download attempts failed.");
+    }
+
     private async Task<IDirectoryInfo> GetGitRepoDir(PackageSpecifier packageSpecifier)
     {
         string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
@@ -166,12 +172,15 @@ public class CacheManager(
     {
         SemVersion version = packageSpecifier.Version;
 
-        Url archiveFileUrl = _goModuleProxy!.Clone()
-            .AppendPathSegments(
-            GoModule.EscapePath(packageSpecifier.ToothPath),
-            "@v",
-            GoModule.EscapeVersion(GoModule.CanonicalVersion(version.ToString())) + ".zip");
+        List<Url> archiveFileUrls = [.. _goModuleProxies.Select(proxy =>
+            proxy.Clone()
+                .AppendPathSegments(
+                    GoModule.EscapePath(packageSpecifier.ToothPath),
+                    "@v",
+                    GoModule.EscapeVersion(GoModule.CanonicalVersion(version.ToString())) + ".zip"
+                )
+        )];
 
-        return await GetDownloadedFile(archiveFileUrl);
+        return await GetDownloadedFile(archiveFileUrls);
     }
 }

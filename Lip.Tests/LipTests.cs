@@ -13,8 +13,8 @@ public class LipTests
         // Arrange
         var runtimeConfig = new RuntimeConfig
         {
-            GitHubProxy = githubProxy,
-            GoModuleProxy = goModuleProxy
+            GitHubProxies = [githubProxy],
+            GoModuleProxies = [goModuleProxy]
         };
 
         IContext context = new Mock<IContext>().Object;

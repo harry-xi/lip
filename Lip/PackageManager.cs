@@ -22,7 +22,7 @@ public class PackageManager(
         string packageLockFilePath = _pathManager.CurrentPackageLockPath;
 
         // If the package lock file does not exist, return an empty package lock.
-        if (!await _context.FileSystem.File.ExistsAsync(packageLockFilePath))
+        if (!_context.FileSystem.File.Exists(packageLockFilePath))
         {
             return new()
             {
@@ -421,7 +421,7 @@ public class PackageManager(
     {
         string packageManifestFilePath = _pathManager.CurrentPackageManifestPath;
 
-        if (!await _context.FileSystem.File.ExistsAsync(packageManifestFilePath))
+        if (!_context.FileSystem.File.Exists(packageManifestFilePath))
         {
             return null;
         }

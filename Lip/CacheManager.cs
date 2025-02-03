@@ -25,9 +25,11 @@ public class CacheManager(
 
     public async Task Clean()
     {
-        if (await _context.FileSystem.Directory.ExistsAsync(_pathManager.BaseCacheDir))
+        await Task.Delay(0); // Suppress warning.
+
+        if (_context.FileSystem.Directory.Exists(_pathManager.BaseCacheDir))
         {
-            await _context.FileSystem.Directory.DeleteAsync(_pathManager.BaseCacheDir, recursive: true);
+            _context.FileSystem.Directory.Delete(_pathManager.BaseCacheDir, recursive: true);
         }
     }
 
@@ -50,7 +52,7 @@ public class CacheManager(
         {
             string filePath = _pathManager.GetDownloadedFileCachePath(url);
 
-            if (await _context.FileSystem.File.ExistsAsync(filePath))
+            if (_context.FileSystem.File.Exists(filePath))
             {
                 return _context.FileSystem.FileInfo.New(filePath);
             }
@@ -60,14 +62,13 @@ public class CacheManager(
         {
             string filePath = _pathManager.GetDownloadedFileCachePath(url);
 
-            await _context.FileSystem.CreateParentDirectoryAsync(filePath);
+            _context.FileSystem.CreateParentDirectory(filePath);
 
             try
             {
                 await _context.Downloader.DownloadFile(url, filePath);
 
                 return _context.FileSystem.FileInfo.New(filePath);
-
             }
             catch (Exception ex)
             {
@@ -80,13 +81,16 @@ public class CacheManager(
 
     public async Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier)
     {
+        // Next, try to get the package from the Git repository.
         if (_context.Git is not null)
         {
             IDirectoryInfo repoDir = await GetGitRepoDir(packageSpecifier);
 
             return new DirectoryFileSource(_context.FileSystem, repoDir.FullName);
         }
-        else if (_goModuleProxy is not null)
+
+        // First, try to get the package from the Go module proxy.
+        if (_goModuleProxy is not null)
         {
             IFileInfo goModuleArchive = await GetGoModuleArchive(packageSpecifier);
 
@@ -96,29 +100,29 @@ public class CacheManager(
                 packageSpecifier.ToothPath,
                 packageSpecifier.Version);
         }
-        else
-        {
-            throw new InvalidOperationException("No remote source is available.");
-        }
+
+        throw new InvalidOperationException("No remote source is available.");
     }
 
     public async Task<CacheSummary> List()
     {
+        await Task.Delay(0); // Suppress warning.
+
         List<IFileInfo> downloadedFiles = [];
-        if (await _context.FileSystem.Directory.ExistsAsync(_pathManager.BaseDownloadedFileCacheDir))
+        if (_context.FileSystem.Directory.Exists(_pathManager.BaseDownloadedFileCacheDir))
         {
-            foreach (IFileInfo fileInfo in await _context.FileSystem.DirectoryInfo.New(_pathManager.BaseDownloadedFileCacheDir).EnumerateFilesAsync())
+            foreach (IFileInfo fileInfo in _context.FileSystem.DirectoryInfo.New(_pathManager.BaseDownloadedFileCacheDir).EnumerateFiles())
             {
                 downloadedFiles.Add(fileInfo);
             }
         }
 
         List<IDirectoryInfo> gitRepos = [];
-        if (await _context.FileSystem.Directory.ExistsAsync(_pathManager.BaseGitRepoCacheDir))
+        if (_context.FileSystem.Directory.Exists(_pathManager.BaseGitRepoCacheDir))
         {
-            foreach (IDirectoryInfo dirInfo in await _context.FileSystem.DirectoryInfo.New(_pathManager.BaseGitRepoCacheDir).EnumerateDirectoriesAsync())
+            foreach (IDirectoryInfo dirInfo in _context.FileSystem.DirectoryInfo.New(_pathManager.BaseGitRepoCacheDir).EnumerateDirectories())
             {
-                foreach (IDirectoryInfo subdirInfo in await dirInfo.EnumerateDirectoriesAsync())
+                foreach (IDirectoryInfo subdirInfo in dirInfo.EnumerateDirectories())
                 {
                     gitRepos.Add(subdirInfo);
                 }
@@ -143,10 +147,11 @@ public class CacheManager(
             Tag = tag
         });
 
-        if (!await _context.FileSystem.Directory.ExistsAsync(repoDirPath))
+        if (!_context.FileSystem.Directory.Exists(repoDirPath))
         {
-            await _context.FileSystem.CreateParentDirectoryAsync(repoDirPath);
+            _context.FileSystem.CreateParentDirectory(repoDirPath);
 
+            // Here we assume that git availability is checked before calling this method.
             await _context.Git!.Clone(
                 repoUrl,
                 repoDirPath,

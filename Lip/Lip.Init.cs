@@ -72,7 +72,7 @@ public partial class Lip
         string manifestPath = _pathManager.CurrentPackageManifestPath;
 
         // Check if the manifest file already exists.
-        if (await _context.FileSystem.File.ExistsAsync(manifestPath))
+        if (_context.FileSystem.File.Exists(manifestPath))
         {
             if (!args.Force)
             {

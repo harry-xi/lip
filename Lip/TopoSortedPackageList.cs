@@ -7,15 +7,17 @@ namespace Lip;
 /// <summary>
 /// Represents a list of packages that are topologically sorted, where dependencies are placed before dependents.
 /// </summary>
-public class TopoSortedPackageList : List<TopoSortedPackageList.ItemType>
+public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<T>.ItemType
 {
-    public record ItemType
+    public record ItemType: IComparable<ItemType>
     {
         public required PackageManifest PackageManifest { get; init; }
         public required string VariantLabel { get; init; }
+
+        public int CompareTo(ItemType? other) => throw new NotImplementedException();
     }
 
-    public new ItemType this[int index]
+    public new T this[int index]
     {
         get => base[index];
         set
@@ -29,30 +31,30 @@ public class TopoSortedPackageList : List<TopoSortedPackageList.ItemType>
     {
     }
 
-    public TopoSortedPackageList(IEnumerable<ItemType> collection) : base(collection)
+    public TopoSortedPackageList(IEnumerable<T> collection) : base(collection)
     {
         TopoSort();
     }
 
-    public new void Add(ItemType item)
+    public new void Add(T item)
     {
         base.Add(item);
         TopoSort();
     }
 
-    public new void AddRange(IEnumerable<ItemType> collection)
+    public new void AddRange(IEnumerable<T> collection)
     {
         base.AddRange(collection);
         TopoSort();
     }
 
-    public new void Insert(int index, ItemType item)
+    public new void Insert(int index, T item)
     {
         base.Insert(index, item);
         TopoSort();
     }
 
-    public new void InsertRange(int index, IEnumerable<ItemType> collection)
+    public new void InsertRange(int index, IEnumerable<T> collection)
     {
         base.InsertRange(index, collection);
         TopoSort();
@@ -64,23 +66,23 @@ public class TopoSortedPackageList : List<TopoSortedPackageList.ItemType>
 
     public new void Sort() => throw new NotSupportedException();
 
-    public new void Sort(IComparer<ItemType>? comparer) => throw new NotSupportedException();
+    public new void Sort(IComparer<T>? comparer) => throw new NotSupportedException();
 
-    public new void Sort(int index, int count, IComparer<ItemType>? comparer)
+    public new void Sort(int index, int count, IComparer<T>? comparer)
         => throw new NotSupportedException();
 
-    public new void Sort(Comparison<ItemType> comparison) => throw new NotSupportedException();
+    public new void Sort(Comparison<T> comparison) => throw new NotSupportedException();
 
     private void TopoSort()
     {
-        DirectedSparseGraph<ComparableItemType> dependencyGraph = new();
+        DirectedSparseGraph<T> dependencyGraph = new();
 
-        dependencyGraph.AddVertices([.. this.Cast<ComparableItemType>()]);
+        dependencyGraph.AddVertices([.. this.Cast<T>()]);
 
         // Add edges.
-        foreach (ComparableItemType item in dependencyGraph.Vertices)
+        foreach (T item in dependencyGraph.Vertices)
         {
-            IEnumerable<ComparableItemType> dependencies = item.PackageManifest.GetSpecifiedVariant(
+            IEnumerable<T> dependencies = item.PackageManifest.GetSpecifiedVariant(
                 item.VariantLabel,
                 RuntimeInformation.RuntimeIdentifier)?
                 .Dependencies?
@@ -88,25 +90,19 @@ public class TopoSortedPackageList : List<TopoSortedPackageList.ItemType>
                 .Select(dep => dependencyGraph.Vertices.FirstOrDefault(v => v.PackageManifest.ToothPath == dep.ToothPath
                                                                             && v.VariantLabel == dep.VariantLabel))
                 .Where(dep => dep is not null)
-                .Cast<ComparableItemType>() ?? [];
+                .Cast<T>() ?? [];
 
-            foreach (ComparableItemType dependency in dependencies)
+            foreach (T dependency in dependencies)
             {
                 dependencyGraph.AddEdge(item, dependency);
             }
         }
 
         // Topologically sort the graph.
-        IEnumerable<ComparableItemType> sortedElements = TopologicalSorter.Sort(dependencyGraph);
+        IEnumerable<T> sortedElements = TopologicalSorter.Sort(dependencyGraph);
 
         // Update the list. Note that the order is reversed.
         Clear();
         base.AddRange(sortedElements.Reverse());
     }
-}
-
-file record ComparableItemType : TopoSortedPackageList.ItemType, IComparable<ComparableItemType>
-{
-    // C-Sharp-Algorithms requires this method to be implemented but we don't know why.
-    public int CompareTo(ComparableItemType? other) => throw new NotImplementedException();
 }

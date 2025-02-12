@@ -9,11 +9,9 @@ namespace Lip;
 /// </summary>
 public partial class Lip
 {
-    private record PackageInstallDetail
+    private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.ItemType
     {
         public required IFileSource FileSource { get; init; }
-        public required PackageManifest PackageManifest { get; init; }
-        public required string VariantLabel { get; init; }
     }
 
     private readonly CacheManager _cacheManager;
@@ -48,15 +46,12 @@ public partial class Lip
 
         if (_context.FileSystem.Directory.Exists(possibleDirPath))
         {
-            string toothJsonPath = _context.FileSystem.Path.Join(possibleDirPath, "tooth.json");
+            DirectoryFileSource directoryFileSource = new(_context.FileSystem, possibleDirPath);
 
-            if (_context.FileSystem.File.Exists(toothJsonPath))
+            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(directoryFileSource);
+
+            if (packageManifest is not null)
             {
-                DirectoryFileSource directoryFileSource = new(_context.FileSystem, possibleDirPath);
-
-                var packageManifest = PackageManifest.FromJsonBytesParsed(
-                    await _context.FileSystem.File.ReadAllBytesAsync(toothJsonPath));
-
                 return new()
                 {
                     FileSource = directoryFileSource,
@@ -78,13 +73,10 @@ public partial class Lip
             {
                 ArchiveFileSource archiveFileSource = new(_context.FileSystem, possibleFilePath);
 
-                IFileSourceEntry? packageManifestEntry = await archiveFileSource.GetEntry(_pathManager.PackageManifestFileName);
+                PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(archiveFileSource);
 
-                if (packageManifestEntry is not null)
+                if (packageManifest is not null)
                 {
-                    var packageManifest = PackageManifest.FromJsonBytesParsed(
-                        await (await packageManifestEntry.OpenRead()).ReadAsync());
-
                     return new()
                     {
                         FileSource = archiveFileSource,
@@ -95,25 +87,28 @@ public partial class Lip
             }
         }
 
-        // Finally, assume package text is a package specifier.
+        // Third, assume package text is a package specifier.
 
         {
             var packageSpecifier = PackageSpecifier.Parse(userInputPackageText);
 
             IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 
-            IFileSourceEntry packageManifestEntry = await fileSource.GetEntry(_pathManager.PackageManifestFileName)
-                ?? throw new InvalidOperationException($"Package manifest is not found in '{packageSpecifier}'.");
+            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource);
 
-            var packageManifest = PackageManifest.FromJsonBytesParsed(
-                await (await packageManifestEntry.OpenRead()).ReadAsync());
-
-            return new()
+            if (packageManifest is not null)
             {
-                FileSource = fileSource,
-                PackageManifest = packageManifest,
-                VariantLabel = packageSpecifier.VariantLabel
-            };
+                return new()
+                {
+                    FileSource = fileSource,
+                    PackageManifest = packageManifest,
+                    VariantLabel = packageSpecifier.VariantLabel
+                };
+            }
         }
+
+        // If none of the above, throw an exception.
+
+        throw new ArgumentException($"Cannot resolve package text '{userInputPackageText}'.", nameof(userInputPackageText));
     }
 }

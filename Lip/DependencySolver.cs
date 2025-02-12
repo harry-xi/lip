@@ -19,6 +19,12 @@ public class DependencySolver(
     private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly PackageManager _packageManager = packageManager;
 
+    public async Task<List<PackageSpecifier>> GetDependencies(List<PackageSpecifier> primaryPackageSpecifiers)
+    {
+        // TODO: Implement this method.
+        return [];
+    }
+
     public async Task<List<PackageSpecifierWithoutVersion>> GetUnnecessaryPackages()
     {
         PackageLock packageLock = await _packageManager.GetCurrentPackageLock();

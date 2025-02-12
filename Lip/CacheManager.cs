@@ -81,6 +81,20 @@ public class CacheManager(
         throw new InvalidOperationException("No remote source is available.");
     }
 
+    public async Task<PackageManifest?> GetPackageManifest(PackageSpecifier packageSpecifier)
+    {
+        IFileSource fileSource = await GetPackageFileSource(packageSpecifier);
+
+        Stream? packageManifestFileStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
+
+        if (packageManifestFileStream == null)
+        {
+            return null;
+        }
+
+        return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
+    }
+
     public async Task<CacheSummary> List()
     {
         await Task.Delay(0); // Suppress warning.
@@ -154,7 +168,7 @@ public class CacheManager(
 
     private async Task<IDirectoryInfo> GetGitRepoDir(PackageSpecifier packageSpecifier)
     {
-        string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}.git");
+        string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
         string tag = $"v{packageSpecifier.Version}";
 
         string repoDirPath = _pathManager.GetGitRepoDirCachePath(new()

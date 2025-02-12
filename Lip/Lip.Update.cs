@@ -5,18 +5,17 @@ namespace Lip;
 
 public partial class Lip
 {
-    public record InstallArgs
+    public record UpdateArgs
     {
         public required bool DryRun { get; init; }
-        public required bool Force { get; init; }
         public required bool IgnoreScripts { get; init; }
         public required bool NoDependencies { get; init; }
         public required bool Save { get; init; }
     }
 
-    public async Task Install(List<string> userInputPackageTexts, InstallArgs args)
+    public async Task Update(List<string> userInputPackageTexts, UpdateArgs args)
     {
-        // Parse user input package texts for packages and check conflicts.
+        // Parse user input package texts for primary packages and check conflicts.
 
         TopoSortedPackageList<PackageInstallDetail> packageInstallDetails = [];
 
@@ -27,20 +26,14 @@ public partial class Lip
             PackageInstallDetail installDetail = await GetFileSourceFromUserInputPackageText(packageText);
 
             PackageManifest? installedPackageManifest = await _packageManager.GetInstalledPackageManifest(
-                installDetail.PackageManifest.ToothPath, installDetail.VariantLabel);
-
-            // If not installed, add to install details.
-            if (installedPackageManifest is null)
-            {
-                packageInstallDetails.Add(installDetail);
-
-                continue;
-            }
+                installDetail.PackageManifest.ToothPath, installDetail.VariantLabel)
+                ?? throw new InvalidOperationException(
+                    $"Package '{installDetail.PackageManifest.ToothPath}' is not installed.");
 
             // If installed with the same version, skip.
             if (installedPackageManifest.Version == installDetail.PackageManifest.Version)
             {
-                _context.Logger.LogWarning("Package '{specifier}' is already installed. Skipping.", new PackageSpecifier()
+                _context.Logger.LogWarning("Package '{specifier}' is already installed with the same version. Skipping.", new PackageSpecifier()
                 {
                     ToothPath = installDetail.PackageManifest.ToothPath,
                     VariantLabel = installDetail.VariantLabel,
@@ -50,57 +43,27 @@ public partial class Lip
                 continue;
             }
 
-            // Otherwise, there is a conflict.
-            if (!args.Force)
-            {
-                PackageSpecifier specifier = new()
-                {
-                    ToothPath = installDetail.PackageManifest.ToothPath,
-                    VariantLabel = installDetail.VariantLabel,
-                    Version = installDetail.PackageManifest.Version
-                };
+            // Otherwise, need reinstall.
+            packageInstallDetails.Add(installDetail);
 
-                throw new InvalidOperationException(
-                    $"Package '{specifier}' is already installed with a different version '{installedPackageManifest.Version}.");
-            }
-            else
+            packageSpecifiersToUninstall.Add(new PackageSpecifierWithoutVersion()
             {
-                packageInstallDetails.Add(installDetail);
-
-                packageSpecifiersToUninstall.Add(new PackageSpecifierWithoutVersion()
-                {
-                    ToothPath = installDetail.PackageManifest.ToothPath,
-                    VariantLabel = installDetail.VariantLabel
-                });
-            }
+                ToothPath = installDetail.PackageManifest.ToothPath,
+                VariantLabel = installDetail.VariantLabel
+            });
         }
 
         // Solve dependencies.
 
-        PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
-
-        List<PackageSpecifier> primaryPackageSpecifiers = [.. packageInstallDetails
-            .Select(detail => new PackageSpecifier()
-            {
-                ToothPath = detail.PackageManifest.ToothPath,
-                VariantLabel = detail.VariantLabel,
-                Version = detail.PackageManifest.Version
-            })];
-
-        IEnumerable<PackageSpecifier> lockedPackageSpecifiers = packageLock.Locks
-            .Where(@lock => @lock.Locked)
-            .Select(@lock => new PackageSpecifier()
-            {
-                ToothPath = @lock.Package.ToothPath,
-                VariantLabel = @lock.VariantLabel,
-                Version = @lock.Package.Version
-            });
-
-        primaryPackageSpecifiers.AddRange(lockedPackageSpecifiers);
-
         List<PackageSpecifier> dependencyPackageSpecifiers = args.NoDependencies
             ? []
-            : await _dependencySolver.GetDependencies(primaryPackageSpecifiers);
+            : await _dependencySolver.GetDependencies(
+                packageInstallDetails.ConvertAll(detail => new PackageSpecifier()
+                {
+                    ToothPath = detail.PackageManifest.ToothPath,
+                    VariantLabel = detail.VariantLabel,
+                    Version = detail.PackageManifest.Version
+                }));
 
         foreach (PackageSpecifier dependencyPackageSpecifier in dependencyPackageSpecifiers)
         {

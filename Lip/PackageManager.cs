@@ -78,6 +78,18 @@ public class PackageManager(
         }
     }
 
+    public async Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource)
+    {
+        Stream? packageManifestFileStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
+
+        if (packageManifestFileStream == null)
+        {
+            return null;
+        }
+
+        return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
+    }
+
     public async Task Install(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked)
     {
         Stream packageManifestFileStream = await packageFileSource.GetFileStream(_pathManager.PackageManifestFileName)

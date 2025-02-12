@@ -17,12 +17,8 @@ public partial class Lip
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 
-        IFileSource packageFileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
-
-        using Stream packageManifestFileStream = await packageFileSource.GetFileStream(_pathManager.PackageManifestFileName)
-            ?? throw new InvalidOperationException($"Package manifest file not found in package '{packageSpecifier}'.");
-
-        PackageManifest packageManifest = PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
+        PackageManifest packageManifest = await _cacheManager.GetPackageManifest(packageSpecifier)
+            ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifier}'.");
 
         if (packageManifest.ToothPath != packageSpecifier.ToothPath)
         {

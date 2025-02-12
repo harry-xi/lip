@@ -3,22 +3,18 @@
 ## Usage
 
 ```shell
-lip update [<package-spec>...]
+lip update <package-spec>...
 ```
 
 ## Description
 
-Attempt to update the specified packages to the specified versions. If no package specs are provided, lip will update all packages to the latest versions.
+Attempt to update the specified packages to the specified versions.
 
 ## Options
 
 - `--dry-run`
 
   Do not actually update any packages. Be aware that files will still be downloaded and cached.
-
-- `-f, --force`
-
-  Force the update of the specified packages. This may break the dependency graph and cause all future installations and updates without `--force` to fail.
 
 - `--ignore-scripts`
 

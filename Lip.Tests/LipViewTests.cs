@@ -74,7 +74,7 @@ public class LipViewTests
         Lip lip = new(runtimeConfig, context.Object);
 
         // Act.
-        string result = await lip.View("example.com/repo@1.0.0", string.Empty, new());
+        string result = await lip.View("example.com/repo@1.0.0", null, new());
 
         // Assert.
         Assert.Equal(s_packageManifestData, result);

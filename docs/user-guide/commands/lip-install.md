@@ -54,9 +54,7 @@ Examples:
 
 - `-f, --force`
 
-  Force the installation of the package. When a dependency is already installed but its version is not compatible with the specified version, lip will ignore the conflict and treat the dependency as installed.
-
-  This may break the dependency graph and cause all future installations and updates without `--force` to fail.
+  Force the installation of the package. When a package is already installed but its version is different from the specified version, lip will reinstall the package.
 
 - `--ignore-scripts`
 

@@ -1,20 +1,27 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics.CodeAnalysis;
 using Algorithms.Graphs;
 using DataStructures.Graphs;
+using Semver;
 
 namespace Lip;
 
 /// <summary>
 /// Represents a list of packages that are topologically sorted, where dependencies are placed before dependents.
 /// </summary>
-public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<T>.ItemType
+public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<T>.IItem
 {
-    public record ItemType: IComparable<ItemType>
+    public interface IItem
     {
-        public required PackageManifest PackageManifest { get; init; }
-        public required string VariantLabel { get; init; }
+        public Dictionary<PackageSpecifierWithoutVersion, SemVersionRange> Dependencies { get; }
+        public PackageSpecifier PackageSpecifier { get; }
+    }
 
-        public int CompareTo(ItemType? other) => throw new NotImplementedException();
+    private class ItemWrapper : IComparable<ItemWrapper>
+    {
+        public required T Item { get; init; }
+
+        [ExcludeFromCodeCoverage]
+        public int CompareTo(ItemWrapper? other) => throw new NotImplementedException();
     }
 
     public new T this[int index]
@@ -48,17 +55,9 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
         TopoSort();
     }
 
-    public new void Insert(int index, T item)
-    {
-        base.Insert(index, item);
-        TopoSort();
-    }
+    public new void Insert(int index, T item) => throw new NotSupportedException();
 
-    public new void InsertRange(int index, IEnumerable<T> collection)
-    {
-        base.InsertRange(index, collection);
-        TopoSort();
-    }
+    public new void InsertRange(int index, IEnumerable<T> collection) => throw new NotSupportedException();
 
     public new void Reverse() => throw new NotSupportedException();
 
@@ -75,34 +74,33 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
 
     private void TopoSort()
     {
-        DirectedSparseGraph<T> dependencyGraph = new();
+        DirectedSparseGraph<ItemWrapper> dependencyGraph = new();
 
-        dependencyGraph.AddVertices([.. this.Cast<T>()]);
+        dependencyGraph.AddVertices([.. this.Select(item => new ItemWrapper { Item = item })]);
 
         // Add edges.
-        foreach (T item in dependencyGraph.Vertices)
+        foreach (ItemWrapper vertex in dependencyGraph.Vertices)
         {
-            IEnumerable<T> dependencies = item.PackageManifest.GetSpecifiedVariant(
-                item.VariantLabel,
-                RuntimeInformation.RuntimeIdentifier)?
-                .Dependencies?
-                .Select(dep => PackageSpecifierWithoutVersion.Parse(dep.Key))
-                .Select(dep => dependencyGraph.Vertices.FirstOrDefault(v => v.PackageManifest.ToothPath == dep.ToothPath
-                                                                            && v.VariantLabel == dep.VariantLabel))
-                .Where(dep => dep is not null)
-                .Cast<T>() ?? [];
+            IEnumerable<ItemWrapper> dependencies = vertex.Item.Dependencies
+                .Select(dep => dependencyGraph.Vertices.FirstOrDefault(
+                    v => dep.Key == v.Item.PackageSpecifier.WithoutVersion()
+                         && dep.Value.Contains(v.Item.PackageSpecifier.Version)))
+                .Where(dep => dep is not null)!;
 
-            foreach (T dependency in dependencies)
+            foreach (ItemWrapper dependency in dependencies)
             {
-                dependencyGraph.AddEdge(item, dependency);
+                // To ensure that dependencies are placed before dependents, we add an edge from the dependency
+                // to the dependent.
+                dependencyGraph.AddEdge(dependency, vertex);
             }
         }
 
         // Topologically sort the graph.
-        IEnumerable<T> sortedElements = TopologicalSorter.Sort(dependencyGraph);
+        IEnumerable<T> sortedElements = TopologicalSorter.Sort(dependencyGraph)
+            .Select(wrapper => wrapper.Item);
 
         // Update the list. Note that the order is reversed.
         Clear();
-        base.AddRange(sortedElements.Reverse());
+        base.AddRange(sortedElements);
     }
 }

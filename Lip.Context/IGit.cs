@@ -1,7 +1,10 @@
-﻿namespace Lip.Context;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Lip.Context;
 
 public interface IGit
 {
+    [ExcludeFromCodeCoverage]
     record ListRemoteResultItem
     {
         public required string Sha { get; init; }

@@ -78,6 +78,20 @@ public class PackageManager(
         }
     }
 
+    public async Task<PackageManifest?> GetPackageManifest(PackageSpecifier packageSpecifier)
+    {
+        IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
+
+        Stream? packageManifestFileStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
+
+        if (packageManifestFileStream == null)
+        {
+            return null;
+        }
+
+        return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
+    }
+
     public async Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource)
     {
         Stream? packageManifestFileStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
@@ -424,7 +438,7 @@ public class PackageManager(
         List<Url> urls = asset.Urls?.ConvertAll(url => new Url(url))
             ?? throw new InvalidOperationException("Asset URLs are not specified.");
 
-        IFileInfo assetFile = await _cacheManager.GetDownloadedFile(urls);
+        IFileInfo assetFile = await _cacheManager.GetFileFromUrls(urls);
 
         if (asset.Type == PackageManifest.AssetType.TypeEnum.Uncompressed)
         {

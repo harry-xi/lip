@@ -12,7 +12,7 @@ public partial class Lip
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 
-        PackageManifest packageManifest = await _cacheManager.GetPackageManifest(packageSpecifier)
+        PackageManifest packageManifest = await _packageManager.GetPackageManifest(packageSpecifier)
             ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifier}'.");
 
         if (packageManifest.ToothPath != packageSpecifier.ToothPath)

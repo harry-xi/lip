@@ -1,5 +1,7 @@
-﻿using Flurl;
+﻿using System.Runtime.InteropServices;
+using Flurl;
 using Lip.Context;
+using Semver;
 using SharpCompress.Archives;
 
 namespace Lip;
@@ -9,9 +11,37 @@ namespace Lip;
 /// </summary>
 public partial class Lip
 {
-    private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.ItemType
+    private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.IItem
     {
+        public Dictionary<PackageSpecifierWithoutVersion, SemVersionRange> Dependencies
+        {
+            get
+            {
+                return PackageManifest.GetSpecifiedVariant(
+                        VariantLabel,
+                        RuntimeInformation.RuntimeIdentifier)?
+                        .Dependencies?
+                        .Select(
+                            kvp => new KeyValuePair<PackageSpecifierWithoutVersion, SemVersionRange>(
+                                PackageSpecifierWithoutVersion.Parse(kvp.Key),
+                                SemVersionRange.ParseNpm(kvp.Value)))
+                        .ToDictionary()
+                        ?? [];
+            }
+        }
+
         public required IFileSource FileSource { get; init; }
+
+        public required PackageManifest PackageManifest { get; init; }
+
+        public PackageSpecifier PackageSpecifier => new()
+        {
+            ToothPath = PackageManifest.ToothPath,
+            VariantLabel = VariantLabel,
+            Version = PackageManifest.Version
+        };
+
+        public required string VariantLabel { get; init; }
     }
 
     private readonly CacheManager _cacheManager;

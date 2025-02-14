@@ -79,7 +79,7 @@ public class CacheManagerTests
     }
 
     [Fact]
-    public async Task GetDownloadedFile_ValidUrl_Returns()
+    public async Task GetFileFromUrl_ValidUrl_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem();
@@ -101,7 +101,7 @@ public class CacheManagerTests
         Url url = Url.Parse("https://example.com/test.file");
 
         // Act.
-        IFileInfo file = await cacheManager.GetDownloadedFile(url);
+        IFileInfo file = await cacheManager.GetFileFromUrl(url);
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
@@ -109,7 +109,7 @@ public class CacheManagerTests
     }
 
     [Fact]
-    public async Task GetDownloadedFIle_WithGitHubProxy_Returns()
+    public async Task GetFileFromUrl_WithGitHubProxy_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem();
@@ -138,7 +138,7 @@ public class CacheManagerTests
         Url url = Url.Parse("https://github.com/user/repo/test.file");
 
         // Act.
-        IFileInfo file = await cacheManager.GetDownloadedFile(url);
+        IFileInfo file = await cacheManager.GetFileFromUrl(url);
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
@@ -151,7 +151,7 @@ public class CacheManagerTests
     }
 
     [Fact]
-    public async Task GetDownloadedFile_FileExists_Returns()
+    public async Task GetFileFromUrl_FileExists_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
@@ -169,7 +169,7 @@ public class CacheManagerTests
         Url url = Url.Parse("https://example.com/test.file");
 
         // Act.
-        IFileInfo file = await cacheManager.GetDownloadedFile(url);
+        IFileInfo file = await cacheManager.GetFileFromUrl(url);
 
         // Assert.
         Assert.Equal("test", new StreamReader(file.OpenRead()).ReadToEnd());
@@ -177,7 +177,7 @@ public class CacheManagerTests
     }
 
     [Fact]
-    public async Task GetDownloadedFile_MultipleUrls_Returns()
+    public async Task GetFileFromUrls_MultipleUrls_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem();
@@ -205,7 +205,7 @@ public class CacheManagerTests
         Url url2 = Url.Parse("https://backup.example.com/test.file");
 
         // Act.
-        IFileInfo file = await cacheManager.GetDownloadedFile([url1, url2]);
+        IFileInfo file = await cacheManager.GetFileFromUrls([url1, url2]);
 
         // Assert.
         Assert.Equal("test 1", new StreamReader(file.OpenRead()).ReadToEnd());
@@ -214,7 +214,7 @@ public class CacheManagerTests
     }
 
     [Fact]
-    public async Task GetDownloadedFile_FirstUrlFailed_Returns()
+    public async Task GetFileFromUrls_FirstUrlFailed_Returns()
     {
         // Arrange.
         var fileSystem = new MockFileSystem();
@@ -243,7 +243,7 @@ public class CacheManagerTests
         Url url2 = Url.Parse("https://backup.example.com/test.file");
 
         // Act.
-        IFileInfo file = await cacheManager.GetDownloadedFile([url1, url2]);
+        IFileInfo file = await cacheManager.GetFileFromUrls([url1, url2]);
 
         // Assert.
         Assert.Equal("test 2", new StreamReader(file.OpenRead()).ReadToEnd());
@@ -252,7 +252,7 @@ public class CacheManagerTests
     }
 
     [Fact]
-    public async Task GetDownloadedFile_AllUrlsFailed_Throws()
+    public async Task GetFileFromUrls_AllUrlsFailed_Throws()
     {
         // Arrange.
         var fileSystem = new MockFileSystem();
@@ -281,7 +281,7 @@ public class CacheManagerTests
         Url url2 = Url.Parse("https://backup.example.com/test.file");
 
         // Act and assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheManager.GetDownloadedFile([url1, url2]));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheManager.GetFileFromUrls([url1, url2]));
     }
 
     [Fact]

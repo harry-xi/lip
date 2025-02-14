@@ -35,9 +35,9 @@ public class CacheManager(
         }
     }
 
-    public async Task<IFileInfo> GetDownloadedFile(Url url) => await GetDownloadedFile([url]);
+    public async Task<IFileInfo> GetFileFromUrl(Url url) => await GetFileFromUrls([url]);
 
-    public async Task<IFileInfo> GetDownloadedFile(List<Url> originalUrls)
+    public async Task<IFileInfo> GetFileFromUrls(List<Url> originalUrls)
     {
         // Apply GitHub proxy to GitHub URLs.
         List<Url> actualUrls = [.. originalUrls.SelectMany(url =>
@@ -51,7 +51,7 @@ public class CacheManager(
             return [url];
         })];
 
-        return await GetDownloadedFileWithActualUrls(actualUrls);
+        return await GetFileDirectlyFromUrls(actualUrls);
     }
 
     public async Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier)
@@ -79,20 +79,6 @@ public class CacheManager(
         }
 
         throw new InvalidOperationException("No remote source is available.");
-    }
-
-    public async Task<PackageManifest?> GetPackageManifest(PackageSpecifier packageSpecifier)
-    {
-        IFileSource fileSource = await GetPackageFileSource(packageSpecifier);
-
-        Stream? packageManifestFileStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
-
-        if (packageManifestFileStream == null)
-        {
-            return null;
-        }
-
-        return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
     }
 
     public async Task<CacheSummary> List()
@@ -133,7 +119,7 @@ public class CacheManager(
         };
     }
 
-    public async Task<IFileInfo> GetDownloadedFileWithActualUrls(List<Url> actualUrls)
+    private async Task<IFileInfo> GetFileDirectlyFromUrls(List<Url> actualUrls)
     {
         foreach (Url url in actualUrls)
         {
@@ -205,6 +191,6 @@ public class CacheManager(
                 )
         );
 
-        return await GetDownloadedFile(archiveFileUrls);
+        return await GetFileFromUrls(archiveFileUrls);
     }
 }

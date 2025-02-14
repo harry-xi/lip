@@ -20,9 +20,7 @@ public partial class Lip
 
         foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiers)
         {
-            if (await _packageManager.GetInstalledPackageManifest(
-                packageSpecifier.ToothPath,
-                packageSpecifier.VariantLabel) is null)
+            if (await _packageManager.GetPackageManifestFromInstalledPackages(packageSpecifier) is null)
             {
                 throw new InvalidOperationException($"Package '{packageSpecifier}' is not installed.");
             }
@@ -32,7 +30,7 @@ public partial class Lip
 
         foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiers)
         {
-            await _packageManager.Uninstall(packageSpecifier, args.DryRun, args.IgnoreScripts);
+            await _packageManager.UninstallPackage(packageSpecifier, args.DryRun, args.IgnoreScripts);
         }
 
         // If to save, update the package manifest file.

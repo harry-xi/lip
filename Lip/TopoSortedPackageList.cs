@@ -13,7 +13,7 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
     public interface IItem
     {
         public Dictionary<PackageSpecifierWithoutVersion, SemVersionRange> Dependencies { get; }
-        public PackageSpecifier PackageSpecifier { get; }
+        public PackageSpecifier Specifier { get; }
     }
 
     private class ItemWrapper : IComparable<ItemWrapper>
@@ -83,8 +83,8 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
         {
             IEnumerable<ItemWrapper> dependencies = vertex.Item.Dependencies
                 .Select(dep => dependencyGraph.Vertices.FirstOrDefault(
-                    v => dep.Key == v.Item.PackageSpecifier.WithoutVersion()
-                         && dep.Value.Contains(v.Item.PackageSpecifier.Version)))
+                    v => dep.Key == v.Item.Specifier.WithoutVersion()
+                         && dep.Value.Contains(v.Item.Specifier.Version)))
                 .Where(dep => dep is not null)!;
 
             foreach (ItemWrapper dependency in dependencies)

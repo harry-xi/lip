@@ -29,7 +29,7 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
-        item1.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
+        item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
@@ -37,11 +37,11 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
-        item2.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
+        item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
         var item3 = new Mock<IItem>();
         item3.SetupGet(i => i.Dependencies).Returns([]);
-        item3.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
+        item3.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
 
         List<IItem> collection = [item1.Object, item2.Object, item3.Object];
 
@@ -62,7 +62,7 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
-        item1.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
+        item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
@@ -70,11 +70,11 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
-        item2.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
+        item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
         var item3 = new Mock<IItem>();
         item3.SetupGet(i => i.Dependencies).Returns([]);
-        item3.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
+        item3.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
 
         var list = new TopoSortedPackageList<IItem>([item1.Object, item2.Object, item3.Object]);
 
@@ -95,7 +95,7 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
-        item1.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
+        item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
@@ -103,11 +103,11 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
-        item2.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
+        item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
         var item3 = new Mock<IItem>();
         item3.SetupGet(i => i.Dependencies).Returns([]);
-        item3.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
+        item3.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
 
         var list = new TopoSortedPackageList<IItem>([item1.Object, item2.Object, item3.Object]);
 
@@ -116,7 +116,7 @@ public class TopoSortedPackageListTest
         {
             [PackageSpecifierWithoutVersion.Parse("example.com/pkg1")] = SemVersionRange.Parse("1.0.0"),
         });
-        newItem.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg4@4.0.0"));
+        newItem.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg4@4.0.0"));
 
         // Act.
         list[0] = newItem.Object;
@@ -135,7 +135,7 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
-        item1.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
+        item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
@@ -143,11 +143,11 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
-        item2.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
+        item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
         var item3 = new Mock<IItem>();
         item3.SetupGet(i => i.Dependencies).Returns([]);
-        item3.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
+        item3.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
 
 #pragma warning disable IDE0028 // Simplify collection initialization
         var list = new TopoSortedPackageList<IItem>([item1.Object, item3.Object]);
@@ -170,7 +170,7 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
-        item1.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
+        item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
@@ -178,11 +178,11 @@ public class TopoSortedPackageListTest
             {
                 [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
-        item2.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
+        item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
         var item3 = new Mock<IItem>();
         item3.SetupGet(i => i.Dependencies).Returns([]);
-        item3.SetupGet(i => i.PackageSpecifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
+        item3.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg3@3.0.0"));
 
         var list = new TopoSortedPackageList<IItem>([item1.Object]);
 

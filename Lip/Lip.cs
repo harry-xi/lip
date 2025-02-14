@@ -17,7 +17,7 @@ public partial class Lip
         {
             get
             {
-                return PackageManifest.GetSpecifiedVariant(
+                return Manifest.GetSpecifiedVariant(
                         VariantLabel,
                         RuntimeInformation.RuntimeIdentifier)?
                         .Dependencies?
@@ -32,13 +32,13 @@ public partial class Lip
 
         public required IFileSource FileSource { get; init; }
 
-        public required PackageManifest PackageManifest { get; init; }
+        public required PackageManifest Manifest { get; init; }
 
-        public PackageSpecifier PackageSpecifier => new()
+        public PackageSpecifier Specifier => new()
         {
-            ToothPath = PackageManifest.ToothPath,
+            ToothPath = Manifest.ToothPath,
             VariantLabel = VariantLabel,
-            Version = PackageManifest.Version
+            Version = Manifest.Version
         };
 
         public required string VariantLabel { get; init; }
@@ -63,9 +63,9 @@ public partial class Lip
 
         _cacheManager = new(_context, _pathManager, gitHubProxies, goModuleProxies);
 
-        _packageManager = new(_context, _cacheManager, _pathManager);
+        _packageManager = new(_context, _cacheManager, _pathManager, goModuleProxies);
 
-        _dependencySolver = new(_context, _cacheManager, _packageManager, goModuleProxies);
+        _dependencySolver = new(_context, _cacheManager, _packageManager);
     }
 
     private async Task<PackageInstallDetail> GetFileSourceFromUserInputPackageText(string userInputPackageText)
@@ -85,7 +85,7 @@ public partial class Lip
                 return new()
                 {
                     FileSource = directoryFileSource,
-                    PackageManifest = packageManifest,
+                    Manifest = packageManifest,
                     VariantLabel = userInputPackageText.Split('#').ElementAtOrDefault(1) ?? string.Empty
                 };
             }
@@ -110,7 +110,7 @@ public partial class Lip
                     return new()
                     {
                         FileSource = archiveFileSource,
-                        PackageManifest = packageManifest,
+                        Manifest = packageManifest,
                         VariantLabel = userInputPackageText.Split('#').ElementAtOrDefault(1) ?? string.Empty
                     };
                 }
@@ -131,7 +131,7 @@ public partial class Lip
                 return new()
                 {
                     FileSource = fileSource,
-                    PackageManifest = packageManifest,
+                    Manifest = packageManifest,
                     VariantLabel = packageSpecifier.VariantLabel
                 };
             }

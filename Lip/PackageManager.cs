@@ -10,11 +10,12 @@ namespace Lip;
 public class PackageManager(
     IContext context,
     CacheManager cacheManager,
-    PathManager pathManager
-)
+    PathManager pathManager,
+    List<Url> goModuleProxies)
 {
     private readonly CacheManager _cacheManager = cacheManager;
     private readonly IContext _context = context;
+    private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly PathManager _pathManager = pathManager;
 
     public async Task<PackageLock> GetCurrentPackageLock()
@@ -61,12 +62,12 @@ public class PackageManager(
         return PackageManifest.FromJsonBytesWithTemplate(packageManifestBytes);
     }
 
-    public async Task<PackageManifest?> GetInstalledPackageManifest(string toothPath, string variantLabel)
+    public async Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageSpecifierWithoutVersion packageSpecifier)
     {
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        List<PackageLock.LockType> locks = [.. packageLock.Locks.Where(@lock => @lock.Package.ToothPath == toothPath
-                                              && @lock.VariantLabel == variantLabel)];
+        List<PackageLock.LockType> locks = [.. packageLock.Locks.Where(@lock => @lock.Package.ToothPath == packageSpecifier.ToothPath
+            && @lock.VariantLabel == packageSpecifier.VariantLabel)];
 
         if (locks.Count == 0)
         {
@@ -78,7 +79,7 @@ public class PackageManager(
         }
     }
 
-    public async Task<PackageManifest?> GetPackageManifest(PackageSpecifier packageSpecifier)
+    public async Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier)
     {
         IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 
@@ -104,7 +105,70 @@ public class PackageManager(
         return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
     }
 
-    public async Task Install(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked)
+    public async Task<List<SemVersion>> GetPackageRemoteVersions(PackageSpecifierWithoutVersion packageSpecifier)
+    {
+        // First, try to get remote versions from the Go module proxy.
+
+        if (_goModuleProxies.Count != 0)
+        {
+            List<Url> goModuleVersionListUrls = _goModuleProxies.ConvertAll(proxy =>
+                proxy.Clone()
+                    .AppendPathSegments(
+                        GoModule.EscapePath(packageSpecifier.ToothPath),
+                        "@v",
+                        "list")
+            );
+
+            foreach (Url url in _goModuleProxies)
+            {
+                Url goModuleVersionListUrl = url
+                    .AppendPathSegments(
+                        GoModule.EscapePath(packageSpecifier.ToothPath),
+                        "@v",
+                        "list");
+
+                string tempFilePath = _context.FileSystem.Path.GetTempFileName();
+
+                try
+                {
+                    await _context.Downloader.DownloadFile(goModuleVersionListUrl, tempFilePath);
+
+                    string goModuleVersionListText = await _context.FileSystem.File.ReadAllTextAsync(tempFilePath);
+
+                    return [.. goModuleVersionListText
+                        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Select(versionText => SemVersion.TryParse(versionText, out SemVersion? version) ? version : null)
+                        .Where(version => version is not null)];
+                }
+                catch (Exception ex)
+                {
+                    _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", url);
+                }
+            }
+
+            _context.Logger.LogWarning(
+                "Failed to download version list for {Package} from all Go module proxies.",
+                packageSpecifier);
+        }
+
+        // Second, try to get remote versions from the Git repository.
+
+        if (_context.Git is not null)
+        {
+            string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
+            return [.. (await _context.Git.ListRemote(repoUrl, refs: true, tags: true))
+                .Where(item => item.Ref.StartsWith("refs/tags/v"))
+                .Select(item => item.Ref)
+                .Select(refName => refName.Substring("refs/tags/v".Length))
+                .Select(version => SemVersion.Parse(version))];
+        }
+
+        // Otherwise, no remote source is available.
+
+        throw new InvalidOperationException("No remote source is available.");
+    }
+
+    public async Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked)
     {
         Stream packageManifestFileStream = await packageFileSource.GetFileStream(_pathManager.PackageManifestFileName)
             ?? throw new InvalidOperationException("Package manifest not found.");
@@ -121,9 +185,7 @@ public class PackageManager(
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
 
-        SemVersion? installedVersion = (await GetInstalledPackageManifest(
-            packageSpecifier.ToothPath,
-            packageSpecifier.VariantLabel))?.Version;
+        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifier))?.Version;
 
         if (installedVersion == packageSpecifier.Version)
         {
@@ -263,11 +325,9 @@ public class PackageManager(
             packageManifest.ToJsonBytes());
     }
 
-    public async Task Uninstall(PackageSpecifierWithoutVersion packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts)
+    public async Task UninstallPackage(PackageSpecifierWithoutVersion packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts)
     {
-        SemVersion? installedVersion = (await GetInstalledPackageManifest(
-            packageSpecifierWithoutVersion.ToothPath,
-            packageSpecifierWithoutVersion.VariantLabel))?.Version;
+        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifierWithoutVersion))?.Version;
 
         // If the package is not installed, skip uninstalling.
 

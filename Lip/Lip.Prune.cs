@@ -15,7 +15,7 @@ public partial class Lip
         // Uninstall all unnecessary packages.
         foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiers)
         {
-            await _packageManager.Uninstall(packageSpecifier, args.DryRun, args.IgnoreScripts);
+            await _packageManager.UninstallPackage(packageSpecifier, args.DryRun, args.IgnoreScripts);
         }
     }
 }

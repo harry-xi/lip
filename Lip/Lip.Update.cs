@@ -25,19 +25,19 @@ public partial class Lip
         {
             PackageInstallDetail installDetail = await GetFileSourceFromUserInputPackageText(packageText);
 
-            PackageManifest? installedPackageManifest = await _packageManager.GetInstalledPackageManifest(
-                installDetail.PackageManifest.ToothPath, installDetail.VariantLabel)
+            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
+                installDetail.Specifier)
                 ?? throw new InvalidOperationException(
-                    $"Package '{installDetail.PackageManifest.ToothPath}' is not installed.");
+                    $"Package '{installDetail.Manifest.ToothPath}' is not installed.");
 
             // If installed with the same version, skip.
-            if (installedPackageManifest.Version == installDetail.PackageManifest.Version)
+            if (installedPackageManifest.Version == installDetail.Manifest.Version)
             {
                 _context.Logger.LogWarning("Package '{specifier}' is already installed with the same version. Skipping.", new PackageSpecifier()
                 {
-                    ToothPath = installDetail.PackageManifest.ToothPath,
+                    ToothPath = installDetail.Manifest.ToothPath,
                     VariantLabel = installDetail.VariantLabel,
-                    Version = installDetail.PackageManifest.Version
+                    Version = installDetail.Manifest.Version
                 });
 
                 continue;
@@ -48,7 +48,7 @@ public partial class Lip
 
             packageSpecifiersToUninstall.Add(new PackageSpecifierWithoutVersion()
             {
-                ToothPath = installDetail.PackageManifest.ToothPath,
+                ToothPath = installDetail.Manifest.ToothPath,
                 VariantLabel = installDetail.VariantLabel
             });
         }
@@ -60,15 +60,15 @@ public partial class Lip
             : await _dependencySolver.GetDependencies(
                 packageInstallDetails.ConvertAll(detail => new PackageSpecifier()
                 {
-                    ToothPath = detail.PackageManifest.ToothPath,
+                    ToothPath = detail.Manifest.ToothPath,
                     VariantLabel = detail.VariantLabel,
-                    Version = detail.PackageManifest.Version
+                    Version = detail.Manifest.Version
                 }));
 
         foreach (PackageSpecifier dependencyPackageSpecifier in dependencyPackageSpecifiers)
         {
-            PackageManifest? installedPackageManifest = await _packageManager.GetInstalledPackageManifest(
-                dependencyPackageSpecifier.ToothPath, dependencyPackageSpecifier.VariantLabel);
+            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
+                dependencyPackageSpecifier);
 
             // If installed with the same version, skip.
             if (installedPackageManifest?.Version == dependencyPackageSpecifier.Version)
@@ -96,7 +96,7 @@ public partial class Lip
             packageInstallDetails.Add(new PackageInstallDetail()
             {
                 FileSource = fileSource,
-                PackageManifest = packageManifest,
+                Manifest = packageManifest,
                 VariantLabel = dependencyPackageSpecifier.VariantLabel
             });
         }
@@ -105,7 +105,7 @@ public partial class Lip
 
         foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstall)
         {
-            await _packageManager.Uninstall(packageSpecifier, args.DryRun, args.IgnoreScripts);
+            await _packageManager.UninstallPackage(packageSpecifier, args.DryRun, args.IgnoreScripts);
         }
 
         // Install packages.
@@ -114,13 +114,13 @@ public partial class Lip
         {
             PackageSpecifier packageSpecifier = new()
             {
-                ToothPath = packageInstallDetail.PackageManifest.ToothPath,
+                ToothPath = packageInstallDetail.Manifest.ToothPath,
                 VariantLabel = packageInstallDetail.VariantLabel,
-                Version = packageInstallDetail.PackageManifest.Version
+                Version = packageInstallDetail.Manifest.Version
             };
 
             // Lock the package if it is not a dependency.
-            await _packageManager.Install(
+            await _packageManager.InstallPackage(
                 packageInstallDetail.FileSource,
                 packageInstallDetail.VariantLabel,
                 args.DryRun,
@@ -158,11 +158,11 @@ public partial class Lip
                         {
                             PackageSpecifierWithoutVersion packageSpecifier = new()
                             {
-                                ToothPath = installDetail.PackageManifest.ToothPath,
+                                ToothPath = installDetail.Manifest.ToothPath,
                                 VariantLabel = installDetail.VariantLabel
                             };
 
-                            newVariant.Dependencies![packageSpecifier.ToString()] = installDetail.PackageManifest.Version.ToString();
+                            newVariant.Dependencies![packageSpecifier.ToString()] = installDetail.Manifest.Version.ToString();
                         }
 
                         return newVariant;

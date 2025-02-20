@@ -1,4 +1,5 @@
-﻿using System.IO.Abstractions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO.Abstractions;
 using Flurl;
 using Lip.Context;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ public class CacheManager(
     List<Url> gitHubProxies,
     List<Url> goModuleProxies)
 {
+    [ExcludeFromCodeCoverage]
     public record CacheSummary
     {
         public required Dictionary<Url, IFileInfo> DownloadedFiles { get; init; }

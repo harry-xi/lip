@@ -97,6 +97,23 @@ public class GoModuleArchiveFileSourceTests
         Assert.Null(file);
     }
 
+    [Fact]
+    public void Entry_Key_ReturnsKey()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+
+        CreateTestFiles(fileSystem, ArchiveType.Tar, CompressionType.None, new() { { "key", "test content" } });
+
+        GoModuleArchiveFileSourceEntry fileSourceEntry = new(fileSystem, "archive", "key", "path/to/entry");
+
+        // Act.
+        string key = fileSourceEntry.Key;
+
+        // Assert.
+        Assert.Equal("key", key);
+    }
+
     private static void CreateTestFiles(
         MockFileSystem fileSystem,
         ArchiveType archiveType,
@@ -112,38 +129,5 @@ public class GoModuleArchiveFileSourceTests
             using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(entry.Value));
             writer.Write(entry.Key, stream);
         }
-    }
-}
-
-public class GoModuleArchiveFileSourceEntryTests
-{
-    [Fact]
-    public void Key_ReturnsKey()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new();
-
-        CreateTestFile(fileSystem, ArchiveType.Tar, CompressionType.None);
-
-        GoModuleArchiveFileSourceEntry fileSourceEntry = new(fileSystem, "archive", "key", "path/to/entry");
-
-        // Act.
-        string key = fileSourceEntry.Key;
-
-        // Assert.
-        Assert.Equal("key", key);
-    }
-
-    private static void CreateTestFile(
-        MockFileSystem fileSystem,
-        ArchiveType archiveType,
-        CompressionType compressionType)
-    {
-        using FileSystemStream fileStream = fileSystem.File.Create("archive");
-
-        using IWriter writer = WriterFactory.Open(fileStream, archiveType, new(compressionType));
-
-        using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("test content"));
-        writer.Write("path/to/entry", stream);
     }
 }

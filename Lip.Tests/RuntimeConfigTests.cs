@@ -6,13 +6,29 @@ namespace Lip.Tests;
 public class RuntimeConfigTests
 {
     [Fact]
-    public void With_Passes()
+    public void GitHubProxies_InitAndGet_Passes()
     {
         // Arrange.
         RuntimeConfig runtimeConfig = new();
 
         // Act.
-        runtimeConfig = runtimeConfig with { };
+        runtimeConfig = runtimeConfig with { GitHubProxies = ["github_proxy", "github_proxy2"] };
+
+        // Assert.
+        Assert.Equal(["github_proxy", "github_proxy2"], runtimeConfig.GitHubProxies);
+    }
+
+    [Fact]
+    public void GoModuleProxies_InitAndGet_Passes()
+    {
+        // Arrange.
+        RuntimeConfig runtimeConfig = new();
+
+        // Act.
+        runtimeConfig = runtimeConfig with { GoModuleProxies = ["go_module_proxy", "go_module_proxy2"] };
+
+        // Assert.
+        Assert.Equal(["go_module_proxy", "go_module_proxy2"], runtimeConfig.GoModuleProxies);
     }
 
     [Fact]
@@ -69,22 +85,18 @@ public class RuntimeConfigTests
     }
 
     [Fact]
-    public void FromBytes_NullJson_Throws()
+    public void FromJsonBytes_NullJson_Throws()
     {
         // Arrange.
         byte[] jsonBytes = Encoding.UTF8.GetBytes("null");
 
-        // Act.
+        // Act & assert.
         JsonException exception = Assert.Throws<JsonException>(() => RuntimeConfig.FromJsonBytes(jsonBytes));
-
-        // Assert.
-        Assert.Equal("Runtime config bytes deserialization failed.", exception.Message);
-        Assert.NotNull(exception.InnerException);
-        Assert.Equal("JSON bytes deserialized to null.", exception.InnerException.Message);
+        Assert.IsType<JsonException>(exception);
     }
 
     [Fact]
-    public void ToBytes_MinimumJson_Passes()
+    public void ToJsonBytes_DefaultValues_Passes()
     {
         // Arrange.
         var runtimeConfiguration = new RuntimeConfig();

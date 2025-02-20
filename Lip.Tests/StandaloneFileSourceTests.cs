@@ -65,12 +65,9 @@ public class StandaloneFileSourceTests
         // Assert
         Assert.Null(entry);
     }
-}
 
-public class StandaloneFileSourceEntryTests
-{
     [Fact]
-    public void Key_ReturnsEmptyString()
+    public void Entry_Key_ReturnsEmptyString()
     {
         // Arrange
         string filePath = "/path/to/file";
@@ -90,7 +87,7 @@ public class StandaloneFileSourceEntryTests
     }
 
     [Fact]
-    public async Task OpenRead_ReturnsFileStream()
+    public async Task Entry_OpenRead_ReturnsFileStream()
     {
         // Arrange
         string filePath = "/path/to/file";

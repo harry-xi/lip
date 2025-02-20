@@ -2,10 +2,10 @@
 
 namespace Lip.Tests;
 
-public class PackageSpecifierWithoutVersionTests
+public class PackageSpecifierTests
 {
     [Fact]
-    public void With_Passes()
+    public void WithoutVersion_With_Passes()
     {
         // Arrange.
         PackageSpecifierWithoutVersion packageSpecifier = new()
@@ -19,7 +19,7 @@ public class PackageSpecifierWithoutVersionTests
     }
 
     [Fact]
-    public void Constructor_ValidValues_Passes()
+    public void WithoutVersion_Constructor_ValidValues_Passes()
     {
         // Arrange & Act
         var packageSpecifier = new PackageSpecifierWithoutVersion
@@ -35,7 +35,7 @@ public class PackageSpecifierWithoutVersionTests
     }
 
     [Fact]
-    public void Constructor_InvalidToothPath_Throws()
+    public void WithoutVersion_Constructor_InvalidToothPath_Throws()
     {
         // Arrange & Act & Assert
         ArgumentException exception = Assert.Throws<ArgumentException>(() => new PackageSpecifierWithoutVersion
@@ -47,7 +47,7 @@ public class PackageSpecifierWithoutVersionTests
     }
 
     [Fact]
-    public void Constructor_InvalidVariantLabel_Throws()
+    public void WithoutVersion_Constructor_InvalidVariantLabel_Throws()
     {
         // Arrange & Act & Assert
         ArgumentException exception = Assert.Throws<ArgumentException>(() => new PackageSpecifierWithoutVersion
@@ -61,7 +61,7 @@ public class PackageSpecifierWithoutVersionTests
     [Theory]
     [InlineData("example.com/pkg", "variant", "example.com/pkg#variant")]
     [InlineData("example.com/pkg", "", "example.com/pkg")]
-    public void GetSpecifier_ValidValues_Passes(string toothPath, string variantLabel, string specifier)
+    public void WithoutVersion_GetSpecifier_ValidValues_Passes(string toothPath, string variantLabel, string specifier)
     {
         // Arrange
         var packageSpecifier = new PackageSpecifierWithoutVersion
@@ -80,7 +80,7 @@ public class PackageSpecifierWithoutVersionTests
     [Theory]
     [InlineData("example.com/pkg#variant", "example.com/pkg", "variant")]
     [InlineData("example.com/pkg", "example.com/pkg", "")]
-    public void Parse_ValidSpecifierText_Passes(string specifier, string toothPath, string variantLabel)
+    public void WithoutVersion_Parse_ValidSpecifierText_Passes(string specifier, string toothPath, string variantLabel)
     {
         // Arrange & Act
         var packageSpecifier = PackageSpecifierWithoutVersion.Parse(specifier);
@@ -92,7 +92,7 @@ public class PackageSpecifierWithoutVersionTests
     }
 
     [Fact]
-    public void Parse_InvalidSpecifierText_Throws()
+    public void WithoutVersion_Parse_InvalidSpecifierText_Throws()
     {
         // Arrange & Act & Assert
         ArgumentException exception = Assert.Throws<ArgumentException>(() => PackageSpecifierWithoutVersion.Parse("invalid"));
@@ -100,7 +100,7 @@ public class PackageSpecifierWithoutVersionTests
     }
 
     [Fact]
-    public void ToString_ValidValues_Passes()
+    public void WithoutVersion_ToString_ValidValues_Passes()
     {
         // Arrange
         var packageSpecifier = new PackageSpecifierWithoutVersion
@@ -115,10 +115,7 @@ public class PackageSpecifierWithoutVersionTests
         // Assert
         Assert.Equal("example.com/pkg#variant", specifierText);
     }
-}
 
-public class PackageSpecifierTests
-{
     [Fact]
     public void With_Passes()
     {

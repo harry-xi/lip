@@ -129,33 +129,13 @@ public class ArchiveFileSourceTests
         Assert.Null(file);
     }
 
-    private static void CreateTestFiles(
-        MockFileSystem fileSystem,
-        ArchiveType archiveType,
-        CompressionType compressionType,
-        Dictionary<string, string> entries)
-    {
-        using FileSystemStream fileStream = fileSystem.File.Create("archive");
-
-        using IWriter writer = WriterFactory.Open(fileStream, archiveType, new(compressionType));
-
-        foreach (KeyValuePair<string, string> entry in entries)
-        {
-            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(entry.Value));
-            writer.Write(entry.Key, stream);
-        }
-    }
-}
-
-public class ArchiveFileSourceEntryTests
-{
     [Fact]
-    public void Key_ReturnsKey()
+    public void Entry_Key_ReturnsKey()
     {
         // Arrange.
         MockFileSystem fileSystem = new();
 
-        CreateTestFile(fileSystem, ArchiveType.Tar, CompressionType.None);
+        CreateTestFiles(fileSystem, ArchiveType.Tar, CompressionType.None, new() { { "path/to/entry", "test content" } });
 
         ArchiveFileSourceEntry fileSourceEntry = new(fileSystem, "archive", "path/to/entry");
 
@@ -175,12 +155,12 @@ public class ArchiveFileSourceEntryTests
     [InlineData(ArchiveType.Tar, CompressionType.None)]
     [InlineData(ArchiveType.Tar, CompressionType.GZip)]
     [InlineData(ArchiveType.Tar, CompressionType.LZip)]
-    public async Task OpenRead_ReturnsStream(ArchiveType archiveType, CompressionType compressionType)
+    public async Task Entry_OpenRead_ReturnsStream(ArchiveType archiveType, CompressionType compressionType)
     {
         // Arrange.
         MockFileSystem fileSystem = new();
 
-        CreateTestFile(fileSystem, archiveType, compressionType);
+        CreateTestFiles(fileSystem, archiveType, compressionType, new() { { "path/to/entry", "test content" } });
 
         ArchiveFileSourceEntry fileSourceEntry = new(fileSystem, "archive", "path/to/entry");
 
@@ -192,12 +172,12 @@ public class ArchiveFileSourceEntryTests
     }
 
     [Fact]
-    public async Task OpenRead_KeyNotFound_Throws()
+    public async Task Entry_OpenRead_KeyNotFound_Throws()
     {
         // Arrange.
         MockFileSystem fileSystem = new();
 
-        CreateTestFile(fileSystem, ArchiveType.Tar, CompressionType.None);
+        CreateTestFiles(fileSystem, ArchiveType.Tar, CompressionType.None, new() { { "path/to/entry", "test content" } });
 
         ArchiveFileSourceEntry fileSourceEntry = new(fileSystem, "archive", "path/to/entry1");
 
@@ -205,16 +185,20 @@ public class ArchiveFileSourceEntryTests
         await Assert.ThrowsAsync<InvalidOperationException>(fileSourceEntry.OpenRead);
     }
 
-    private static void CreateTestFile(
+    private static void CreateTestFiles(
         MockFileSystem fileSystem,
         ArchiveType archiveType,
-        CompressionType compressionType)
+        CompressionType compressionType,
+        Dictionary<string, string> entries)
     {
         using FileSystemStream fileStream = fileSystem.File.Create("archive");
 
         using IWriter writer = WriterFactory.Open(fileStream, archiveType, new(compressionType));
 
-        using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("test content"));
-        writer.Write("path/to/entry", stream);
+        foreach (KeyValuePair<string, string> entry in entries)
+        {
+            using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(entry.Value));
+            writer.Write(entry.Key, stream);
+        }
     }
 }

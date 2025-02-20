@@ -95,12 +95,9 @@ public class DirectoryFileSourceTests
         // Assert
         Assert.Null(entry);
     }
-}
 
-public class DirectoryFileSourceEntryTests
-{
     [Fact]
-    public void Key_ReturnsKey()
+    public void Entry_Key_ReturnsKey()
     {
         // Arrange
         string filePath = "/path/to/file";
@@ -122,7 +119,7 @@ public class DirectoryFileSourceEntryTests
     }
 
     [Fact]
-    public async Task OpenRead_IsFile_ReturnsFileStream()
+    public async Task Entry_OpenRead_IsFile_ReturnsFileStream()
     {
         // Arrange
         string filePath = "/path/to/file";

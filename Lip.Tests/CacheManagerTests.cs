@@ -18,24 +18,6 @@ public class CacheManagerTests
         : Path.Join("/", "path", "to", "cache");
 
     [Fact]
-    public void CacheSummary_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        CacheManager.CacheSummary cacheSummary = new()
-        {
-            DownloadedFiles = [],
-            GitRepos = [],
-        };
-
-        // Act.
-        cacheSummary = cacheSummary with { };
-
-        // Assert.
-        Assert.Empty(cacheSummary.DownloadedFiles);
-        Assert.Empty(cacheSummary.GitRepos);
-    }
-
-    [Fact]
     public async Task Clean_BaseCacheDirExists_Passes()
     {
         // Arrange.

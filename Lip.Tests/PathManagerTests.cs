@@ -1,5 +1,4 @@
-﻿using Flurl;
-using Semver;
+using Flurl;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Tests;

@@ -1,4 +1,4 @@
-﻿using Semver;
+using Semver;
 using System.IO.Abstractions;
 
 namespace Lip;

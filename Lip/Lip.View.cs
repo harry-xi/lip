@@ -1,4 +1,4 @@
-﻿using Scriban;
+using Scriban;
 using Scriban.Parsing;
 using System.Text;
 

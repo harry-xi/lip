@@ -1,4 +1,4 @@
-﻿using DotNet.Globbing;
+using DotNet.Globbing;
 using Flurl;
 using Semver;
 using System.IO.Abstractions;

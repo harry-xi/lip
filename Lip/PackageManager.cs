@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Semver;

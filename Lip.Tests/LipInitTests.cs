@@ -1,4 +1,4 @@
-﻿using Lip.Context;
+using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;

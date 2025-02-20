@@ -1,4 +1,4 @@
-﻿using Algorithms.Graphs;
+using Algorithms.Graphs;
 using DataStructures.Graphs;
 using Lip.Context;
 using System.Runtime.InteropServices;

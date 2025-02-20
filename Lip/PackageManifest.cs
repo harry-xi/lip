@@ -1,4 +1,4 @@
-﻿using DotNet.Globbing;
+using DotNet.Globbing;
 using Scriban;
 using Scriban.Parsing;
 using Semver;

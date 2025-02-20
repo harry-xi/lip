@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using Lip.Context;
 using Semver;
 using SharpCompress.Archives;

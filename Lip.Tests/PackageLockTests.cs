@@ -1,4 +1,4 @@
-﻿using Semver;
+using Semver;
 using System.Text;
 using System.Text.Json;
 

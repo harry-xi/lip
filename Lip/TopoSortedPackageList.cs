@@ -1,4 +1,4 @@
-﻿using Algorithms.Graphs;
+using Algorithms.Graphs;
 using DataStructures.Graphs;
 using Semver;
 using System.Diagnostics.CodeAnalysis;

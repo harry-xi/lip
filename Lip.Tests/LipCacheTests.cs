@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using Lip.Context;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;

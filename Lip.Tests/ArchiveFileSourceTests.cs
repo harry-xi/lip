@@ -1,4 +1,4 @@
-﻿using SharpCompress.Common;
+using SharpCompress.Common;
 using SharpCompress.Writers;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;

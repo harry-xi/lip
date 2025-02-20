@@ -1,4 +1,4 @@
-﻿using Moq;
+using Moq;
 using System.Text;
 
 namespace Lip.Tests;

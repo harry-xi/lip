@@ -1,4 +1,4 @@
-﻿using Flurl;
+using Flurl;
 using System.Text.RegularExpressions;
 
 namespace Lip;

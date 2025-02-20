@@ -1,6 +1,6 @@
-﻿using System.IO.Abstractions.TestingHelpers;
-using Flurl;
+﻿using Flurl;
 using Semver;
+using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Tests;
 

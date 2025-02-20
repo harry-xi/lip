@@ -1,9 +1,9 @@
-﻿using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
-using System.Text;
-using Semver;
+﻿using Semver;
 using SharpCompress.Common;
 using SharpCompress.Writers;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
+using System.Text;
 
 namespace Lip.Tests;
 

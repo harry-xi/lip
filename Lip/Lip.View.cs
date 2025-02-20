@@ -1,6 +1,6 @@
-﻿using System.Text;
-using Scriban;
+﻿using Scriban;
 using Scriban.Parsing;
+using System.Text;
 
 namespace Lip;
 

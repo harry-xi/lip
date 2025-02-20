@@ -1,7 +1,7 @@
-﻿using System.IO.Abstractions.TestingHelpers;
-using System.Runtime.InteropServices;
-using Lip.Context;
+﻿using Lip.Context;
 using Moq;
+using System.IO.Abstractions.TestingHelpers;
+using System.Runtime.InteropServices;
 
 namespace Lip.Tests;
 

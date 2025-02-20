@@ -1,9 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.IO.Abstractions;
-using Flurl;
+﻿using Flurl;
 using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Semver;
+using System.Diagnostics.CodeAnalysis;
+using System.IO.Abstractions;
 
 namespace Lip;
 

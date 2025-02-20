@@ -1,6 +1,6 @@
-﻿using System.IO.Abstractions.TestingHelpers;
-using Lip.Context;
+﻿using Lip.Context;
 using Moq;
+using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Tests;
 

@@ -1,5 +1,5 @@
-﻿using System.Text;
-using Moq;
+﻿using Moq;
+using System.Text;
 
 namespace Lip.Tests;
 

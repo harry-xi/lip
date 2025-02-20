@@ -1,10 +1,10 @@
-﻿using System.IO.Abstractions.TestingHelpers;
-using System.Runtime.InteropServices;
-using System.Text;
-using Lip.Context;
+﻿using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SharpCompress.Readers;
+using System.IO.Abstractions.TestingHelpers;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Lip.Tests;
 

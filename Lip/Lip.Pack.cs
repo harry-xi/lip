@@ -1,7 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SharpCompress.Common;
 using SharpCompress.Writers;
+using System.Runtime.InteropServices;
 
 namespace Lip;
 

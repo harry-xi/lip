@@ -1,6 +1,6 @@
-﻿using System.Text;
+﻿using Semver;
+using System.Text;
 using System.Text.Json;
-using Semver;
 
 namespace Lip.Tests;
 

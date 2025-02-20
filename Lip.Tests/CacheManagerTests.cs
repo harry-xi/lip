@@ -1,13 +1,13 @@
-﻿using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
-using System.Text;
-using Flurl;
+﻿using Flurl;
 using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using SharpCompress.Common;
 using SharpCompress.Writers;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
+using System.Text;
 
 namespace Lip.Tests;
 

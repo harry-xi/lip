@@ -1,8 +1,8 @@
-﻿using System.IO.Abstractions;
+﻿using SharpCompress.Common;
+using SharpCompress.Writers;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
-using SharpCompress.Common;
-using SharpCompress.Writers;
 
 namespace Lip.Tests;
 

@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Algorithms.Graphs;
+﻿using Algorithms.Graphs;
 using DataStructures.Graphs;
 using Semver;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lip;
 

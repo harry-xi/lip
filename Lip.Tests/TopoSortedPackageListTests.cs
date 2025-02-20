@@ -1,4 +1,4 @@
-﻿using Moq;
+using Moq;
 using Semver;
 
 namespace Lip.Tests;

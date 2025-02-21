@@ -137,6 +137,8 @@ public class PackageManager(
 
                     return [.. goModuleVersionListText
                         .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Where(s => s.StartsWith('v'))
+                        .Select(versionText => versionText.Trim('v'))
                         .Select(versionText => SemVersion.TryParse(versionText, out SemVersion? version) ? version : null)
                         .Where(version => version is not null)];
                 }

@@ -267,7 +267,7 @@ public class PackageManagerTests
     {
         // Arrange.
         var expectedVersions = new List<SemVersion> { new(0, 1, 0), new(0, 2, 0), new(0, 3, 0) };
-        var versionFile = string.Join("\n", expectedVersions.Select((ver) => "v" + ver.ToString())) + "\n0.4.0";
+        var versionFile = string.Join("\n", expectedVersions.Select((ver) => "v" + ver.ToString())) + "\n0.4.0\n15.0.0";
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
 
@@ -308,7 +308,7 @@ public class PackageManagerTests
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
 
         var git = new Mock<IGit>();
-        git.Setup(g => g.ListRemote("https://example.com/user/repo",true,true))
+        git.Setup(g => g.ListRemote("https://example.com/user/repo", true, true))
         .Returns(
             Task<List<ListRemoteResultItem>>.Factory.StartNew(() => [
                 new ListRemoteResultItem{Sha ="175394eb04c96bd99dc095bbbd337008a9cbffa1" ,Ref = "refs/tags/v0.1.0"},

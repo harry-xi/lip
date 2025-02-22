@@ -7,23 +7,38 @@ using System.IO.Abstractions;
 
 namespace Lip;
 
+public interface ICacheManager
+{
+    public interface ICacheSummary
+    {
+        Dictionary<Url, IFileInfo> DownloadedFiles { get; init; }
+        Dictionary<IPathManager.IGitRepoInfo, IDirectoryInfo> GitRepos { get; init; }
+    }
+
+    Task Clean();
+    Task<IFileInfo> GetFileFromUrl(Url url);
+    Task<IFileInfo> GetFileFromUrls(List<Url> originalUrls);
+    Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier);
+    Task<ICacheSummary> List();
+}
+
 public class CacheManager(
     IContext context,
-    PathManager pathManager,
+    IPathManager pathManager,
     List<Url> gitHubProxies,
-    List<Url> goModuleProxies)
+    List<Url> goModuleProxies) : ICacheManager
 {
     [ExcludeFromCodeCoverage]
-    public record CacheSummary
+    private record CacheSummary : ICacheManager.ICacheSummary
     {
         public required Dictionary<Url, IFileInfo> DownloadedFiles { get; init; }
-        public required Dictionary<PathManager.GitRepoInfo, IDirectoryInfo> GitRepos { get; init; }
+        public required Dictionary<IPathManager.IGitRepoInfo, IDirectoryInfo> GitRepos { get; init; }
     }
 
     private readonly IContext _context = context;
     private readonly List<Url> _githubProxies = gitHubProxies;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
-    private readonly PathManager _pathManager = pathManager;
+    private readonly IPathManager _pathManager = pathManager;
 
     public async Task Clean()
     {
@@ -83,7 +98,7 @@ public class CacheManager(
         throw new InvalidOperationException("No remote source is available.");
     }
 
-    public async Task<CacheSummary> List()
+    public async Task<ICacheManager.ICacheSummary> List()
     {
         await Task.Delay(0); // Suppress warning.
 
@@ -114,7 +129,7 @@ public class CacheManager(
             }
         }
 
-        return new CacheSummary()
+        return new CacheSummary
         {
             DownloadedFiles = downloadedFiles.ToDictionary(file => _pathManager.ParseDownloadedFileCachePath(file.FullName)),
             GitRepos = gitRepos.ToDictionary(dir => _pathManager.ParseGitRepoDirCachePath(dir.FullName)),
@@ -159,11 +174,7 @@ public class CacheManager(
         string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
         string tag = $"v{packageSpecifier.Version}";
 
-        string repoDirPath = _pathManager.GetGitRepoDirCachePath(new()
-        {
-            Url = repoUrl,
-            Tag = tag
-        });
+        string repoDirPath = _pathManager.GetGitRepoDirCachePath(repoUrl, tag);
 
         if (!_context.FileSystem.Directory.Exists(repoDirPath))
         {

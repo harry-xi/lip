@@ -52,11 +52,11 @@ public partial class Lip
 
     public async Task<CacheListResult> CacheList(CacheListArgs _)
     {
-        CacheManager.CacheSummary listResult = await _cacheManager.List();
+        ICacheManager.ICacheSummary cacheSummary = await _cacheManager.List();
         return new CacheListResult
         {
-            DownloadedFiles = [.. listResult.DownloadedFiles.Keys],
-            GitRepos = [.. listResult.GitRepos.Keys.Select(repo => $"{repo.Url} {repo.Tag}")],
+            DownloadedFiles = [.. cacheSummary.DownloadedFiles.Keys],
+            GitRepos = [.. cacheSummary.GitRepos.Keys.Select(repo => $"{repo.Url} {repo.Tag}")],
         };
     }
 }

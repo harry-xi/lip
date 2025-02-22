@@ -5,14 +5,20 @@ using System.Runtime.InteropServices;
 
 namespace Lip;
 
+public interface IDependencySolver
+{
+    Task<List<PackageSpecifier>> GetDependencies(List<PackageSpecifier> primaryPackageSpecifiers);
+    Task<List<PackageSpecifierWithoutVersion>> GetUnnecessaryPackages();
+}
+
 public class DependencySolver(
     IContext context,
-    CacheManager cacheManager,
-    PackageManager packageManager)
+    ICacheManager cacheManager,
+    IPackageManager packageManager) : IDependencySolver
 {
-    private readonly CacheManager _cacheManager = cacheManager;
+    private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IContext _context = context;
-    private readonly PackageManager _packageManager = packageManager;
+    private readonly IPackageManager _packageManager = packageManager;
 
     public async Task<List<PackageSpecifier>> GetDependencies(List<PackageSpecifier> primaryPackageSpecifiers)
     {

@@ -7,16 +7,30 @@ using System.Runtime.InteropServices;
 
 namespace Lip;
 
+public interface IPackageManager
+{
+    Task<PackageLock> GetCurrentPackageLock();
+    Task<PackageManifest?> GetCurrentPackageManifestParsed();
+    Task<PackageManifest?> GetCurrentPackageManifestWithTemplate();
+    Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource);
+    Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageSpecifierWithoutVersion packageSpecifier);
+    Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier);
+    Task<List<SemVersion>> GetPackageRemoteVersions(PackageSpecifierWithoutVersion packageSpecifier);
+    Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked);
+    Task SaveCurrentPackageManifest(PackageManifest packageManifest);
+    Task UninstallPackage(PackageSpecifierWithoutVersion packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts);
+}
+
 public class PackageManager(
     IContext context,
-    CacheManager cacheManager,
-    PathManager pathManager,
-    List<Url> goModuleProxies)
+    ICacheManager cacheManager,
+    IPathManager pathManager,
+    List<Url> goModuleProxies) : IPackageManager
 {
-    private readonly CacheManager _cacheManager = cacheManager;
+    private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IContext _context = context;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
-    private readonly PathManager _pathManager = pathManager;
+    private readonly IPathManager _pathManager = pathManager;
 
     public async Task<PackageLock> GetCurrentPackageLock()
     {

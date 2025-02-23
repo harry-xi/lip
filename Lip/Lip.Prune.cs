@@ -1,3 +1,6 @@
+using Semver;
+using System.Runtime.InteropServices;
+
 namespace Lip;
 
 public partial class Lip
@@ -10,12 +13,33 @@ public partial class Lip
 
     public async Task Prune(PruneArgs args)
     {
-        List<PackageSpecifierWithoutVersion> packageSpecifiers = await _dependencySolver.GetUnnecessaryPackages();
+        List<PackageSpecifierWithoutVersion> packageSpecifiersUnnecessary = await _dependencySolver
+            .GetUnnecessaryPackages();
 
-        // Uninstall all unnecessary packages.
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiers)
+        // Sort packages topologically.
+
+        TopoSortedPackageList<PackageUninstallDetail> packageUninstallDetails = [];
+
+        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersUnnecessary)
         {
-            await _packageManager.UninstallPackage(packageSpecifier, args.DryRun, args.IgnoreScripts);
+            PackageManifest packageManifest = (await _packageManager.GetPackageManifestFromInstalledPackages(
+                packageSpecifier))!; // We know that the package is installed.
+
+            packageUninstallDetails.Add(new PackageUninstallDetail
+            {
+                Manifest = packageManifest,
+                VariantLabel = packageSpecifier.VariantLabel
+            });
+        }
+
+        // Uninstall all packages in topological order.
+
+        foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
+        {
+            await _packageManager.UninstallPackage(
+                packageUninstallDetail.Specifier,
+                args.DryRun,
+                args.IgnoreScripts);
         }
     }
 }

@@ -6,7 +6,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace Lip;
 
 /// <summary>
-/// Represents a list of packages that are topologically sorted, where dependencies are placed before dependents.
+/// Represents a list of packages that are topologically sorted, i.e. each package is guaranteed to be listed before
+/// its dependencies.
 /// </summary>
 public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<T>.IItem
 {
@@ -89,9 +90,7 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
 
             foreach (ItemWrapper dependency in dependencies)
             {
-                // To ensure that dependencies are placed before dependents, we add an edge from the dependency
-                // to the dependent.
-                dependencyGraph.AddEdge(dependency, vertex);
+                dependencyGraph.AddEdge(vertex, dependency);
             }
         }
 

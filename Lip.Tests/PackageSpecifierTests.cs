@@ -29,7 +29,7 @@ public class PackageSpecifierTests
         };
 
         // Assert
-        Assert.Equal("example.com/pkg#variant", packageSpecifier.Specifier);
+        Assert.Equal("example.com/pkg#variant", packageSpecifier.Text);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
     }
@@ -71,7 +71,7 @@ public class PackageSpecifierTests
         };
 
         // Act
-        string result = packageSpecifier.Specifier;
+        string result = packageSpecifier.Text;
 
         // Assert
         Assert.Equal(specifier, result);
@@ -86,7 +86,7 @@ public class PackageSpecifierTests
         var packageSpecifier = PackageSpecifierWithoutVersion.Parse(specifier);
 
         // Assert
-        Assert.Equal(specifier, packageSpecifier.Specifier);
+        Assert.Equal(specifier, packageSpecifier.Text);
         Assert.Equal(toothPath, packageSpecifier.ToothPath);
         Assert.Equal(variantLabel, packageSpecifier.VariantLabel);
     }
@@ -130,7 +130,7 @@ public class PackageSpecifierTests
         PackageSpecifier packageSpecifier = packageSpecifierWithoutVersion.WithVersion(SemVersion.Parse("1.0.0"));
 
         // Assert
-        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Specifier);
+        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Text);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
         Assert.Equal("1.0.0", packageSpecifier.Version.ToString());
@@ -163,7 +163,7 @@ public class PackageSpecifierTests
         };
 
         // Assert
-        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Specifier);
+        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Text);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
         Assert.Equal("1.0.0", packageSpecifier.Version.ToString());
@@ -181,7 +181,7 @@ public class PackageSpecifierTests
         };
 
         // Act
-        string specifier = packageSpecifier.Specifier;
+        string specifier = packageSpecifier.Text;
 
         // Assert
         Assert.Equal("example.com/pkg#variant@1.0.0", specifier);
@@ -199,7 +199,7 @@ public class PackageSpecifierTests
         };
 
         // Act
-        string specifier = packageSpecifier.SpecifierWithoutVariant;
+        string specifier = packageSpecifier.TextWithoutVariant;
 
         // Assert
         Assert.Equal("example.com/pkg@1.0.0", specifier);
@@ -212,7 +212,7 @@ public class PackageSpecifierTests
         var packageSpecifier = PackageSpecifier.Parse("example.com/pkg#variant@1.0.0");
 
         // Assert
-        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Specifier);
+        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Text);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("variant", packageSpecifier.VariantLabel);
         Assert.Equal("1.0.0", packageSpecifier.Version.ToString());
@@ -225,7 +225,7 @@ public class PackageSpecifierTests
         var packageSpecifier = PackageSpecifier.Parse("example.com/pkg@1.0.0");
 
         // Assert
-        Assert.Equal("example.com/pkg@1.0.0", packageSpecifier.Specifier);
+        Assert.Equal("example.com/pkg@1.0.0", packageSpecifier.Text);
         Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
         Assert.Equal("", packageSpecifier.VariantLabel);
         Assert.Equal("1.0.0", packageSpecifier.Version.ToString());
@@ -272,7 +272,7 @@ public class PackageSpecifierTests
         PackageSpecifierWithoutVersion packageSpecifierWithoutVersion = packageSpecifier.WithoutVersion();
 
         // Assert
-        Assert.Equal("example.com/pkg#variant", packageSpecifierWithoutVersion.Specifier);
+        Assert.Equal("example.com/pkg#variant", packageSpecifierWithoutVersion.Text);
         Assert.Equal("example.com/pkg", packageSpecifierWithoutVersion.ToothPath);
         Assert.Equal("variant", packageSpecifierWithoutVersion.VariantLabel);
     }

@@ -62,7 +62,7 @@ Examples:
 
 - `--no-dependencies`
 
-  Do not install dependencies. Also bypass prerequisite checks.
+  Bypass dependency resolution and only install the specified packages.
 
 - `--save`
 

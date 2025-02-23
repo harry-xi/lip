@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Semver;
 using System.Runtime.InteropServices;
 
 namespace Lip;
@@ -11,26 +13,74 @@ public partial class Lip
         public required bool Save { get; init; }
     }
 
-    public async Task Uninstall(List<string> packageSpecifierTexts, UninstallArgs args)
+    private record PackageUninstallDetail : TopoSortedPackageList<PackageUninstallDetail>.IItem
     {
-        List<PackageSpecifierWithoutVersion> packageSpecifiersToUninstall = packageSpecifierTexts
-            .ConvertAll(PackageSpecifierWithoutVersion.Parse);
-
-        // Check if all packages to uninstall are installed.
-
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstall)
+        public Dictionary<PackageSpecifierWithoutVersion, SemVersionRange> Dependencies
         {
-            if (await _packageManager.GetPackageManifestFromInstalledPackages(packageSpecifier) is null)
+            get
             {
-                throw new InvalidOperationException($"Package '{packageSpecifier}' is not installed.");
+                return Manifest.GetSpecifiedVariant(
+                        VariantLabel,
+                        RuntimeInformation.RuntimeIdentifier)?
+                        .Dependencies?
+                        .Select(
+                            kvp => new KeyValuePair<PackageSpecifierWithoutVersion, SemVersionRange>(
+                                PackageSpecifierWithoutVersion.Parse(kvp.Key),
+                                SemVersionRange.ParseNpm(kvp.Value)))
+                        .ToDictionary()
+                        ?? [];
             }
         }
 
-        // Uninstall all packages.
+        public required PackageManifest Manifest { get; init; }
 
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstall)
+        public PackageSpecifier Specifier => new()
         {
-            await _packageManager.UninstallPackage(packageSpecifier, args.DryRun, args.IgnoreScripts);
+            ToothPath = Manifest.ToothPath,
+            VariantLabel = VariantLabel,
+            Version = Manifest.Version
+        };
+
+        public required string VariantLabel { get; init; }
+    }
+
+    public async Task Uninstall(List<string> packageSpecifierTextsToUninstall, UninstallArgs args)
+    {
+        List<PackageSpecifierWithoutVersion> packageSpecifiersToUninstallSpecified =
+            packageSpecifierTextsToUninstall.ConvertAll(PackageSpecifierWithoutVersion.Parse);
+
+        // Remove non-installed packages and sort packages topologically.
+
+        TopoSortedPackageList<PackageUninstallDetail> packageUninstallDetails = [];
+
+        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstallSpecified)
+        {
+            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
+                packageSpecifier);
+
+            if (packageManifest is null)
+            {
+                _context.Logger.LogWarning(
+                    "Package '{packageSpecifier}' is not installed. Skipping.",
+                    packageSpecifier);
+                continue;
+            }
+
+            packageUninstallDetails.Add(new PackageUninstallDetail
+            {
+                Manifest = packageManifest,
+                VariantLabel = packageSpecifier.VariantLabel
+            });
+        }
+
+        // Uninstall packages in topological order.
+
+        foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
+        {
+            await _packageManager.UninstallPackage(
+                packageUninstallDetail.Specifier,
+                args.DryRun,
+                args.IgnoreScripts);
         }
 
         // If to save, update the package manifest file.
@@ -55,8 +105,8 @@ public partial class Lip
                         return variant with
                         {
                             Dependencies = variant.Dependencies?
-                                .Where(dependency => !packageSpecifiersToUninstall.Any(
-                                    packageSpecifier => packageSpecifier.Specifier == dependency.Key))
+                                .Where(dependency => !packageSpecifiersToUninstallSpecified.Any(
+                                    packageSpecifier => packageSpecifier.ToString() == dependency.Key))
                                 .ToDictionary()
                         };
                     })

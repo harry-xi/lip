@@ -8,7 +8,7 @@ lip uninstall <package-spec-without-version> ...
 
 ## Description
 
-Uninstall packages.
+Uninstall packages and unused dependencies.
 
 ## Options
 

@@ -79,7 +79,7 @@ public class TopoSortedPackageListTest
         var list = new TopoSortedPackageList<IItem>([item1.Object, item2.Object, item3.Object]);
 
         // Act.
-        IItem item = list[2];
+        IItem item = list[0];
 
         // Assert.
         Assert.Equal(item1.Object, item);
@@ -119,10 +119,10 @@ public class TopoSortedPackageListTest
         newItem.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg4@4.0.0"));
 
         // Act.
-        list[0] = newItem.Object;
+        list[2] = newItem.Object;
 
         // Assert.
-        Assert.Equal([item2.Object, item1.Object, newItem.Object], list);
+        Assert.Equal([newItem.Object, item1.Object, item2.Object], list);
     }
 
     [Fact]

@@ -13,12 +13,12 @@ public partial class Lip
 
     public async Task Uninstall(List<string> packageSpecifierTexts, UninstallArgs args)
     {
-        List<PackageSpecifierWithoutVersion> packageSpecifiers = packageSpecifierTexts
+        List<PackageSpecifierWithoutVersion> packageSpecifiersToUninstall = packageSpecifierTexts
             .ConvertAll(PackageSpecifierWithoutVersion.Parse);
 
         // Check if all packages to uninstall are installed.
 
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiers)
+        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstall)
         {
             if (await _packageManager.GetPackageManifestFromInstalledPackages(packageSpecifier) is null)
             {
@@ -28,7 +28,7 @@ public partial class Lip
 
         // Uninstall all packages.
 
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiers)
+        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstall)
         {
             await _packageManager.UninstallPackage(packageSpecifier, args.DryRun, args.IgnoreScripts);
         }
@@ -55,8 +55,8 @@ public partial class Lip
                         return variant with
                         {
                             Dependencies = variant.Dependencies?
-                                .Where(dependency => !packageSpecifiers.Any(
-                                    packageSpecifier => packageSpecifier.ToothPath == dependency.Key))
+                                .Where(dependency => !packageSpecifiersToUninstall.Any(
+                                    packageSpecifier => packageSpecifier.Specifier == dependency.Key))
                                 .ToDictionary()
                         };
                     })

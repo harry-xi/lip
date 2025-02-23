@@ -13,6 +13,14 @@ public record PackageLock
         [JsonPropertyName("package")]
         public required PackageManifest Package { get; init; }
 
+        [JsonIgnore]
+        public PackageSpecifier Specifier => new()
+        {
+            ToothPath = Package.ToothPath,
+            VariantLabel = VariantLabel,
+            Version = Package.Version,
+        };
+
         [JsonPropertyName("variant")]
         public required string VariantLabel
         {

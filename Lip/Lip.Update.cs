@@ -57,7 +57,7 @@ public partial class Lip
 
         List<PackageSpecifier> dependencyPackageSpecifiers = args.NoDependencies
             ? []
-            : await _dependencySolver.GetDependencies(
+            : await _dependencySolver.ResolveDependencies(
                 packageInstallDetails.ConvertAll(detail => new PackageSpecifier()
                 {
                     ToothPath = detail.Manifest.ToothPath,

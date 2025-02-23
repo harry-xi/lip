@@ -65,7 +65,7 @@ public partial class Lip
 
         _packageManager = new PackageManager(_context, _cacheManager, _pathManager, goModuleProxies);
 
-        _dependencySolver = new DependencySolver(_context, _cacheManager, _packageManager);
+        _dependencySolver = new DependencySolver(_cacheManager, _packageManager);
     }
 
     private async Task<PackageInstallDetail> GetFileSourceFromUserInputPackageText(string userInputPackageText)

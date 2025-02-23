@@ -100,7 +100,7 @@ public partial class Lip
 
         List<PackageSpecifier> dependencyPackageSpecifiers = args.NoDependencies
             ? []
-            : await _dependencySolver.GetDependencies(primaryPackageSpecifiers);
+            : await _dependencySolver.ResolveDependencies(primaryPackageSpecifiers);
 
         foreach (PackageSpecifier dependencyPackageSpecifier in dependencyPackageSpecifiers)
         {

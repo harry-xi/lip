@@ -57,6 +57,16 @@ public record PackageSpecifierWithoutVersion
     {
         return Specifier;
     }
+
+    public PackageSpecifier WithVersion(SemVersion version)
+    {
+        return new PackageSpecifier
+        {
+            ToothPath = ToothPath,
+            VariantLabel = VariantLabel,
+            Version = version
+        };
+    }
 }
 
 public record PackageSpecifier : PackageSpecifierWithoutVersion

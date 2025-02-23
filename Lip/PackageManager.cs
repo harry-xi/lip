@@ -7,16 +7,30 @@ using System.Runtime.InteropServices;
 
 namespace Lip;
 
+public interface IPackageManager
+{
+    Task<PackageLock> GetCurrentPackageLock();
+    Task<PackageManifest?> GetCurrentPackageManifestParsed();
+    Task<PackageManifest?> GetCurrentPackageManifestWithTemplate();
+    Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource);
+    Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageSpecifierWithoutVersion packageSpecifier);
+    Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier);
+    Task<List<SemVersion>> GetPackageRemoteVersions(PackageSpecifierWithoutVersion packageSpecifier);
+    Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked);
+    Task SaveCurrentPackageManifest(PackageManifest packageManifest);
+    Task UninstallPackage(PackageSpecifierWithoutVersion packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts);
+}
+
 public class PackageManager(
     IContext context,
-    CacheManager cacheManager,
-    PathManager pathManager,
-    List<Url> goModuleProxies)
+    ICacheManager cacheManager,
+    IPathManager pathManager,
+    List<Url> goModuleProxies) : IPackageManager
 {
-    private readonly CacheManager _cacheManager = cacheManager;
+    private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IContext _context = context;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
-    private readonly PathManager _pathManager = pathManager;
+    private readonly IPathManager _pathManager = pathManager;
 
     public async Task<PackageLock> GetCurrentPackageLock()
     {
@@ -66,17 +80,12 @@ public class PackageManager(
     {
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        List<PackageLock.LockType> locks = [.. packageLock.Locks.Where(@lock => @lock.Package.ToothPath == packageSpecifier.ToothPath
-            && @lock.VariantLabel == packageSpecifier.VariantLabel)];
+        List<PackageLock.LockType> locks = [.. packageLock.Locks.Where(@lock => @lock.Specifier.WithoutVersion()
+            == packageSpecifier)];
 
-        if (locks.Count == 0)
-        {
-            return null;
-        }
-        else
-        {
-            return locks[0].Package;
-        }
+        return locks.Count == 0
+            ? null
+            : locks[0].Package;
     }
 
     public async Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier)
@@ -347,9 +356,7 @@ public class PackageManager(
         };
 
         PackageManifest packageManifest = (await GetCurrentPackageLock()).Locks
-            .Where(@lock => @lock.Package.ToothPath == packageSpecifier.ToothPath
-                && @lock.Package.Version == packageSpecifier.Version
-                && @lock.VariantLabel == packageSpecifier.VariantLabel)
+            .Where(@lock => @lock.Specifier == packageSpecifier)
             .Select(@lock => @lock.Package)
             .FirstOrDefault()!;
 
@@ -463,9 +470,7 @@ public class PackageManager(
 
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        packageLock.Locks.RemoveAll(@lock => @lock.Package.ToothPath == packageSpecifier.ToothPath
-            && @lock.Package.Version == packageSpecifier.Version
-            && @lock.VariantLabel == packageSpecifier.VariantLabel);
+        packageLock.Locks.RemoveAll(@lock => @lock.Specifier == packageSpecifier);
 
         await SaveCurrentPackageLock(packageLock);
 

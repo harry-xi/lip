@@ -85,7 +85,7 @@ public class LipConfigTests
             "noproxy": "",
             "proxy": ""
         }
-        """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
+        """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class LipConfigTests
             "noproxy": "",
             "proxy": ""
         }
-        """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
+        """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class LipConfigTests
             "noproxy": "",
             "proxy": ""
         }
-        """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
+        """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
 
     [Fact]
@@ -395,7 +395,7 @@ public class LipConfigTests
             "noproxy": "localhost",
             "proxy": "http://proxy.com"
         }
-        """, fileSystem.File.ReadAllText(s_runtimeConfigPath));
+        """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
 
     [Fact]

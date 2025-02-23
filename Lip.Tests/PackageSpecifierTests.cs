@@ -117,6 +117,26 @@ public class PackageSpecifierTests
     }
 
     [Fact]
+    public void WithoutVersion_WithVersion_ValidVersion_Passes()
+    {
+        // Arrange
+        var packageSpecifierWithoutVersion = new PackageSpecifierWithoutVersion
+        {
+            ToothPath = "example.com/pkg",
+            VariantLabel = "variant",
+        };
+
+        // Act
+        PackageSpecifier packageSpecifier = packageSpecifierWithoutVersion.WithVersion(SemVersion.Parse("1.0.0"));
+
+        // Assert
+        Assert.Equal("example.com/pkg#variant@1.0.0", packageSpecifier.Specifier);
+        Assert.Equal("example.com/pkg", packageSpecifier.ToothPath);
+        Assert.Equal("variant", packageSpecifier.VariantLabel);
+        Assert.Equal("1.0.0", packageSpecifier.Version.ToString());
+    }
+
+    [Fact]
     public void With_Passes()
     {
         // Arrange.

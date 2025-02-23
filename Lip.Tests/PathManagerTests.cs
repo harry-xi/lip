@@ -13,23 +13,6 @@ public class PathManagerTests
         : Path.Join("/", "current", "dir");
 
     [Fact]
-    public void GitRepoInfo_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        PathManager.GitRepoInfo repoInfo = new()
-        {
-            Url = "https://example.com/repo",
-            Tag = "main",
-        };
-
-        // Act.
-        repoInfo = repoInfo with { };
-
-        // Assert.
-        // No need to assert anything.
-    }
-
-    [Fact]
     public void GetBaseCacheDir_WithoutBaseCacheDir_Throws()
     {
         // Arrange.
@@ -245,11 +228,7 @@ public class PathManagerTests
         PathManager pathManager = new(fileSystem, baseCacheDir: s_cacheDir);
 
         // Act.
-        string repoCacheDir = pathManager.GetGitRepoDirCachePath(new()
-        {
-            Url = repoUrl,
-            Tag = tag,
-        });
+        string repoCacheDir = pathManager.GetGitRepoDirCachePath(repoUrl, tag);
 
         // Assert.
         Assert.Equal(
@@ -461,7 +440,7 @@ public class PathManagerTests
         string gitRepoDirCachePath = Path.Join(s_cacheDir, "git_repos", repoDir, tagDir);
 
         // Act.
-        PathManager.GitRepoInfo repoInfo = pathManager.ParseGitRepoDirCachePath(gitRepoDirCachePath);
+        IPathManager.IGitRepoInfo repoInfo = pathManager.ParseGitRepoDirCachePath(gitRepoDirCachePath);
 
         // Assert.
         Assert.Equal(expectedUrl, repoInfo.Url);

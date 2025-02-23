@@ -1,14 +1,40 @@
 using DotNet.Globbing;
 using Flurl;
-using Semver;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 
 namespace Lip;
 
-public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, string? workingDir = null)
+public interface IPathManager
 {
-    public record GitRepoInfo
+    public interface IGitRepoInfo
+    {
+        string Url { get; init; }
+        string Tag { get; init; }
+    }
+
+    string BaseCacheDir { get; }
+    string BaseDownloadedFileCacheDir { get; }
+    string BaseGitRepoCacheDir { get; }
+    string CurrentPackageManifestPath { get; }
+    string CurrentPackageLockPath { get; }
+    string PackageManifestFileName { get; }
+    string RuntimeConfigPath { get; }
+    string WorkingDir { get; }
+
+    string GetDownloadedFileCachePath(Url url);
+    string GetGitRepoDirCachePath(string url, string tag);
+    string GetPackageManifestPath(string baseDir);
+    string? GetPlacementRelativePath(PackageManifest.PlaceType placement, string fileSourceEntryKey);
+    Url ParseDownloadedFileCachePath(string downloadedFileCachePath);
+    IGitRepoInfo ParseGitRepoDirCachePath(string repoDirCachePath);
+}
+
+public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, string? workingDir = null) : IPathManager
+{
+    [ExcludeFromCodeCoverage]
+    private record GitRepoInfo : IPathManager.IGitRepoInfo
     {
         public required string Url { get; init; }
         public required string Tag { get; init; }
@@ -45,10 +71,10 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         return _fileSystem.Path.Join(BaseDownloadedFileCacheDir, downloadedFileName);
     }
 
-    public string GetGitRepoDirCachePath(GitRepoInfo repo)
+    public string GetGitRepoDirCachePath(string url, string tag)
     {
-        string repoDirName = Url.Encode(repo.Url);
-        string tagDirName = Url.Encode(repo.Tag);
+        string repoDirName = Url.Encode(url);
+        string tagDirName = Url.Encode(tag);
         return _fileSystem.Path.Join(BaseGitRepoCacheDir, repoDirName, tagDirName);
     }
 
@@ -116,7 +142,7 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         return Url.Parse(Url.Decode(match.Groups[1].Value, true));
     }
 
-    public GitRepoInfo ParseGitRepoDirCachePath(string repoDirCachePath)
+    public IPathManager.IGitRepoInfo ParseGitRepoDirCachePath(string repoDirCachePath)
     {
         Regex pattern = new($"{Regex.Escape(BaseGitRepoCacheDir)}{Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*){Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*)");
         Match match = pattern.Match(repoDirCachePath);

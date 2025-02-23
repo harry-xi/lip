@@ -52,6 +52,32 @@ public class PackageLockTests
     }
 
     [Fact]
+    public void LockType_Specifier_Passes()
+    {
+        // Arrange.
+        PackageLock.LockType lockType = new()
+        {
+            Locked = false,
+            Package = new()
+            {
+                FormatVersion = PackageManifest.DefaultFormatVersion,
+                FormatUuid = PackageManifest.DefaultFormatUuid,
+                ToothPath = "example.com/pkg",
+                VersionText = "1.0.0"
+            },
+            VariantLabel = "variant",
+        };
+
+        // Act.
+        PackageSpecifier specifier = lockType.Specifier;
+
+        // Assert.
+        Assert.Equal("example.com/pkg", specifier.ToothPath);
+        Assert.Equal("variant", specifier.VariantLabel);
+        Assert.Equal(SemVersion.Parse("1.0.0"), specifier.Version);
+    }
+
+    [Fact]
     public void Constructor_ValidValue_Passes()
     {
         // Arrange.

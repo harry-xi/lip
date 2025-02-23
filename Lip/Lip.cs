@@ -44,11 +44,11 @@ public partial class Lip
         public required string VariantLabel { get; init; }
     }
 
-    private readonly CacheManager _cacheManager;
+    private readonly ICacheManager _cacheManager;
     private readonly IContext _context;
-    private readonly DependencySolver _dependencySolver;
-    private readonly PackageManager _packageManager;
-    private readonly PathManager _pathManager;
+    private readonly IDependencySolver _dependencySolver;
+    private readonly IPackageManager _packageManager;
+    private readonly IPathManager _pathManager;
     private readonly RuntimeConfig _runtimeConfig;
 
     public Lip(RuntimeConfig runtimeConfig, IContext context)
@@ -56,16 +56,16 @@ public partial class Lip
         _context = context;
         _runtimeConfig = runtimeConfig;
 
-        _pathManager = new(context.FileSystem, baseCacheDir: runtimeConfig.Cache, workingDir: context.WorkingDir);
+        _pathManager = new PathManager(context.FileSystem, baseCacheDir: runtimeConfig.Cache, workingDir: context.WorkingDir);
 
         List<Url> gitHubProxies = runtimeConfig.GitHubProxies.ConvertAll(url => new Url(url));
         List<Url> goModuleProxies = runtimeConfig.GoModuleProxies.ConvertAll(url => new Url(url));
 
-        _cacheManager = new(_context, _pathManager, gitHubProxies, goModuleProxies);
+        _cacheManager = new CacheManager(_context, _pathManager, gitHubProxies, goModuleProxies);
 
-        _packageManager = new(_context, _cacheManager, _pathManager, goModuleProxies);
+        _packageManager = new PackageManager(_context, _cacheManager, _pathManager, goModuleProxies);
 
-        _dependencySolver = new(_context, _cacheManager, _packageManager);
+        _dependencySolver = new DependencySolver(_cacheManager, _packageManager);
     }
 
     private async Task<PackageInstallDetail> GetFileSourceFromUserInputPackageText(string userInputPackageText)

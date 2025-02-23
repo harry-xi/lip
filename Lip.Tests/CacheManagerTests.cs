@@ -392,7 +392,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        CacheManager.CacheSummary listResult = await cacheManager.List();
+        ICacheManager.ICacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Empty(listResult.DownloadedFiles);
@@ -416,7 +416,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        CacheManager.CacheSummary listResult = await cacheManager.List();
+        ICacheManager.ICacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Single(listResult.DownloadedFiles);
@@ -442,7 +442,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        CacheManager.CacheSummary listResult = await cacheManager.List();
+        ICacheManager.ICacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Empty(listResult.DownloadedFiles);
@@ -469,7 +469,7 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        CacheManager.CacheSummary listResult = await cacheManager.List();
+        ICacheManager.ICacheSummary listResult = await cacheManager.List();
 
         // Assert.
         Assert.Empty(listResult.DownloadedFiles);

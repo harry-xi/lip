@@ -27,7 +27,7 @@ public partial class Lip
             PackageInstallDetail installDetail = await GetFileSourceFromUserInputPackageText(packageText);
 
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                installDetail.Specifier);
+                installDetail.Specifier.WithoutVersion());
 
             // If not installed, add to install details.
             if (installedPackageManifest is null)
@@ -100,12 +100,12 @@ public partial class Lip
 
         List<PackageSpecifier> dependencyPackageSpecifiers = args.NoDependencies
             ? []
-            : await _dependencySolver.ResolveDependencies(primaryPackageSpecifiers);
+            : await _dependencySolver.ResolveDependencies(primaryPackageSpecifiers) ?? [];
 
         foreach (PackageSpecifier dependencyPackageSpecifier in dependencyPackageSpecifiers)
         {
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                dependencyPackageSpecifier);
+                dependencyPackageSpecifier.WithoutVersion());
 
             // If installed with the same version, skip.
             if (installedPackageManifest?.Version == dependencyPackageSpecifier.Version)

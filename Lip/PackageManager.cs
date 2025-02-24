@@ -196,7 +196,7 @@ public class PackageManager(
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
 
-        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifier))?.Version;
+        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifier.WithoutVersion()))?.Version;
 
         if (installedVersion == packageSpecifier.Version)
         {

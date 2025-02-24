@@ -26,7 +26,7 @@ public partial class Lip
             PackageInstallDetail installDetail = await GetFileSourceFromUserInputPackageText(packageText);
 
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                installDetail.Specifier)
+                installDetail.Specifier.WithoutVersion())
                 ?? throw new InvalidOperationException(
                     $"Package '{installDetail.Manifest.ToothPath}' is not installed.");
 
@@ -63,12 +63,12 @@ public partial class Lip
                     ToothPath = detail.Manifest.ToothPath,
                     VariantLabel = detail.VariantLabel,
                     Version = detail.Manifest.Version
-                }));
+                })) ?? [];
 
         foreach (PackageSpecifier dependencyPackageSpecifier in dependencyPackageSpecifiers)
         {
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                dependencyPackageSpecifier);
+                dependencyPackageSpecifier.WithoutVersion());
 
             // If installed with the same version, skip.
             if (installedPackageManifest?.Version == dependencyPackageSpecifier.Version)

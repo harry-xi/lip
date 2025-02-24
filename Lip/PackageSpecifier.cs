@@ -2,7 +2,8 @@ using Semver;
 
 namespace Lip;
 
-public record PackageSpecifierWithoutVersion
+
+public record PackageSpecifierCommonPart
 {
     public string Specifier => $"{ToothPath}{(VariantLabel != string.Empty ? "#" : string.Empty)}{VariantLabel}";
 
@@ -37,6 +38,30 @@ public record PackageSpecifierWithoutVersion
     private string _tooth = string.Empty;
     private string _variantLabel = string.Empty;
 
+    public override string ToString()
+    {
+        return Specifier;
+    }
+}
+
+public record PackageSpecifierWithoutVersion : PackageSpecifierCommonPart
+{
+
+    public PackageSpecifier WithVersion(SemVersion version)
+    {
+        return new PackageSpecifier
+        {
+            ToothPath = ToothPath,
+            VariantLabel = VariantLabel,
+            Version = version
+        };
+    }
+
+    public override string ToString()
+    {
+        return Specifier;
+    }
+
     public static PackageSpecifierWithoutVersion Parse(string specifierText)
     {
         if (!StringValidator.CheckPackageSpecifierWithoutVersion(specifierText))
@@ -52,24 +77,9 @@ public record PackageSpecifierWithoutVersion
             VariantLabel = parts.ElementAtOrDefault(1) ?? string.Empty
         };
     }
-
-    public override string ToString()
-    {
-        return Specifier;
-    }
-
-    public PackageSpecifier WithVersion(SemVersion version)
-    {
-        return new PackageSpecifier
-        {
-            ToothPath = ToothPath,
-            VariantLabel = VariantLabel,
-            Version = version
-        };
-    }
 }
 
-public record PackageSpecifier : PackageSpecifierWithoutVersion
+public record PackageSpecifier : PackageSpecifierCommonPart
 {
     public new string Specifier => $"{base.Specifier}@{Version}";
     public string SpecifierWithoutVariant => $"{new PackageSpecifierWithoutVersion()
@@ -80,7 +90,7 @@ public record PackageSpecifier : PackageSpecifierWithoutVersion
 
     public required SemVersion Version { get; init; }
 
-    public static new PackageSpecifier Parse(string specifierText)
+    public static PackageSpecifier Parse(string specifierText)
     {
         if (!StringValidator.CheckPackageSpecifier(specifierText))
         {

@@ -212,7 +212,7 @@ public class PackageManager(
         // If the package does not contain the variant to install, throw exception.
 
         PackageManifest.VariantType packageVariant = packageManifest.GetSpecifiedVariant(
-            string.Empty,
+            variantLabel,
             RuntimeInformation.RuntimeIdentifier)
             ?? throw new InvalidOperationException($"The package does not contain variant {variantLabel}.");
 

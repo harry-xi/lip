@@ -240,7 +240,9 @@ public class PackageManager(
 
         foreach (PackageManifest.AssetType asset in packageVariant.Assets ?? [])
         {
-            IFileSource fileSource = await GetAssetFileSource(asset, packageSpecifier);
+            IFileSource fileSource = await GetAssetFileSource(asset, packageFileSource);
+
+            var entrys = await fileSource.GetAllEntries();
 
             foreach (IFileSourceEntry fileSourceEntry in await fileSource.GetAllEntries())
             {
@@ -253,7 +255,7 @@ public class PackageManager(
                         continue;
                     }
 
-                    string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, destRelative);
+                    string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, place.Dest ,destRelative);
 
                     if (_context.FileSystem.Path.Exists(destPath))
                     {
@@ -265,6 +267,9 @@ public class PackageManager(
                     if (!dryRun)
                     {
                         using Stream fileSourceEntryStream = await fileSourceEntry.OpenRead();
+
+
+                        _context.FileSystem.CreateParentDirectory(destPath);
 
                         await _context.FileSystem.File.WriteAllBytesAsync(
                             destPath,
@@ -408,10 +413,10 @@ public class PackageManager(
         }
 
         // Remove files.
-
+        /* need to rewrite
         foreach (PackageManifest.AssetType asset in packageVariant.Assets ?? [])
         {
-            IFileSource fileSource = await GetAssetFileSource(asset, packageSpecifier);
+            IFileSource fileSource = await GetAssetFileSource(asset, packageSpecifier,null);
 
             List<string> preserve = asset.Preserve ?? [];
             List<string> remove = asset.Remove ?? [];
@@ -465,6 +470,7 @@ public class PackageManager(
                 }
             }
         }
+        */
 
         // Update package lock.
 
@@ -495,11 +501,11 @@ public class PackageManager(
         }
     }
 
-    private async Task<IFileSource> GetAssetFileSource(PackageManifest.AssetType asset, PackageSpecifier packageSpecifier)
+    private async Task<IFileSource> GetAssetFileSource(PackageManifest.AssetType asset, IFileSource packageFileScore)
     {
         if (asset.Type == PackageManifest.AssetType.TypeEnum.Self)
         {
-            return await _cacheManager.GetPackageFileSource(packageSpecifier);
+            return packageFileScore;
         }
 
         List<Url> urls = asset.Urls?.ConvertAll(url => new Url(url))

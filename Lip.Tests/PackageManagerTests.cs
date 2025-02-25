@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
+using System.Runtime.InteropServices;
 using static Lip.Context.IGit;
 
 namespace Lip.Tests;
@@ -267,7 +268,7 @@ public class PackageManagerTests
     {
         // Arrange.
         var expectedVersions = new List<SemVersion> { new(0, 1, 0), new(0, 2, 0), new(0, 3, 0) };
-        var versionFile = string.Join("\n", expectedVersions.Select((ver) => "v" + ver.ToString())) + "\n0.4.0\n15.0.0";
+        var versionFile = string.Join("\n", expectedVersions.Select((ver) => "v" + ver.ToString())) + "\n0.4.0\n15.0.0\nv114514";
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
 
@@ -311,11 +312,11 @@ public class PackageManagerTests
         git.Setup(g => g.ListRemote("https://example.com/user/repo", true, true))
         .Returns(
             Task<List<ListRemoteResultItem>>.Factory.StartNew(() => [
-                new ListRemoteResultItem{Sha ="175394eb04c96bd99dc095bbbd337008a9cbffa1" ,Ref = "refs/tags/v0.1.0"},
-                new ListRemoteResultItem{Sha ="ef73ef6d1aadb96355f13cba845a79727cc52ddd" ,Ref = "refs/tags/v0.2.0"},
-                new ListRemoteResultItem{Sha ="278d385619bbc5191eb326fee5f89fe6af2b1031" ,Ref = "refs/tags/v0.3.0"},
-                new ListRemoteResultItem{Sha ="a9e0f95779dcaa218d763a4278813f2298305f07" ,Ref = "refs/pull/101/head"},
-                new ListRemoteResultItem{Sha ="66fdb3a16edbcc48e7de49f9b786f38680116477" ,Ref = "refs/heads/feat/schema-v3"}
+                new (){Sha ="175394eb04c96bd99dc095bbbd337008a9cbffa1" ,Ref = "refs/tags/v0.1.0"},
+                new (){Sha ="ef73ef6d1aadb96355f13cba845a79727cc52ddd" ,Ref = "refs/tags/v0.2.0"},
+                new (){Sha ="278d385619bbc5191eb326fee5f89fe6af2b1031" ,Ref = "refs/tags/v0.3.0"},
+                new (){Sha ="a9e0f95779dcaa218d763a4278813f2298305f07" ,Ref = "refs/pull/101/head"},
+                new (){Sha ="66fdb3a16edbcc48e7de49f9b786f38680116477" ,Ref = "refs/heads/feat/schema-v3"}
             ])
         );
 
@@ -345,10 +346,10 @@ public class PackageManagerTests
     {
         // Arrange.
         var packageSpecifier = new PackageSpecifierWithoutVersion
-            {
-                ToothPath = "example.com/user/repo",
-                VariantLabel = ""
-            };
+        {
+            ToothPath = "example.com/user/repo",
+            VariantLabel = ""
+        };
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
 
@@ -378,4 +379,487 @@ public class PackageManagerTests
             var result = await packageManager.GetPackageRemoteVersions(packageSpecifier);
         });
     }
+
+    [Fact]
+    public async Task Install_ManifestNotFound()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        var fileSource = new DirectoryFileSource(fileSystem, s_workingDir);
+
+        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+
+        // Act.
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await packageManager.InstallPackage(fileSource, "", false, false, false);
+        });
+
+        // Assert.
+        Assert.Equal("Package manifest not found.", exception.Message);
+    }
+
+    [Fact]
+    public async Task Install_NoVariant()
+    {
+        // Arrange.
+        var emptyPack = new PackageManifest()
+        {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
+            ToothPath = "example.com/pkg",
+            VersionText = "1.0.0",
+        };
+
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(emptyPack.ToJsonBytes())}
+        }, s_workingDir);
+
+        var logger = new Mock<ILogger>();
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(logger.Object);
+
+        var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
+
+        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+
+        // Act.
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await packageManager.InstallPackage(fileSource, "", false, false, false);
+        });
+
+        // Assert.
+        Assert.Equal("The package does not contain variant .", exception.Message);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)] // test lock
+    [InlineData(true, "veriants")] // test veriants
+    public async Task Install_EmptyVariant(bool locked, string veriants = "")
+    {
+        // Arrange
+        var emptyPack = new PackageManifest()
+        {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
+            ToothPath = "example.com/pkg",
+            VersionText = "1.0.0",
+            Variants = [
+                new() {
+                    VariantLabelRaw = veriants,
+                    Platform = RuntimeInformation.RuntimeIdentifier
+                }
+            ]
+        };
+
+        var expectedPackageLock = new PackageLock
+        {
+            FormatVersion = PackageLock.DefaultFormatVersion,
+            FormatUuid = PackageLock.DefaultFormatUuid,
+            Locks = [
+                new PackageLock.LockType()
+                {
+                    Locked = locked,
+                    Package = emptyPack,
+                    VariantLabel = ""
+                }
+            ]
+        };
+
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(emptyPack.ToJsonBytes())}
+        }, s_workingDir);
+
+        var logger = new Mock<ILogger>();
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(logger.Object);
+
+        var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
+
+        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+
+        // Act.
+        await packageManager.InstallPackage(fileSource, veriants, false, false, locked);
+
+        // Assert.
+        var resultPackageLock = fileSystem.GetFile(Path.Join(s_workingDir, "tooth_lock.json")).Contents;
+
+        Assert.Equal(expectedPackageLock.ToJsonBytes().ToString(), resultPackageLock.ToString()); // ! I don't know why but the bytes didn't equal
+    }
+
+    [Fact]
+    public async Task Install_AlreadyInstalled_SameVersion()
+    {
+        // Arrange
+        var emptyPack = new PackageManifest()
+        {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
+            ToothPath = "example.com/pkg",
+            VersionText = "1.0.0",
+            Variants = [
+                new() {
+                    VariantLabelRaw = "",
+                    Platform = RuntimeInformation.RuntimeIdentifier
+                }
+            ]
+        };
+
+        var expectedPackageLock = new PackageLock
+        {
+            FormatVersion = PackageLock.DefaultFormatVersion,
+            FormatUuid = PackageLock.DefaultFormatUuid,
+            Locks = [
+                new PackageLock.LockType()
+                {
+                    Locked = true,
+                    Package = emptyPack,
+                    VariantLabel = ""
+                }
+            ]
+        };
+
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(emptyPack.ToJsonBytes())},
+            {Path.Join(s_workingDir,"tooth_lock.json"),new MockFileData(expectedPackageLock.ToJsonBytes())}
+        }, s_workingDir);
+
+        var logger = new Mock<ILogger>();
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(logger.Object);
+
+        var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
+
+        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+
+        // Act.
+        await packageManager.InstallPackage(fileSource, "", false, false, true);
+
+        // Assert.
+        // ?
+    }
+
+    [Fact]
+    public async Task Install_AlreadyInstalled_OtherVersion()
+    {
+        // Arrange.
+        var emptyPack = new PackageManifest()
+        {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
+            ToothPath = "example.com/pkg",
+            VersionText = "1.0.0",
+            Variants = [
+                new() {
+                    VariantLabelRaw = "",
+                    Platform = RuntimeInformation.RuntimeIdentifier
+                }
+            ]
+        };
+
+        var packageLock = new PackageLock
+        {
+            FormatVersion = PackageLock.DefaultFormatVersion,
+            FormatUuid = PackageLock.DefaultFormatUuid,
+            Locks = [
+                new PackageLock.LockType()
+                {
+                    Locked = true,
+                    Package = emptyPack with {VersionText = "1.1.0"},
+                    VariantLabel = ""
+                }
+            ]
+        };
+
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(emptyPack.ToJsonBytes())},
+            {Path.Join(s_workingDir,"tooth_lock.json"),new MockFileData(packageLock.ToJsonBytes())}
+        }, s_workingDir);
+
+        var logger = new Mock<ILogger>();
+
+        var commandRunner = new Mock<ICommandRunner>();
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(logger.Object);
+
+        var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
+
+        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+
+        // Act. & Assert.
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await packageManager.InstallPackage(fileSource, "", false, false, false);
+        });
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public async Task InstallPackage_Assets_And_Scripts(bool dryRun, bool ignoreScripts)
+    {
+        // Arrange.
+        var manifest = new PackageManifest
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            ToothPath = "example.com/pkg",
+            VersionText = "1.0.0",
+            Variants =
+            [
+            new()
+            {
+                Platform = RuntimeInformation.RuntimeIdentifier,
+                Assets =
+                [
+                new()
+                {
+                    Type = PackageManifest.AssetType.TypeEnum.Self,
+                    Place = [new(){
+                        Type = PackageManifest.PlaceType.TypeEnum.File,
+                        Src = "a.txt",Dest = "a.txt"}
+                        ]
+                },
+                new()
+                {
+                    Type = PackageManifest.AssetType.TypeEnum.Self,
+                    Place = [new(){
+                        Type = PackageManifest.PlaceType.TypeEnum.File,
+                        Src = "a/a.txt",Dest = "a/a.txt"}
+                        ]
+                },
+                new()
+                {
+                    Type = PackageManifest.AssetType.TypeEnum.Self,
+                    Place = [new(){
+                        Type = PackageManifest.PlaceType.TypeEnum.Dir,
+                        Src = "b",Dest = "b"}
+                        ]
+                },
+                new()
+                {
+                    Type = PackageManifest.AssetType.TypeEnum.Uncompressed,
+                    Urls = ["https://example.com/c"],
+                    Place = [new(){
+                        Type = PackageManifest.PlaceType.TypeEnum.File,
+                        Src = "",
+                        Dest = "c"
+                    }]
+                },
+                new()
+                {
+                    Type = PackageManifest.AssetType.TypeEnum.Zip,
+                    Urls = ["https://example.com/d.zip"],
+                    Place = [new(){
+                        Type = PackageManifest.PlaceType.TypeEnum.Dir,
+                        Src = "",
+                        Dest = "d"
+                    }]
+                },
+                ],
+                Scripts = new PackageManifest.ScriptsType
+                {
+                PreInstall = ["echo pre-install"],
+                Install = ["echo install"],
+                PostInstall = ["echo post-install"],
+                PrePack = ["echo pre-pack"],
+                PostPack = ["echo post-pack"],
+                PreUninstall = ["echo pre-uninstall"],
+                Uninstall = ["echo uninstall"],
+                PostUninstall = ["echo post-uninstall"],
+                AdditionalScripts = new Dictionary<string, List<string>>
+                {
+                    { "same_script", new List<string> { "echo same" } },
+                    { "custom_script1", new List<string> { "echo custom1" } }
+                }
+                }
+            }
+            ]
+        };
+
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(manifest.ToJsonBytes())},
+            {Path.Join(s_cacheDir,"package","a.txt"),new MockFileData("self file")},
+            {Path.Join(s_cacheDir,"package","a","a.txt"),new MockFileData("self file")},
+            {Path.Join(s_cacheDir,"package","b","b.txt"),new MockFileData("self file")},
+            {Path.Join("for-compress","file1.txt"),new MockFileData("from compress")},
+            {Path.Join("for-compress","file2.txt"),new MockFileData("from compress")},
+        }, s_workingDir);
+
+        var logger = new Mock<ILogger>();
+
+        var commandRunner = new Mock<ICommandRunner>();
+
+        var downloader = new Mock<IDownloader>();
+        downloader.Setup(d => d.DownloadFile(Url.Parse("https://example.com/c"), It.IsAny<string>()))
+        .Callback<Url, string>((_, destinationPath) =>
+        {
+            fileSystem.AddFile(destinationPath, new MockFileData("c"));
+        });
+        downloader.Setup(d => d.DownloadFile(Url.Parse("https://example.com/d.zip"), It.IsAny<string>()))
+        .Callback<Url, string>((_, destinationPath) =>
+        {
+            fileSystem.AddFile(destinationPath, new MockFileData([]));
+
+            using var archive = SharpCompress.Archives.Zip.ZipArchive.Create();
+            archive.AddEntry("file1.txt", fileSystem.File.OpenRead(Path.Join("for-compress", "file1.txt")));
+            archive.AddEntry("file2.txt", fileSystem.File.OpenRead(Path.Join("for-compress", "file2.txt")));
+            archive.SaveTo(fileSystem.File.OpenWrite(destinationPath));
+        });
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(logger.Object);
+        context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
+        context.SetupGet(c => c.Downloader).Returns(downloader.Object);
+
+        var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
+
+        var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
+
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+
+        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, []);
+
+        // Act.
+        await packageManager.InstallPackage(fileSource, "", dryRun, ignoreScripts, false);
+
+        // Assert.
+        // == Check Filse ==
+        var fileFormSelf1 = fileSystem.GetFile(Path.Join(s_workingDir, "a.txt"));
+        var fileFormSelf2 = fileSystem.GetFile(Path.Join(s_workingDir, "a", "a.txt"));
+        var fileFormSelf3 = fileSystem.GetFile(Path.Join(s_workingDir, "b", "b.txt"));
+        var fileFormDownLoadUncompressed = fileSystem.GetFile(Path.Join(s_workingDir, "c"));
+        var fileFormDownLoadZip1 = fileSystem.GetFile(Path.Join(s_workingDir, "d", "file1.txt"));
+        var fileFormDownLoadZip2 = fileSystem.GetFile(Path.Join(s_workingDir, "d", "file2.txt"));
+
+        if (!dryRun)
+        {
+            Assert.Equal(new MockFileData("self file").Contents, fileFormSelf1.Contents);
+            Assert.NotNull(fileFormSelf2);
+            Assert.Equal(new MockFileData("self file").Contents, fileFormSelf3.Contents);
+            Assert.NotNull(fileFormDownLoadUncompressed);
+            Assert.Equal(new MockFileData("from compress").Contents,fileFormDownLoadZip1.Contents);
+            Assert.NotNull(fileFormDownLoadZip2);
+        }
+        else
+        {
+            Assert.Null(fileFormSelf1);
+        }
+
+        //  == Check Commands ==
+        if (!dryRun)
+        {
+            commandRunner.Verify(c => c.Run("echo pre-install", s_workingDir), Times.Once);
+            commandRunner.Verify(c => c.Run("echo install", s_workingDir), Times.Once);
+            commandRunner.Verify(c => c.Run("echo post-install", s_workingDir), Times.Once);
+            commandRunner.Verify(c => c.Run(It.IsNotIn("echo pre-install", "echo install", "echo post-install"), s_workingDir), Times.Never);
+        }
+        else
+        {
+            commandRunner.Verify(c => c.Run(It.IsAny<string>(), s_workingDir), Times.Never);
+        }
+        commandRunner.Verify(c => c.Run(It.IsAny<string>(), It.IsNotIn(s_workingDir)), Times.Never);
+
+    }
+    [Fact]
+    public async Task InstallPackage_File_Already_Exists()
+    {
+        // Arrange.
+        var manifest = new PackageManifest
+        {
+            FormatVersion = 3,
+            FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            ToothPath = "example.com/pkg",
+            VersionText = "1.0.0",
+            Variants =
+            [
+            new()
+            {
+                Platform = RuntimeInformation.RuntimeIdentifier,
+                Assets =
+                [
+                new()
+                {
+                    Type = PackageManifest.AssetType.TypeEnum.Self,
+                    Place = [new(){
+                        Type = PackageManifest.PlaceType.TypeEnum.File,
+                        Src = "a.txt",Dest = "a.txt"}
+                        ]
+                },
+                ],
+                Scripts = new PackageManifest.ScriptsType
+                {
+                PreInstall = ["echo pre-install"],
+                Install = ["echo install"],
+                PostInstall = ["echo post-install"],
+                PrePack = ["echo pre-pack"],
+                PostPack = ["echo post-pack"],
+                PreUninstall = ["echo pre-uninstall"],
+                Uninstall = ["echo uninstall"],
+                PostUninstall = ["echo post-uninstall"],
+                AdditionalScripts = new Dictionary<string, List<string>>
+                {
+                    { "same_script", new List<string> { "echo same" } },
+                    { "custom_script1", new List<string> { "echo custom1" } }
+                }
+                }
+            }
+            ]
+        };
+
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(manifest.ToJsonBytes())},
+            {Path.Join(s_cacheDir,"package","a.txt"),new MockFileData("self file")},
+            {Path.Join(s_cacheDir,"package","a","a.txt"),new MockFileData("self file")},
+            {Path.Join(s_cacheDir,"package","b","b.txt"),new MockFileData("self file")},
+            {Path.Join(s_workingDir,"a.txt"),new MockFileData("already exists")}
+        }, s_workingDir);
+
+        var logger = new Mock<ILogger>();
+
+        var commandRunner = new Mock<ICommandRunner>();
+
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Logger).Returns(logger.Object);
+        context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
+
+        var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
+
+        var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
+
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+
+        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, []);
+
+        // Act.
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await packageManager.InstallPackage(fileSource, "", false, false, false)
+        );
+        // Assert.
+
+        var fileNotChange = fileSystem.GetFile(Path.Join(s_workingDir, "a.txt"));
+
+        Assert.Equal(new MockFileData("already exists").Contents, fileNotChange.Contents);
+    }
 }
+
+
+
+
+

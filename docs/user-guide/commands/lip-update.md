@@ -3,12 +3,12 @@
 ## Usage
 
 ```shell
-lip update <package-spec>...
+lip update <package>...
 ```
 
 ## Description
 
-Attempt to update the specified packages to the specified versions.
+Update packages and their dependencies from various sources. Equivalent to `lip install --update <package...>`.
 
 ## Options
 
@@ -16,13 +16,18 @@ Attempt to update the specified packages to the specified versions.
 
   Do not actually update any packages. Be aware that files will still be downloaded and cached.
 
+- `-f, --force`
+
+  Force the installation of the package. When a package is already installed but its version is
+  higher than the specified version, lip will still reinstall the package.
+
 - `--ignore-scripts`
 
   Do not run any scripts during updating.
 
 - `--no-dependencies`
 
-  Do not update dependencies.
+  Bypass dependency resolution and only install the specified packages.
 
 - `--save`
 

@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using Semver;
+using SharpCompress.Archives;
 using System.Runtime.InteropServices;
 
 namespace Lip;
@@ -12,6 +14,40 @@ public partial class Lip
         public required bool IgnoreScripts { get; init; }
         public required bool NoDependencies { get; init; }
         public required bool Save { get; init; }
+        public required bool Update { get; init; }
+    }
+
+    private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.IItem
+    {
+        public Dictionary<PackageSpecifierWithoutVersion, SemVersionRange> Dependencies
+        {
+            get
+            {
+                return Manifest.GetSpecifiedVariant(
+                        VariantLabel,
+                        RuntimeInformation.RuntimeIdentifier)?
+                        .Dependencies?
+                        .Select(
+                            kvp => new KeyValuePair<PackageSpecifierWithoutVersion, SemVersionRange>(
+                                PackageSpecifierWithoutVersion.Parse(kvp.Key),
+                                SemVersionRange.ParseNpm(kvp.Value)))
+                        .ToDictionary()
+                        ?? [];
+            }
+        }
+
+        public required IFileSource FileSource { get; init; }
+
+        public required PackageManifest Manifest { get; init; }
+
+        public PackageSpecifier Specifier => new()
+        {
+            ToothPath = Manifest.ToothPath,
+            VariantLabel = VariantLabel,
+            Version = Manifest.Version
+        };
+
+        public required string VariantLabel { get; init; }
     }
 
     public async Task Install(List<string> userInputPackageTexts, InstallArgs args)
@@ -19,12 +55,11 @@ public partial class Lip
         // Parse user input package texts for packages and check conflicts.
 
         TopoSortedPackageList<PackageInstallDetail> packageInstallDetails = [];
-
-        List<PackageSpecifierWithoutVersion> packageSpecifiersToUninstall = [];
+        List<PackageSpecifier> packageSpecifiersToInstallSpecified = [];
 
         foreach (string packageText in userInputPackageTexts)
         {
-            PackageInstallDetail installDetail = await GetFileSourceFromUserInputPackageText(packageText);
+            PackageInstallDetail installDetail = await GetPackageInstallDetailFromUserInput(packageText);
 
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
                 installDetail.Specifier.WithoutVersion());
@@ -33,6 +68,16 @@ public partial class Lip
             if (installedPackageManifest is null)
             {
                 packageInstallDetails.Add(installDetail);
+                packageSpecifiersToInstallSpecified.Add(installDetail.Specifier);
+
+                continue;
+            }
+
+            // If force, add to install details.
+            if (args.Force)
+            {
+                packageInstallDetails.Add(installDetail);
+                packageSpecifiersToInstallSpecified.Add(installDetail.Specifier);
 
                 continue;
             }
@@ -40,129 +85,146 @@ public partial class Lip
             // If installed with the same version, skip.
             if (installedPackageManifest.Version == installDetail.Manifest.Version)
             {
-                _context.Logger.LogWarning("Package '{specifier}' is already installed. Skipping.", new PackageSpecifier()
-                {
-                    ToothPath = installDetail.Manifest.ToothPath,
-                    VariantLabel = installDetail.VariantLabel,
-                    Version = installDetail.Manifest.Version
-                });
+                _context.Logger.LogWarning(
+                    "Package '{specifier}' is already installed. Skipping.",
+                    new PackageSpecifier()
+                    {
+                        ToothPath = installDetail.Manifest.ToothPath,
+                        VariantLabel = installDetail.VariantLabel,
+                        Version = installDetail.Manifest.Version
+                    }
+                );
+
+                continue;
+            }
+
+            // If installed with a previous version and Update is specified, add to install details.
+            if (args.Update && installedPackageManifest.Version.ComparePrecedenceTo(
+                installDetail.Manifest.Version) < 0)
+            {
+                packageInstallDetails.Add(installDetail);
+                packageSpecifiersToInstallSpecified.Add(installDetail.Specifier);
 
                 continue;
             }
 
             // Otherwise, there is a conflict.
-            if (!args.Force)
-            {
-                PackageSpecifier specifier = new()
-                {
-                    ToothPath = installDetail.Manifest.ToothPath,
-                    VariantLabel = installDetail.VariantLabel,
-                    Version = installDetail.Manifest.Version
-                };
 
-                throw new InvalidOperationException(
-                    $"Package '{specifier}' is already installed with a different version '{installedPackageManifest.Version}.");
-            }
-            else
+            PackageSpecifier specifier = new()
             {
-                packageInstallDetails.Add(installDetail);
+                ToothPath = installDetail.Manifest.ToothPath,
+                VariantLabel = installDetail.VariantLabel,
+                Version = installDetail.Manifest.Version
+            };
 
-                packageSpecifiersToUninstall.Add(new PackageSpecifierWithoutVersion()
-                {
-                    ToothPath = installDetail.Manifest.ToothPath,
-                    VariantLabel = installDetail.VariantLabel
-                });
-            }
+            throw new InvalidOperationException(
+                $"Package '{specifier}' is already installed with a different version '{installedPackageManifest.Version}.");
         }
 
         // Solve dependencies.
 
         PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
 
-        List<PackageSpecifier> primaryPackageSpecifiers = [.. packageInstallDetails
+        List<PackageSpecifier> primaryPackageSpecifiers = [
+            .. packageInstallDetails
             .Select(detail => new PackageSpecifier()
             {
                 ToothPath = detail.Manifest.ToothPath,
                 VariantLabel = detail.VariantLabel,
                 Version = detail.Manifest.Version
-            })];
-
-        IEnumerable<PackageSpecifier> lockedPackageSpecifiers = packageLock.Locks
+            }),
+            .. packageLock.Locks
             .Where(@lock => @lock.Locked)
-            .Select(@lock => new PackageSpecifier()
-            {
-                ToothPath = @lock.Package.ToothPath,
-                VariantLabel = @lock.VariantLabel,
-                Version = @lock.Package.Version
-            });
+            .Select(@lock => @lock.Specifier)];
 
-        primaryPackageSpecifiers.AddRange(lockedPackageSpecifiers);
+        List<PackageSpecifier> packageSpecifiersToInstall = (args.NoDependencies
+            ? primaryPackageSpecifiers
+            : await _dependencySolver.ResolveDependencies(
+                primaryPackageSpecifiers,
+                [.. packageLock.Locks.Select(@lock => @lock.Specifier)]))
+                ?? throw new InvalidOperationException("Cannot resolve dependencies.");
 
-        List<PackageSpecifier> dependencyPackageSpecifiers = args.NoDependencies
-            ? []
-            : await _dependencySolver.ResolveDependencies(primaryPackageSpecifiers) ?? [];
+        // Prepare package install details and uninstall details.
 
-        foreach (PackageSpecifier dependencyPackageSpecifier in dependencyPackageSpecifiers)
+        TopoSortedPackageList<PackageUninstallDetail> packageUninstallDetails = [];
+
+        foreach (PackageSpecifier packageSpecifierToInstall in packageSpecifiersToInstall)
         {
-            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                dependencyPackageSpecifier.WithoutVersion());
+            // Skip primary package specifiers because they are already in the install details.
 
-            // If installed with the same version, skip.
-            if (installedPackageManifest?.Version == dependencyPackageSpecifier.Version)
+            if (primaryPackageSpecifiers.Contains(packageSpecifierToInstall))
             {
                 continue;
             }
 
-            // If installed with different version, uninstall.
-            if (installedPackageManifest is not null && installedPackageManifest.Version != dependencyPackageSpecifier.Version)
+            // If installed with the same version, skip.
+
+            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
+                packageSpecifierToInstall.WithoutVersion());
+
+            if (installedPackageManifest?.Version == packageSpecifierToInstall.Version)
             {
-                packageSpecifiersToUninstall.Add(new()
+                _context.Logger.LogInformation(
+                    "Dependency package '{specifier}' is already installed. Skipping.",
+                    new PackageSpecifier()
+                    {
+                        ToothPath = packageSpecifierToInstall.ToothPath,
+                        VariantLabel = packageSpecifierToInstall.VariantLabel,
+                        Version = packageSpecifierToInstall.Version
+                    }
+                );
+                continue;
+            }
+
+            // If installed with different version, add to uninstall details.
+
+            if (installedPackageManifest is not null
+                && installedPackageManifest.Version != packageSpecifierToInstall.Version)
+            {
+                packageUninstallDetails.Add(new PackageUninstallDetail
                 {
-                    ToothPath = dependencyPackageSpecifier.ToothPath,
-                    VariantLabel = dependencyPackageSpecifier.VariantLabel
+                    Manifest = installedPackageManifest,
+                    VariantLabel = packageSpecifierToInstall.VariantLabel
                 });
             }
 
             // Add to install details.
 
-            IFileSource fileSource = await _cacheManager.GetPackageFileSource(dependencyPackageSpecifier);
+            IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifierToInstall);
 
             PackageManifest packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource)
-                ?? throw new InvalidOperationException($"Cannot get package manifest from package '{dependencyPackageSpecifier}'.");
+                ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifierToInstall}'.");
 
-            packageInstallDetails.Add(new PackageInstallDetail()
+            packageInstallDetails.Add(new PackageInstallDetail
             {
                 FileSource = fileSource,
                 Manifest = packageManifest,
-                VariantLabel = dependencyPackageSpecifier.VariantLabel
+                VariantLabel = packageSpecifierToInstall.VariantLabel
             });
         }
 
-        // Uninstall packages.
+        // Uninstall packages in topological order.
 
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstall)
+        foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
         {
-            await _packageManager.UninstallPackage(packageSpecifier, args.DryRun, args.IgnoreScripts);
+            await _packageManager.UninstallPackage(
+                packageUninstallDetail.Specifier.WithoutVersion(),
+                args.DryRun,
+                args.IgnoreScripts);
         }
 
-        // Install packages.
+        // Install packages in reverse topological order.
 
-        foreach (PackageInstallDetail packageInstallDetail in packageInstallDetails)
+        foreach (PackageInstallDetail packageInstallDetail
+            in packageInstallDetails.AsEnumerable().Reverse())
         {
-            PackageSpecifier packageSpecifier = new()
-            {
-                ToothPath = packageInstallDetail.Manifest.ToothPath,
-                VariantLabel = packageInstallDetail.VariantLabel,
-                Version = packageInstallDetail.Manifest.Version
-            };
-
-            // Lock the package if it is not a dependency.
+            // Lock the package if it is a primary package specifier.
             await _packageManager.InstallPackage(
                 packageInstallDetail.FileSource,
                 packageInstallDetail.VariantLabel,
                 args.DryRun,
                 args.IgnoreScripts,
-                locked: !dependencyPackageSpecifiers.Contains(packageSpecifier));
+                locked: primaryPackageSpecifiers.Contains(packageInstallDetail.Specifier));
         }
 
         // If to save, update the package manifest file.
@@ -184,25 +246,19 @@ public partial class Lip
                             return variant;
                         }
 
-                        if (variant.Dependencies is null)
+                        return variant with
                         {
-                            return variant;
-                        }
-
-                        PackageManifest.VariantType newVariant = variant with { };
-
-                        foreach (PackageInstallDetail installDetail in packageInstallDetails)
-                        {
-                            PackageSpecifierWithoutVersion packageSpecifier = new()
-                            {
-                                ToothPath = installDetail.Manifest.ToothPath,
-                                VariantLabel = installDetail.VariantLabel
-                            };
-
-                            newVariant.Dependencies![packageSpecifier.ToString()] = installDetail.Manifest.Version.ToString();
-                        }
-
-                        return newVariant;
+                            Dependencies = (variant.Dependencies ?? [])
+                                .Where(kvp => !packageSpecifiersToInstallSpecified.Select(pti => pti.WithoutVersion()).Contains(
+                                    PackageSpecifierWithoutVersion.Parse(kvp.Key)))
+                                .Concat(
+                                    packageSpecifiersToInstallSpecified
+                                    .Select(specifier => new KeyValuePair<string, string>(
+                                        specifier.WithoutVersion().Text,
+                                        specifier.Version.ToString()))
+                                )
+                                .ToDictionary()
+                        };
                     })
             };
 
@@ -211,5 +267,79 @@ public partial class Lip
                 await _packageManager.SaveCurrentPackageManifest(newPackagemanifest);
             }
         }
+    }
+
+    private async Task<PackageInstallDetail> GetPackageInstallDetailFromUserInput(string userInputPackageText)
+    {
+        // First, check if package text refers to a local directory containing a tooth.json file.
+
+        string possibleDirPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, userInputPackageText.Split('#')[0]);
+
+        if (_context.FileSystem.Directory.Exists(possibleDirPath))
+        {
+            DirectoryFileSource directoryFileSource = new(_context.FileSystem, possibleDirPath);
+
+            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(directoryFileSource);
+
+            if (packageManifest is not null)
+            {
+                return new()
+                {
+                    FileSource = directoryFileSource,
+                    Manifest = packageManifest,
+                    VariantLabel = userInputPackageText.Split('#').ElementAtOrDefault(1) ?? string.Empty
+                };
+            }
+        }
+
+        // Second, check if package text refers to a local archive file.
+
+        string possibleFilePath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, userInputPackageText.Split('#')[0]);
+
+        if (_context.FileSystem.File.Exists(possibleFilePath))
+        {
+            using Stream fileStream = _context.FileSystem.File.OpenRead(possibleFilePath);
+
+            if (ArchiveFactory.IsArchive(fileStream, out _))
+            {
+                ArchiveFileSource archiveFileSource = new(_context.FileSystem, possibleFilePath);
+
+                PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(archiveFileSource);
+
+                if (packageManifest is not null)
+                {
+                    return new()
+                    {
+                        FileSource = archiveFileSource,
+                        Manifest = packageManifest,
+                        VariantLabel = userInputPackageText.Split('#').ElementAtOrDefault(1) ?? string.Empty
+                    };
+                }
+            }
+        }
+
+        // Third, assume package text is a package specifier.
+
+        {
+            var packageSpecifier = PackageSpecifier.Parse(userInputPackageText);
+
+            IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
+
+            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource);
+
+            if (packageManifest is not null)
+            {
+                return new()
+                {
+                    FileSource = fileSource,
+                    Manifest = packageManifest,
+                    VariantLabel = packageSpecifier.VariantLabel
+                };
+            }
+        }
+
+        // If none of the above, throw an exception.
+
+        throw new ArgumentException($"Cannot resolve package text '{userInputPackageText}'.", nameof(userInputPackageText));
     }
 }

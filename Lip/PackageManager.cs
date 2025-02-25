@@ -349,7 +349,7 @@ public class PackageManager(
 
         if (installedVersion is null)
         {
-            _context.Logger.LogInformation("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
+            _context.Logger.LogWarning("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
             return;
         }
 

@@ -1,7 +1,6 @@
 using Algorithms.Graphs;
 using DataStructures.Graphs;
 using DataStructures.Lists;
-using Lip.Context;
 using Semver;
 using SharpCompress;
 using System.Runtime.InteropServices;
@@ -11,14 +10,13 @@ namespace Lip;
 public interface IDependencySolver
 {
     Task<List<PackageSpecifierWithoutVersion>> GetUnnecessaryPackages();
-    Task<List<PackageSpecifier>?> ResolveDependencies(List<PackageSpecifier> primaryPackageSpecifiers);
+    Task<List<PackageSpecifier>?> ResolveDependencies(
+        List<PackageSpecifier> primaryPackageSpecifiers,
+        List<PackageSpecifier> installedPackageSpecifiers);
 }
 
-public class DependencySolver(
-    ICacheManager cacheManager,
-    IPackageManager packageManager) : IDependencySolver
+public class DependencySolver(IPackageManager packageManager) : IDependencySolver
 {
-    private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IPackageManager _packageManager = packageManager;
 
     public async Task<List<PackageSpecifierWithoutVersion>> GetUnnecessaryPackages()
@@ -57,7 +55,9 @@ public class DependencySolver(
         return unnecessaryPackages;
     }
 
-    public async Task<List<PackageSpecifier>?> ResolveDependencies(List<PackageSpecifier> primaryPackageSpecifiers)
+    public async Task<List<PackageSpecifier>?> ResolveDependencies(
+        List<PackageSpecifier> primaryPackageSpecifiers,
+        List<PackageSpecifier> installedPackageSpecifiers)
     {
         await Task.Delay(0); // Suppress warning.
 
@@ -69,7 +69,12 @@ public class DependencySolver(
             Selected = []
         };
 
-        PackageDependencyGraph graph = new(_packageManager);
+        Dictionary<PackageSpecifierWithoutVersion, SemVersion> installedPackages = installedPackageSpecifiers
+            .ToDictionary(
+                packageSpecifier => packageSpecifier.WithoutVersion(),
+                packageSpecifier => packageSpecifier.Version);
+
+        PackageDependencyGraph graph = new(_packageManager, installedPackages);
 
         graph.AddVertex(initialState);
 
@@ -96,7 +101,9 @@ file record LockTypeVertex : PackageLock.LockType, IComparable<LockTypeVertex>
     public int CompareTo(LockTypeVertex? other) => throw new NotImplementedException();
 }
 
-file class PackageDependencyGraph(IPackageManager packageManager)
+file class PackageDependencyGraph(
+    IPackageManager packageManager,
+    Dictionary<PackageSpecifierWithoutVersion, SemVersion> installedPackages)
     : DirectedSparseGraph<PackageDependencyGraph.Vertex>
 {
     public class Vertex : IComparable<Vertex>
@@ -121,7 +128,7 @@ file class PackageDependencyGraph(IPackageManager packageManager)
         {
             HashCode hash = new();
 
-            foreach (var candidate in Candidates.OrderBy(c => c.Key.ToString()))
+            foreach (var candidate in Candidates.OrderBy(c => c.Key.Text))
             {
                 hash.Add(candidate.Key);
                 foreach (var version in candidate.Value.OrderBy(v => v))
@@ -130,7 +137,7 @@ file class PackageDependencyGraph(IPackageManager packageManager)
                 }
             }
 
-            foreach (var selected in Selected.OrderBy(s => s.Key.ToString()))
+            foreach (var selected in Selected.OrderBy(s => s.Key.Text))
             {
                 hash.Add(selected.Key);
                 hash.Add(selected.Value);
@@ -174,6 +181,7 @@ file class PackageDependencyGraph(IPackageManager packageManager)
         }
     }
 
+    private readonly Dictionary<PackageSpecifierWithoutVersion, SemVersion> _installedPackages = installedPackages;
     private readonly IPackageManager _packageManager = packageManager;
 
     public override DLinkedList<Vertex> Neighbours(Vertex vertex)
@@ -183,9 +191,12 @@ file class PackageDependencyGraph(IPackageManager packageManager)
             return base.Neighbours(vertex);
         }
 
-        // Select the candidate with least versions and get sorted versions
+        // Select the candidate with least versions and get sorted versions. The installed
+        // version is always preferred.
         KeyValuePair<PackageSpecifierWithoutVersion, List<SemVersion>> packageCandidate = vertex.Candidates.MinBy(kvp => kvp.Value.Count);
-        IOrderedEnumerable<SemVersion> versionCandidates = packageCandidate.Value.OrderBy(v => v, SemVersion.PrecedenceComparer);
+        IOrderedEnumerable<SemVersion> versionCandidates = packageCandidate.Value
+            .OrderByDescending(v => _installedPackages.TryGetValue(packageCandidate.Key, out var installedVersion) && v == installedVersion)
+            .ThenBy(v => v, SemVersion.PrecedenceComparer);
 
         // Process each version candidate
         List<Vertex> neighbors = [.. Task.WhenAll(versionCandidates.Select(async version =>

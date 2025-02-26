@@ -948,7 +948,7 @@ public class PackageManagerTests
 
                 },
                 ],
-                Preserve = ["*"],
+                Preserve = ["d/file1.txt"],
                 Remove = ["d/file2.txt"],
                 Scripts = new PackageManifest.ScriptsType
                 {
@@ -1044,7 +1044,7 @@ public class PackageManagerTests
             Assert.Null(dirA);
             Assert.Null(fileFormSelf3);
             Assert.Null(fileFormDownLoadUncompressed);
-            // Assert.NotNull(fileFormDownLoadZip1);
+            Assert.NotNull(fileFormDownLoadZip1);
             Assert.Null(fileFormDownLoadZip2);
             Assert.NotNull(userFile);
         }

@@ -317,7 +317,9 @@ public class PackageManifestTests
             Platform = "platform",
             Dependencies = dependencies,
             Assets = [],
-            Scripts = new()
+            Scripts = new(),
+            Remove = [],
+            Preserve = [],
         };
 
         // Assert.
@@ -328,6 +330,10 @@ public class PackageManifestTests
         Assert.NotNull(variant.Assets);
         Assert.Empty(variant.Assets);
         Assert.NotNull(variant.Scripts);
+        Assert.NotNull(variant.Remove);
+        Assert.Empty(variant.Remove);
+        Assert.NotNull(variant.Preserve);
+        Assert.Empty(variant.Preserve);
     }
 
     [Fact]
@@ -626,7 +632,9 @@ public class PackageManifestTests
                     Platform = "platform",
                     Dependencies = {},
                     Assets = [],
-                    Scripts = new()
+                    Scripts = new(),
+                    Preserve = [],
+                    Remove = [],
                 }
             ]
         };
@@ -644,6 +652,10 @@ public class PackageManifestTests
         Assert.NotNull(variant.Assets);
         Assert.Empty(variant.Assets);
         Assert.NotNull(variant.Scripts);
+        Assert.NotNull(variant.Remove);
+        Assert.Empty(variant.Remove);
+        Assert.NotNull(variant.Preserve);
+        Assert.Empty(variant.Preserve);
         Assert.Null(variant.Scripts.PreInstall);
         Assert.Null(variant.Scripts.Install);
         Assert.Null(variant.Scripts.PostInstall);

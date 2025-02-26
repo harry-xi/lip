@@ -279,6 +279,7 @@ public record PackageManifest
         [JsonPropertyName("assets")]
         public List<AssetType>? Assets { get; init; }
 
+        [JsonPropertyName("preserve")]
         public List<string>? Preserve
         {
             get => _preserve;
@@ -490,6 +491,8 @@ public record PackageManifest
                 .SelectMany(variant => variant.Dependencies ?? [])
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
             Assets = [.. matchedVariants.SelectMany(variant => variant.Assets ?? [])],
+            Preserve = [.. matchedVariants.SelectMany(variant => variant.Preserve ?? [])],
+            Remove = [.. matchedVariants.SelectMany(Variant => Variant.Remove ?? [])],
             Scripts = new ScriptsType
             {
                 PreInstall = matchedVariants

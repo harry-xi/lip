@@ -1,3 +1,4 @@
+using DotNet.Globbing;
 using Flurl;
 using Lip.Context;
 using Microsoft.Extensions.Logging;
@@ -237,6 +238,7 @@ public class PackageManager(
         }
 
         // Place files.
+        List<string> placedFiles = [];
 
         foreach (PackageManifest.AssetType asset in packageVariant.Assets ?? [])
         {
@@ -255,7 +257,7 @@ public class PackageManager(
                         continue;
                     }
 
-                    string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, place.Dest ,destRelative);
+                    string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, place.Dest, destRelative);
 
                     if (_context.FileSystem.Path.Exists(destPath))
                     {
@@ -274,6 +276,7 @@ public class PackageManager(
                         await _context.FileSystem.File.WriteAllBytesAsync(
                             destPath,
                             await fileSourceEntryStream.ReadAsync());
+                        placedFiles.Add(_context.FileSystem.Path.Join(place.Dest, destRelative));
                     }
                 }
             }
@@ -307,7 +310,8 @@ public class PackageManager(
         {
             Package = packageManifest,
             VariantLabel = variantLabel,
-            Locked = locked
+            Locked = locked,
+            Files = placedFiles,
         });
 
         await SaveCurrentPackageLock(packageLock);
@@ -365,6 +369,11 @@ public class PackageManager(
             .Select(@lock => @lock.Package)
             .FirstOrDefault()!;
 
+        List<string> installedFiles = (await GetCurrentPackageLock()).Locks
+            .Where(@lock => @lock.Specifier == packageSpecifier)
+            .Select(@lock => @lock.Files)
+            .FirstOrDefault()!;
+
         // If the package does not contain the variant to install, throw exception.
 
         PackageManifest.VariantType packageVariant = packageManifest.GetSpecifiedVariant(
@@ -413,64 +422,48 @@ public class PackageManager(
         }
 
         // Remove files.
-        /* need to rewrite
-        foreach (PackageManifest.AssetType asset in packageVariant.Assets ?? [])
+
+        IEnumerable<Glob> preserve = (packageVariant.Preserve ?? []).Select(p => Glob.Parse(p));
+        List<string> remove = packageVariant.Remove ?? [];
+
+        foreach (var file in installedFiles)
         {
-            IFileSource fileSource = await GetAssetFileSource(asset, packageSpecifier,null);
-
-            List<string> preserve = asset.Preserve ?? [];
-            List<string> remove = asset.Remove ?? [];
-
-            foreach (IFileSourceEntry fileSourceEntry in await fileSource.GetAllEntries())
+            if (preserve.Any(p => p.IsMatch(file)))
             {
-                foreach (PackageManifest.PlaceType place in asset.Place ?? [])
-                {
-                    string? destRelative = _pathManager.GetPlacementRelativePath(place, fileSourceEntry.Key);
-
-                    if (destRelative is null)
-                    {
-                        continue;
-                    }
-
-                    if (preserve.Contains(destRelative))
-                    {
-                        continue;
-                    }
-
-                    string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, destRelative);
-
-                    _context.Logger.LogDebug("Removing file: {destPath}", destPath);
-
-                    if (!dryRun)
-                    {
-                        if (_context.FileSystem.File.Exists(destPath))
-                        {
-                            _context.FileSystem.File.Delete(destPath);
-                        }
-
-                        RemoveParentDirectoriesUntilWorkingDir(destPath);
-                    }
-                }
+                continue;
             }
 
-            foreach (string removePath in remove)
+            string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, file);
+
+            _context.Logger.LogDebug("Removing file: {destPath}", destPath);
+
+            if (!dryRun)
             {
-                string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, removePath);
-
-                _context.Logger.LogDebug("Removing file: {destPath}", destPath);
-
-                if (!dryRun)
+                if (_context.FileSystem.File.Exists(destPath))
                 {
-                    if (_context.FileSystem.File.Exists(destPath))
-                    {
-                        _context.FileSystem.File.Delete(destPath);
-                    }
-
-                    RemoveParentDirectoriesUntilWorkingDir(destPath);
+                    _context.FileSystem.File.Delete(destPath);
                 }
+
+                RemoveParentDirectoriesUntilWorkingDir(destPath);
             }
         }
-        */
+
+        foreach (string removePath in remove)
+        {
+            string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, removePath);
+
+            _context.Logger.LogDebug("Removing file: {destPath}", destPath);
+
+            if (!dryRun)
+            {
+                if (_context.FileSystem.File.Exists(destPath))
+                {
+                    _context.FileSystem.File.Delete(destPath);
+                }
+
+                RemoveParentDirectoriesUntilWorkingDir(destPath);
+            }
+        }
 
         // Update package lock.
 
@@ -537,7 +530,7 @@ public class PackageManager(
 
     private void RemoveParentDirectoriesUntilWorkingDir(string path)
     {
-        path = _context.FileSystem.Path.Join(_pathManager.WorkingDir, path);
+        path = _context.FileSystem.Path.Combine(_pathManager.WorkingDir, path);
 
         string? parentDir = _context.FileSystem.Path.GetDirectoryName(path);
 

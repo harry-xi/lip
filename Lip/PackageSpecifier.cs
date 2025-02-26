@@ -37,11 +37,6 @@ public record PackageSpecifierCommonPart
 
     private string _tooth = string.Empty;
     private string _variantLabel = string.Empty;
-
-    public override string ToString()
-    {
-        return Text;
-    }
 }
 
 public record PackageSpecifierWithoutVersion : PackageSpecifierCommonPart

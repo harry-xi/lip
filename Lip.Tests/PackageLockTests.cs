@@ -32,7 +32,7 @@ public class PackageLockTests
         Assert.Equal("example.com/pkg", lockType.Package.ToothPath);
         Assert.Equal("1.0.0", lockType.Package.VersionText);
         Assert.Equal(string.Empty, lockType.VariantLabel);
-        Assert.Equal([],lockType.Files);
+        Assert.Equal([], lockType.Files);
     }
 
     [Fact]

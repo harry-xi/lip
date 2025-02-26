@@ -54,7 +54,7 @@ public record PackageManifest
         [JsonPropertyName("place")]
         public List<PlaceType>? Place { get; init; }
 
-                [JsonPropertyName("preserve")]
+        [JsonPropertyName("preserve")]
 
         private List<string>? _urls;
 
@@ -279,7 +279,7 @@ public record PackageManifest
         [JsonPropertyName("assets")]
         public List<AssetType>? Assets { get; init; }
 
-                public List<string>? Preserve
+        public List<string>? Preserve
         {
             get => _preserve;
             init

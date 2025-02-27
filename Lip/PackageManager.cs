@@ -12,7 +12,6 @@ public interface IPackageManager
 {
     Task<PackageLock> GetCurrentPackageLock();
     Task<PackageManifest?> GetCurrentPackageManifestParsed();
-    Task<PackageManifest?> GetCurrentPackageManifestWithTemplate();
     Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource);
     Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageIdentifier packageSpecifier);
     Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier);
@@ -61,18 +60,6 @@ public class PackageManager(
         }
 
         return PackageManifest.FromJsonBytesParsed(packageManifestBytes);
-    }
-
-    public async Task<PackageManifest?> GetCurrentPackageManifestWithTemplate()
-    {
-        byte[]? packageManifestBytes = await GetCurrentPackageManifestBytes();
-
-        if (packageManifestBytes == null)
-        {
-            return null;
-        }
-
-        return PackageManifest.FromJsonBytesWithTemplate(packageManifestBytes);
     }
 
     public async Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageIdentifier packageSpecifier)

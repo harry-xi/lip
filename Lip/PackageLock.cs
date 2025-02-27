@@ -64,7 +64,7 @@ public record PackageLock
                     Files = rawPackage.Files,
                     Locked = rawPackage.Locked,
                     Manifest = PackageManifest.FromJsonElement(rawPackage.Manifest),
-                    VariantLabel = rawPackage.VariantLabel,
+                    VariantLabel = rawPackage.Variant,
                 }),
         };
     }
@@ -81,7 +81,7 @@ public record PackageLock
                     Files = package.Files,
                     Locked = package.Locked,
                     Manifest = package.Manifest.ToJsonElement(),
-                    VariantLabel = package.VariantLabel,
+                    Variant = package.VariantLabel,
                 }),
         };
 
@@ -104,7 +104,7 @@ file record RawPackageLock
         public required JsonElement Manifest { get; init; }
 
         [JsonPropertyName("variant")]
-        public required string VariantLabel { get; init; }
+        public required string Variant { get; init; }
     }
 
     [JsonPropertyName("format_version")]

@@ -15,7 +15,7 @@ public partial class Lip
 
     private record PackageUninstallDetail : TopoSortedPackageList<PackageUninstallDetail>.IItem
     {
-        public Dictionary<PackageSpecifierWithoutVersion, SemVersionRange> Dependencies
+        public Dictionary<PackageIdentifier, SemVersionRange> Dependencies
         {
             get
             {
@@ -24,8 +24,8 @@ public partial class Lip
                         RuntimeInformation.RuntimeIdentifier)?
                         .Dependencies?
                         .Select(
-                            kvp => new KeyValuePair<PackageSpecifierWithoutVersion, SemVersionRange>(
-                                PackageSpecifierWithoutVersion.Parse(kvp.Key),
+                            kvp => new KeyValuePair<PackageIdentifier, SemVersionRange>(
+                                PackageIdentifier.Parse(kvp.Key),
                                 SemVersionRange.ParseNpm(kvp.Value)))
                         .ToDictionary()
                         ?? [];
@@ -46,14 +46,14 @@ public partial class Lip
 
     public async Task Uninstall(List<string> packageSpecifierTextsToUninstall, UninstallArgs args)
     {
-        List<PackageSpecifierWithoutVersion> packageSpecifiersToUninstallSpecified =
-            packageSpecifierTextsToUninstall.ConvertAll(PackageSpecifierWithoutVersion.Parse);
+        List<PackageIdentifier> packageSpecifiersToUninstallSpecified =
+            packageSpecifierTextsToUninstall.ConvertAll(PackageIdentifier.Parse);
 
         // Remove non-installed packages and sort packages topologically.
 
         TopoSortedPackageList<PackageUninstallDetail> packageUninstallDetails = [];
 
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersToUninstallSpecified)
+        foreach (PackageIdentifier packageSpecifier in packageSpecifiersToUninstallSpecified)
         {
             PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
                 packageSpecifier);
@@ -78,7 +78,7 @@ public partial class Lip
         foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
         {
             await _packageManager.UninstallPackage(
-                packageUninstallDetail.Specifier.WithoutVersion(),
+                packageUninstallDetail.Specifier.Identifier,
                 args.DryRun,
                 args.IgnoreScripts);
         }

@@ -25,17 +25,17 @@ public class TopoSortedPackageListTest
         // Arrange.
         var item1 = new Mock<IItem>();
         item1.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
         item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
         item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
@@ -58,17 +58,17 @@ public class TopoSortedPackageListTest
         // Arrange.
         var item1 = new Mock<IItem>();
         item1.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
         item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
         item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
@@ -91,17 +91,17 @@ public class TopoSortedPackageListTest
         // Arrange.
         var item1 = new Mock<IItem>();
         item1.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
         item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
         item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
@@ -112,9 +112,9 @@ public class TopoSortedPackageListTest
         var list = new TopoSortedPackageList<IItem>([item1.Object, item2.Object, item3.Object]);
 
         var newItem = new Mock<IItem>();
-        newItem.SetupGet(i => i.Dependencies).Returns(new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+        newItem.SetupGet(i => i.Dependencies).Returns(new Dictionary<PackageIdentifier, SemVersionRange>()
         {
-            [PackageSpecifierWithoutVersion.Parse("example.com/pkg1")] = SemVersionRange.Parse("1.0.0"),
+            [PackageIdentifier.Parse("example.com/pkg1")] = SemVersionRange.Parse("1.0.0"),
         });
         newItem.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg4@4.0.0"));
 
@@ -131,17 +131,17 @@ public class TopoSortedPackageListTest
         // Arrange.
         var item1 = new Mock<IItem>();
         item1.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
         item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
         item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 
@@ -166,17 +166,17 @@ public class TopoSortedPackageListTest
         // Arrange.
         var item1 = new Mock<IItem>();
         item1.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
             });
         item1.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg1@1.0.0"));
 
         var item2 = new Mock<IItem>();
         item2.SetupGet(i => i.Dependencies).Returns(
-            new Dictionary<PackageSpecifierWithoutVersion, SemVersionRange>()
+            new Dictionary<PackageIdentifier, SemVersionRange>()
             {
-                [PackageSpecifierWithoutVersion.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
+                [PackageIdentifier.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
             });
         item2.SetupGet(i => i.Specifier).Returns(PackageSpecifier.Parse("example.com/pkg2@2.0.0"));
 

@@ -3,23 +3,28 @@ using Semver;
 namespace Lip;
 
 
-public record PackageSpecifierCommonPart
+public record PackageSpecifier
 {
-    public string Text => $"{ToothPath}{(VariantLabel != string.Empty ? "#" : string.Empty)}{VariantLabel}";
+    public PackageIdentifier Identifier => new()
+    {
+        ToothPath = ToothPath,
+        VariantLabel = VariantLabel
+    };
 
     public required string ToothPath
     {
-        get => _tooth;
+        get => _toothPath;
         init
         {
             if (!StringValidator.CheckToothPath(value))
             {
-                throw new ArgumentException("Invalid tooth path.", nameof(ToothPath));
+                throw new ArgumentException($"Invalid tooth path {value}.", nameof(ToothPath));
             }
 
-            _tooth = value;
+            _toothPath = value;
         }
     }
+    private readonly string _toothPath = string.Empty;
 
     public required string VariantLabel
     {
@@ -28,93 +33,53 @@ public record PackageSpecifierCommonPart
         {
             if (!StringValidator.CheckVariantLabel(value))
             {
-                throw new ArgumentException("Invalid variant label.", nameof(VariantLabel));
+                throw new ArgumentException($"Invalid variant label {value}.", nameof(VariantLabel));
             }
 
             _variantLabel = value;
         }
     }
-
-    private string _tooth = string.Empty;
     private string _variantLabel = string.Empty;
-}
 
-public record PackageSpecifierWithoutVersion : PackageSpecifierCommonPart
-{
+    public required SemVersion Version { get; init; }
 
-    public PackageSpecifier WithVersion(SemVersion version)
+    public static PackageSpecifier FromIdentifier(PackageIdentifier identifier, SemVersion version)
     {
         return new PackageSpecifier
         {
-            ToothPath = ToothPath,
-            VariantLabel = VariantLabel,
+            ToothPath = identifier.ToothPath,
+            VariantLabel = identifier.VariantLabel,
             Version = version
         };
     }
 
-    public override string ToString()
+    public static PackageSpecifier Parse(string text)
     {
-        return Text;
-    }
-
-    public static PackageSpecifierWithoutVersion Parse(string specifierText)
-    {
-        if (!StringValidator.CheckPackageSpecifierWithoutVersion(specifierText))
+        if (!StringValidator.CheckPackageSpecifier(text))
         {
-            throw new ArgumentException($"Invalid package specifier '{specifierText}'.", nameof(specifierText));
+            throw new ArgumentException($"Invalid package specifier '{text}'.", nameof(text));
         }
 
-        string[] parts = specifierText.Split('#');
+        string[] parts = text.Split('@');
 
-        return new PackageSpecifierWithoutVersion
-        {
-            ToothPath = parts[0],
-            VariantLabel = parts.ElementAtOrDefault(1) ?? string.Empty
-        };
-    }
-}
-
-public record PackageSpecifier : PackageSpecifierCommonPart
-{
-    public new string Text => $"{base.Text}@{Version}";
-    public string TextWithoutVariant => $"{new PackageSpecifierWithoutVersion()
-    {
-        ToothPath = ToothPath,
-        VariantLabel = string.Empty
-    }.Text}@{Version}";
-
-    public required SemVersion Version { get; init; }
-
-    public static PackageSpecifier Parse(string specifierText)
-    {
-        if (!StringValidator.CheckPackageSpecifier(specifierText))
-        {
-            throw new ArgumentException($"Invalid package specifier '{specifierText}'.", nameof(specifierText));
-        }
-
-        string[] parts = specifierText.Split('@');
-
-        PackageSpecifierWithoutVersion packageSpecifierWithoutVersion = PackageSpecifierWithoutVersion.Parse(parts[0]);
+        PackageIdentifier packageIdentifier = PackageIdentifier.Parse(parts[0]);
 
         return new PackageSpecifier
         {
-            ToothPath = packageSpecifierWithoutVersion.ToothPath,
-            VariantLabel = packageSpecifierWithoutVersion.VariantLabel,
+            ToothPath = packageIdentifier.ToothPath,
+            VariantLabel = packageIdentifier.VariantLabel,
             Version = SemVersion.Parse(parts[1])
         };
     }
 
     public override string ToString()
     {
-        return Text;
-    }
-
-    public PackageSpecifierWithoutVersion WithoutVersion()
-    {
-        return new PackageSpecifierWithoutVersion
+        string packageIdentifierText = new PackageIdentifier
         {
             ToothPath = ToothPath,
             VariantLabel = VariantLabel
-        };
+        }.ToString();
+
+        return $"{packageIdentifierText}@{Version}";
     }
 }

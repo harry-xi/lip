@@ -261,7 +261,7 @@ public record PackageManifest
 
                 foreach (KeyValuePair<string, string> kvp in value)
                 {
-                    if (!StringValidator.CheckPackageSpecifierWithoutVersion(kvp.Key))
+                    if (!StringValidator.CheckPackageIdentifier(kvp.Key))
                     {
                         throw new SchemaViolationException("dependencies", $"Package specifier '{kvp.Key}' is invalid.");
                     }

@@ -13,14 +13,14 @@ public partial class Lip
 
     public async Task Prune(PruneArgs args)
     {
-        List<PackageSpecifierWithoutVersion> packageSpecifiersUnnecessary = await _dependencySolver
+        List<PackageIdentifier> packageSpecifiersUnnecessary = await _dependencySolver
             .GetUnnecessaryPackages();
 
         // Sort packages topologically.
 
         TopoSortedPackageList<PackageUninstallDetail> packageUninstallDetails = [];
 
-        foreach (PackageSpecifierWithoutVersion packageSpecifier in packageSpecifiersUnnecessary)
+        foreach (PackageIdentifier packageSpecifier in packageSpecifiersUnnecessary)
         {
             PackageManifest packageManifest = (await _packageManager.GetPackageManifestFromInstalledPackages(
                 packageSpecifier))!; // We know that the package is installed.
@@ -37,7 +37,7 @@ public partial class Lip
         foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
         {
             await _packageManager.UninstallPackage(
-                packageUninstallDetail.Specifier.WithoutVersion(),
+                packageUninstallDetail.Specifier.Identifier,
                 args.DryRun,
                 args.IgnoreScripts);
         }

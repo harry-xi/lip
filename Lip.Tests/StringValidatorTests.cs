@@ -46,7 +46,7 @@ public class StringValidatorTests
     [InlineData("example.com/pkg#variant")]
     public void CheckPackageSpecifierWithoutVersion_ValidSpecifier_ReturnsTrue(string specifier)
     {
-        Assert.True(StringValidator.CheckPackageSpecifierWithoutVersion(specifier));
+        Assert.True(StringValidator.CheckPackageIdentifier(specifier));
     }
 
     [Theory]
@@ -56,7 +56,7 @@ public class StringValidatorTests
     [InlineData("example.com/pkg#invalid#variant")]
     public void CheckPackageSpecifierWithoutVersion_InvalidSpecifier_ReturnsFalse(string specifier)
     {
-        Assert.False(StringValidator.CheckPackageSpecifierWithoutVersion(specifier));
+        Assert.False(StringValidator.CheckPackageIdentifier(specifier));
     }
 
     [Theory]

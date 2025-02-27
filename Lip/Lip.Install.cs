@@ -19,7 +19,7 @@ public partial class Lip
 
     private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.IItem
     {
-        public Dictionary<PackageSpecifierWithoutVersion, SemVersionRange> Dependencies
+        public Dictionary<PackageIdentifier, SemVersionRange> Dependencies
         {
             get
             {
@@ -28,8 +28,8 @@ public partial class Lip
                         RuntimeInformation.RuntimeIdentifier)?
                         .Dependencies?
                         .Select(
-                            kvp => new KeyValuePair<PackageSpecifierWithoutVersion, SemVersionRange>(
-                                PackageSpecifierWithoutVersion.Parse(kvp.Key),
+                            kvp => new KeyValuePair<PackageIdentifier, SemVersionRange>(
+                                PackageIdentifier.Parse(kvp.Key),
                                 SemVersionRange.ParseNpm(kvp.Value)))
                         .ToDictionary()
                         ?? [];
@@ -62,7 +62,7 @@ public partial class Lip
             PackageInstallDetail installDetail = await GetPackageInstallDetailFromUserInput(packageText);
 
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                installDetail.Specifier.WithoutVersion());
+                installDetail.Specifier.Identifier);
 
             // If not installed, add to install details.
             if (installedPackageManifest is null)
@@ -160,7 +160,7 @@ public partial class Lip
             // If installed with the same version, skip.
 
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                packageSpecifierToInstall.WithoutVersion());
+                packageSpecifierToInstall.Identifier);
 
             if (installedPackageManifest?.Version == packageSpecifierToInstall.Version)
             {
@@ -208,7 +208,7 @@ public partial class Lip
         foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
         {
             await _packageManager.UninstallPackage(
-                packageUninstallDetail.Specifier.WithoutVersion(),
+                packageUninstallDetail.Specifier.Identifier,
                 args.DryRun,
                 args.IgnoreScripts);
         }
@@ -249,12 +249,12 @@ public partial class Lip
                         return variant with
                         {
                             Dependencies = (variant.Dependencies ?? [])
-                                .Where(kvp => !packageSpecifiersToInstallSpecified.Select(pti => pti.WithoutVersion()).Contains(
-                                    PackageSpecifierWithoutVersion.Parse(kvp.Key)))
+                                .Where(kvp => !packageSpecifiersToInstallSpecified.Select(pti => pti.Identifier).Contains(
+                                    PackageIdentifier.Parse(kvp.Key)))
                                 .Concat(
                                     packageSpecifiersToInstallSpecified
                                     .Select(specifier => new KeyValuePair<string, string>(
-                                        specifier.WithoutVersion().Text,
+                                        specifier.Identifier.ToString(),
                                         specifier.Version.ToString()))
                                 )
                                 .ToDictionary()

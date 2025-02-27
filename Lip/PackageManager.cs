@@ -14,12 +14,12 @@ public interface IPackageManager
     Task<PackageManifest?> GetCurrentPackageManifestParsed();
     Task<PackageManifest?> GetCurrentPackageManifestWithTemplate();
     Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource);
-    Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageSpecifierWithoutVersion packageSpecifier);
+    Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageIdentifier packageSpecifier);
     Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier);
-    Task<List<SemVersion>> GetPackageRemoteVersions(PackageSpecifierWithoutVersion packageSpecifier);
+    Task<List<SemVersion>> GetPackageRemoteVersions(PackageIdentifier packageSpecifier);
     Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked);
     Task SaveCurrentPackageManifest(PackageManifest packageManifest);
-    Task UninstallPackage(PackageSpecifierWithoutVersion packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts);
+    Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts);
 }
 
 public class PackageManager(
@@ -75,11 +75,11 @@ public class PackageManager(
         return PackageManifest.FromJsonBytesWithTemplate(packageManifestBytes);
     }
 
-    public async Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageSpecifierWithoutVersion packageSpecifier)
+    public async Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageIdentifier packageSpecifier)
     {
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        List<PackageLock.Package> locks = [.. packageLock.Locks.Where(@lock => @lock.Specifier.WithoutVersion()
+        List<PackageLock.Package> locks = [.. packageLock.Locks.Where(@lock => @lock.Specifier.Identifier
             == packageSpecifier)];
 
         return locks.Count == 0
@@ -113,7 +113,7 @@ public class PackageManager(
         return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
     }
 
-    public async Task<List<SemVersion>> GetPackageRemoteVersions(PackageSpecifierWithoutVersion packageSpecifier)
+    public async Task<List<SemVersion>> GetPackageRemoteVersions(PackageIdentifier packageSpecifier)
     {
         // First, try to get remote versions from the Go module proxy.
 
@@ -195,7 +195,7 @@ public class PackageManager(
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
 
-        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifier.WithoutVersion()))?.Version;
+        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifier.Identifier))?.Version;
 
         if (installedVersion == packageSpecifier.Version)
         {
@@ -343,7 +343,7 @@ public class PackageManager(
             packageManifest.ToJsonBytes());
     }
 
-    public async Task UninstallPackage(PackageSpecifierWithoutVersion packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts)
+    public async Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts)
     {
         SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifierWithoutVersion))?.Version;
 

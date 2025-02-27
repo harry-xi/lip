@@ -28,18 +28,18 @@ public static class StringValidator
             return false;
         }
 
-        return CheckPackageSpecifierWithoutVersion(parts[0]);
+        return CheckPackageIdentifier(parts[0]);
     }
 
     /// <summary>
-    /// Checks if the package specifier is valid without version.
+    /// Checks if the package identifier is valid.
     /// </summary>
-    /// <param name="packageSpecifier">The package specifier to validate.</param>
-    /// <returns>True if the package specifier is valid without version; otherwise, false.</returns>
-    public static bool CheckPackageSpecifierWithoutVersion(string packageSpecifier)
+    /// <param name="packageIdentifier">The package identifier to validate.</param>
+    /// <returns>True if the package identifier is valid; otherwise, false.</returns>
+    public static bool CheckPackageIdentifier(string packageIdentifier)
     {
         // Split the package specifier into tooth path and variant label.
-        string[] toothPathAndVariantLabel = packageSpecifier.Split('#');
+        string[] toothPathAndVariantLabel = packageIdentifier.Split('#');
 
         if (toothPathAndVariantLabel.Length > 2)
         {

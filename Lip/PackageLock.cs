@@ -28,7 +28,7 @@ public record PackageLock
                 ? value
                 : throw new SchemaViolationException("variant", $"Invalid variant label '{value}'.");
         }
-        private string _variantLabel = string.Empty;
+        private readonly string _variantLabel = string.Empty;
     }
 
     public const int DefaultFormatVersion = 3;

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -35,9 +36,9 @@ public record PackageLock
 
     public required List<Package> Locks { get; init; }
 
-    public static PackageLock FromJsonBytes(byte[] bytes)
+    public static async Task<PackageLock> FromStream(Stream stream)
     {
-        RawPackageLock rawPackageLock = RawPackageLock.FromJsonBytes(bytes);
+        RawPackageLock rawPackageLock = await RawPackageLock.FromStream(stream);
 
         // Validate format version and UUID.
 
@@ -68,7 +69,7 @@ public record PackageLock
         };
     }
 
-    public byte[] ToJsonBytes()
+    public async Task ToStream(Stream stream)
     {
         RawPackageLock rawPackageLock = new()
         {
@@ -84,10 +85,11 @@ public record PackageLock
                 }),
         };
 
-        return rawPackageLock.ToJsonBytes();
+        await rawPackageLock.ToStream(stream);
     }
 }
 
+[ExcludeFromCodeCoverage]
 file record RawPackageLock
 {
     public record Package
@@ -123,23 +125,16 @@ file record RawPackageLock
         WriteIndented = true,
     };
 
-    public static RawPackageLock FromJsonBytes(byte[] bytes)
+    public static async Task<RawPackageLock> FromStream(Stream stream)
     {
-        try
-        {
-            return JsonSerializer.Deserialize<RawPackageLock>(
-                bytes,
-                s_jsonSerializerOptions)
-                ?? throw new SchemaViolationException("", "JSON bytes deserialized to null.");
-        }
-        catch (Exception ex) when (ex is JsonException)
-        {
-            throw new JsonException("Package lock bytes deserialization failed.", ex);
-        }
+        return await JsonSerializer.DeserializeAsync<RawPackageLock>(
+            stream,
+            s_jsonSerializerOptions)
+            ?? throw new SchemaViolationException("", "JSON bytes deserialized to null.");
     }
 
-    public byte[] ToJsonBytes()
+    public async Task ToStream(Stream stream)
     {
-        return JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
+        await JsonSerializer.SerializeAsync(stream, this, s_jsonSerializerOptions);
     }
 }

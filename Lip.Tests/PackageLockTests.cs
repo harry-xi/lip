@@ -1,150 +1,209 @@
-using Semver;
 using System.Text;
-using System.Text.Json;
 
 namespace Lip.Tests;
 
 public class PackageLockTests
 {
-    [Fact]
-    public void LockType_Constructor_Passes()
+    #region Tests for PackageLock.Package
+
+    private static readonly List<string> _defaultFiles = [
+        "file1.txt",
+        "file2.txt"
+    ];
+
+    private static readonly PackageManifest _defaultManifest = new()
     {
-        // Arrange.
-        PackageLock.Package lockType = new()
+        FormatVersion = PackageManifest.DefaultFormatVersion,
+        FormatUuid = PackageManifest.DefaultFormatUuid,
+        ToothPath = "example.com/pkg",
+        VersionText = "1.0.0"
+    };
+
+    private const string _defaultVariantLabel = "variant";
+
+    [Fact]
+    public void Package_Constructor_ValidValues_ReturnsCorrectInstance()
+    {
+        // Arrange & Act.
+        PackageLock.Package package = new()
         {
+            Files = _defaultFiles,
             Locked = false,
-            Manifest = new()
-            {
-                FormatVersion = PackageManifest.DefaultFormatVersion,
-                FormatUuid = PackageManifest.DefaultFormatUuid,
-                ToothPath = "example.com/pkg",
-                VersionText = "1.0.0"
-            },
-            VariantLabel = string.Empty,
-            Files = []
+            Manifest = _defaultManifest,
+            VariantLabel = _defaultVariantLabel
         };
 
-        // Act.
-        lockType = lockType with { };
+        PackageLock.Package newPackage = package with { };
 
         // Assert.
-        Assert.False(lockType.Locked);
-        Assert.Equal("example.com/pkg", lockType.Manifest.ToothPath);
-        Assert.Equal("1.0.0", lockType.Manifest.VersionText);
-        Assert.Equal(string.Empty, lockType.VariantLabel);
-        Assert.Equal([], lockType.Files);
+        Assert.Equal(_defaultFiles, newPackage.Files);
+        Assert.False(newPackage.Locked);
+        Assert.Equal(_defaultManifest, newPackage.Manifest);
+        Assert.Equal(_defaultVariantLabel, newPackage.VariantLabel);
     }
 
     [Fact]
-    public void LockType_Constructor_InvalidVariantLabel_ThrowsSchemaViolationException()
+    public void Package_Constructor_InvalidVariantLabel_ThrowsSchemaViolationException()
     {
-        // Arrange & Act & Assert
+        // Arrange.
+        string invalidVariantLabel = "invalid variant label";
+
+        // Act & Assert.
         Assert.Throws<SchemaViolationException>(() => new PackageLock.Package
         {
+            Files = _defaultFiles,
             Locked = false,
-            Manifest = new PackageManifest
-            {
-                FormatVersion = PackageManifest.DefaultFormatVersion,
-                FormatUuid = PackageManifest.DefaultFormatUuid,
-                ToothPath = "example.com/pkg",
-                VersionText = "1.0.0"
-            },
-            VariantLabel = "invalid-variant",
-            Files = []
+            Manifest = _defaultManifest,
+            VariantLabel = invalidVariantLabel
         });
     }
 
     [Fact]
-    public void LockType_Specifier_Passes()
+    public void Package_Specifier_ReturnsCorrectSpecifier()
     {
         // Arrange.
-        PackageLock.Package lockType = new()
+        PackageLock.Package package = new()
         {
+            Files = _defaultFiles,
             Locked = false,
-            Manifest = new()
-            {
-                FormatVersion = PackageManifest.DefaultFormatVersion,
-                FormatUuid = PackageManifest.DefaultFormatUuid,
-                ToothPath = "example.com/pkg",
-                VersionText = "1.0.0"
-            },
-            VariantLabel = "variant",
-            Files = []
+            Manifest = _defaultManifest,
+            VariantLabel = _defaultVariantLabel
         };
 
         // Act.
-        PackageSpecifier specifier = lockType.Specifier;
+        PackageSpecifier specifier = package.Specifier;
 
         // Assert.
-        Assert.Equal("example.com/pkg", specifier.ToothPath);
-        Assert.Equal("variant", specifier.VariantLabel);
-        Assert.Equal(SemVersion.Parse("1.0.0"), specifier.Version);
+        Assert.Equal(_defaultManifest.ToothPath, specifier.ToothPath);
+        Assert.Equal(_defaultVariantLabel, specifier.VariantLabel);
+        Assert.Equal(_defaultManifest.Version, specifier.Version);
     }
 
+    #endregion
+
+    private static readonly List<PackageLock.Package> _defaultPackages =
+    [
+        new PackageLock.Package
+        {
+            Files = _defaultFiles,
+            Locked = false,
+            Manifest = _defaultManifest,
+            VariantLabel = _defaultVariantLabel
+        }
+    ];
+
+    private const string _defaultJson = """
+        {
+            "format_version": 3,
+            "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            "packages": [
+                {
+                    "files": [
+                        "file1.txt",
+                        "file2.txt"
+                    ],
+                    "locked": false,
+                    "manifest": {
+                        "format_version": 3,
+                        "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                        "tooth": "example.com/pkg",
+                        "version": "1.0.0"
+                    },
+                    "variant": "variant"
+                }
+            ]
+        }
+        """;
+
     [Fact]
-    public void Constructor_ValidValue_Passes()
+    public void Constructor_ValidValues_ReturnsCorrectInstance()
     {
-        // Arrange.
+        // Arrange & Act.
         PackageLock packageLock = new()
         {
-            Locks = []
+            Locks = _defaultPackages
         };
 
-        // Act.
-        packageLock = packageLock with { };
+        PackageLock newPackageLock = packageLock with { };
 
         // Assert.
-        Assert.Empty(packageLock.Locks);
+        Assert.Equal(_defaultPackages, newPackageLock.Locks);
     }
 
     [Fact]
-    public void FromBytes_MinimumJsonBytes_Passes()
+    public async Task FromStream_ValidJson_ReturnsCorrectInstance()
     {
-        // Arrange
-        byte[] bytes = Encoding.UTF8.GetBytes($$"""
-            {
-                "format_version": {{PackageLock.DefaultFormatVersion}},
-                "format_uuid": "{{PackageLock.DefaultFormatUuid}}",
-                "packages": []
-            }
-            """);
+        // Arrange.
+        using MemoryStream stream = new(Encoding.UTF8.GetBytes(_defaultJson));
 
-        // Act
-        var packageLock = PackageLock.FromJsonBytes(bytes);
+        // Act.
+        PackageLock packageLock = await PackageLock.FromStream(stream);
 
-        // Assert
-        Assert.Empty(packageLock.Locks);
+        // Assert.
+        Assert.Single(packageLock.Locks);
+        PackageLock.Package package = packageLock.Locks[0];
+        Assert.Equal(_defaultFiles, package.Files);
+        Assert.False(package.Locked);
+        Assert.Equal(_defaultManifest, package.Manifest);
+        Assert.Equal(_defaultVariantLabel, package.VariantLabel);
     }
 
     [Fact]
-    public void FromBytes_NullJson_Throws()
+    public async Task FromStream_NullJson_ThrowsSchemaViolationException()
     {
         // Arrange
-        byte[] bytes = Encoding.UTF8.GetBytes("null");
+        string json = "null";
+        using MemoryStream stream = new(Encoding.UTF8.GetBytes(json));
 
         // Act & Assert
-        Assert.Throws<SchemaViolationException>(() => PackageLock.FromJsonBytes(bytes));
+        await Assert.ThrowsAsync<SchemaViolationException>(
+            async () => await PackageLock.FromStream(stream));
     }
 
     [Fact]
-    public void ToBytes_MinimumJson_Passes()
+    public async Task FromStream_IncorrectFormatVersion_ThrowsSchemaViolationException()
+    {
+        // Arrange
+        string json = _defaultJson.Replace(
+            @"""format_version"": 3",
+            @"""format_version"": 2");
+        using MemoryStream stream = new(Encoding.UTF8.GetBytes(json));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<SchemaViolationException>(
+            async () => await PackageLock.FromStream(stream));
+    }
+
+    [Fact]
+    public async Task FromStream_IncorrectFormatUuid_ThrowsSchemaViolationException()
+    {
+        // Arrange
+        string json = _defaultJson.Replace(
+            @"""format_uuid"": ""289f771f-2c9a-4d73-9f3f-8492495a924d""",
+            @"""format_uuid"": ""incorrect-uuid""");
+        using MemoryStream stream = new(Encoding.UTF8.GetBytes(json));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<SchemaViolationException>(
+            async () => await PackageLock.FromStream(stream));
+    }
+
+    [Fact]
+    public async Task ToStream_MinimumJson_Passes()
     {
         // Arrange
         PackageLock packageLock = new()
         {
-            Locks = []
+            Locks = _defaultPackages
         };
+        using MemoryStream stream = new();
 
         // Act
-        byte[] bytes = packageLock.ToJsonBytes();
+        await packageLock.ToStream(stream);
+        stream.Position = 0;
+        string json = Encoding.UTF8.GetString(stream.ToArray());
 
         // Assert
-        Assert.Equal("""
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "packages": []
-            }
-            """.ReplaceLineEndings(), Encoding.UTF8.GetString(bytes).ReplaceLineEndings());
+        Assert.Equal(_defaultJson.ReplaceLineEndings(), json.ReplaceLineEndings());
     }
 }

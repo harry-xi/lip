@@ -46,9 +46,9 @@ public class PackageManager(
             };
         }
 
-        byte[] packageLockBytes = await _context.FileSystem.File.ReadAllBytesAsync(packageLockFilePath);
+        using Stream packageLockFileStream = _context.FileSystem.File.OpenRead(packageLockFilePath);
 
-        return PackageLock.FromJsonBytes(packageLockBytes);
+        return await PackageLock.FromStream(packageLockFileStream);
     }
 
     public async Task<PackageManifest?> GetCurrentPackageManifestParsed()
@@ -548,8 +548,8 @@ public class PackageManager(
 
     private async Task SaveCurrentPackageLock(PackageLock packageLock)
     {
-        await _context.FileSystem.File.WriteAllBytesAsync(
-            _pathManager.CurrentPackageLockPath,
-            packageLock.ToJsonBytes());
+        using Stream packageLockFileStream = _context.FileSystem.File.Create(_pathManager.CurrentPackageLockPath);
+
+        await packageLock.ToStream(packageLockFileStream);
     }
 }

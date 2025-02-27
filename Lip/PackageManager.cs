@@ -42,8 +42,6 @@ public class PackageManager(
         {
             return new()
             {
-                FormatVersion = PackageLock.DefaultFormatVersion,
-                FormatUuid = PackageLock.DefaultFormatUuid,
                 Locks = []
             };
         }
@@ -81,12 +79,12 @@ public class PackageManager(
     {
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        List<PackageLock.LockType> locks = [.. packageLock.Locks.Where(@lock => @lock.Specifier.WithoutVersion()
+        List<PackageLock.Package> locks = [.. packageLock.Locks.Where(@lock => @lock.Specifier.WithoutVersion()
             == packageSpecifier)];
 
         return locks.Count == 0
             ? null
-            : locks[0].Package;
+            : locks[0].Manifest;
     }
 
     public async Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier)
@@ -308,7 +306,7 @@ public class PackageManager(
 
         packageLock.Locks.Add(new()
         {
-            Package = packageManifest,
+            Manifest = packageManifest,
             VariantLabel = variantLabel,
             Locked = locked,
             Files = placedFiles,
@@ -366,7 +364,7 @@ public class PackageManager(
 
         PackageManifest packageManifest = (await GetCurrentPackageLock()).Locks
             .Where(@lock => @lock.Specifier == packageSpecifier)
-            .Select(@lock => @lock.Package)
+            .Select(@lock => @lock.Manifest)
             .FirstOrDefault()!;
 
         List<string> installedFiles = (await GetCurrentPackageLock()).Locks

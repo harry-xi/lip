@@ -32,7 +32,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
         // Add edges.
         foreach (LockTypeVertex vertex in vertices)
         {
-            vertex.Package.GetSpecifiedVariant(
+            vertex.Manifest.GetSpecifiedVariant(
                 vertex.VariantLabel,
                 RuntimeInformation.RuntimeIdentifier)?
                 .Dependencies?
@@ -48,7 +48,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
             .Where(component => !component.Any(v => v.Locked))
             .SelectMany(component => component)
             .Select(v => new PackageSpecifierWithoutVersion{
-                ToothPath = v.Package.ToothPath,
+                ToothPath = v.Manifest.ToothPath,
                 VariantLabel = v.VariantLabel
             })];
 
@@ -95,7 +95,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     }
 }
 
-file record LockTypeVertex : PackageLock.LockType, IComparable<LockTypeVertex>
+file record LockTypeVertex : PackageLock.Package, IComparable<LockTypeVertex>
 {
     // C-Sharp-Algorithms requires this method to be implemented but we don't know why.
     public int CompareTo(LockTypeVertex? other) => throw new NotImplementedException();

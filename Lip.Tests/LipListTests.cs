@@ -54,10 +54,10 @@ public class LipListTests
             {
                 "format_version": {{PackageLock.DefaultFormatVersion}},
                 "format_uuid": "{{PackageLock.DefaultFormatUuid}}",
-                "locks": [
+                "packages": [
                     {
                         "locked": true,
-                        "package": {
+                        "manifest": {
                             "format_version": {{PackageManifest.DefaultFormatVersion}},
                             "format_uuid": "{{PackageManifest.DefaultFormatUuid}}",
                             "tooth": "example.com/pkg1",
@@ -70,11 +70,11 @@ public class LipListTests
                             ]
                         },
                         "variant": "variant1",
-                        "filse": []
+                        "files": []
                     },
                     {
                         "locked": false,
-                        "package": {
+                        "manifest": {
                             "format_version": {{PackageManifest.DefaultFormatVersion}},
                             "format_uuid": "{{PackageManifest.DefaultFormatUuid}}",
                             "tooth": "example.com/pkg2",
@@ -87,7 +87,7 @@ public class LipListTests
                             ]
                         },
                         "variant": "variant1",
-                        "filse": []
+                        "files": []
                     }
                 ]
             }

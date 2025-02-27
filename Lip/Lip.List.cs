@@ -17,7 +17,7 @@ public partial class Lip
         List<ListResultItem> listItems = packageLock.Locks
             .ConvertAll(@lock => new ListResultItem
             {
-                Manifest = @lock.Package,
+                Manifest = @lock.Manifest,
                 Locked = @lock.Locked
             });
 

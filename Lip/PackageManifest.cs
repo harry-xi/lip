@@ -457,6 +457,12 @@ public record PackageManifest
         }
     }
 
+    public static PackageManifest FromJsonElement(JsonElement json)
+    {
+        return JsonSerializer.Deserialize<PackageManifest>(json, s_jsonSerializerOptions)
+            ?? throw new JsonException("JSON element deserialized to null.");
+    }
+
     /// <summary>
     /// Gets the specified variant.
     /// </summary>

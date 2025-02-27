@@ -29,13 +29,11 @@ public class PackageManagerTests
 
     private static readonly PackageLock s_examplePackageLock = new()
     {
-        FormatVersion = PackageLock.DefaultFormatVersion,
-        FormatUuid = PackageLock.DefaultFormatUuid,
         Locks = [
-                new PackageLock.LockType()
+                new PackageLock.Package()
                 {
                     Locked = true,
-                    Package = s_examplePackage_1,
+                    Manifest = s_examplePackage_1,
                     VariantLabel = "variant",
                     Files = []
                 }
@@ -67,8 +65,6 @@ public class PackageManagerTests
         // Arrange.
         var expectedPackageLock = new PackageLock()
         {
-            FormatVersion = PackageLock.DefaultFormatVersion,
-            FormatUuid = PackageLock.DefaultFormatUuid,
             Locks = []
         };
 
@@ -463,13 +459,11 @@ public class PackageManagerTests
 
         var expectedPackageLock = new PackageLock
         {
-            FormatVersion = PackageLock.DefaultFormatVersion,
-            FormatUuid = PackageLock.DefaultFormatUuid,
             Locks = [
-                new PackageLock.LockType()
+                new PackageLock.Package()
                 {
                     Locked = locked,
-                    Package = emptyPack,
+                    Manifest = emptyPack,
                     VariantLabel = "",
                     Files = []
                 }
@@ -519,13 +513,11 @@ public class PackageManagerTests
 
         var expectedPackageLock = new PackageLock
         {
-            FormatVersion = PackageLock.DefaultFormatVersion,
-            FormatUuid = PackageLock.DefaultFormatUuid,
             Locks = [
-                new PackageLock.LockType()
+                new PackageLock.Package()
                 {
                     Locked = true,
-                    Package = emptyPack,
+                    Manifest = emptyPack,
                     VariantLabel = "",
                     Files = []
                 }
@@ -574,13 +566,11 @@ public class PackageManagerTests
 
         var packageLock = new PackageLock
         {
-            FormatVersion = PackageLock.DefaultFormatVersion,
-            FormatUuid = PackageLock.DefaultFormatUuid,
             Locks = [
-                new PackageLock.LockType()
+                new PackageLock.Package()
                 {
                     Locked = true,
-                    Package = emptyPack with {VersionText = "1.1.0"},
+                    Manifest = emptyPack with {VersionText = "1.1.0"},
                     VariantLabel = "",
                     Files = []
                 }

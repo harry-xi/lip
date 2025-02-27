@@ -10,10 +10,10 @@ public class PackageLockTests
     public void LockType_Constructor_Passes()
     {
         // Arrange.
-        PackageLock.LockType lockType = new()
+        PackageLock.Package lockType = new()
         {
             Locked = false,
-            Package = new()
+            Manifest = new()
             {
                 FormatVersion = PackageManifest.DefaultFormatVersion,
                 FormatUuid = PackageManifest.DefaultFormatUuid,
@@ -29,8 +29,8 @@ public class PackageLockTests
 
         // Assert.
         Assert.False(lockType.Locked);
-        Assert.Equal("example.com/pkg", lockType.Package.ToothPath);
-        Assert.Equal("1.0.0", lockType.Package.VersionText);
+        Assert.Equal("example.com/pkg", lockType.Manifest.ToothPath);
+        Assert.Equal("1.0.0", lockType.Manifest.VersionText);
         Assert.Equal(string.Empty, lockType.VariantLabel);
         Assert.Equal([], lockType.Files);
     }
@@ -39,10 +39,10 @@ public class PackageLockTests
     public void LockType_Constructor_InvalidVariantLabel_ThrowsSchemaViolationException()
     {
         // Arrange & Act & Assert
-        Assert.Throws<SchemaViolationException>(() => new PackageLock.LockType
+        Assert.Throws<SchemaViolationException>(() => new PackageLock.Package
         {
             Locked = false,
-            Package = new PackageManifest
+            Manifest = new PackageManifest
             {
                 FormatVersion = PackageManifest.DefaultFormatVersion,
                 FormatUuid = PackageManifest.DefaultFormatUuid,
@@ -58,10 +58,10 @@ public class PackageLockTests
     public void LockType_Specifier_Passes()
     {
         // Arrange.
-        PackageLock.LockType lockType = new()
+        PackageLock.Package lockType = new()
         {
             Locked = false,
-            Package = new()
+            Manifest = new()
             {
                 FormatVersion = PackageManifest.DefaultFormatVersion,
                 FormatUuid = PackageManifest.DefaultFormatUuid,
@@ -87,8 +87,6 @@ public class PackageLockTests
         // Arrange.
         PackageLock packageLock = new()
         {
-            FormatVersion = PackageLock.DefaultFormatVersion,
-            FormatUuid = PackageLock.DefaultFormatUuid,
             Locks = []
         };
 
@@ -96,33 +94,7 @@ public class PackageLockTests
         packageLock = packageLock with { };
 
         // Assert.
-        Assert.Equal(PackageLock.DefaultFormatVersion, packageLock.FormatVersion);
-        Assert.Equal(PackageLock.DefaultFormatUuid, packageLock.FormatUuid);
         Assert.Empty(packageLock.Locks);
-    }
-
-    [Fact]
-    public void Constructor_InvalidFormatVersion_ThrowsSchemaViolationException()
-    {
-        // Arrange & Act & Assert
-        Assert.Throws<SchemaViolationException>(() => new PackageLock
-        {
-            FormatVersion = 0,
-            FormatUuid = PackageLock.DefaultFormatUuid,
-            Locks = []
-        });
-    }
-
-    [Fact]
-    public void Constructor_InvalidFormatUuid_ThrowsSchemaViolationException()
-    {
-        // Arrange & Act & Assert
-        Assert.Throws<SchemaViolationException>(() => new PackageLock
-        {
-            FormatVersion = PackageLock.DefaultFormatVersion,
-            FormatUuid = "invalid-uuid",
-            Locks = []
-        });
     }
 
     [Fact]
@@ -133,7 +105,7 @@ public class PackageLockTests
             {
                 "format_version": {{PackageLock.DefaultFormatVersion}},
                 "format_uuid": "{{PackageLock.DefaultFormatUuid}}",
-                "locks": []
+                "packages": []
             }
             """);
 
@@ -141,8 +113,6 @@ public class PackageLockTests
         var packageLock = PackageLock.FromJsonBytes(bytes);
 
         // Assert
-        Assert.Equal(PackageLock.DefaultFormatVersion, packageLock.FormatVersion);
-        Assert.Equal(PackageLock.DefaultFormatUuid, packageLock.FormatUuid);
         Assert.Empty(packageLock.Locks);
     }
 
@@ -153,8 +123,7 @@ public class PackageLockTests
         byte[] bytes = Encoding.UTF8.GetBytes("null");
 
         // Act & Assert
-        JsonException exception = Assert.Throws<JsonException>(() => PackageLock.FromJsonBytes(bytes));
-        Assert.IsType<JsonException>(exception.InnerException);
+        Assert.Throws<SchemaViolationException>(() => PackageLock.FromJsonBytes(bytes));
     }
 
     [Fact]
@@ -163,8 +132,6 @@ public class PackageLockTests
         // Arrange
         PackageLock packageLock = new()
         {
-            FormatVersion = PackageLock.DefaultFormatVersion,
-            FormatUuid = PackageLock.DefaultFormatUuid,
             Locks = []
         };
 
@@ -176,7 +143,7 @@ public class PackageLockTests
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "locks": []
+                "packages": []
             }
             """.ReplaceLineEndings(), Encoding.UTF8.GetString(bytes).ReplaceLineEndings());
     }

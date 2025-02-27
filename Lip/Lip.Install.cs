@@ -13,7 +13,6 @@ public partial class Lip
         public required bool Force { get; init; }
         public required bool IgnoreScripts { get; init; }
         public required bool NoDependencies { get; init; }
-        public required bool Save { get; init; }
         public required bool Update { get; init; }
     }
 
@@ -225,47 +224,6 @@ public partial class Lip
                 args.DryRun,
                 args.IgnoreScripts,
                 locked: primaryPackageSpecifiers.Contains(packageInstallDetail.Specifier));
-        }
-
-        // If to save, update the package manifest file.
-
-        if (args.Save)
-        {
-            PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifestWithTemplate()
-                ?? throw new InvalidOperationException("Package manifest is not found.");
-
-            PackageManifest newPackagemanifest = packageManifest with
-            {
-                Variants = packageManifest.Variants?
-                    .ConvertAll(variant =>
-                    {
-                        if (!variant.Match(
-                            string.Empty,
-                            RuntimeInformation.RuntimeIdentifier))
-                        {
-                            return variant;
-                        }
-
-                        return variant with
-                        {
-                            Dependencies = (variant.Dependencies ?? [])
-                                .Where(kvp => !packageSpecifiersToInstallSpecified.Select(pti => pti.Identifier).Contains(
-                                    PackageIdentifier.Parse(kvp.Key)))
-                                .Concat(
-                                    packageSpecifiersToInstallSpecified
-                                    .Select(specifier => new KeyValuePair<string, string>(
-                                        specifier.Identifier.ToString(),
-                                        specifier.Version.ToString()))
-                                )
-                                .ToDictionary()
-                        };
-                    })
-            };
-
-            if (!args.DryRun)
-            {
-                await _packageManager.SaveCurrentPackageManifest(newPackagemanifest);
-            }
         }
     }
 

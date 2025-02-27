@@ -19,7 +19,3 @@ Uninstall packages and unused dependencies.
 - `--ignore-scripts`
 
   Do not run any scripts during installation.
-
-- `--save`
-
-  Remove the dependency item of the package in `tooth.json`. Only apply to default variant.

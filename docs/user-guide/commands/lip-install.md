@@ -63,7 +63,3 @@ Examples:
 - `--no-dependencies`
 
   Bypass dependency resolution and only install the specified packages.
-
-- `--save`
-
-  Save the installed packages to the `tooth.json` file as dependencies. Only apply to default variant.

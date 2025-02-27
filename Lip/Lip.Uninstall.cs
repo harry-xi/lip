@@ -10,7 +10,6 @@ public partial class Lip
     {
         public required bool DryRun { get; init; }
         public required bool IgnoreScripts { get; init; }
-        public required bool Save { get; init; }
     }
 
     private record PackageUninstallDetail : TopoSortedPackageList<PackageUninstallDetail>.IItem
@@ -81,41 +80,6 @@ public partial class Lip
                 packageUninstallDetail.Specifier.Identifier,
                 args.DryRun,
                 args.IgnoreScripts);
-        }
-
-        // If to save, update the package manifest file.
-
-        if (args.Save)
-        {
-            PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifestWithTemplate()
-                ?? throw new InvalidOperationException("Package manifest is not found.");
-
-            PackageManifest newPackagemanifest = packageManifest with
-            {
-                Variants = packageManifest.Variants?
-                    .ConvertAll(variant =>
-                    {
-                        if (!variant.Match(
-                            string.Empty,
-                            RuntimeInformation.RuntimeIdentifier))
-                        {
-                            return variant;
-                        }
-
-                        return variant with
-                        {
-                            Dependencies = variant.Dependencies?
-                                .Where(dependency => !packageSpecifiersToUninstallSpecified.Any(
-                                    packageSpecifier => packageSpecifier.ToString() == dependency.Key))
-                                .ToDictionary()
-                        };
-                    })
-            };
-
-            if (!args.DryRun)
-            {
-                await _packageManager.SaveCurrentPackageManifest(newPackagemanifest);
-            }
         }
     }
 }

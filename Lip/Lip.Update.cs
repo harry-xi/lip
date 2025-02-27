@@ -8,7 +8,6 @@ public partial class Lip
         public required bool Force { get; init; }
         public required bool IgnoreScripts { get; init; }
         public required bool NoDependencies { get; init; }
-        public required bool Save { get; init; }
     }
 
     public async Task Update(List<string> userInputPackageTexts, UpdateArgs args)
@@ -19,7 +18,6 @@ public partial class Lip
             Force = args.Force,
             IgnoreScripts = args.IgnoreScripts,
             NoDependencies = args.NoDependencies,
-            Save = args.Save,
             Update = true
         });
     }

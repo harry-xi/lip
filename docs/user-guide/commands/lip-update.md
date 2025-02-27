@@ -28,7 +28,3 @@ Update packages and their dependencies from various sources. Equivalent to `lip 
 - `--no-dependencies`
 
   Bypass dependency resolution and only install the specified packages.
-
-- `--save`
-
-  Save the updated packages to `tooth.json`. Only apply to default variant.

@@ -62,7 +62,7 @@ public partial class Lip
             PackageInstallDetail installDetail = await GetPackageInstallDetailFromUserInput(packageText);
 
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                installDetail.Specifier);
+                installDetail.Specifier.WithoutVersion());
 
             // If not installed, add to install details.
             if (installedPackageManifest is null)
@@ -160,7 +160,7 @@ public partial class Lip
             // If installed with the same version, skip.
 
             PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
-                packageSpecifierToInstall);
+                packageSpecifierToInstall.WithoutVersion());
 
             if (installedPackageManifest?.Version == packageSpecifierToInstall.Version)
             {
@@ -208,7 +208,7 @@ public partial class Lip
         foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
         {
             await _packageManager.UninstallPackage(
-                packageUninstallDetail.Specifier,
+                packageUninstallDetail.Specifier.WithoutVersion(),
                 args.DryRun,
                 args.IgnoreScripts);
         }
@@ -249,7 +249,7 @@ public partial class Lip
                         return variant with
                         {
                             Dependencies = (variant.Dependencies ?? [])
-                                .Where(kvp => !packageSpecifiersToInstallSpecified.Contains(
+                                .Where(kvp => !packageSpecifiersToInstallSpecified.Select(pti => pti.WithoutVersion()).Contains(
                                     PackageSpecifierWithoutVersion.Parse(kvp.Key)))
                                 .Concat(
                                     packageSpecifiersToInstallSpecified

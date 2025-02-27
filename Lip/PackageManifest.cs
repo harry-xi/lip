@@ -55,44 +55,9 @@ public record PackageManifest
         public List<PlaceType>? Place { get; init; }
 
         [JsonPropertyName("preserve")]
-        public List<string>? Preserve
-        {
-            get => _preserve;
-            init
-            {
-                value?.ForEach(preserve =>
-                {
-                    if (!StringValidator.CheckPlaceDestPath(preserve))
-                    {
-                        throw new SchemaViolationException("preserve", $"Path '{preserve}' is unsafe to preserve.");
-                    }
-                });
-
-                _preserve = value;
-            }
-        }
-
-        [JsonPropertyName("remove")]
-        public List<string>? Remove
-        {
-            get => _remove;
-            init
-            {
-                value?.ForEach(remove =>
-                {
-                    if (!StringValidator.CheckPlaceDestPath(remove))
-                    {
-                        throw new SchemaViolationException("remove", $"Path '{remove}' is unsafe to remove.");
-                    }
-                });
-
-                _remove = value;
-            }
-        }
 
         private List<string>? _urls;
-        private List<string>? _preserve;
-        private List<string>? _remove;
+
     }
 
     public partial record InfoType
@@ -314,6 +279,46 @@ public record PackageManifest
         [JsonPropertyName("assets")]
         public List<AssetType>? Assets { get; init; }
 
+        [JsonPropertyName("preserve")]
+        public List<string>? Preserve
+        {
+            get => _preserve;
+            init
+            {
+                value?.ForEach(preserve =>
+                {
+                    if (!StringValidator.CheckPlaceDestPath(preserve))
+                    {
+                        throw new SchemaViolationException("preserve", $"Path '{preserve}' is unsafe to preserve.");
+                    }
+                });
+
+                _preserve = value;
+            }
+        }
+
+        [JsonPropertyName("remove")]
+        public List<string>? Remove
+        {
+            get => _remove;
+            init
+            {
+                value?.ForEach(remove =>
+                {
+                    if (!StringValidator.CheckPlaceDestPath(remove))
+                    {
+                        throw new SchemaViolationException("remove", $"Path '{remove}' is unsafe to remove.");
+                    }
+                });
+
+                _remove = value;
+            }
+        }
+
+        private List<string>? _preserve;
+
+        private List<string>? _remove;
+
         [JsonPropertyName("scripts")]
         public ScriptsType? Scripts { get; init; }
 
@@ -486,6 +491,8 @@ public record PackageManifest
                 .SelectMany(variant => variant.Dependencies ?? [])
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
             Assets = [.. matchedVariants.SelectMany(variant => variant.Assets ?? [])],
+            Preserve = [.. matchedVariants.SelectMany(variant => variant.Preserve ?? [])],
+            Remove = [.. matchedVariants.SelectMany(Variant => Variant.Remove ?? [])],
             Scripts = new ScriptsType
             {
                 PreInstall = matchedVariants

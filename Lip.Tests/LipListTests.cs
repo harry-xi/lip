@@ -69,7 +69,8 @@ public class LipListTests
                                 }
                             ]
                         },
-                        "variant": "variant1"
+                        "variant": "variant1",
+                        "filse": []
                     },
                     {
                         "locked": false,
@@ -85,7 +86,8 @@ public class LipListTests
                                 }
                             ]
                         },
-                        "variant": "variant1"
+                        "variant": "variant1",
+                        "filse": []
                     }
                 ]
             }

@@ -30,6 +30,9 @@ public record PackageLock
                 : throw new SchemaViolationException("variant", $"Invalid variant label '{value}'.");
         }
 
+        [JsonPropertyName("filse")]
+        public required List<string> Files { get; init; }
+
         private string _variant = string.Empty;
     }
 

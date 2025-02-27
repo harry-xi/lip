@@ -78,7 +78,7 @@ public partial class Lip
         foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
         {
             await _packageManager.UninstallPackage(
-                packageUninstallDetail.Specifier,
+                packageUninstallDetail.Specifier.WithoutVersion(),
                 args.DryRun,
                 args.IgnoreScripts);
         }

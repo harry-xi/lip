@@ -20,12 +20,12 @@ public class PackageManifestTests
     }
 
     [Theory]
-    [InlineData(null, null, null)]
-    [InlineData(new string[] { "https://example.com" }, new string[] { "preserve" }, new string[] { "remove" })]
+    [InlineData(null, null)]
+    [InlineData(new string[] { "https://example.com" }, new string[] { "preserve" })]
+    // if just level one agrument, there will be a type error
     public void AssetType_Constructor_ValidValues_Passes(
         string[]? urls,
-        string[]? preserve,
-        string[]? remove)
+        string[]? _)
     {
         // Arrange & Act.
         var asset = new PackageManifest.AssetType
@@ -33,16 +33,12 @@ public class PackageManifestTests
             Type = PackageManifest.AssetType.TypeEnum.Self,
             Urls = urls?.ToList(),
             Place = null,
-            Preserve = preserve?.ToList(),
-            Remove = remove?.ToList()
         };
 
         // Assert.
         Assert.Equal(PackageManifest.AssetType.TypeEnum.Self, asset.Type);
         Assert.Equal(urls, asset.Urls);
         Assert.Null(asset.Place);
-        Assert.Equal(preserve, asset.Preserve);
-        Assert.Equal(remove, asset.Remove);
     }
 
     [Fact]
@@ -61,37 +57,21 @@ public class PackageManifestTests
         Assert.Equal("URL 'invalid' is invalid.", exception.Message);
     }
 
-    [Fact]
-    public void AssetType_Constructor_UnsafePreserve_Throws()
-    {
-        // Arrange & Act.
-        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => new PackageManifest.AssetType
-            {
-                Type = PackageManifest.AssetType.TypeEnum.Self,
-                Preserve = ["/invalid"]
-            });
+    // [Fact]
+    // public void AssetType_Constructor_UnsafeRemove_Throws()
+    // {
+    //     // Arrange & Act.
+    //     SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
+    //         () => new PackageManifest.AssetType
+    //         {
+    //             Type = PackageManifest.AssetType.TypeEnum.Self,
+    //             Remove = ["/invalid"]
+    //         });
 
-        // Assert.
-        Assert.Equal("preserve", exception.Key);
-        Assert.Equal("Path '/invalid' is unsafe to preserve.", exception.Message);
-    }
-
-    [Fact]
-    public void AssetType_Constructor_UnsafeRemove_Throws()
-    {
-        // Arrange & Act.
-        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => new PackageManifest.AssetType
-            {
-                Type = PackageManifest.AssetType.TypeEnum.Self,
-                Remove = ["/invalid"]
-            });
-
-        // Assert.
-        Assert.Equal("remove", exception.Key);
-        Assert.Equal("Path '/invalid' is unsafe to remove.", exception.Message);
-    }
+    //     // Assert.
+    //     Assert.Equal("remove", exception.Key);
+    //     Assert.Equal("Path '/invalid' is unsafe to remove.", exception.Message);
+    // }
 
     [Fact]
     public void InfoType_Constructor_TrivialValues_Passes()
@@ -337,10 +317,12 @@ public class PackageManifestTests
             Platform = "platform",
             Dependencies = dependencies,
             Assets = [],
-            Scripts = new()
+            Scripts = new(),
+            Remove = [],
+            Preserve = [],
         };
 
-        // Assert. 
+        // Assert.
         Assert.Equal("variant", variant.VariantLabel);
         Assert.Equal("variant", variant.VariantLabelRaw);
         Assert.Equal("platform", variant.Platform);
@@ -348,6 +330,10 @@ public class PackageManifestTests
         Assert.NotNull(variant.Assets);
         Assert.Empty(variant.Assets);
         Assert.NotNull(variant.Scripts);
+        Assert.NotNull(variant.Remove);
+        Assert.Empty(variant.Remove);
+        Assert.NotNull(variant.Preserve);
+        Assert.Empty(variant.Preserve);
     }
 
     [Fact]
@@ -646,7 +632,9 @@ public class PackageManifestTests
                     Platform = "platform",
                     Dependencies = {},
                     Assets = [],
-                    Scripts = new()
+                    Scripts = new(),
+                    Preserve = [],
+                    Remove = [],
                 }
             ]
         };
@@ -664,6 +652,10 @@ public class PackageManifestTests
         Assert.NotNull(variant.Assets);
         Assert.Empty(variant.Assets);
         Assert.NotNull(variant.Scripts);
+        Assert.NotNull(variant.Remove);
+        Assert.Empty(variant.Remove);
+        Assert.NotNull(variant.Preserve);
+        Assert.Empty(variant.Preserve);
         Assert.Null(variant.Scripts.PreInstall);
         Assert.Null(variant.Scripts.Install);
         Assert.Null(variant.Scripts.PostInstall);

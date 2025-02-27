@@ -2,7 +2,8 @@ using Semver;
 
 namespace Lip;
 
-public record PackageSpecifierWithoutVersion
+
+public record PackageSpecifierCommonPart
 {
     public string Text => $"{ToothPath}{(VariantLabel != string.Empty ? "#" : string.Empty)}{VariantLabel}";
 
@@ -36,6 +37,25 @@ public record PackageSpecifierWithoutVersion
 
     private string _tooth = string.Empty;
     private string _variantLabel = string.Empty;
+}
+
+public record PackageSpecifierWithoutVersion : PackageSpecifierCommonPart
+{
+
+    public PackageSpecifier WithVersion(SemVersion version)
+    {
+        return new PackageSpecifier
+        {
+            ToothPath = ToothPath,
+            VariantLabel = VariantLabel,
+            Version = version
+        };
+    }
+
+    public override string ToString()
+    {
+        return Text;
+    }
 
     public static PackageSpecifierWithoutVersion Parse(string specifierText)
     {
@@ -52,24 +72,9 @@ public record PackageSpecifierWithoutVersion
             VariantLabel = parts.ElementAtOrDefault(1) ?? string.Empty
         };
     }
-
-    public override string ToString()
-    {
-        return Text;
-    }
-
-    public PackageSpecifier WithVersion(SemVersion version)
-    {
-        return new PackageSpecifier
-        {
-            ToothPath = ToothPath,
-            VariantLabel = VariantLabel,
-            Version = version
-        };
-    }
 }
 
-public record PackageSpecifier : PackageSpecifierWithoutVersion
+public record PackageSpecifier : PackageSpecifierCommonPart
 {
     public new string Text => $"{base.Text}@{Version}";
     public string TextWithoutVariant => $"{new PackageSpecifierWithoutVersion()
@@ -80,7 +85,7 @@ public record PackageSpecifier : PackageSpecifierWithoutVersion
 
     public required SemVersion Version { get; init; }
 
-    public static new PackageSpecifier Parse(string specifierText)
+    public static PackageSpecifier Parse(string specifierText)
     {
         if (!StringValidator.CheckPackageSpecifier(specifierText))
         {

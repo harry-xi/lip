@@ -103,7 +103,7 @@ For platform variant to be recognized, there must be at least one non-globbed pl
   - Two separate variants with exact platforms
   - One variant with exact platform and another with `linux-*`
 
-If omitted or empty, the variant is considered platform-agnostic, i.e.. glob pattern `*`.
+If omitted or empty, the variant is considered platform-agnostic, i.e. always current platform.
 
 ### variants[].dependencies (optional)
 

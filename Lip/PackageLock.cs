@@ -26,7 +26,10 @@ public record PackageLock
             get => _variantLabel;
             init => _variantLabel = StringValidator.CheckVariantLabel(value)
                 ? value
-                : throw new SchemaViolationException("variant", $"Invalid variant label '{value}'.");
+                : throw new SchemaViolationException(
+                    "packages[].variant",
+                    $"Invalid variant label '{value}'."
+                );
         }
         private readonly string _variantLabel = string.Empty;
     }
@@ -116,7 +119,7 @@ file record RawPackageLock
     [JsonPropertyName("packages")]
     public required List<Package> Packages { get; init; }
 
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         AllowTrailingCommas = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -129,12 +132,12 @@ file record RawPackageLock
     {
         return await JsonSerializer.DeserializeAsync<RawPackageLock>(
             stream,
-            s_jsonSerializerOptions)
+            _jsonSerializerOptions)
             ?? throw new SchemaViolationException("", "JSON bytes deserialized to null.");
     }
 
     public async Task ToStream(Stream stream)
     {
-        await JsonSerializer.SerializeAsync(stream, this, s_jsonSerializerOptions);
+        await JsonSerializer.SerializeAsync(stream, this, _jsonSerializerOptions);
     }
 }

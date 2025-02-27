@@ -11,10 +11,10 @@ public partial class Lip
 
     public async Task<int> Run(string scriptName, RunArgs args)
     {
-        PackageManifest? packageManifest = await _packageManager.GetCurrentPackageManifestParsed()
+        PackageManifest? packageManifest = await _packageManager.GetCurrentPackageManifest()
             ?? throw new InvalidOperationException("No package manifest found.");
 
-        PackageManifest.VariantType? variant = packageManifest.GetSpecifiedVariant(
+        PackageManifest.Variant? variant = packageManifest.GetVariant(
             args.VariantLabel,
             RuntimeInformation.RuntimeIdentifier)
             ?? throw new InvalidOperationException($"Variant '{args.VariantLabel}' not found in package manifest");

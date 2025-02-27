@@ -18,16 +18,10 @@ public partial class Lip
         {
             get
             {
-                return Manifest.GetSpecifiedVariant(
+                return Manifest.GetVariant(
                         VariantLabel,
                         RuntimeInformation.RuntimeIdentifier)?
-                        .Dependencies?
-                        .Select(
-                            kvp => new KeyValuePair<PackageIdentifier, SemVersionRange>(
-                                PackageIdentifier.Parse(kvp.Key),
-                                SemVersionRange.ParseNpm(kvp.Value)))
-                        .ToDictionary()
-                        ?? [];
+                        .Dependencies ?? [];
             }
         }
 
@@ -54,7 +48,7 @@ public partial class Lip
 
         foreach (PackageIdentifier packageSpecifier in packageSpecifiersToUninstallSpecified)
         {
-            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
+            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromLock(
                 packageSpecifier);
 
             if (packageManifest is null)

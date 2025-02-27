@@ -23,14 +23,14 @@ public partial class Lip
 
     public async Task Pack(string outputPath, PackArgs args)
     {
-        PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifestParsed()
+        PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifest()
             ?? throw new InvalidOperationException("No package manifest found.");
 
         // Run pre-pack scripts.
 
         if (!args.IgnoreScripts)
         {
-            PackageManifest.VariantType? variant = packageManifest.GetSpecifiedVariant(
+            PackageManifest.Variant? variant = packageManifest.GetVariant(
                 string.Empty,
                 RuntimeInformation.RuntimeIdentifier);
             PackageManifest.ScriptsType? script = variant?.Scripts;
@@ -54,10 +54,10 @@ public partial class Lip
             _context.FileSystem,
             _pathManager.WorkingDir);
 
-        List<PackageManifest.PlaceType> filePlacements = packageManifest.Variants?
+        List<PackageManifest.Placement> filePlacements = packageManifest.Variants?
             .SelectMany(v => v.Assets ?? [])
-            .Where(a => a.Type == PackageManifest.AssetType.TypeEnum.Self)
-            .SelectMany(a => a.Place ?? [])
+            .Where(a => a.Type == PackageManifest.Asset.TypeEnum.Self)
+            .SelectMany(a => a.Placements ?? [])
             .ToList() ?? [];
 
         List<IFileSourceEntry> fileEntriesToPlace = [.. (await fileSource.GetAllEntries())
@@ -97,7 +97,7 @@ public partial class Lip
 
         if (!args.IgnoreScripts)
         {
-            PackageManifest.VariantType? variant = packageManifest.GetSpecifiedVariant(
+            PackageManifest.Variant? variant = packageManifest.GetVariant(
                 string.Empty,
                 RuntimeInformation.RuntimeIdentifier);
             PackageManifest.ScriptsType? script = variant?.Scripts;

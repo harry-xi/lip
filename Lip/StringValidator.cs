@@ -1,4 +1,3 @@
-using Flurl;
 using System.Text.RegularExpressions;
 
 namespace Lip;
@@ -115,16 +114,6 @@ public static class StringValidator
     }
 
     /// <summary>
-    /// Checks if the URL is valid.
-    /// </summary>
-    /// <param name="url">The URL to validate.</param>
-    /// <returns>True if the URL is valid; otherwise, false.</returns>
-    public static bool CheckUrl(string url)
-    {
-        return Url.IsValid(url);
-    }
-
-    /// <summary>
     /// Checks if the variant label is valid.
     /// </summary>
     /// <param name="variantLabel">The variant label to validate.</param>
@@ -134,23 +123,8 @@ public static class StringValidator
         return new Regex("^([a-z0-9]+(_[a-z0-9]+)*)?$").IsMatch(variantLabel);
     }
 
-    /// <summary>
-    /// Checks if the version is valid.
-    /// </summary>
-    /// <param name="version">The version to validate.</param>
-    /// <returns>True if the version is valid; otherwise, false.</returns>
-    public static bool CheckVersion(string version)
+    private static bool CheckVersion(string version)
     {
         return Semver.SemVersion.TryParse(version, out _);
-    }
-
-    /// <summary>
-    /// Checks if the version range is valid.
-    /// </summary>
-    /// <param name="versionRange">The version range to validate.</param>
-    /// <returns>True if the version range is valid; otherwise, false.</returns>
-    public static bool CheckVersionRange(string versionRange)
-    {
-        return Semver.SemVersionRange.TryParseNpm(versionRange, out _);
     }
 }

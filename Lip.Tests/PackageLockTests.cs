@@ -13,10 +13,16 @@ public class PackageLockTests
 
     private static readonly PackageManifest _defaultManifest = new()
     {
-        FormatVersion = PackageManifest.DefaultFormatVersion,
-        FormatUuid = PackageManifest.DefaultFormatUuid,
         ToothPath = "example.com/pkg",
-        VersionText = "1.0.0"
+        Version = new(1, 0, 0),
+        Info = new()
+        {
+            Name = string.Empty,
+            Description = string.Empty,
+            Tags = [],
+            AvatarUrl = new(),
+        },
+        Variants = []
     };
 
     private const string _defaultVariantLabel = "variant";

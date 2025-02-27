@@ -32,12 +32,11 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
         // Add edges.
         foreach (LockTypeVertex vertex in vertices)
         {
-            vertex.Manifest.GetSpecifiedVariant(
+            vertex.Manifest.GetVariant(
                 vertex.VariantLabel,
                 RuntimeInformation.RuntimeIdentifier)?
                 .Dependencies?
                 .Select(kvp => kvp.Key)
-                .Select(PackageIdentifier.Parse)
                 .Select(packageSpecifier => vertices.FirstOrDefault(v => v.Specifier.Identifier == packageSpecifier))
                 .Where(dep => dep != null)
                 .ForEach(dep => dependencyGraph.AddEdge(vertex, dep!));
@@ -202,15 +201,12 @@ file class PackageDependencyGraph(
         List<Vertex> neighbors = [.. Task.WhenAll(versionCandidates.Select(async version =>
         {
             PackageSpecifier packageSpecifier = PackageSpecifier.FromIdentifier(packageCandidate.Key, version);
-            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromSpecifier(packageSpecifier);
+            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromCache(packageSpecifier);
 
             Dictionary<PackageIdentifier, SemVersionRange> dependencies = packageManifest?
-                .GetSpecifiedVariant(packageCandidate.Key.VariantLabel, RuntimeInformation.RuntimeIdentifier)?
-                .Dependencies?
-                .ToDictionary(
-                    kvp => PackageIdentifier.Parse(kvp.Key),
-                    kvp => SemVersionRange.ParseNpm(kvp.Value)
-                ) ?? [];
+                .GetVariant(packageCandidate.Key.VariantLabel, RuntimeInformation.RuntimeIdentifier)?
+                .Dependencies
+                ?? [];
 
             KeyValuePair<PackageIdentifier, List<SemVersion>>[] dependencyCandidates = await Task.WhenAll(dependencies.Select(async dep =>
             {

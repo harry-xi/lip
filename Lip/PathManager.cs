@@ -26,7 +26,7 @@ public interface IPathManager
     string GetDownloadedFileCachePath(Url url);
     string GetGitRepoDirCachePath(string url, string tag);
     string GetPackageManifestPath(string baseDir);
-    string? GetPlacementRelativePath(PackageManifest.PlaceType placement, string fileSourceEntryKey);
+    string? GetPlacementRelativePath(PackageManifest.Placement placement, string fileSourceEntryKey);
     Url ParseDownloadedFileCachePath(string downloadedFileCachePath);
     IGitRepoInfo ParseGitRepoDirCachePath(string repoDirCachePath);
 }
@@ -83,9 +83,9 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         return _fileSystem.Path.Join(baseDir, PackageManifestFileName);
     }
 
-    public string? GetPlacementRelativePath(PackageManifest.PlaceType placement, string fileSourceEntryKey)
+    public string? GetPlacementRelativePath(PackageManifest.Placement placement, string fileSourceEntryKey)
     {
-        if (placement.Type == PackageManifest.PlaceType.TypeEnum.File)
+        if (placement.Type == PackageManifest.Placement.TypeEnum.File)
         {
             string fileName = _fileSystem.Path.GetFileName(fileSourceEntryKey);
 
@@ -107,7 +107,7 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
 
             return null;
         }
-        else if (placement.Type == PackageManifest.PlaceType.TypeEnum.Dir)
+        else if (placement.Type == PackageManifest.Placement.TypeEnum.Dir)
         {
             string placementSrc = placement.Src;
 

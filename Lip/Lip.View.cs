@@ -12,7 +12,7 @@ public partial class Lip
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 
-        PackageManifest packageManifest = await _packageManager.GetPackageManifestFromSpecifier(packageSpecifier)
+        PackageManifest packageManifest = await _packageManager.GetPackageManifestFromCache(packageSpecifier)
             ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifier}'.");
 
         if (packageManifest.ToothPath != packageSpecifier.ToothPath)
@@ -27,8 +27,7 @@ public partial class Lip
 
         if (path is null)
         {
-            byte[] jsonBytes = packageManifest.ToJsonBytes();
-            return Encoding.UTF8.GetString(jsonBytes);
+            return packageManifest.ToJsonElement().ToString();
         }
 
         Template template = Template.Parse(path, lexerOptions: new()

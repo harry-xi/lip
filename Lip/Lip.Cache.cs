@@ -17,7 +17,7 @@ public partial class Lip
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 
-        PackageManifest packageManifest = await _packageManager.GetPackageManifestFromSpecifier(packageSpecifier)
+        PackageManifest packageManifest = await _packageManager.GetPackageManifestFromCache(packageSpecifier)
             ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifier}'.");
 
         if (packageManifest.ToothPath != packageSpecifier.ToothPath)
@@ -30,12 +30,12 @@ public partial class Lip
             throw new InvalidOperationException($"Version in package manifest '{packageManifest.Version}' does not match package specifier '{packageSpecifier.Version}'.");
         }
 
-        PackageManifest.VariantType? variant = packageManifest.GetSpecifiedVariant(
+        PackageManifest.Variant? variant = packageManifest.GetVariant(
             packageSpecifier.VariantLabel, RuntimeInformation.RuntimeIdentifier);
 
-        foreach (PackageManifest.AssetType asset in variant?.Assets ?? [])
+        foreach (PackageManifest.Asset asset in variant?.Assets ?? [])
         {
-            if (asset.Type != PackageManifest.AssetType.TypeEnum.Self)
+            if (asset.Type != PackageManifest.Asset.TypeEnum.Self)
             {
                 foreach (string url in asset.Urls ?? [])
                 {

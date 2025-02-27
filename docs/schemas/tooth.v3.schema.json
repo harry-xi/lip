@@ -79,7 +79,7 @@
                                         "type": "string"
                                     }
                                 },
-                                "place": {
+                                "placements": {
                                     "type": "array",
                                     "items": {
                                         "type": "object",
@@ -104,23 +104,23 @@
                                             "dest"
                                         ]
                                     }
-                                },
-                                "preserve": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                },
-                                "remove": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
                                 }
                             },
                             "required": [
                                 "type"
                             ]
+                        }
+                    },
+                    "preserve_files": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "remove_files": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
                         }
                     },
                     "scripts": {

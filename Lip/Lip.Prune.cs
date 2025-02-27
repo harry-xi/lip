@@ -22,7 +22,7 @@ public partial class Lip
 
         foreach (PackageIdentifier packageSpecifier in packageSpecifiersUnnecessary)
         {
-            PackageManifest packageManifest = (await _packageManager.GetPackageManifestFromInstalledPackages(
+            PackageManifest packageManifest = (await _packageManager.GetPackageManifestFromLock(
                 packageSpecifier))!; // We know that the package is installed.
 
             packageUninstallDetails.Add(new PackageUninstallDetail

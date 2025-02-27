@@ -121,22 +121,6 @@ public class StringValidatorTests
     }
 
     [Theory]
-    [InlineData("http://example.com")]
-    [InlineData("https://example.com/path")]
-    public void CheckUrl_ValidUrl_ReturnsTrue(string url)
-    {
-        Assert.True(StringValidator.CheckUrl(url));
-    }
-
-    [Theory]
-    [InlineData("not-a-url")]
-    [InlineData("http:invalid")]
-    public void CheckUrl_InvalidUrl_ReturnsFalse(string url)
-    {
-        Assert.False(StringValidator.CheckUrl(url));
-    }
-
-    [Theory]
     [InlineData("variant")]
     [InlineData("variant_name")]
     public void CheckVariantLabel_ValidLabel_ReturnsTrue(string label)
@@ -150,38 +134,5 @@ public class StringValidatorTests
     public void CheckVariantLabel_InvalidLabel_ReturnsFalse(string label)
     {
         Assert.False(StringValidator.CheckVariantLabel(label));
-    }
-
-    [Theory]
-    [InlineData("1.0.0")]
-    [InlineData("1.0.0-alpha")]
-    public void CheckVersion_CommonInput_ReturnsTrue(string version)
-    {
-        Assert.True(StringValidator.CheckVersion(version));
-    }
-
-    [Theory]
-    [InlineData("1.0.0.0")]
-    [InlineData("1.0.0-alpha!")]
-    public void CheckVersion_InvalidInput_ReturnsFalse(string version)
-    {
-        Assert.False(StringValidator.CheckVersion(version));
-    }
-
-    [Theory]
-    [InlineData("^1.0.0")]
-    [InlineData("~2.0.0")]
-    [InlineData(">=1.0.0 <2.0.0")]
-    public void CheckVersionRange_ValidRange_ReturnsTrue(string range)
-    {
-        Assert.True(StringValidator.CheckVersionRange(range));
-    }
-
-    [Theory]
-    [InlineData("invalid")]
-    [InlineData("1.0.xx")]
-    public void CheckVersionRange_InvalidRange_ReturnsFalse(string range)
-    {
-        Assert.False(StringValidator.CheckVersionRange(range));
     }
 }

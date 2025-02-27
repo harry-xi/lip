@@ -22,16 +22,10 @@ public partial class Lip
         {
             get
             {
-                return Manifest.GetSpecifiedVariant(
+                return Manifest.GetVariant(
                         VariantLabel,
                         RuntimeInformation.RuntimeIdentifier)?
-                        .Dependencies?
-                        .Select(
-                            kvp => new KeyValuePair<PackageIdentifier, SemVersionRange>(
-                                PackageIdentifier.Parse(kvp.Key),
-                                SemVersionRange.ParseNpm(kvp.Value)))
-                        .ToDictionary()
-                        ?? [];
+                        .Dependencies ?? [];
             }
         }
 
@@ -60,7 +54,7 @@ public partial class Lip
         {
             PackageInstallDetail installDetail = await GetPackageInstallDetailFromUserInput(packageText);
 
-            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
+            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromLock(
                 installDetail.Specifier.Identifier);
 
             // If not installed, add to install details.
@@ -158,7 +152,7 @@ public partial class Lip
 
             // If installed with the same version, skip.
 
-            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromInstalledPackages(
+            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromLock(
                 packageSpecifierToInstall.Identifier);
 
             if (installedPackageManifest?.Version == packageSpecifierToInstall.Version)

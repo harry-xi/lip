@@ -11,10 +11,10 @@ namespace Lip;
 public interface IPackageManager
 {
     Task<PackageLock> GetCurrentPackageLock();
-    Task<PackageManifest?> GetCurrentPackageManifestParsed();
+    Task<PackageManifest?> GetCurrentPackageManifest();
+    Task<PackageManifest?> GetPackageManifestFromCache(PackageSpecifier packageSpecifier);
     Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource);
-    Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageIdentifier packageSpecifier);
-    Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier);
+    Task<PackageManifest?> GetPackageManifestFromLock(PackageIdentifier packageSpecifier);
     Task<List<SemVersion>> GetPackageRemoteVersions(PackageIdentifier packageSpecifier);
     Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked);
     Task SaveCurrentPackageManifest(PackageManifest packageManifest);
@@ -50,54 +50,47 @@ public class PackageManager(
         return await PackageLock.FromStream(packageLockFileStream);
     }
 
-    public async Task<PackageManifest?> GetCurrentPackageManifestParsed()
+    public async Task<PackageManifest?> GetCurrentPackageManifest()
     {
-        byte[]? packageManifestBytes = await GetCurrentPackageManifestBytes();
+        string packageManifestFilePath = _pathManager.CurrentPackageManifestPath;
 
-        if (packageManifestBytes == null)
+        if (!_context.FileSystem.File.Exists(packageManifestFilePath))
         {
             return null;
         }
 
-        return PackageManifest.FromJsonBytesParsed(packageManifestBytes);
+        using Stream fileStream = _context.FileSystem.File.OpenRead(packageManifestFilePath);
+
+        return await PackageManifest.FromStream(fileStream);
     }
 
-    public async Task<PackageManifest?> GetPackageManifestFromInstalledPackages(PackageIdentifier packageSpecifier)
-    {
-        PackageLock packageLock = await GetCurrentPackageLock();
-
-        List<PackageLock.Package> locks = [.. packageLock.Locks.Where(@lock => @lock.Specifier.Identifier
-            == packageSpecifier)];
-
-        return locks.Count == 0
-            ? null
-            : locks[0].Manifest;
-    }
-
-    public async Task<PackageManifest?> GetPackageManifestFromSpecifier(PackageSpecifier packageSpecifier)
+    public async Task<PackageManifest?> GetPackageManifestFromCache(PackageSpecifier packageSpecifier)
     {
         IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 
-        Stream? packageManifestFileStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
-
-        if (packageManifestFileStream == null)
-        {
-            return null;
-        }
-
-        return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
+        return await GetPackageManifestFromFileSource(fileSource);
     }
 
     public async Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource)
     {
-        Stream? packageManifestFileStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
+        using Stream? manifestStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
 
-        if (packageManifestFileStream == null)
+        if (manifestStream == null)
         {
             return null;
         }
 
-        return PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
+        return await PackageManifest.FromStream(manifestStream);
+    }
+
+    public async Task<PackageManifest?> GetPackageManifestFromLock(PackageIdentifier packageSpecifier)
+    {
+        PackageLock packageLock = await GetCurrentPackageLock();
+
+        PackageLock.Package? package = packageLock.Locks.Where(
+            @lock => @lock.Specifier.Identifier == packageSpecifier).FirstOrDefault();
+
+        return package?.Manifest;
     }
 
     public async Task<List<SemVersion>> GetPackageRemoteVersions(PackageIdentifier packageSpecifier)
@@ -167,10 +160,10 @@ public class PackageManager(
 
     public async Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked)
     {
-        Stream packageManifestFileStream = await packageFileSource.GetFileStream(_pathManager.PackageManifestFileName)
+        using Stream packageManifestFileStream = await packageFileSource.GetFileStream(_pathManager.PackageManifestFileName)
             ?? throw new InvalidOperationException("Package manifest not found.");
 
-        PackageManifest packageManifest = PackageManifest.FromJsonBytesParsed(await packageManifestFileStream.ReadAsync());
+        PackageManifest packageManifest = await PackageManifest.FromStream(packageManifestFileStream);
 
         PackageSpecifier packageSpecifier = new()
         {
@@ -182,7 +175,7 @@ public class PackageManager(
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
 
-        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifier.Identifier))?.Version;
+        SemVersion? installedVersion = (await GetPackageManifestFromLock(packageSpecifier.Identifier))?.Version;
 
         if (installedVersion == packageSpecifier.Version)
         {
@@ -197,7 +190,7 @@ public class PackageManager(
 
         // If the package does not contain the variant to install, throw exception.
 
-        PackageManifest.VariantType packageVariant = packageManifest.GetSpecifiedVariant(
+        PackageManifest.Variant packageVariant = packageManifest.GetVariant(
             variantLabel,
             RuntimeInformation.RuntimeIdentifier)
             ?? throw new InvalidOperationException($"The package does not contain variant {variantLabel}.");
@@ -225,7 +218,7 @@ public class PackageManager(
         // Place files.
         List<string> placedFiles = [];
 
-        foreach (PackageManifest.AssetType asset in packageVariant.Assets ?? [])
+        foreach (PackageManifest.Asset asset in packageVariant.Assets ?? [])
         {
             IFileSource fileSource = await GetAssetFileSource(asset, packageFileSource);
 
@@ -233,7 +226,7 @@ public class PackageManager(
 
             foreach (IFileSourceEntry fileSourceEntry in await fileSource.GetAllEntries())
             {
-                foreach (PackageManifest.PlaceType place in asset.Place ?? [])
+                foreach (PackageManifest.Placement place in asset.Placements ?? [])
                 {
                     string? destRelative = _pathManager.GetPlacementRelativePath(place, fileSourceEntry.Key);
 
@@ -325,14 +318,14 @@ public class PackageManager(
 
     public async Task SaveCurrentPackageManifest(PackageManifest packageManifest)
     {
-        await _context.FileSystem.File.WriteAllBytesAsync(
-            _pathManager.CurrentPackageManifestPath,
-            packageManifest.ToJsonBytes());
+        using Stream stream = _context.FileSystem.File.OpenWrite(_pathManager.CurrentPackageManifestPath);
+
+        await packageManifest.ToStream(stream);
     }
 
     public async Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts)
     {
-        SemVersion? installedVersion = (await GetPackageManifestFromInstalledPackages(packageSpecifierWithoutVersion))?.Version;
+        SemVersion? installedVersion = (await GetPackageManifestFromLock(packageSpecifierWithoutVersion))?.Version;
 
         // If the package is not installed, skip uninstalling.
 
@@ -361,7 +354,7 @@ public class PackageManager(
 
         // If the package does not contain the variant to install, throw exception.
 
-        PackageManifest.VariantType packageVariant = packageManifest.GetSpecifiedVariant(
+        PackageManifest.Variant packageVariant = packageManifest.GetVariant(
             string.Empty,
             RuntimeInformation.RuntimeIdentifier)
             ?? throw new InvalidOperationException($"The package does not contain variant {packageSpecifier.VariantLabel}.");
@@ -408,8 +401,8 @@ public class PackageManager(
 
         // Remove files.
 
-        IEnumerable<Glob> preserve = (packageVariant.Preserve ?? []).Select(p => Glob.Parse(p));
-        List<string> remove = packageVariant.Remove ?? [];
+        IEnumerable<Glob> preserve = (packageVariant.PreserveFiles ?? []).Select(p => Glob.Parse(p));
+        List<string> remove = packageVariant.RemoveFiles ?? [];
 
         foreach (var file in installedFiles)
         {
@@ -479,9 +472,9 @@ public class PackageManager(
         }
     }
 
-    private async Task<IFileSource> GetAssetFileSource(PackageManifest.AssetType asset, IFileSource packageFileScore)
+    private async Task<IFileSource> GetAssetFileSource(PackageManifest.Asset asset, IFileSource packageFileScore)
     {
-        if (asset.Type == PackageManifest.AssetType.TypeEnum.Self)
+        if (asset.Type == PackageManifest.Asset.TypeEnum.Self)
         {
             return packageFileScore;
         }
@@ -491,7 +484,7 @@ public class PackageManager(
 
         IFileInfo assetFile = await _cacheManager.GetFileFromUrls(urls);
 
-        if (asset.Type == PackageManifest.AssetType.TypeEnum.Uncompressed)
+        if (asset.Type == PackageManifest.Asset.TypeEnum.Uncompressed)
         {
             return new StandaloneFileSource(_context.FileSystem, assetFile.FullName);
         }
@@ -499,18 +492,6 @@ public class PackageManager(
         {
             return new ArchiveFileSource(_context.FileSystem, assetFile.FullName);
         }
-    }
-
-    private async Task<byte[]?> GetCurrentPackageManifestBytes()
-    {
-        string packageManifestFilePath = _pathManager.CurrentPackageManifestPath;
-
-        if (!_context.FileSystem.File.Exists(packageManifestFilePath))
-        {
-            return null;
-        }
-
-        return await _context.FileSystem.File.ReadAllBytesAsync(packageManifestFilePath);
     }
 
     private void RemoveParentDirectoriesUntilWorkingDir(string path)

@@ -260,9 +260,9 @@ public class PathManagerTests
         MockFileSystem fileSystem = new();
         PathManager pathManager = new(fileSystem);
 
-        PackageManifest.PlaceType placement = new()
+        PackageManifest.Placement placement = new()
         {
-            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Type = PackageManifest.Placement.TypeEnum.File,
             Src = filePath,
             Dest = "dest"
         };
@@ -285,9 +285,9 @@ public class PathManagerTests
         MockFileSystem fileSystem = new();
         PathManager pathManager = new(fileSystem);
 
-        PackageManifest.PlaceType placement = new()
+        PackageManifest.Placement placement = new()
         {
-            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Type = PackageManifest.Placement.TypeEnum.File,
             Src = glob,
             Dest = "dest"
         };
@@ -311,9 +311,9 @@ public class PathManagerTests
         MockFileSystem fileSystem = new();
         PathManager pathManager = new(fileSystem);
 
-        PackageManifest.PlaceType placement = new()
+        PackageManifest.Placement placement = new()
         {
-            Type = PackageManifest.PlaceType.TypeEnum.File,
+            Type = PackageManifest.Placement.TypeEnum.File,
             Src = src,
             Dest = "dest"
         };
@@ -335,9 +335,9 @@ public class PathManagerTests
         MockFileSystem fileSystem = new();
         PathManager pathManager = new(fileSystem);
 
-        PackageManifest.PlaceType placement = new()
+        PackageManifest.Placement placement = new()
         {
-            Type = PackageManifest.PlaceType.TypeEnum.Dir,
+            Type = PackageManifest.Placement.TypeEnum.Dir,
             Src = dirPath,
             Dest = "dest"
         };
@@ -359,9 +359,9 @@ public class PathManagerTests
         MockFileSystem fileSystem = new();
         PathManager pathManager = new(fileSystem);
 
-        PackageManifest.PlaceType placement = new()
+        PackageManifest.Placement placement = new()
         {
-            Type = PackageManifest.PlaceType.TypeEnum.Dir,
+            Type = PackageManifest.Placement.TypeEnum.Dir,
             Src = dirPath,
             Dest = "dest"
         };
@@ -380,9 +380,9 @@ public class PathManagerTests
         MockFileSystem fileSystem = new();
         PathManager pathManager = new(fileSystem);
 
-        PackageManifest.PlaceType placement = new()
+        PackageManifest.Placement placement = new()
         {
-            Type = (PackageManifest.PlaceType.TypeEnum)int.MaxValue,
+            Type = (PackageManifest.Placement.TypeEnum)int.MaxValue,
             Src = "src",
             Dest = "dest"
         };

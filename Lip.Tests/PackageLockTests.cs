@@ -113,7 +113,14 @@ public class PackageLockTests
                         "format_version": 3,
                         "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
                         "tooth": "example.com/pkg",
-                        "version": "1.0.0"
+                        "version": "1.0.0",
+                        "info": {
+                            "name": "",
+                            "description": "",
+                            "tags": [],
+                            "avatar_url": ""
+                        },
+                        "variants": []
                     },
                     "variant": "variant"
                 }
@@ -150,7 +157,7 @@ public class PackageLockTests
         PackageLock.Package package = packageLock.Locks[0];
         Assert.Equal(_defaultFiles, package.Files);
         Assert.False(package.Locked);
-        Assert.Equal(_defaultManifest, package.Manifest);
+        Assert.Equal(_defaultManifest.ToJsonElement().ToString(), package.Manifest.ToJsonElement().ToString());
         Assert.Equal(_defaultVariantLabel, package.VariantLabel);
     }
 

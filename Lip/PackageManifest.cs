@@ -1,12 +1,9 @@
 using DotNet.Globbing;
 using Flurl;
 using Scriban;
-using Scriban.Parsing;
 using Semver;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -102,7 +99,7 @@ public record PackageManifest
                 kvp => StringValidator.CheckScriptName(kvp.Key)
                     ? kvp.Key
                     : throw new SchemaViolationException(
-                        $"variants[].assets[].scripts.{kvp.Key}",
+                        $"variants[].assets[].scripts.'{kvp.Key}'",
                         $"Invalid script name '{kvp.Key}'"
                     ),
                 kvp => kvp.Value
@@ -113,17 +110,8 @@ public record PackageManifest
 
     public record Variant
     {
-        public required string Label
-        {
-            get => _label;
-            init => _label = StringValidator.CheckVariantLabel(value)
-                ? value
-                : throw new SchemaViolationException(
-                    "variants[].label",
-                    $"Invalid variant label '{value}'"
-                );
-        }
-        private readonly string _label = string.Empty;
+        // We do not validate label because it may be a glob.
+        public required string Label { get; init; }
 
         public required string Platform { get; init; }
 
@@ -185,7 +173,7 @@ public record PackageManifest
                     return false;
                 }
 
-                if (!Glob.Parse(Platform).IsMatch(targetLabel))
+                if (!Glob.Parse(Platform).IsMatch(targetPlatform))
                 {
                     return false;
                 }
@@ -237,6 +225,7 @@ public record PackageManifest
 
     public required List<Variant> Variants { get; init; }
 
+    [ExcludeFromCodeCoverage]
     public static PackageManifest FromJsonElement(JsonElement jsonElement)
     {
         RawPackageManifest rawPackageManifest = RawPackageManifest.FromJsonElement(jsonElement);
@@ -308,7 +297,7 @@ public record PackageManifest
                                     .All(elem => elem.ValueKind == JsonValueKind.String))
                             ? kvp.Value.Deserialize<List<string>>()!
                             : throw new SchemaViolationException(
-                                $"variants[].assets[].scripts.{kvp.Key}",
+                                $"variants[].assets[].scripts.'{kvp.Key}'",
                                 $"Invalid script list"
                             )
                     ) ?? []
@@ -337,9 +326,7 @@ public record PackageManifest
     public Variant? GetVariant(string targetLabel, string targetPlatform)
     {
         // Find the variant that matches the specified label and platform.
-        List<Variant> matchedVariants = Variants?
-            .Where(variant => variant.Match(targetLabel, targetPlatform))
-            .ToList() ?? [];
+        List<Variant> matchedVariants = [.. Variants.Where(variant => variant.Match(targetLabel, targetPlatform))];
 
         // There must be at least one variant fully matched.
         if (!matchedVariants.Any(
@@ -378,14 +365,6 @@ public record PackageManifest
         };
 
         return mergedVariant;
-    }
-
-    public async Task ToStream(Stream stream)
-    {
-        JsonElement jsonElement = ToJsonElement();
-        await using Utf8JsonWriter jsonWriter = new(stream, _jsonWriterOptions);
-
-        jsonElement.WriteTo(jsonWriter);
     }
 
     public JsonElement ToJsonElement()
@@ -443,6 +422,14 @@ public record PackageManifest
         };
 
         return rawPackageManifest.ToJsonElement();
+    }
+
+    public async Task ToStream(Stream stream)
+    {
+        JsonElement jsonElement = ToJsonElement();
+        await using Utf8JsonWriter jsonWriter = new(stream, _jsonWriterOptions);
+
+        jsonElement.WriteTo(jsonWriter);
     }
 }
 

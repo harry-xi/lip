@@ -20,14 +20,14 @@ Defines the directory path for storing cached files.
 
 Controls colored output in the terminal. Note: The `NO_COLOR` environment variable, if set, will override this setting.
 
-### github_proxy
+### github_proxies
 
 - Type: `string`
 - Default: "" (empty string)
 
 Sets proxy URLs (separated by commas) for GitHub connections. When left empty, lip connects to GitHub directly.
 
-### go_module_proxy
+### go_module_proxies
 
 - Type: `string`
 - Default: `https://proxy.golang.org`

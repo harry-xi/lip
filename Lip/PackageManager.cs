@@ -248,12 +248,12 @@ public class PackageManager(
                     {
                         using Stream fileSourceEntryStream = await fileSourceEntry.OpenRead();
 
-
                         _context.FileSystem.CreateParentDirectory(destPath);
+                        
+                        using Stream fileStream = _context.FileSystem.File.OpenWrite(destPath);
 
-                        await _context.FileSystem.File.WriteAllBytesAsync(
-                            destPath,
-                            await fileSourceEntryStream.ReadAsync());
+                        await fileSourceEntryStream.CopyToAsync(fileStream);
+                        
                         placedFiles.Add(_context.FileSystem.Path.Join(place.Dest, destRelative));
                     }
                 }

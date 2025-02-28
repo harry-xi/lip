@@ -4,8 +4,6 @@ namespace Lip.Tests;
 
 public class PackageLockTests
 {
-    #region Tests for PackageLock.Package
-
     private static readonly List<string> _defaultFiles = [
         "file1.txt",
         "file2.txt"
@@ -84,8 +82,6 @@ public class PackageLockTests
         Assert.Equal(_defaultVariantLabel, specifier.VariantLabel);
         Assert.Equal(_defaultManifest.Version, specifier.Version);
     }
-
-    #endregion
 
     private static readonly List<PackageLock.Package> _defaultPackages =
     [

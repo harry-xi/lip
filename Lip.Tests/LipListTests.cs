@@ -97,7 +97,7 @@
 //         Mock<IContext> context = new();
 //         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act.
 //         List<Lip.ListResultItem> listItems = await lip.List(new());

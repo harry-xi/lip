@@ -71,7 +71,7 @@ public class LipViewTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         string result = await lip.View("example.com/repo@1.0.0", null, new());
@@ -105,7 +105,7 @@ public class LipViewTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         string result = await lip.View("example.com/repo@1.0.0", path, new());
@@ -136,7 +136,7 @@ public class LipViewTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         string result = await lip.View("example.com/repo@1.0.0", "variants[0].assets[0]", new());
@@ -167,7 +167,7 @@ public class LipViewTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await lip.View("example.com/invalid@1.0.0", string.Empty, new()));
@@ -195,7 +195,7 @@ public class LipViewTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await lip.View("example.com/repo@2.0.0", string.Empty, new()));
@@ -223,7 +223,7 @@ public class LipViewTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<FormatException>(async () => await lip.View("example.com/repo@1.0.0", "@#$%^", new()));
@@ -251,7 +251,7 @@ public class LipViewTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         string result = await lip.View("example.com/repo@1.0.0", "nonexistent", new());

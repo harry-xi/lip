@@ -33,7 +33,7 @@
 //         Mock<IContext> context = new();
 //         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act & assert.
 //         await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Pack("output", new()));
@@ -136,7 +136,7 @@
 //         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
 //         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act.
 //         await lip.Pack("output", new());
@@ -226,7 +226,7 @@
 //         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
 //         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act.
 //         await lip.Pack("output", new());
@@ -290,7 +290,7 @@
 //         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 //         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act & assert.
 //         await Assert.ThrowsAsync<NotImplementedException>(() => lip.Pack("output", new()));
@@ -340,7 +340,7 @@
 //         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
 //         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act.
 //         await lip.Pack("output", new()
@@ -397,7 +397,7 @@
 //         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
 //         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act.
 //         await lip.Pack("output", new()
@@ -439,7 +439,7 @@
 //         Mock<IContext> context = new();
 //         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act.
 //         await lip.Pack("output", new()
@@ -477,7 +477,7 @@
 //         Mock<IContext> context = new();
 //         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-//         Lip lip = new(new(), context.Object);
+//         Lip lip = Lip.Create(new(), context.Object);
 
 //         // Act & assert.
 //         await Assert.ThrowsAsync<NotImplementedException>(() => lip.Pack("output", new()

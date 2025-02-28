@@ -3,32 +3,31 @@ using Lip.Context;
 
 namespace Lip;
 
-/// <summary>
-/// The main class of the Lip library.
-/// </summary>
-public partial class Lip
+public partial class Lip(
+    RuntimeConfig runtimeConfig,
+    IContext context,
+    ICacheManager cacheManager,
+    IDependencySolver dependencySolver,
+    IPackageManager packageManager,
+    IPathManager pathManager)
 {
-    private readonly CacheManager _cacheManager;
-    private readonly IContext _context;
-    private readonly DependencySolver _dependencySolver;
-    private readonly PackageManager _packageManager;
-    private readonly PathManager _pathManager;
-    private readonly RuntimeConfig _runtimeConfig;
+    private readonly ICacheManager _cacheManager = cacheManager;
+    private readonly IContext _context = context;
+    private readonly IDependencySolver _dependencySolver = dependencySolver;
+    private readonly IPackageManager _packageManager = packageManager;
+    private readonly IPathManager _pathManager = pathManager;
+    private readonly RuntimeConfig _runtimeConfig = runtimeConfig;
 
-    public Lip(RuntimeConfig runtimeConfig, IContext context)
+    public static Lip Create(RuntimeConfig runtimeConfig, IContext context)
     {
-        _context = context;
-        _runtimeConfig = runtimeConfig;
-
-        _pathManager = new PathManager(context.FileSystem, baseCacheDir: runtimeConfig.Cache, workingDir: context.WorkingDir);
-
         List<Url> gitHubProxies = runtimeConfig.GitHubProxies.ConvertAll(url => new Url(url));
         List<Url> goModuleProxies = runtimeConfig.GoModuleProxies.ConvertAll(url => new Url(url));
 
-        _cacheManager = new CacheManager(_context, _pathManager, gitHubProxies, goModuleProxies);
+        PathManager pathManager = new(context.FileSystem, runtimeConfig.Cache, context.WorkingDir);
+        CacheManager cacheManager = new(context, pathManager, gitHubProxies, goModuleProxies);
+        PackageManager packageManager = new(context, cacheManager, pathManager, goModuleProxies);
+        DependencySolver dependencySolver = new(packageManager);
 
-        _packageManager = new PackageManager(_context, _cacheManager, _pathManager, goModuleProxies);
-
-        _dependencySolver = new DependencySolver(_packageManager);
+        return new Lip(runtimeConfig, context, cacheManager, dependencySolver, packageManager, pathManager);
     }
 }

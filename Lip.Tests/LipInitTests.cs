@@ -48,7 +48,7 @@ public class LipInitTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         // Act.
         await lip.Init(new());
@@ -84,7 +84,7 @@ public class LipInitTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         Lip.InitArgs args = new()
         {
@@ -120,7 +120,7 @@ public class LipInitTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         Lip.InitArgs args = new()
         {
@@ -170,7 +170,7 @@ public class LipInitTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         Lip.InitArgs args = new()
         {
@@ -203,7 +203,7 @@ public class LipInitTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         Lip.InitArgs args = new()
         {
@@ -237,7 +237,7 @@ public class LipInitTests
         context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
         context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         Lip.InitArgs args = new()
         {

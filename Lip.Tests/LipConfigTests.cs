@@ -67,7 +67,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act.
         await lip.ConfigDelete(["color"], new Lip.ConfigDeleteArgs());
@@ -107,7 +107,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act.
         await lip.ConfigDelete(["color", "go_module_proxies"], new Lip.ConfigDeleteArgs());
@@ -136,7 +136,7 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
@@ -152,7 +152,7 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
@@ -168,7 +168,7 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act & Assert.
         ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(
@@ -190,7 +190,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act.
         Dictionary<string, string> result = lip.ConfigGet(["cache"], new Lip.ConfigGetArgs());
@@ -218,7 +218,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act.
         Dictionary<string, string> result = lip.ConfigGet(
@@ -239,7 +239,7 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
@@ -255,7 +255,7 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
@@ -271,7 +271,7 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
@@ -296,7 +296,7 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act.
         Dictionary<string, string> result = lip.ConfigList(new Lip.ConfigListArgs());
@@ -326,7 +326,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -366,7 +366,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -412,7 +412,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         Dictionary<string, string> keyValuePairs = [];
 
@@ -437,7 +437,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -466,7 +466,7 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(initialRuntimeConfig, context.Object);
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         Dictionary<string, string> keyValuePairs = new()
         {

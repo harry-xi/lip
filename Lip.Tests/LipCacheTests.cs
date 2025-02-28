@@ -125,7 +125,7 @@ public class LipCacheTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(git.Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         await lip.CacheAdd("example.com/repo@1.0.0", new());
@@ -171,7 +171,7 @@ public class LipCacheTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(git.Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         await lip.CacheAdd("example.com/repo@1.0.0", new());
@@ -211,7 +211,7 @@ public class LipCacheTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(() => lip.CacheAdd("example.com/repo@1.0.0", new()));
@@ -248,7 +248,7 @@ public class LipCacheTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(() => lip.CacheAdd("example.com/repo@1.0.0", new()));
@@ -271,7 +271,7 @@ public class LipCacheTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         await lip.CacheClean(new());
@@ -298,7 +298,7 @@ public class LipCacheTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(runtimeConfig, context.Object);
+        Lip lip = Lip.Create(runtimeConfig, context.Object);
 
         // Act.
         Lip.CacheListResult result = await lip.CacheList(new());

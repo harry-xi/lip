@@ -57,7 +57,7 @@ public class LipRunTests
         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         // Act.
         int code = await lip.Run("test", new()
@@ -78,7 +78,7 @@ public class LipRunTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Run("test", new()));
@@ -116,7 +116,7 @@ public class LipRunTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Run("test", new()
@@ -156,7 +156,7 @@ public class LipRunTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         // Act & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Run("unknown_script", new()));
@@ -197,7 +197,7 @@ public class LipRunTests
         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = new(new(), context.Object);
+        Lip lip = Lip.Create(new(), context.Object);
 
         // Act.
         int code = await lip.Run("test", new());

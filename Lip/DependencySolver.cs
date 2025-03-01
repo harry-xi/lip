@@ -3,6 +3,7 @@ using DataStructures.Graphs;
 using DataStructures.Lists;
 using Semver;
 using SharpCompress;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Lip;
@@ -35,7 +36,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
             vertex.Manifest.GetVariant(
                 vertex.VariantLabel,
                 RuntimeInformation.RuntimeIdentifier)?
-                .Dependencies?
+                .Dependencies
                 .Select(kvp => kvp.Key)
                 .Select(packageSpecifier => vertices.FirstOrDefault(v => v.Specifier.Identifier == packageSpecifier))
                 .Where(dep => dep != null)
@@ -94,6 +95,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     }
 }
 
+[ExcludeFromCodeCoverage]
 file record LockTypeVertex : PackageLock.Package, IComparable<LockTypeVertex>
 {
     // C-Sharp-Algorithms requires this method to be implemented but we don't know why.

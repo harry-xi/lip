@@ -33,11 +33,16 @@ public partial class Lip
         PackageManifest.Variant? variant = packageManifest.GetVariant(
             packageSpecifier.VariantLabel, RuntimeInformation.RuntimeIdentifier);
 
-        foreach (PackageManifest.Asset asset in variant?.Assets ?? [])
+        if (variant is null)
+        {
+            return;
+        }
+
+        foreach (PackageManifest.Asset asset in variant.Assets)
         {
             if (asset.Type != PackageManifest.Asset.TypeEnum.Self)
             {
-                foreach (string url in asset.Urls ?? [])
+                foreach (string url in asset.Urls)
                 {
                     await _cacheManager.GetFileFromUrl(url);
                 }

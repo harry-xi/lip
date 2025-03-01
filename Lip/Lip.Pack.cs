@@ -30,22 +30,21 @@ public partial class Lip
 
         if (!args.IgnoreScripts)
         {
-            PackageManifest.Variant? variant = packageManifest.GetVariant(
+            packageManifest.GetVariant(
                 string.Empty,
-                RuntimeInformation.RuntimeIdentifier);
-            PackageManifest.ScriptsType? script = variant?.Scripts;
-            List<string>? prePackScripts = script?.PrePack;
-
-            prePackScripts?.ForEach(script =>
-            {
-                _context.Logger.LogDebug("Running script: {script}", script);
-                if (!args.DryRun)
-                {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
-                }
-            });
+                RuntimeInformation.RuntimeIdentifier)?
+                .Scripts
+                .PrePack
+                .ForEach(script =>
+                    {
+                        _context.Logger.LogDebug("Running script: {script}", script);
+                        if (!args.DryRun)
+                        {
+                            _context.CommandRunner.Run(
+                                script,
+                                _pathManager.WorkingDir);
+                        }
+                    });
         }
 
         // Pack files in the archive.
@@ -54,11 +53,10 @@ public partial class Lip
             _context.FileSystem,
             _pathManager.WorkingDir);
 
-        List<PackageManifest.Placement> filePlacements = packageManifest.Variants?
-            .SelectMany(v => v.Assets ?? [])
+        List<PackageManifest.Placement> filePlacements = [.. packageManifest.Variants
+            .SelectMany(v => v.Assets)
             .Where(a => a.Type == PackageManifest.Asset.TypeEnum.Self)
-            .SelectMany(a => a.Placements ?? [])
-            .ToList() ?? [];
+            .SelectMany(a => a.Placements)];
 
         List<IFileSourceEntry> fileEntriesToPlace = [.. (await fileSource.GetAllEntries())
             .Where(entry => filePlacements.Any(placement => _pathManager.GetPlacementRelativePath(
@@ -97,22 +95,21 @@ public partial class Lip
 
         if (!args.IgnoreScripts)
         {
-            PackageManifest.Variant? variant = packageManifest.GetVariant(
+            packageManifest.GetVariant(
                 string.Empty,
-                RuntimeInformation.RuntimeIdentifier);
-            PackageManifest.ScriptsType? script = variant?.Scripts;
-            List<string>? postPackScripts = script?.PostPack;
-
-            postPackScripts?.ForEach(script =>
-            {
-                _context.Logger.LogDebug("Running script: {script}", script);
-                if (!args.DryRun)
-                {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
-                }
-            });
+                RuntimeInformation.RuntimeIdentifier)?
+                .Scripts
+                .PostPack
+                .ForEach(script =>
+                    {
+                        _context.Logger.LogDebug("Running script: {script}", script);
+                        if (!args.DryRun)
+                        {
+                            _context.CommandRunner.Run(
+                                script,
+                                _pathManager.WorkingDir);
+                        }
+                    });
         }
     }
 }

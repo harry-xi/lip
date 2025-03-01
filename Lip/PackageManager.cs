@@ -199,10 +199,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            PackageManifest.ScriptsType? script = packageVariant.Scripts;
-            List<string>? preInstallScripts = script?.PreInstall;
-
-            preInstallScripts?.ForEach(script =>
+            packageVariant.Scripts.PreInstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 
@@ -218,7 +215,7 @@ public class PackageManager(
         // Place files.
         List<string> placedFiles = [];
 
-        foreach (PackageManifest.Asset asset in packageVariant.Assets ?? [])
+        foreach (PackageManifest.Asset asset in packageVariant.Assets)
         {
             IFileSource fileSource = await GetAssetFileSource(asset, packageFileSource);
 
@@ -226,7 +223,7 @@ public class PackageManager(
 
             foreach (IFileSourceEntry fileSourceEntry in await fileSource.GetAllEntries())
             {
-                foreach (PackageManifest.Placement place in asset.Placements ?? [])
+                foreach (PackageManifest.Placement place in asset.Placements)
                 {
                     string? destRelative = _pathManager.GetPlacementRelativePath(place, fileSourceEntry.Key);
 
@@ -264,10 +261,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            PackageManifest.ScriptsType? script = packageVariant.Scripts;
-            List<string>? installScripts = script?.Install;
-
-            installScripts?.ForEach(script =>
+            packageVariant.Scripts.Install.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 
@@ -298,10 +292,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            PackageManifest.ScriptsType? script = packageVariant.Scripts;
-            List<string>? postInstallScripts = script?.PostInstall;
-
-            postInstallScripts?.ForEach(script =>
+            packageVariant.Scripts.PostInstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
@@ -325,11 +316,17 @@ public class PackageManager(
 
     public async Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts)
     {
-        SemVersion? installedVersion = (await GetPackageManifestFromLock(packageSpecifierWithoutVersion))?.Version;
+        PackageManifest? manifest = await GetPackageManifestFromLock(packageSpecifierWithoutVersion);
+
+        if (manifest is null)
+        {
+            _context.Logger.LogWarning("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
+            return;
+        }
 
         // If the package is not installed, skip uninstalling.
 
-        if (installedVersion is null)
+        if (manifest is null)
         {
             _context.Logger.LogWarning("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
             return;
@@ -338,7 +335,7 @@ public class PackageManager(
         PackageSpecifier packageSpecifier = new()
         {
             ToothPath = packageSpecifierWithoutVersion.ToothPath,
-            Version = installedVersion,
+            Version = manifest.Version,
             VariantLabel = packageSpecifierWithoutVersion.VariantLabel
         };
 
@@ -363,10 +360,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            PackageManifest.ScriptsType? script = packageVariant.Scripts;
-            List<string>? preUninstallScripts = script?.PreUninstall;
-
-            preUninstallScripts?.ForEach(script =>
+            packageVariant.Scripts.PreUninstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 
@@ -383,10 +377,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            PackageManifest.ScriptsType? script = packageVariant.Scripts;
-            List<string>? uninstallScripts = script?.Uninstall;
-
-            uninstallScripts?.ForEach(script =>
+            packageVariant.Scripts.Uninstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 
@@ -401,8 +392,8 @@ public class PackageManager(
 
         // Remove files.
 
-        IEnumerable<Glob> preserve = (packageVariant.PreserveFiles ?? []).Select(p => Glob.Parse(p));
-        List<string> remove = packageVariant.RemoveFiles ?? [];
+        IEnumerable<Glob> preserve = packageVariant.PreserveFiles.Select(p => Glob.Parse(p));
+        List<string> remove = packageVariant.RemoveFiles;
 
         foreach (var file in installedFiles)
         {
@@ -455,10 +446,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            PackageManifest.ScriptsType? script = packageVariant.Scripts;
-            List<string>? postUninstallScripts = script?.PostUninstall;
-
-            postUninstallScripts?.ForEach(script =>
+            packageVariant.Scripts.PostUninstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 
@@ -479,10 +467,7 @@ public class PackageManager(
             return packageFileScore;
         }
 
-        List<Url> urls = asset.Urls?.ConvertAll(url => new Url(url))
-            ?? throw new InvalidOperationException("Asset URLs are not specified.");
-
-        IFileInfo assetFile = await _cacheManager.GetFileFromUrls(urls);
+        IFileInfo assetFile = await _cacheManager.GetFileFromUrls(asset.Urls);
 
         if (asset.Type == PackageManifest.Asset.TypeEnum.Uncompressed)
         {

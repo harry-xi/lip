@@ -2,6 +2,7 @@ using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
+using System.Runtime.InteropServices;
 
 namespace Lip.Tests;
 
@@ -56,7 +57,7 @@ public class LipInitTests
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
         Assert.Equal(
-            """
+            $$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -65,8 +66,29 @@ public class LipInitTests
                 "info": {
                     "name": "Example Package",
                     "description": "An example package.",
+                    "tags": [],
                     "avatar_url": "https://example.com/avatar.png"
-                }
+                },
+                "variants": [
+                    {
+                        "label": "",
+                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                        "dependencies": {},
+                        "assets": [],
+                        "preserve_files": [],
+                        "remove_files": [],
+                        "scripts": {
+                            "pre_install": [],
+                            "install": [],
+                            "post_install": [],
+                            "pre_pack": [],
+                            "post_pack": [],
+                            "pre_uninstall": [],
+                            "uninstall": [],
+                            "post_uninstall": []
+                        }
+                    }
+                ]
             }
             """.ReplaceLineEndings(),
             fileSystem.File.ReadAllText(Path.Join(s_workspacePath, "tooth.json")).ReplaceLineEndings());
@@ -96,13 +118,38 @@ public class LipInitTests
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
-        Assert.Equal("""
+        Assert.Equal($$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
                 "tooth": "example.com/org/package",
                 "version": "0.1.0",
-                "info": {}
+                "info": {
+                    "name": "",
+                    "description": "",
+                    "tags": [],
+                    "avatar_url": ""
+                },
+                "variants": [
+                    {
+                        "label": "",
+                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                        "dependencies": {},
+                        "assets": [],
+                        "preserve_files": [],
+                        "remove_files": [],
+                        "scripts": {
+                            "pre_install": [],
+                            "install": [],
+                            "post_install": [],
+                            "pre_pack": [],
+                            "post_pack": [],
+                            "pre_uninstall": [],
+                            "uninstall": [],
+                            "post_uninstall": []
+                        }
+                    }
+                ]
             }
             """.ReplaceLineEndings(),
             fileSystem.File.ReadAllText(Path.Join(s_workspacePath, "tooth.json")).ReplaceLineEndings());
@@ -137,7 +184,7 @@ public class LipInitTests
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
-        Assert.Equal("""
+        Assert.Equal($$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -146,8 +193,29 @@ public class LipInitTests
                 "info": {
                     "name": "Example Package",
                     "description": "An example package.",
+                    "tags": [],
                     "avatar_url": "https://example.com/avatar.png"
-                }
+                },
+                "variants": [
+                    {
+                        "label": "",
+                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                        "dependencies": {},
+                        "assets": [],
+                        "preserve_files": [],
+                        "remove_files": [],
+                        "scripts": {
+                            "pre_install": [],
+                            "install": [],
+                            "post_install": [],
+                            "pre_pack": [],
+                            "post_pack": [],
+                            "pre_uninstall": [],
+                            "uninstall": [],
+                            "post_uninstall": []
+                        }
+                    }
+                ]
             }
             """.ReplaceLineEndings(),
             fileSystem.File.ReadAllText(Path.Join(s_workspacePath, "tooth.json")).ReplaceLineEndings());
@@ -255,7 +323,7 @@ public class LipInitTests
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
-        Assert.Equal("""
+        Assert.Equal($$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -264,8 +332,29 @@ public class LipInitTests
                 "info": {
                     "name": "Example Package",
                     "description": "An example package.",
+                    "tags": [],
                     "avatar_url": "https://example.com/avatar.png"
-                }
+                },
+                "variants": [
+                    {
+                        "label": "",
+                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                        "dependencies": {},
+                        "assets": [],
+                        "preserve_files": [],
+                        "remove_files": [],
+                        "scripts": {
+                            "pre_install": [],
+                            "install": [],
+                            "post_install": [],
+                            "pre_pack": [],
+                            "post_pack": [],
+                            "pre_uninstall": [],
+                            "uninstall": [],
+                            "post_uninstall": []
+                        }
+                    }
+                ]
             }
             """.ReplaceLineEndings(),
             fileSystem.File.ReadAllText(Path.Join(s_workspacePath, "tooth.json")).ReplaceLineEndings());

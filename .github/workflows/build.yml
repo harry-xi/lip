@@ -102,7 +102,6 @@ jobs:
           --output bin
           --runtime ${{ matrix.runtime }}
           --self-contained true
-          -p:DebugType=None
           -p:PublishSingleFile=true
 
       - uses: actions/upload-artifact@v4

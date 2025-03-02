@@ -33,6 +33,9 @@ lip <command>
 
 Check out [the documentation](https://futrime.github.io/lip/) for more information.
 
+> [!NOTE]
+> Looking for **lip** with schema version 2? Check out [here](https://github.com/futrime/lip/tree/v0.24.0).
+
 ## Contributing
 
 Feel free to dive in! [Open an issue](https://github.com/futrime/lip/issues/new/choose) or submit PRs.

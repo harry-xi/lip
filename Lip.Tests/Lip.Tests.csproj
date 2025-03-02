@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lip\Lip.csproj" />
+    <ProjectReference Include="..\Lip.Core\Lip.Core.csproj" />
   </ItemGroup>
 
 </Project>

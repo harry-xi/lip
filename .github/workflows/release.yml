@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         project:
-          - Lip.CLI
+          - Lip
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-22.04
@@ -52,8 +52,8 @@ jobs:
           --configuration Release
           --output bin
           --runtime ${{ matrix.runtime }}
-          -p:OptimizationPreference=Size
-          -p:PublishAot=true
+          --self-contained true
+          -p:PublishSingleFile=true
 
       - uses: actions/upload-artifact@v4
         with:

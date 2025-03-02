@@ -13,6 +13,13 @@ jobs:
       matrix:
         project:
           - Lip
+        runtimes:
+          - linux-arm64
+          - linux-x64
+          - osx-arm64
+          - osx-x64
+          - win-arm64
+          - win-x64
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-22.04

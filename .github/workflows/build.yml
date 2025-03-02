@@ -22,6 +22,13 @@ jobs:
         project:
           - Lip.Context
           - Lip.Core
+        runtimes:
+          - linux-arm64
+          - linux-x64
+          - osx-arm64
+          - osx-x64
+          - win-arm64
+          - win-x64
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-22.04
@@ -55,6 +62,13 @@ jobs:
       matrix:
         project:
           - Lip
+        runtimes:
+          - linux-arm64
+          - linux-x64
+          - osx-arm64
+          - osx-x64
+          - win-arm64
+          - win-x64
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-22.04
@@ -108,9 +122,9 @@ jobs:
       matrix:
         project:
           - Lip
-          - Lip.Tests
           - Lip.Context
           - Lip.Core
+          - Lip.Core.Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

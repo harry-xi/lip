@@ -24,11 +24,7 @@ public partial class Lip
 
         foreach (string script in scripts)
         {
-            int code = await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
-            if (code != 0)
-            {
-                return code;
-            }
+            await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
         }
 
         return 0;

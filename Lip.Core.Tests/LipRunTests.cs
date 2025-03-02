@@ -50,7 +50,7 @@ public class LipRunTests
         }, currentDirectory: s_workDir);
 
         Mock<ICommandRunner> commandRunner = new();
-        commandRunner.Setup(c => c.Run("run_test", s_workDir)).ReturnsAsync(0);
+        commandRunner.Setup(c => c.Run("run_test", s_workDir));
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
@@ -190,7 +190,7 @@ public class LipRunTests
         }, currentDirectory: s_workDir);
 
         Mock<ICommandRunner> commandRunner = new();
-        commandRunner.Setup(c => c.Run("run_test", s_workDir)).ReturnsAsync(1);
+        commandRunner.Setup(c => c.Run("run_test", s_workDir));
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);

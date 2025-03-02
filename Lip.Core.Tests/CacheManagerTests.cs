@@ -1,5 +1,4 @@
 using Flurl;
-using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
@@ -9,7 +8,7 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class CacheManagerTests
 {

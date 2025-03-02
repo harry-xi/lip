@@ -1,13 +1,12 @@
 // using Flurl;
-// using Lip.Context;
-// using Microsoft.Extensions.Logging;
+// // using Microsoft.Extensions.Logging;
 // using Moq;
 // using Semver;
 // using System.IO.Abstractions.TestingHelpers;
 // using System.Runtime.InteropServices;
 // using static Lip.Context.IGit;
 
-// namespace Lip.Tests;
+// namespace Lip.Core.Tests;
 
 // public class PackageManagerTests
 // {

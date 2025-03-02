@@ -1,12 +1,11 @@
 using DotNet.Globbing;
 using Flurl;
-using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Semver;
 using System.IO.Abstractions;
 using System.Runtime.InteropServices;
 
-namespace Lip;
+namespace Lip.Core;
 
 public interface IPackageManager
 {

@@ -1,10 +1,9 @@
-using Lip.Context;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class LipInitTests
 {

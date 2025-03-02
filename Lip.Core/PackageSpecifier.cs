@@ -1,6 +1,6 @@
 using Semver;
 
-namespace Lip;
+namespace Lip.Core;
 
 
 public record PackageSpecifier

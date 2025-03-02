@@ -1,7 +1,7 @@
 using Moq;
 using System.Text;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class IFileSourceTests
 {

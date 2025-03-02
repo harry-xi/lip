@@ -1,9 +1,8 @@
-// using Lip.Context;
-// using Moq;
+// // using Moq;
 // using System.IO.Abstractions.TestingHelpers;
 // using System.Runtime.InteropServices;
 
-// namespace Lip.Tests;
+// namespace Lip.Core.Tests;
 
 // public class LipListTests
 // {

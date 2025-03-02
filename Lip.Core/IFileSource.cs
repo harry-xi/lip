@@ -1,4 +1,4 @@
-namespace Lip;
+namespace Lip.Core;
 
 /// <summary>
 /// File source is a unified interface for file access for different file structures.

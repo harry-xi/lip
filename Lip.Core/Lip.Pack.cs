@@ -3,7 +3,7 @@ using SharpCompress.Common;
 using SharpCompress.Writers;
 using System.Runtime.InteropServices;
 
-namespace Lip;
+namespace Lip.Core;
 
 public partial class Lip
 {

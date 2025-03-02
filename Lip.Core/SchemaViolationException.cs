@@ -1,4 +1,4 @@
-namespace Lip;
+namespace Lip.Core;
 
 /// <summary>
 /// Represents an exception that is thrown when a schema violation is detected.

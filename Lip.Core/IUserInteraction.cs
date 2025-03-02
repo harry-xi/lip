@@ -1,4 +1,4 @@
-namespace Lip.Context;
+namespace Lip.Core;
 
 /// <summary>
 /// Represents a user interaction interface.

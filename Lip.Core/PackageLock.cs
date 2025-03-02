@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Lip;
+namespace Lip.Core;
 
 public record PackageLock
 {

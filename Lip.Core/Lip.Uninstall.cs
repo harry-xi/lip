@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Semver;
 using System.Runtime.InteropServices;
 
-namespace Lip;
+namespace Lip.Core;
 
 public partial class Lip
 {

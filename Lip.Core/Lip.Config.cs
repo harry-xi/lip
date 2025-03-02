@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace Lip;
+namespace Lip.Core;
 
 public partial class Lip
 {

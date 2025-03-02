@@ -1,4 +1,4 @@
-namespace Lip;
+namespace Lip.Core;
 
 public record PackageIdentifier
 {

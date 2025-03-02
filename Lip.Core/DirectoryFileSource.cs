@@ -1,6 +1,6 @@
 using System.IO.Abstractions;
 
-namespace Lip;
+namespace Lip.Core;
 
 /// <summary>
 /// A file source that reads files from a directory.

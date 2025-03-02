@@ -1,4 +1,4 @@
-namespace Lip.Context;
+namespace Lip.Core;
 
 public interface ICommandRunner
 {

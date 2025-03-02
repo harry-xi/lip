@@ -1,7 +1,7 @@
 using Semver;
 using System.IO.Abstractions;
 
-namespace Lip;
+namespace Lip.Core;
 
 public class GoModuleArchiveFileSource(
     IFileSystem fileSystem,

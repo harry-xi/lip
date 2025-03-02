@@ -1,7 +1,7 @@
 using Moq;
 using Semver;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class TopoSortedPackageListTest
 {

@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Lip;
+namespace Lip.Core;
 
 /// <summary>
 /// Provides utility methods for validating various strings.

@@ -1,6 +1,6 @@
 using System.IO.Abstractions;
 
-namespace Lip;
+namespace Lip.Core;
 
 public static class IFileSystemExtensions
 {

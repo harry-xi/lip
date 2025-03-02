@@ -1,8 +1,7 @@
-using Lip.Context;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class LipConfigTests
 {

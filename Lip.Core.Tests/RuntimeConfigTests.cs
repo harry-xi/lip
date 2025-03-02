@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class RuntimeConfigTests
 {

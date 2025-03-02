@@ -4,7 +4,7 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class ArchiveFileSourceTests
 {

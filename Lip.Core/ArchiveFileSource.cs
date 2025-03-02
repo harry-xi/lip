@@ -1,7 +1,7 @@
 using SharpCompress.Readers;
 using System.IO.Abstractions;
 
-namespace Lip;
+namespace Lip.Core;
 
 /// <summary>
 /// A file source that reads and writes files from an archive.

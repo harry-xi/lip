@@ -6,7 +6,7 @@ using SharpCompress;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace Lip;
+namespace Lip.Core;
 
 public interface IDependencySolver
 {

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 
-namespace Lip.Context;
+namespace Lip.Core;
 
 public interface IContext
 {

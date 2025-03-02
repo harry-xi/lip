@@ -1,6 +1,6 @@
 using Flurl;
 
-namespace Lip.Context;
+namespace Lip.Core;
 
 public interface IDownloader
 {

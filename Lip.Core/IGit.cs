@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Lip.Context;
+namespace Lip.Core;
 
 public interface IGit
 {

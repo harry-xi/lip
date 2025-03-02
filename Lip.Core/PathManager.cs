@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 
-namespace Lip;
+namespace Lip.Core;
 
 public interface IPathManager
 {

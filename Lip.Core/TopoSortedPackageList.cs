@@ -3,7 +3,7 @@ using DataStructures.Graphs;
 using Semver;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Lip;
+namespace Lip.Core;
 
 /// <summary>
 /// Represents a list of packages that are topologically sorted, i.e. each package is guaranteed to be listed before

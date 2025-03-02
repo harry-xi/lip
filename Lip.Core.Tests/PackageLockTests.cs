@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class PackageLockTests
 {

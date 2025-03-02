@@ -2,7 +2,7 @@ using Scriban;
 using Scriban.Parsing;
 using System.Text;
 
-namespace Lip;
+namespace Lip.Core;
 
 public partial class Lip
 {

@@ -3,7 +3,7 @@ using Semver;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Lip;
+namespace Lip.Core;
 
 public partial class Lip
 {

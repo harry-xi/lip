@@ -2,7 +2,7 @@ using Moq;
 using Semver;
 using System.Runtime.InteropServices;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class DependencySolverTests
 {

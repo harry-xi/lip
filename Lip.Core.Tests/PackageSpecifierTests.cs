@@ -1,6 +1,6 @@
 using Semver;
 
-namespace Lip.Tests;
+namespace Lip.Core.Tests;
 
 public class PackageSpecifierTests
 {

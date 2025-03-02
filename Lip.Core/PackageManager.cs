@@ -149,6 +149,7 @@ public class PackageManager(
                 .Where(item => item.Ref.StartsWith("refs/tags/v"))
                 .Select(item => item.Ref)
                 .Select(refName => refName.Substring("refs/tags/v".Length))
+                .Where(version => SemVersion.TryParse(version, out _))
                 .Select(version => SemVersion.Parse(version))];
         }
 

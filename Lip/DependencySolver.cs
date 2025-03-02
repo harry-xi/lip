@@ -13,7 +13,8 @@ public interface IDependencySolver
     Task<List<PackageIdentifier>> GetUnnecessaryPackages();
     Task<List<PackageSpecifier>?> ResolveDependencies(
         List<PackageSpecifier> primaryPackageSpecifiers,
-        List<PackageSpecifier> installedPackageSpecifiers);
+        List<PackageSpecifier> installedPackageSpecifiers,
+        List<PackageLock.Package> knownPackages);
 }
 
 public class DependencySolver(IPackageManager packageManager) : IDependencySolver
@@ -24,37 +25,45 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     {
         PackageLock currentPackageLock = await _packageManager.GetCurrentPackageLock();
 
-        List<LockTypeVertex> vertices = [.. currentPackageLock.Packages.Cast<LockTypeVertex>()];
+        List<PackageVertex> vertices = [.. currentPackageLock.Packages.Select(package => new PackageVertex
+        {
+            Package = package
+        })];
 
-        DirectedSparseGraph<LockTypeVertex> dependencyGraph = new();
+        DirectedSparseGraph<PackageVertex> dependencyGraph = new();
 
         dependencyGraph.AddVertices(vertices);
 
         // Add edges.
-        foreach (LockTypeVertex vertex in vertices)
+        foreach (PackageVertex vertex in vertices)
         {
-            vertex.Variant.Dependencies
+            vertex.Package.Variant.Dependencies
                 .Select(kvp => kvp.Key)
-                .Select(packageSpecifier => vertices.FirstOrDefault(v => v.Specifier.Identifier == packageSpecifier))
+                .Select(identifier => vertices.FirstOrDefault(
+                    v => v.Package.Specifier.Identifier == identifier))
                 .Where(dep => dep != null)
                 .ForEach(dep => dependencyGraph.AddEdge(vertex, dep!));
         }
 
         // Find unnecessary packages.
-        List<PackageIdentifier> unnecessaryPackages = [.. ConnectedComponents.Compute(dependencyGraph)
-            .Where(component => !component.Any(v => v.Locked))
-            .SelectMany(component => component)
-            .Select(v => new PackageIdentifier{
-                ToothPath = v.Specifier.ToothPath,
-                VariantLabel = v.Specifier.VariantLabel
-            })];
+
+        BreadthFirstShortestPaths<PackageVertex> bfs = new(
+            dependencyGraph,
+            Sources: [.. vertices.Where(v => v.Package.Locked)]);
+
+        var unnecessaryPackages = vertices
+            .Where(v => !v.Package.Locked)
+            .Where(v => !bfs.HasPathTo(v))
+            .Select(v => v.Package.Specifier.Identifier)
+            .ToList();
 
         return unnecessaryPackages;
     }
 
     public async Task<List<PackageSpecifier>?> ResolveDependencies(
         List<PackageSpecifier> primaryPackageSpecifiers,
-        List<PackageSpecifier> installedPackageSpecifiers)
+        List<PackageSpecifier> installedPackageSpecifiers,
+        List<PackageLock.Package> knownPackages)
     {
         await Task.Delay(0); // Suppress warning.
 
@@ -71,7 +80,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
                 packageSpecifier => packageSpecifier.Identifier,
                 packageSpecifier => packageSpecifier.Version);
 
-        PackageDependencyGraph graph = new(_packageManager, installedPackages);
+        PackageDependencyGraph graph = new(_packageManager, installedPackages, knownPackages);
 
         graph.AddVertex(initialState);
 
@@ -93,15 +102,18 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
 }
 
 [ExcludeFromCodeCoverage]
-file record LockTypeVertex : PackageLock.Package, IComparable<LockTypeVertex>
+file record PackageVertex : IComparable<PackageVertex>
 {
+    public required PackageLock.Package Package { get; init; }
+
     // C-Sharp-Algorithms requires this method to be implemented but we don't know why.
-    public int CompareTo(LockTypeVertex? other) => throw new NotImplementedException();
+    public int CompareTo(PackageVertex? other) => throw new NotImplementedException();
 }
 
 file class PackageDependencyGraph(
     IPackageManager packageManager,
-    Dictionary<PackageIdentifier, SemVersion> installedPackages)
+    Dictionary<PackageIdentifier, SemVersion> installedPackages,
+    List<PackageLock.Package> knownPackages)
     : DirectedSparseGraph<PackageDependencyGraph.Vertex>
 {
     public class Vertex : IComparable<Vertex>
@@ -180,6 +192,7 @@ file class PackageDependencyGraph(
     }
 
     private readonly Dictionary<PackageIdentifier, SemVersion> _installedPackages = installedPackages;
+    private readonly List<PackageLock.Package> _knownPackages = knownPackages;
     private readonly IPackageManager _packageManager = packageManager;
 
     public override DLinkedList<Vertex> Neighbours(Vertex vertex)
@@ -200,12 +213,8 @@ file class PackageDependencyGraph(
         List<Vertex> neighbors = [.. Task.WhenAll(versionCandidates.Select(async version =>
         {
             PackageSpecifier packageSpecifier = PackageSpecifier.FromIdentifier(packageCandidate.Key, version);
-            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromCache(packageSpecifier);
 
-            Dictionary<PackageIdentifier, SemVersionRange> dependencies = packageManifest?
-                .GetVariant(packageCandidate.Key.VariantLabel, RuntimeInformation.RuntimeIdentifier)?
-                .Dependencies
-                ?? [];
+            Dictionary<PackageIdentifier, SemVersionRange> dependencies = await GetDependencies(packageSpecifier);
 
             KeyValuePair<PackageIdentifier, List<SemVersion>>[] dependencyCandidates = await Task.WhenAll(dependencies.Select(async dep =>
             {
@@ -222,7 +231,7 @@ file class PackageDependencyGraph(
                     g => g.Key,
                     g => g.Count() > 1
                         ? [.. g.First().Value.Intersect(g.Last().Value)]
-                        : g.First().Value
+                        : g.First().Value // Get the intersection of the versions.
                 );
 
             Dictionary<PackageIdentifier, SemVersion> newSelected = vertex.Selected
@@ -245,5 +254,24 @@ file class PackageDependencyGraph(
         }
 
         return base.Neighbours(vertex);
+    }
+
+    private async Task<Dictionary<PackageIdentifier, SemVersionRange>> GetDependencies(PackageSpecifier packageSpecifier)
+    {
+        // To support installing packages not in cache.
+        if (_knownPackages.Any(p => p.Specifier == packageSpecifier))
+        {
+            return _knownPackages
+                .First(p => p.Specifier == packageSpecifier)
+                .Variant.Dependencies;
+        }
+
+        PackageManifest manifest = await _packageManager.GetPackageManifestFromCache(packageSpecifier)
+            ?? throw new InvalidOperationException($"Package manifest for {packageSpecifier} not found.");
+
+        PackageManifest.Variant variant = manifest.GetVariant(packageSpecifier.VariantLabel, RuntimeInformation.RuntimeIdentifier)
+            ?? throw new InvalidOperationException($"Variant {packageSpecifier.VariantLabel} not found for {packageSpecifier}.");
+
+        return variant.Dependencies;
     }
 }

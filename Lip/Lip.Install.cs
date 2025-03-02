@@ -134,7 +134,17 @@ public partial class Lip
             ? primaryPackageSpecifiers
             : await _dependencySolver.ResolveDependencies(
                 primaryPackageSpecifiers,
-                [.. packageLock.Packages.Select(@lock => @lock.Specifier)]))
+                installedPackageSpecifiers: [.. packageLock.Packages.Select(@lock => @lock.Specifier)],
+                knownPackages: [
+                    .. packageLock.Packages,
+                    .. packageInstallDetails.Select(detail => new PackageLock.Package()
+                    {
+                        Files = [],
+                        Locked = false,
+                        Manifest = detail.Manifest,
+                        VariantLabel = detail.VariantLabel,
+                    })
+                ]))
                 ?? throw new InvalidOperationException("Cannot resolve dependencies.");
 
         // Prepare package install details and uninstall details.

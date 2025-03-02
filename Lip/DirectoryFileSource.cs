@@ -27,8 +27,7 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
                 _fileSystem,
                 filePath,
                 _fileSystem.Path.GetRelativePath(_rootDirPath, filePath)
-                .Replace(_fileSystem.Path.DirectorySeparatorChar, '/')))
-            .Cast<IFileSourceEntry>()];
+                .Replace(_fileSystem.Path.DirectorySeparatorChar, '/')))];
     }
 
     public async Task<IFileSourceEntry?> GetEntry(string key)

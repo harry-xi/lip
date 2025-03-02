@@ -20,9 +20,8 @@ public class GoModuleArchiveFileSource(
             .Select(entry => new GoModuleArchiveFileSourceEntry(
                 _fileSystem,
                 _archiveFilePath,
-                entry.Key.Substring(_prefix.Length),
-                entry.Key))
-            .Cast<IFileSourceEntry>()];
+                entry.Key[_prefix.Length..],
+                entry.Key))];
 
         return entries;
     }

@@ -17,23 +17,48 @@ public class LipViewTests
             "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
             "tooth": "example.com/repo",
             "version": "1.0.0",
+            "info": {
+                "name": "",
+                "description": "",
+                "tags": [],
+                "avatar_url": ""
+            },
             "variants": [
                 {
+                    "label": "",
                     "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                    "dependencies": {},
                     "assets": [
                         {
-                            "type": "self"
+                            "type": "self",
+                            "urls": [],
+                            "placements": []
                         },
                         {
-                            "type": "zip"
+                            "type": "zip",
+                            "urls": [],
+                            "placements": []
                         },
                         {
                             "type": "zip",
                             "urls": [
                                 "https://example.com/test.file"
-                            ]
+                            ],
+                            "placements": []
                         }
-                    ]
+                    ],
+                    "preserve_files": [],
+                    "remove_files": [],
+                    "scripts": {
+                        "pre_install": [],
+                        "install": [],
+                        "post_install": [],
+                        "pre_pack": [],
+                        "post_pack": [],
+                        "pre_uninstall": [],
+                        "uninstall": [],
+                        "post_uninstall": []
+                    }
                 }
             ]
         }
@@ -142,7 +167,7 @@ public class LipViewTests
         string result = await lip.View("example.com/repo@1.0.0", "variants[0].assets[0]", new());
 
         // Assert.
-        Assert.Equal(@"{type: ""self""}", result);
+        Assert.Equal(@"{type: ""self"", urls: [], placements: []}", result);
     }
 
     [Fact]

@@ -54,11 +54,11 @@ public partial class Lip
         {
             PackageInstallDetail installDetail = await GetPackageInstallDetailFromUserInput(packageText);
 
-            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromLock(
+            PackageLock.Package? installedPackage = await _packageManager.GetPackageFromLock(
                 installDetail.Specifier.Identifier);
 
             // If not installed, add to install details.
-            if (installedPackageManifest is null)
+            if (installedPackage is null)
             {
                 packageInstallDetails.Add(installDetail);
                 packageSpecifiersToInstallSpecified.Add(installDetail.Specifier);
@@ -76,7 +76,7 @@ public partial class Lip
             }
 
             // If installed with the same version, skip.
-            if (installedPackageManifest.Version == installDetail.Manifest.Version)
+            if (installedPackage.Specifier.Version == installDetail.Manifest.Version)
             {
                 _context.Logger.LogWarning(
                     "Package '{specifier}' is already installed. Skipping.",
@@ -92,7 +92,7 @@ public partial class Lip
             }
 
             // If installed with a previous version and Update is specified, add to install details.
-            if (args.Update && installedPackageManifest.Version.ComparePrecedenceTo(
+            if (args.Update && installedPackage.Specifier.Version.ComparePrecedenceTo(
                 installDetail.Manifest.Version) < 0)
             {
                 packageInstallDetails.Add(installDetail);
@@ -111,7 +111,7 @@ public partial class Lip
             };
 
             throw new InvalidOperationException(
-                $"Package '{specifier}' is already installed with a different version '{installedPackageManifest.Version}.");
+                $"Package '{specifier}' is already installed with a different version '{installedPackage.Specifier.Version}.");
         }
 
         // Solve dependencies.
@@ -126,7 +126,7 @@ public partial class Lip
                 VariantLabel = detail.VariantLabel,
                 Version = detail.Manifest.Version
             }),
-            .. packageLock.Locks
+            .. packageLock.Packages
             .Where(@lock => @lock.Locked)
             .Select(@lock => @lock.Specifier)];
 
@@ -134,7 +134,7 @@ public partial class Lip
             ? primaryPackageSpecifiers
             : await _dependencySolver.ResolveDependencies(
                 primaryPackageSpecifiers,
-                [.. packageLock.Locks.Select(@lock => @lock.Specifier)]))
+                [.. packageLock.Packages.Select(@lock => @lock.Specifier)]))
                 ?? throw new InvalidOperationException("Cannot resolve dependencies.");
 
         // Prepare package install details and uninstall details.
@@ -152,10 +152,10 @@ public partial class Lip
 
             // If installed with the same version, skip.
 
-            PackageManifest? installedPackageManifest = await _packageManager.GetPackageManifestFromLock(
+            PackageLock.Package? installedPackage = await _packageManager.GetPackageFromLock(
                 packageSpecifierToInstall.Identifier);
 
-            if (installedPackageManifest?.Version == packageSpecifierToInstall.Version)
+            if (installedPackage?.Specifier.Version == packageSpecifierToInstall.Version)
             {
                 _context.Logger.LogInformation(
                     "Dependency package '{specifier}' is already installed. Skipping.",
@@ -171,13 +171,12 @@ public partial class Lip
 
             // If installed with different version, add to uninstall details.
 
-            if (installedPackageManifest is not null
-                && installedPackageManifest.Version != packageSpecifierToInstall.Version)
+            if (installedPackage is not null
+                && installedPackage.Specifier.Version != packageSpecifierToInstall.Version)
             {
                 packageUninstallDetails.Add(new PackageUninstallDetail
                 {
-                    Manifest = installedPackageManifest,
-                    VariantLabel = packageSpecifierToInstall.VariantLabel
+                    Package = installedPackage
                 });
             }
 

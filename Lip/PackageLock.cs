@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,7 +13,7 @@ public record PackageLock
 
         public required bool Locked { get; init; }
 
-        public required PackageManifest Manifest { get; init; }
+        public required PackageManifest Manifest { private get; init; }
 
         public PackageSpecifier Specifier => new()
         {
@@ -21,9 +22,13 @@ public record PackageLock
             Version = Manifest.Version,
         };
 
+        public PackageManifest.Variant Variant => Manifest.GetVariant(
+            VariantLabel,
+            RuntimeInformation.RuntimeIdentifier)!;
+
         public required string VariantLabel
         {
-            get => _variantLabel;
+            private get => _variantLabel;
             init => _variantLabel = StringValidator.CheckVariantLabel(value)
                 ? value
                 : throw new SchemaViolationException(
@@ -37,7 +42,7 @@ public record PackageLock
     public const int DefaultFormatVersion = 3;
     public const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
 
-    public required List<Package> Locks { get; init; }
+    public required List<Package> Packages { get; init; }
 
     public static async Task<PackageLock> FromStream(Stream stream)
     {
@@ -61,14 +66,21 @@ public record PackageLock
 
         return new PackageLock
         {
-            Locks = rawPackageLock.Packages
-                .ConvertAll(rawPackage => new Package
+            Packages = [.. rawPackageLock.Packages
+                .Select(rawPackage =>
                 {
-                    Files = rawPackage.Files,
-                    Locked = rawPackage.Locked,
-                    Manifest = PackageManifest.FromJsonElement(rawPackage.Manifest),
-                    VariantLabel = rawPackage.Variant,
-                }),
+                    var manifest = PackageManifest.FromJsonElement(rawPackage.Manifest);
+                    return (manifest, rawPackage.Files, rawPackage.Locked, rawPackage.Variant);
+                })
+                // Filter out packages without matching variants.
+                .Where(x => x.manifest.GetVariant(x.Variant, RuntimeInformation.RuntimeIdentifier) != null)
+                .Select(x => new Package
+                {
+                    Files = x.Files,
+                    Locked = x.Locked,
+                    Manifest = x.manifest,
+                    VariantLabel = x.Variant,
+                })],
         };
     }
 
@@ -78,13 +90,25 @@ public record PackageLock
         {
             FormatVersion = DefaultFormatVersion,
             FormatUuid = DefaultFormatUuid,
-            Packages = Locks
+            Packages = Packages
                 .ConvertAll(package => new RawPackageLock.Package
                 {
                     Files = package.Files,
                     Locked = package.Locked,
-                    Manifest = package.Manifest.ToJsonElement(),
-                    Variant = package.VariantLabel,
+                    Manifest = new PackageManifest()
+                    {
+                        ToothPath = package.Specifier.ToothPath,
+                        Version = package.Specifier.Version,
+                        Info = new()
+                        {
+                            Name = string.Empty,
+                            Description = string.Empty,
+                            Tags = [],
+                            AvatarUrl = new(),
+                        },
+                        Variants = [package.Variant],
+                    }.ToJsonElement(),
+                    Variant = package.Variant.Label,
                 }),
         };
 

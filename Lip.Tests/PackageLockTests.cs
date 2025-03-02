@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Lip.Tests;
@@ -8,6 +9,28 @@ public class PackageLockTests
         "file1.txt",
         "file2.txt"
     ];
+
+    private static readonly PackageManifest.Variant _defaultVariant = new()
+    {
+        Label = _defaultVariantLabel,
+        Platform = RuntimeInformation.RuntimeIdentifier,
+        Assets = [],
+        PreserveFiles = [],
+        RemoveFiles = [],
+        Dependencies = [],
+        Scripts = new()
+        {
+            PreInstall = [],
+            Install = [],
+            PostInstall = [],
+            PrePack = [],
+            PostPack = [],
+            PreUninstall = [],
+            Uninstall = [],
+            PostUninstall = [],
+            AdditionalScripts = [],
+        }
+    };
 
     private static readonly PackageManifest _defaultManifest = new()
     {
@@ -20,7 +43,76 @@ public class PackageLockTests
             Tags = [],
             AvatarUrl = new(),
         },
-        Variants = []
+        Variants = [
+            _defaultVariant
+        ]
+    };
+
+    private static readonly List<PackageLock.Package> _defaultPackages =
+    [
+        new PackageLock.Package
+        {
+            Files = _defaultFiles,
+            Locked = false,
+            Manifest = _defaultManifest,
+            VariantLabel = _defaultVariantLabel
+        }
+    ];
+
+    private readonly string _defaultJson = $$"""
+        {
+            "format_version": 3,
+            "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+            "packages": [
+                {
+                    "files": [
+                        "file1.txt",
+                        "file2.txt"
+                    ],
+                    "locked": false,
+                    "manifest": {
+                        "format_version": 3,
+                        "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                        "tooth": "example.com/pkg",
+                        "version": "1.0.0",
+                        "info": {
+                            "name": "",
+                            "description": "",
+                            "tags": [],
+                            "avatar_url": ""
+                        },
+                        "variants": [
+                            {
+                                "label": "variant",
+                                "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                                "dependencies": {},
+                                "assets": [],
+                                "preserve_files": [],
+                                "remove_files": [],
+                                "scripts": {
+                                    "pre_install": [],
+                                    "install": [],
+                                    "post_install": [],
+                                    "pre_pack": [],
+                                    "post_pack": [],
+                                    "pre_uninstall": [],
+                                    "uninstall": [],
+                                    "post_uninstall": []
+                                }
+                            }
+                        ]
+                    },
+                    "variant": "variant"
+                }
+            ]
+        }
+        """;
+
+    private static readonly PackageSpecifier _defaultSpecifier = new()
+    {
+        ToothPath = "example.com/pkg",
+        VariantLabel = _defaultVariantLabel,
+        Version = new(1, 0, 0)
     };
 
     private const string _defaultVariantLabel = "variant";
@@ -42,8 +134,6 @@ public class PackageLockTests
         // Assert.
         Assert.Equal(_defaultFiles, newPackage.Files);
         Assert.False(newPackage.Locked);
-        Assert.Equal(_defaultManifest, newPackage.Manifest);
-        Assert.Equal(_defaultVariantLabel, newPackage.VariantLabel);
     }
 
     [Fact]
@@ -78,51 +168,28 @@ public class PackageLockTests
         PackageSpecifier specifier = package.Specifier;
 
         // Assert.
-        Assert.Equal(_defaultManifest.ToothPath, specifier.ToothPath);
-        Assert.Equal(_defaultVariantLabel, specifier.VariantLabel);
-        Assert.Equal(_defaultManifest.Version, specifier.Version);
+        Assert.Equal(_defaultSpecifier, specifier);
     }
 
-    private static readonly List<PackageLock.Package> _defaultPackages =
-    [
-        new PackageLock.Package
+    [Fact]
+    public void Package_Variant_ReturnsCorrectVariant()
+    {
+        // Arrange.
+        PackageLock.Package package = new()
         {
             Files = _defaultFiles,
             Locked = false,
             Manifest = _defaultManifest,
             VariantLabel = _defaultVariantLabel
-        }
-    ];
+        };
 
-    private const string _defaultJson = """
-        {
-            "format_version": 3,
-            "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-            "packages": [
-                {
-                    "files": [
-                        "file1.txt",
-                        "file2.txt"
-                    ],
-                    "locked": false,
-                    "manifest": {
-                        "format_version": 3,
-                        "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                        "tooth": "example.com/pkg",
-                        "version": "1.0.0",
-                        "info": {
-                            "name": "",
-                            "description": "",
-                            "tags": [],
-                            "avatar_url": ""
-                        },
-                        "variants": []
-                    },
-                    "variant": "variant"
-                }
-            ]
-        }
-        """;
+        // Act.
+        PackageManifest.Variant variant = package.Variant;
+
+        // Assert.
+        Assert.Equal(_defaultVariant.Label, variant.Label);
+        Assert.Equal(_defaultVariant.Platform, variant.Platform);
+    }
 
     [Fact]
     public void Constructor_ValidValues_ReturnsCorrectInstance()
@@ -130,13 +197,13 @@ public class PackageLockTests
         // Arrange & Act.
         PackageLock packageLock = new()
         {
-            Locks = _defaultPackages
+            Packages = _defaultPackages
         };
 
         PackageLock newPackageLock = packageLock with { };
 
         // Assert.
-        Assert.Equal(_defaultPackages, newPackageLock.Locks);
+        Assert.Equal(_defaultPackages, newPackageLock.Packages);
     }
 
     [Fact]
@@ -149,12 +216,10 @@ public class PackageLockTests
         PackageLock packageLock = await PackageLock.FromStream(stream);
 
         // Assert.
-        Assert.Single(packageLock.Locks);
-        PackageLock.Package package = packageLock.Locks[0];
+        Assert.Single(packageLock.Packages);
+        PackageLock.Package package = packageLock.Packages[0];
         Assert.Equal(_defaultFiles, package.Files);
         Assert.False(package.Locked);
-        Assert.Equal(_defaultManifest.ToJsonElement().ToString(), package.Manifest.ToJsonElement().ToString());
-        Assert.Equal(_defaultVariantLabel, package.VariantLabel);
     }
 
     [Fact]
@@ -198,12 +263,12 @@ public class PackageLockTests
     }
 
     [Fact]
-    public async Task ToStream_MinimumJson_Passes()
+    public async Task ToStream_ValidValues_Passes()
     {
         // Arrange
         PackageLock packageLock = new()
         {
-            Locks = _defaultPackages
+            Packages = _defaultPackages
         };
         using MemoryStream stream = new();
 

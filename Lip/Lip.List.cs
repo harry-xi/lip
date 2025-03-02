@@ -6,19 +6,21 @@ public partial class Lip
 
     public record ListResultItem
     {
-        public required PackageManifest Manifest { get; init; }
         public required bool Locked { get; init; }
+        public required PackageSpecifier Specifier { get; init; }
+        public required PackageManifest.Variant Variant { get; init; }
     }
 
     public async Task<List<ListResultItem>> List(ListArgs args)
     {
         PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
 
-        List<ListResultItem> listItems = packageLock.Locks
+        List<ListResultItem> listItems = packageLock.Packages
             .ConvertAll(@lock => new ListResultItem
             {
-                Manifest = @lock.Manifest,
-                Locked = @lock.Locked
+                Locked = @lock.Locked,
+                Specifier = @lock.Specifier,
+                Variant = @lock.Variant
             });
 
         return listItems;

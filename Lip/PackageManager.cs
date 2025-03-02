@@ -12,9 +12,9 @@ public interface IPackageManager
 {
     Task<PackageLock> GetCurrentPackageLock();
     Task<PackageManifest?> GetCurrentPackageManifest();
+    Task<PackageLock.Package?> GetPackageFromLock(PackageIdentifier packageSpecifier);
     Task<PackageManifest?> GetPackageManifestFromCache(PackageSpecifier packageSpecifier);
     Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource);
-    Task<PackageManifest?> GetPackageManifestFromLock(PackageIdentifier packageSpecifier);
     Task<List<SemVersion>> GetPackageRemoteVersions(PackageIdentifier packageSpecifier);
     Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts, bool locked);
     Task SaveCurrentPackageManifest(PackageManifest packageManifest);
@@ -41,7 +41,7 @@ public class PackageManager(
         {
             return new()
             {
-                Locks = []
+                Packages = []
             };
         }
 
@@ -64,6 +64,16 @@ public class PackageManager(
         return await PackageManifest.FromStream(fileStream);
     }
 
+    public async Task<PackageLock.Package?> GetPackageFromLock(PackageIdentifier packageSpecifier)
+    {
+        PackageLock packageLock = await GetCurrentPackageLock();
+
+        PackageLock.Package? package = packageLock.Packages.Where(
+            @lock => @lock.Specifier.Identifier == packageSpecifier).FirstOrDefault();
+
+        return package;
+    }
+
     public async Task<PackageManifest?> GetPackageManifestFromCache(PackageSpecifier packageSpecifier)
     {
         IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
@@ -81,16 +91,6 @@ public class PackageManager(
         }
 
         return await PackageManifest.FromStream(manifestStream);
-    }
-
-    public async Task<PackageManifest?> GetPackageManifestFromLock(PackageIdentifier packageSpecifier)
-    {
-        PackageLock packageLock = await GetCurrentPackageLock();
-
-        PackageLock.Package? package = packageLock.Locks.Where(
-            @lock => @lock.Specifier.Identifier == packageSpecifier).FirstOrDefault();
-
-        return package?.Manifest;
     }
 
     public async Task<List<SemVersion>> GetPackageRemoteVersions(PackageIdentifier packageSpecifier)
@@ -175,7 +175,7 @@ public class PackageManager(
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
 
-        SemVersion? installedVersion = (await GetPackageManifestFromLock(packageSpecifier.Identifier))?.Version;
+        SemVersion? installedVersion = (await GetPackageFromLock(packageSpecifier.Identifier))?.Specifier.Version;
 
         if (installedVersion == packageSpecifier.Version)
         {
@@ -219,7 +219,7 @@ public class PackageManager(
         {
             IFileSource fileSource = await GetAssetFileSource(asset, packageFileSource);
 
-            var entrys = await fileSource.GetAllEntries();
+            List<IFileSourceEntry> entrys = await fileSource.GetAllEntries();
 
             foreach (IFileSourceEntry fileSourceEntry in await fileSource.GetAllEntries())
             {
@@ -278,7 +278,7 @@ public class PackageManager(
 
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        packageLock.Locks.Add(new()
+        packageLock.Packages.Add(new()
         {
             Manifest = packageManifest,
             VariantLabel = variantLabel,
@@ -316,51 +316,21 @@ public class PackageManager(
 
     public async Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts)
     {
-        PackageManifest? manifest = await GetPackageManifestFromLock(packageSpecifierWithoutVersion);
-
-        if (manifest is null)
-        {
-            _context.Logger.LogWarning("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
-            return;
-        }
+        PackageLock.Package? packageToUninstall = await GetPackageFromLock(packageSpecifierWithoutVersion);
 
         // If the package is not installed, skip uninstalling.
 
-        if (manifest is null)
+        if (packageToUninstall is null)
         {
             _context.Logger.LogWarning("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
             return;
         }
-
-        PackageSpecifier packageSpecifier = new()
-        {
-            ToothPath = packageSpecifierWithoutVersion.ToothPath,
-            Version = manifest.Version,
-            VariantLabel = packageSpecifierWithoutVersion.VariantLabel
-        };
-
-        PackageManifest packageManifest = (await GetCurrentPackageLock()).Locks
-            .Where(@lock => @lock.Specifier == packageSpecifier)
-            .Select(@lock => @lock.Manifest)
-            .FirstOrDefault()!;
-
-        List<string> installedFiles = (await GetCurrentPackageLock()).Locks
-            .Where(@lock => @lock.Specifier == packageSpecifier)
-            .Select(@lock => @lock.Files)
-            .FirstOrDefault()!;
-
-        // If the package does not contain the variant to install, throw exception.
-
-        PackageManifest.Variant packageVariant = packageManifest.GetVariant(
-            string.Empty,
-            RuntimeInformation.RuntimeIdentifier)
-            ?? throw new InvalidOperationException($"The package does not contain variant {packageSpecifier.VariantLabel}.");
 
         // Run pre-uninstall scripts.
 
         if (!ignoreScripts)
         {
-            packageVariant.Scripts.PreUninstall.ForEach(script =>
+            packageToUninstall.Variant.Scripts.PreUninstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 
@@ -377,7 +347,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            packageVariant.Scripts.Uninstall.ForEach(script =>
+            packageToUninstall.Variant.Scripts.Uninstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 
@@ -390,14 +360,13 @@ public class PackageManager(
             });
         }
 
-        // Remove files.
+        // Remove placed files.
 
-        IEnumerable<Glob> preserve = packageVariant.PreserveFiles.Select(p => Glob.Parse(p));
-        List<string> remove = packageVariant.RemoveFiles;
+        IEnumerable<Glob> preserveFileGlobs = packageToUninstall.Variant.PreserveFiles.Select(p => Glob.Parse(p));
 
-        foreach (var file in installedFiles)
+        foreach (string file in packageToUninstall.Files)
         {
-            if (preserve.Any(p => p.IsMatch(file)))
+            if (preserveFileGlobs.Any(p => p.IsMatch(file)))
             {
                 continue;
             }
@@ -417,9 +386,20 @@ public class PackageManager(
             }
         }
 
-        foreach (string removePath in remove)
+        // Remove files to remove.
+
+        IEnumerable<Glob> removeFileGlobs = packageToUninstall.Variant.RemoveFiles.Select(p => Glob.Parse(p));
+
+        foreach (string fullPath in _context.FileSystem.Directory.EnumerateFileSystemEntries(_pathManager.WorkingDir, "*", SearchOption.AllDirectories))
         {
-            string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, removePath);
+            string relativePath = _context.FileSystem.Path.GetRelativePath(_pathManager.WorkingDir, fullPath);
+
+            if (!removeFileGlobs.Any(p => p.IsMatch(relativePath)))
+            {
+                continue;
+            }
+
+            string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, relativePath);
 
             _context.Logger.LogDebug("Removing file: {destPath}", destPath);
 
@@ -432,13 +412,14 @@ public class PackageManager(
 
                 RemoveParentDirectoriesUntilWorkingDir(destPath);
             }
+
         }
 
         // Update package lock.
 
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        packageLock.Locks.RemoveAll(@lock => @lock.Specifier == packageSpecifier);
+        packageLock.Packages.RemoveAll(@lock => @lock.Specifier == packageToUninstall.Specifier);
 
         await SaveCurrentPackageLock(packageLock);
 
@@ -446,7 +427,7 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            packageVariant.Scripts.PostUninstall.ForEach(script =>
+            packageToUninstall.Variant.Scripts.PostUninstall.ForEach(script =>
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
 

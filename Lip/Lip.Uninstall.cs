@@ -14,27 +14,11 @@ public partial class Lip
 
     private record PackageUninstallDetail : TopoSortedPackageList<PackageUninstallDetail>.IItem
     {
-        public Dictionary<PackageIdentifier, SemVersionRange> Dependencies
-        {
-            get
-            {
-                return Manifest.GetVariant(
-                        VariantLabel,
-                        RuntimeInformation.RuntimeIdentifier)?
-                        .Dependencies ?? [];
-            }
-        }
+        public Dictionary<PackageIdentifier, SemVersionRange> Dependencies => Package.Variant.Dependencies;
 
-        public required PackageManifest Manifest { get; init; }
+        public required PackageLock.Package Package { get; init; }
 
-        public PackageSpecifier Specifier => new()
-        {
-            ToothPath = Manifest.ToothPath,
-            VariantLabel = VariantLabel,
-            Version = Manifest.Version
-        };
-
-        public required string VariantLabel { get; init; }
+        public PackageSpecifier Specifier => Package.Specifier;
     }
 
     public async Task Uninstall(List<string> packageSpecifierTextsToUninstall, UninstallArgs args)
@@ -46,23 +30,22 @@ public partial class Lip
 
         TopoSortedPackageList<PackageUninstallDetail> packageUninstallDetails = [];
 
-        foreach (PackageIdentifier packageSpecifier in packageSpecifiersToUninstallSpecified)
+        foreach (PackageIdentifier identifier in packageSpecifiersToUninstallSpecified)
         {
-            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromLock(
-                packageSpecifier);
+            PackageLock.Package? package = await _packageManager.GetPackageFromLock(
+                identifier);
 
-            if (packageManifest is null)
+            if (package is null)
             {
                 _context.Logger.LogWarning(
-                    "Package '{packageSpecifier}' is not installed. Skipping.",
-                    packageSpecifier);
+                    "Package '{identifier}' is not installed. Skipping.",
+                    identifier);
                 continue;
             }
 
             packageUninstallDetails.Add(new PackageUninstallDetail
             {
-                Manifest = packageManifest,
-                VariantLabel = packageSpecifier.VariantLabel
+                Package = package
             });
         }
 

@@ -24,7 +24,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     {
         PackageLock currentPackageLock = await _packageManager.GetCurrentPackageLock();
 
-        List<LockTypeVertex> vertices = [.. currentPackageLock.Locks.Cast<LockTypeVertex>()];
+        List<LockTypeVertex> vertices = [.. currentPackageLock.Packages.Cast<LockTypeVertex>()];
 
         DirectedSparseGraph<LockTypeVertex> dependencyGraph = new();
 
@@ -33,10 +33,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
         // Add edges.
         foreach (LockTypeVertex vertex in vertices)
         {
-            vertex.Manifest.GetVariant(
-                vertex.VariantLabel,
-                RuntimeInformation.RuntimeIdentifier)?
-                .Dependencies
+            vertex.Variant.Dependencies
                 .Select(kvp => kvp.Key)
                 .Select(packageSpecifier => vertices.FirstOrDefault(v => v.Specifier.Identifier == packageSpecifier))
                 .Where(dep => dep != null)
@@ -48,8 +45,8 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
             .Where(component => !component.Any(v => v.Locked))
             .SelectMany(component => component)
             .Select(v => new PackageIdentifier{
-                ToothPath = v.Manifest.ToothPath,
-                VariantLabel = v.VariantLabel
+                ToothPath = v.Specifier.ToothPath,
+                VariantLabel = v.Specifier.VariantLabel
             })];
 
         return unnecessaryPackages;

@@ -22,13 +22,12 @@ public partial class Lip
 
         foreach (PackageIdentifier packageSpecifier in packageSpecifiersUnnecessary)
         {
-            PackageManifest packageManifest = (await _packageManager.GetPackageManifestFromLock(
+            PackageLock.Package package = (await _packageManager.GetPackageFromLock(
                 packageSpecifier))!; // We know that the package is installed.
 
             packageUninstallDetails.Add(new PackageUninstallDetail
             {
-                Manifest = packageManifest,
-                VariantLabel = packageSpecifier.VariantLabel
+                Package = package
             });
         }
 

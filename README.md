@@ -34,7 +34,7 @@ lip <command>
 Check out [the documentation](https://futrime.github.io/lip/) for more information.
 
 > [!NOTE]
-> Looking for **lip** with schema version 2? Check out [here](https://github.com/futrime/lip/tree/v0.24.0).
+> Looking for **lip** version 0.24.x or earlier? Check out [this link](https://github.com/futrime/lip/tree/v0.24.0).
 
 ## Contributing
 

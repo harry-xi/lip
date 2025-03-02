@@ -130,8 +130,8 @@ jobs:
         project:
           - Lip
           - Lip.Tests
-          - Lip.CLI
           - Lip.Context
+          - Lip.Core
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

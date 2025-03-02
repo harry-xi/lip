@@ -13,7 +13,7 @@ jobs:
       matrix:
         project:
           - Lip
-        runtimes:
+        runtime:
           - linux-arm64
           - linux-x64
           - osx-arm64

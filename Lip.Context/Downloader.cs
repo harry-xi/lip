@@ -1,16 +1,36 @@
+using Downloader;
 using Flurl;
-using Flurl.Http;
 using Lip.Core;
 
 namespace Lip.Context;
 
-public class Downloader : IDownloader
+public class DownloaderWrapper(IUserInteraction userInteraction) : IDownloader
 {
+    private readonly IUserInteraction _userInteraction = userInteraction;
+
     public async Task DownloadFile(Url url, string destinationPath)
     {
-        using Stream downloadStream = await url.GetStreamAsync();
-        using Stream fileStream = File.Create(destinationPath);
+        await using IDownload downloader = DownloadBuilder.New()
+            .WithUrl(url)
+            .WithFileLocation(destinationPath)
+            .Build();
 
-        await downloadStream.CopyToAsync(fileStream);
+        downloader.DownloadProgressChanged += async (sender, e) =>
+        {
+            string urlString = url.ToString();
+            if (urlString.Length > 50)
+            {
+                urlString = urlString[..15] + "..." + urlString[^35..];
+            }
+
+            await _userInteraction.UpdateProgress(
+                url,
+                Convert.ToSingle(e.ProgressPercentage / 100),
+                "Downloading {0}",
+                urlString
+            );
+        };
+
+        await downloader.StartAsync();
     }
 }

@@ -102,28 +102,6 @@ jobs:
           name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
-  test:
-    needs: build-lib
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          - Lip.Tests
-        runs-on:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-    runs-on: ${{ matrix.runs-on }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - run: |
-          dotnet test ${{ matrix.project }}
-
   check-style:
     strategy:
       fail-fast: false
@@ -144,3 +122,25 @@ jobs:
       - run: >
           dotnet format ${{ matrix.project }}
           --verify-no-changes
+
+  test:
+    needs: build-lib
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - Lip.Core.Tests
+        runs-on:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - run: |
+          dotnet test ${{ matrix.project }}

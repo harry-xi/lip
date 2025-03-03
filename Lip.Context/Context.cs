@@ -2,7 +2,7 @@ using Lip.Core;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 
-namespace Lip.CLI;
+namespace Lip.Context;
 
 public class Context : IContext
 {

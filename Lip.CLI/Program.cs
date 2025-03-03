@@ -1,64 +1,23 @@
-using Lip.CLI;
-using Lip.Context;
-using Lip.Core;
-using Microsoft.Extensions.Logging;
-using Spectre.Console;
 using Spectre.Console.Cli;
-using System.IO.Abstractions;
 
-var logger = CreateLogger();
+var commandApp = new CommandApp();
 
-var runtimeConfig = await GetRuntimeConfig();
+commandApp.SetDefaultCommand<CommandRoot>();
 
-var userInteraction = new UserInteraction();
-
-var lip = Lip.Core.Lip.Create(
-    runtimeConfig,
-    new Context
-    {
-        CommandRunner = new CommandRunner(),
-        Downloader = new Lip.Context.Downloader(userInteraction),
-        FileSystem = new FileSystem(),
-        Git = await StandaloneGit.Create(),
-        Logger = logger,
-        UserInteraction = userInteraction,
-        WorkingDir = Directory.GetCurrentDirectory()
-    }
-);
-
-var commandApp = new CommandApp<RootCommand>();
-
-#pragma warning disable CS4014
-userInteraction.RunProgressService();
-#pragma warning restore CS4014
-
-try
+commandApp.Configure(config =>
 {
-    return await commandApp.RunAsync(args);
-}
-catch (Exception ex)
-{
-    AnsiConsole.WriteException(ex);
-    return -1;
-}
+    config.SetApplicationName("lip");
 
-static ILogger CreateLogger()
-{
-    using var factory = LoggerFactory.Create(builder => builder.AddConsole());
-    return factory.CreateLogger<Program>();
-}
+#if DEBUG
+    config.PropagateExceptions();
+#endif
 
-static async Task<RuntimeConfig> GetRuntimeConfig()
-{
-    var path = Path.Join(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
+    config.AddCommand<PackCommand>("pack");
+    config.AddCommand<PruneCommand>("prune");
+    config.AddCommand<RunCommand>("run");
+    config.AddCommand<UninstallCommand>("uninstall");
+    config.AddCommand<UpdateCommand>("update");
+    config.AddCommand<ViewCommand>("view");
+});
 
-    if (!Path.Exists(path))
-    {
-        return new RuntimeConfig();
-    }
-
-    var json = await File.ReadAllBytesAsync(path);
-
-    return RuntimeConfig.FromJsonBytes(json);
-}
+return await commandApp.RunAsync(args);

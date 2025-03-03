@@ -3,12 +3,18 @@
 ## Usage
 
 ```shell
-lip update <package>...
+lip update <packages[]>
 ```
 
 ## Description
 
 Update packages and their dependencies from various sources. Equivalent to `lip install --update <package...>`.
+
+## Arguments
+
+- `packages[]`
+
+  The packages to update.
 
 ## Options
 

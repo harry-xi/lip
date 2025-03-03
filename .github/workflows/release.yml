@@ -54,6 +54,13 @@ jobs:
       #     sudo apt update
       #     sudo apt install -y clang llvm binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu zlib1g-dev:arm64
 
+      - id: get-version
+        uses: frabert/replace-string-action@v2
+        with:
+          pattern: '^v'
+          string: ${{ github.event.release.tag_name }}
+          replace-with: ''
+
       - run: >
           dotnet publish ${{ matrix.project }}
           --configuration Release
@@ -61,6 +68,7 @@ jobs:
           --runtime ${{ matrix.runtime }}
           --self-contained true
           -p:PublishSingleFile=true
+          -p:Version=${{ steps.get-version.outputs.replaced }}
 
       - uses: actions/upload-artifact@v4
         with:

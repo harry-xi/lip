@@ -286,7 +286,10 @@ public class PackageManager(
             Files = placedFiles,
         });
 
-        await SaveCurrentPackageLock(packageLock);
+        if (!dryRun)
+        {
+            await SaveCurrentPackageLock(packageLock);
+        }
 
         // Run post-install scripts.
 
@@ -421,7 +424,10 @@ public class PackageManager(
 
         packageLock.Packages.RemoveAll(@lock => @lock.Specifier == packageToUninstall.Specifier);
 
-        await SaveCurrentPackageLock(packageLock);
+        if (!dryRun)
+        {
+            await SaveCurrentPackageLock(packageLock);
+        }
 
         // Run post-uninstall scripts.
 

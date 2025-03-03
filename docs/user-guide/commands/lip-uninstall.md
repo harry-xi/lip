@@ -3,12 +3,18 @@
 ## Usage
 
 ```shell
-lip uninstall <package-spec-without-version> ...
+lip uninstall <packages[]>
 ```
 
 ## Description
 
 Uninstall packages and unused dependencies.
+
+## Arguments
+
+- `packages[]`
+
+  The packages to uninstall.
 
 ## Options
 
@@ -18,4 +24,4 @@ Uninstall packages and unused dependencies.
 
 - `--ignore-scripts`
 
-  Do not run any scripts during installation.
+  Do not run any scripts during uninstallation.

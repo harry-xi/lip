@@ -111,6 +111,7 @@ jobs:
           --runtime ${{ matrix.runtime }}
           --self-contained true
           -p:PublishSingleFile=true
+          -p:Version=0.0.0
 
       - uses: actions/upload-artifact@v4
         with:

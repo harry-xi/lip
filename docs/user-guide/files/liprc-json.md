@@ -1,6 +1,6 @@
 # liprc.json
 
-The `liprc.json` file serves as the configuration file for lip, enabling you to configure settings such as caching, proxies, and script execution. lip stores this file at `%APPDATA%\lip\liprc.json` for Windows and `~/.config/lip/liprc.json` for POSIX-like systems.
+The `liprc.json` file serves as the configuration file for lip, enabling you to configure settings such as caching, proxies, and script execution. lip stores this file at `%APPDATA%\lip\liprc.json` for Windows, `~/.config/lip/liprc.json` for Linux, and `~/Library/Application Support/lip/liprc.json` for macOS.
 
 Project-specific settings take precedence over user-wide settings. All configuration fields are optional.
 
@@ -9,7 +9,7 @@ Project-specific settings take precedence over user-wide settings. All configura
 ### cache
 
 - Type: `string`
-- Default: `%LocalAppData%\lip\cache` (Windows) or `~/.local/share/lip/cache` (POSIX-like systems)
+- Default: `%LocalAppData%\lip\cache` for Windows, `~/.local/share/lip/cache` for Linux, and `~/Library/Application Support/lip/cache` for macOS
 
 Defines the directory path for storing cached files.
 

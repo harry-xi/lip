@@ -45,12 +45,8 @@ public class RuntimeConfigTests
             Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip", "cache"),
             runtimeConfiguration.Cache
         );
-        Assert.True(runtimeConfiguration.Color);
         Assert.Equal([], runtimeConfiguration.GitHubProxies);
         Assert.Equal(["https://proxy.golang.org"], runtimeConfiguration.GoModuleProxies);
-        Assert.Equal("", runtimeConfiguration.HttpsProxy);
-        Assert.Equal("", runtimeConfiguration.NoProxy);
-        Assert.Equal("", runtimeConfiguration.Proxy);
     }
 
     [Fact]
@@ -61,12 +57,8 @@ public class RuntimeConfigTests
             @"
             {
                 ""cache"": ""cache"",
-                ""color"": false,
                 ""github_proxies"": ""github_proxy"",
-                ""go_module_proxies"": ""go_module_proxy"",
-                ""https_proxy"": ""https_proxy"",
-                ""noproxy"": ""noproxy"",
-                ""proxy"": ""proxy""
+                ""go_module_proxies"": ""go_module_proxy""
             }
             "
         );
@@ -76,12 +68,8 @@ public class RuntimeConfigTests
 
         // Arrange.
         Assert.Equal("cache", runtimeConfiguration.Cache);
-        Assert.False(runtimeConfiguration.Color);
         Assert.Equal(["github_proxy"], runtimeConfiguration.GitHubProxies);
         Assert.Equal(["go_module_proxy"], runtimeConfiguration.GoModuleProxies);
-        Assert.Equal("https_proxy", runtimeConfiguration.HttpsProxy);
-        Assert.Equal("noproxy", runtimeConfiguration.NoProxy);
-        Assert.Equal("proxy", runtimeConfiguration.Proxy);
     }
 
     [Fact]
@@ -108,12 +96,8 @@ public class RuntimeConfigTests
         Assert.Equal($$"""
             {
                 "cache": "{{Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip", "cache").Replace("\\", "\\\\")}}",
-                "color": true,
                 "github_proxies": "",
-                "go_module_proxies": "https://proxy.golang.org",
-                "https_proxy": "",
-                "noproxy": "",
-                "proxy": ""
+                "go_module_proxies": "https://proxy.golang.org"
             }
             """.ReplaceLineEndings(), Encoding.UTF8.GetString(jsonBytes).ReplaceLineEndings());
     }

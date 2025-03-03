@@ -21,9 +21,6 @@ public record RuntimeConfig
     public string Cache { get; init; } = Path.Join(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip", "cache");
 
-    [JsonPropertyName("color")]
-    public bool Color { get; init; } = true;
-
     [JsonIgnore]
     public List<string> GitHubProxies
     {
@@ -43,15 +40,6 @@ public record RuntimeConfig
 
     [JsonPropertyName("go_module_proxies")]
     public string GoModuleProxiesText { get; init; } = "https://proxy.golang.org";
-
-    [JsonPropertyName("https_proxy")]
-    public string HttpsProxy { get; init; } = string.Empty;
-
-    [JsonPropertyName("noproxy")]
-    public string NoProxy { get; init; } = string.Empty;
-
-    [JsonPropertyName("proxy")]
-    public string Proxy { get; init; } = string.Empty;
 
     public static RuntimeConfig FromJsonBytes(byte[] bytes)
     {

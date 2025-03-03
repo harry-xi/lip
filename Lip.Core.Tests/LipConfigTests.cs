@@ -55,7 +55,7 @@ public class LipConfigTests
         RuntimeConfig initialRuntimeConfig = new()
         {
             Cache = "/custom/cache",
-            Color = false,
+            GitHubProxies = ["https://github-proxy.com"],
         };
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
@@ -69,7 +69,7 @@ public class LipConfigTests
         Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act.
-        await lip.ConfigDelete(["color"], new Lip.ConfigDeleteArgs());
+        await lip.ConfigDelete(["github_proxies"], new Lip.ConfigDeleteArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -77,12 +77,8 @@ public class LipConfigTests
         Assert.Equal($$"""
         {
             "cache": "/custom/cache",
-            "color": true,
             "github_proxies": "",
-            "go_module_proxies": "https://proxy.golang.org",
-            "https_proxy": "",
-            "noproxy": "",
-            "proxy": ""
+            "go_module_proxies": "https://proxy.golang.org"
         }
         """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -94,7 +90,7 @@ public class LipConfigTests
         RuntimeConfig initialRuntimeConfig = new()
         {
             Cache = "/custom/cache",
-            Color = false,
+            GitHubProxies = ["https://github-proxy.com"],
             GoModuleProxies = ["https://custom-proxy.io"],
         };
 
@@ -109,7 +105,7 @@ public class LipConfigTests
         Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
 
         // Act.
-        await lip.ConfigDelete(["color", "go_module_proxies"], new Lip.ConfigDeleteArgs());
+        await lip.ConfigDelete(["github_proxies", "go_module_proxies"], new Lip.ConfigDeleteArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -117,12 +113,8 @@ public class LipConfigTests
         Assert.Equal($$"""
         {
             "cache": "/custom/cache",
-            "color": true,
             "github_proxies": "",
-            "go_module_proxies": "https://proxy.golang.org",
-            "https_proxy": "",
-            "noproxy": "",
-            "proxy": ""
+            "go_module_proxies": "https://proxy.golang.org"
         }
         """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -171,7 +163,7 @@ public class LipConfigTests
 
         // Act & Assert.
         ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(
-            () => lip.ConfigDelete(["cache", "unknown", "color"], new Lip.ConfigDeleteArgs()));
+            () => lip.ConfigDelete(["cache", "unknown"], new Lip.ConfigDeleteArgs()));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", argumentException.Message);
     }
 
@@ -206,7 +198,6 @@ public class LipConfigTests
         RuntimeConfig initialRuntimeConfig = new()
         {
             Cache = "/custom/cache",
-            Color = false,
         };
 
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
@@ -221,13 +212,13 @@ public class LipConfigTests
 
         // Act.
         Dictionary<string, string> result = lip.ConfigGet(
-            ["cache", "color"],
+            ["cache", "github_proxies"],
             new Lip.ConfigGetArgs());
 
         // Assert.
         Assert.Equal(2, result.Count);
         Assert.Equal("/custom/cache", result["cache"]);
-        Assert.Equal("False", result["color"]);
+        Assert.Equal("", result["github_proxies"]);
     }
 
     [Fact]
@@ -258,7 +249,7 @@ public class LipConfigTests
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => lip.ConfigGet(["cache", "unknown", "color"], new Lip.ConfigGetArgs()));
+            () => lip.ConfigGet(["cache", "unknown"], new Lip.ConfigGetArgs()));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", exception.Message);
     }
 
@@ -285,12 +276,8 @@ public class LipConfigTests
         RuntimeConfig initialRuntimeConfig = new()
         {
             Cache = "/custom/cache",
-            Color = false,
             GitHubProxies = ["https://github-proxy.com"],
             GoModuleProxies = ["https://custom-proxy.io"],
-            HttpsProxy = "https://https-proxy.com",
-            NoProxy = "localhost",
-            Proxy = "http://custom-proxy.com"
         };
 
         Mock<IContext> context = new();
@@ -301,14 +288,10 @@ public class LipConfigTests
         Dictionary<string, string> result = lip.ConfigList(new Lip.ConfigListArgs());
 
         // Assert.
-        Assert.Equal(7, result.Count);
+        Assert.Equal(3, result.Count);
         Assert.Equal("/custom/cache", result["cache"]);
-        Assert.Equal("False", result["color"]);
         Assert.Equal("https://github-proxy.com", result["github_proxies"]);
         Assert.Equal("https://custom-proxy.io", result["go_module_proxies"]);
-        Assert.Equal("https://https-proxy.com", result["https_proxy"]);
-        Assert.Equal("localhost", result["noproxy"]);
-        Assert.Equal("http://custom-proxy.com", result["proxy"]);
     }
 
     [Fact]
@@ -341,12 +324,8 @@ public class LipConfigTests
         Assert.Equal($$"""
         {
             "cache": "/path/to/cache",
-            "color": true,
             "github_proxies": "",
-            "go_module_proxies": "https://proxy.golang.org",
-            "https_proxy": "",
-            "noproxy": "",
-            "proxy": ""
+            "go_module_proxies": "https://proxy.golang.org"
         }
         """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -370,12 +349,8 @@ public class LipConfigTests
         Dictionary<string, string> keyValuePairs = new()
         {
             { "cache", "/path/to/cache" },
-            { "color", "false" },
             { "github_proxies", "https://github.com" },
             { "go_module_proxies", "https://proxy.golang.org" },
-            { "https_proxy", "https://proxy.com" },
-            { "noproxy", "localhost" },
-            { "proxy", "http://proxy.com" },
         };
 
         // Act.
@@ -387,12 +362,8 @@ public class LipConfigTests
         Assert.Equal($$"""
         {
             "cache": "/path/to/cache",
-            "color": false,
             "github_proxies": "https://github.com",
-            "go_module_proxies": "https://proxy.golang.org",
-            "https_proxy": "https://proxy.com",
-            "noproxy": "localhost",
-            "proxy": "http://proxy.com"
+            "go_module_proxies": "https://proxy.golang.org"
         }
         """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -471,7 +442,6 @@ public class LipConfigTests
         {
             { "cache", "/path/to/cache" },
             { "unknown", "value" },
-            { "color", "false" },
         };
 
         // Act & Assert.

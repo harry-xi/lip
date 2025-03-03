@@ -61,7 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         project:
-          - Lip
+          - Lip.CLI
         runtime:
           - linux-arm64
           - linux-x64
@@ -82,8 +82,6 @@ jobs:
             runs-on: windows-latest
           - runtime: win-x64
             runs-on: windows-latest
-          - project: Lip
-            project-subname: cli
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -115,7 +113,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project-subname }}-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
   check-style:
@@ -123,7 +121,7 @@ jobs:
       fail-fast: false
       matrix:
         project:
-          - Lip
+          - Lip.CLI
           - Lip.Context
           - Lip.Core
           - Lip.Core.Tests

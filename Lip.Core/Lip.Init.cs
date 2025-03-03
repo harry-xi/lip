@@ -65,11 +65,11 @@ public partial class Lip
         }
         else
         {
-            string tooth = args.InitTooth ?? await _context.UserInteraction.PromptForInput("Enter the tooth path (e.g. {DefaultTooth}):", DefaultTooth) ?? DefaultTooth;
-            string version = args.InitVersion ?? await _context.UserInteraction.PromptForInput("Enter the package version (e.g. {DefaultVersion}):", DefaultVersion) ?? DefaultVersion;
-            string? name = args.InitName ?? await _context.UserInteraction.PromptForInput("Enter the package name:");
-            string? description = args.InitDescription ?? await _context.UserInteraction.PromptForInput("Enter the package description:");
-            string? avatarUrl = args.InitAvatarUrl ?? await _context.UserInteraction.PromptForInput("Enter the package's avatar URL:");
+            string tooth = args.InitTooth ?? await _context.UserInteraction.PromptForInput(DefaultTooth, "Enter the tooth path");
+            string version = args.InitVersion ?? await _context.UserInteraction.PromptForInput(DefaultVersion, "Enter the package version");
+            string name = args.InitName ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package name");
+            string description = args.InitDescription ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package description");
+            string avatarUrl = args.InitAvatarUrl ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package's avatar URL");
 
             manifest = new()
             {
@@ -77,8 +77,8 @@ public partial class Lip
                 Version = SemVersion.Parse(version),
                 Info = new()
                 {
-                    Name = name ?? "",
-                    Description = description ?? "",
+                    Name = name,
+                    Description = description,
                     Tags = [],
                     AvatarUrl = avatarUrl
                 },
@@ -108,7 +108,7 @@ public partial class Lip
             };
 
             if (!await _context.UserInteraction.Confirm(
-                "Do you want to create the following package manifest file?\n{jsonString}",
+                "Do you want to create the following package manifest file?\n{0}",
                 manifest.ToJsonElement().ToString()))
             {
                 throw new OperationCanceledException("Operation canceled by the user.");

@@ -9,7 +9,7 @@ public partial class Lip
         public string VariantLabel { get; init; } = string.Empty;
     }
 
-    public async Task<int> Run(string scriptName, RunArgs args)
+    public async Task Run(string scriptName, RunArgs args)
     {
         PackageManifest? packageManifest = await _packageManager.GetCurrentPackageManifest()
             ?? throw new InvalidOperationException("No package manifest found.");
@@ -26,7 +26,5 @@ public partial class Lip
         {
             await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
         }
-
-        return 0;
     }
 }

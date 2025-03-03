@@ -59,13 +59,10 @@ public class LipRunTests
         Lip lip = Lip.Create(new(), context.Object);
 
         // Act.
-        int code = await lip.Run("test", new()
+        await lip.Run("test", new()
         {
             VariantLabel = "test_variant"
         });
-
-        // Arrange.
-        Assert.Equal(0, code);
     }
 
     [Fact]
@@ -199,9 +196,6 @@ public class LipRunTests
         Lip lip = Lip.Create(new(), context.Object);
 
         // Act.
-        int code = await lip.Run("test", new());
-
-        // Arrange.
-        Assert.Equal(1, code);
+        await lip.Run("test", new());
     }
 }

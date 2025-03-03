@@ -4,7 +4,7 @@ using Lip.Core;
 
 namespace Lip.Context;
 
-public class DownloaderWrapper(IUserInteraction userInteraction) : IDownloader
+public class Downloader(IUserInteraction userInteraction) : IDownloader
 {
     private readonly IUserInteraction _userInteraction = userInteraction;
 

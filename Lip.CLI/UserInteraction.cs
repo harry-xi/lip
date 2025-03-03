@@ -2,26 +2,26 @@ using Lip.Core;
 using Spectre.Console;
 using System.Collections.Concurrent;
 
-namespace Lip;
+namespace Lip.CLI;
 
-public class UserInteraction : IUserInteraction
+class UserInteraction : IUserInteraction
 {
     private readonly ConcurrentDictionary<string, (float, string)> _progressUpdates = new();
 
     public async Task<bool> Confirm(string format, params object[] args)
     {
-        return await AnsiConsole.ConfirmAsync(string.Format(format, args));
+        return await AnsiConsole.ConfirmAsync(string.Format(format, args).EscapeMarkup());
     }
 
-    public async Task<string?> PromptForInput(string format, params object[] args)
+    public async Task<string> PromptForInput(string defaultValue, string format, params object[] args)
     {
-        return await AnsiConsole.AskAsync<string>(string.Format(format, args));
+        return await AnsiConsole.AskAsync(string.Format(format, args).EscapeMarkup(), defaultValue: defaultValue);
     }
 
     public async Task<string> PromptForSelection(IEnumerable<string> options, string format, params object[] args)
     {
         return await AnsiConsole.PromptAsync(new SelectionPrompt<string>()
-            .Title(string.Format(format, args))
+            .Title(string.Format(format, args).EscapeMarkup())
             .AddChoices(options)
         );
     }
@@ -70,6 +70,6 @@ public class UserInteraction : IUserInteraction
     {
         await Task.Delay(0); // Suppress warning.
 
-        _progressUpdates[id] = new(progress * 100, string.Format(format, args));
+        _progressUpdates[id] = new(progress * 100, string.Format(format, args).EscapeMarkup());
     }
 }

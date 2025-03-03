@@ -8,7 +8,7 @@ public class StandaloneGit : IGit
 {
     private StandaloneGit() { }
 
-    public static async Task<StandaloneGit?> CreateAsync()
+    public static async Task<StandaloneGit?> Create()
     {
         var result = await Cli.Wrap("git")
             .WithArguments("--version")

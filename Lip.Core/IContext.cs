@@ -55,9 +55,10 @@ public interface IUserInteraction
     /// <summary>
     /// Prompts user for text input.
     /// </summary>
+    /// <param name="defaultValue">Default value</param>
     /// <param name="format">The prompt message</param>
     /// <returns>User input as string</returns>
-    Task<string?> PromptForInput(string format, params object[] args);
+    Task<string> PromptForInput(string defaultValue, string format, params object[] args);
 
     /// <summary>
     /// Prompts user to select from multiple options.

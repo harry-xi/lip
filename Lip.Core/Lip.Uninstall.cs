@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Semver;
-using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lip.Core;
 
@@ -12,6 +12,7 @@ public partial class Lip
         public required bool IgnoreScripts { get; init; }
     }
 
+    [ExcludeFromCodeCoverage]
     private record PackageUninstallDetail : TopoSortedPackageList<PackageUninstallDetail>.IItem
     {
         public Dictionary<PackageIdentifier, SemVersionRange> Dependencies => Package.Variant.Dependencies;

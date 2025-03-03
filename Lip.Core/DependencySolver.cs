@@ -25,17 +25,17 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     {
         PackageLock currentPackageLock = await _packageManager.GetCurrentPackageLock();
 
-        List<PackageVertex> vertices = [.. currentPackageLock.Packages.Select(package => new PackageVertex
+        List<VertexForGetUnnecessaryPackages> vertices = [.. currentPackageLock.Packages.Select(package => new VertexForGetUnnecessaryPackages
         {
             Package = package
         })];
 
-        DirectedSparseGraph<PackageVertex> dependencyGraph = new();
+        DirectedSparseGraph<VertexForGetUnnecessaryPackages> dependencyGraph = new();
 
         dependencyGraph.AddVertices(vertices);
 
         // Add edges.
-        foreach (PackageVertex vertex in vertices)
+        foreach (VertexForGetUnnecessaryPackages vertex in vertices)
         {
             vertex.Package.Variant.Dependencies
                 .Select(kvp => kvp.Key)
@@ -47,7 +47,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
 
         // Find unnecessary packages.
 
-        BreadthFirstShortestPaths<PackageVertex> bfs = new(
+        BreadthFirstShortestPaths<VertexForGetUnnecessaryPackages> bfs = new(
             dependencyGraph,
             Sources: [.. vertices.Where(v => v.Package.Locked)]);
 
@@ -67,7 +67,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     {
         await Task.Delay(0); // Suppress warning.
 
-        PackageDependencyGraph.Vertex initialState = new()
+        GraphForResolveDependencies.Vertex initialState = new()
         {
             Candidates = primaryPackageSpecifiers.ToDictionary(
                 packageSpecifier => packageSpecifier.Identifier,
@@ -80,13 +80,13 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
                 packageSpecifier => packageSpecifier.Identifier,
                 packageSpecifier => packageSpecifier.Version);
 
-        PackageDependencyGraph graph = new(_packageManager, installedPackages, knownPackages);
+        GraphForResolveDependencies graph = new(_packageManager, installedPackages, knownPackages);
 
         graph.AddVertex(initialState);
 
         try
         {
-            PackageDependencyGraph.Vertex matchedState = DepthFirstSearcher.FindFirstMatch(
+            GraphForResolveDependencies.Vertex matchedState = DepthFirstSearcher.FindFirstMatch(
                 graph,
                 initialState,
                 vertex => vertex.Candidates.Count == 0);
@@ -101,20 +101,11 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     }
 }
 
-[ExcludeFromCodeCoverage]
-file record PackageVertex : IComparable<PackageVertex>
-{
-    public required PackageLock.Package Package { get; init; }
-
-    // C-Sharp-Algorithms requires this method to be implemented but we don't know why.
-    public int CompareTo(PackageVertex? other) => throw new NotImplementedException();
-}
-
-file class PackageDependencyGraph(
+file class GraphForResolveDependencies(
     IPackageManager packageManager,
     Dictionary<PackageIdentifier, SemVersion> installedPackages,
     List<PackageLock.Package> knownPackages)
-    : DirectedSparseGraph<PackageDependencyGraph.Vertex>
+    : DirectedSparseGraph<GraphForResolveDependencies.Vertex>
 {
     public class Vertex : IComparable<Vertex>
     {
@@ -274,4 +265,13 @@ file class PackageDependencyGraph(
 
         return variant.Dependencies;
     }
+}
+
+[ExcludeFromCodeCoverage]
+file record VertexForGetUnnecessaryPackages : IComparable<VertexForGetUnnecessaryPackages>
+{
+    public required PackageLock.Package Package { get; init; }
+
+    // C-Sharp-Algorithms requires this method to be implemented but we don't know why.
+    public int CompareTo(VertexForGetUnnecessaryPackages? other) => throw new NotImplementedException();
 }

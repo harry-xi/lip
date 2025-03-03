@@ -225,7 +225,7 @@ public record PackageManifest
 
     public required List<Variant> Variants { get; init; }
 
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage] // TODO: Add unit tests for this method.
     public static PackageManifest FromJsonElement(JsonElement jsonElement)
     {
         RawPackageManifest rawPackageManifest = RawPackageManifest.FromJsonElement(jsonElement);

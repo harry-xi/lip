@@ -17,11 +17,11 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
         public PackageSpecifier Specifier { get; }
     }
 
+    [ExcludeFromCodeCoverage]
     private class ItemWrapper : IComparable<ItemWrapper>
     {
         public required T Item { get; init; }
 
-        [ExcludeFromCodeCoverage]
         public int CompareTo(ItemWrapper? other) => throw new NotImplementedException();
     }
 

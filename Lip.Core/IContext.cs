@@ -28,16 +28,15 @@ public interface IDownloader
 
 public interface IGit
 {
-    [ExcludeFromCodeCoverage]
-    record ListRemoteResultItem
+    interface IListRemoteResultItem
     {
-        public required string Sha { get; init; }
-        public required string Ref { get; init; }
+        public string Sha { get; }
+        public string Ref { get; }
     }
 
     Task Clone(string repository, string directory, string? branch = null, int? depth = null);
 
-    Task<List<ListRemoteResultItem>> ListRemote(string repository, bool refs = false, bool tags = false);
+    Task<List<IListRemoteResultItem>> ListRemote(string repository, bool refs = false, bool tags = false);
 }
 
 /// <summary>

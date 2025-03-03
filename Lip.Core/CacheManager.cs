@@ -27,13 +27,6 @@ public class CacheManager(
     List<Url> gitHubProxies,
     List<Url> goModuleProxies) : ICacheManager
 {
-    [ExcludeFromCodeCoverage]
-    private record CacheSummary : ICacheManager.ICacheSummary
-    {
-        public required Dictionary<Url, IFileInfo> DownloadedFiles { get; init; }
-        public required Dictionary<IPathManager.IGitRepoInfo, IDirectoryInfo> GitRepos { get; init; }
-    }
-
     private readonly IContext _context = context;
     private readonly List<Url> _githubProxies = gitHubProxies;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
@@ -128,11 +121,10 @@ public class CacheManager(
             }
         }
 
-        return new CacheSummary
-        {
-            DownloadedFiles = downloadedFiles.ToDictionary(file => _pathManager.ParseDownloadedFileCachePath(file.FullName)),
-            GitRepos = gitRepos.ToDictionary(dir => _pathManager.ParseGitRepoDirCachePath(dir.FullName)),
-        };
+        return new CacheSummary(
+            DownloadedFiles: downloadedFiles.ToDictionary(file => _pathManager.ParseDownloadedFileCachePath(file.FullName)),
+            GitRepos: gitRepos.ToDictionary(dir => _pathManager.ParseGitRepoDirCachePath(dir.FullName))
+        );
     }
 
     private async Task<IFileInfo> GetFileDirectlyFromUrls(List<Url> actualUrls)
@@ -206,3 +198,9 @@ public class CacheManager(
         return await GetFileFromUrls(archiveFileUrls);
     }
 }
+
+[ExcludeFromCodeCoverage]
+file record CacheSummary(
+    Dictionary<Url, IFileInfo> DownloadedFiles,
+    Dictionary<IPathManager.IGitRepoInfo, IDirectoryInfo> GitRepos
+) : ICacheManager.ICacheSummary;

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Semver;
 using SharpCompress.Archives;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Lip.Core;
@@ -16,6 +17,7 @@ public partial class Lip
         public required bool Update { get; init; }
     }
 
+    [ExcludeFromCodeCoverage]
     private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.IItem
     {
         public Dictionary<PackageIdentifier, SemVersionRange> Dependencies

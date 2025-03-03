@@ -33,13 +33,6 @@ public interface IPathManager
 
 public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, string? workingDir = null) : IPathManager
 {
-    [ExcludeFromCodeCoverage]
-    private record GitRepoInfo : IPathManager.IGitRepoInfo
-    {
-        public required string Url { get; init; }
-        public required string Tag { get; init; }
-    }
-
     private const string DownloadedFileCacheDirName = "downloaded_files";
     private const string GitRepoCacheDirName = "git_repos";
     private const string PackageLockFileName = "tooth_lock.json";
@@ -150,10 +143,12 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         {
             throw new InvalidOperationException($"Invalid Git repo directory cache path: {repoDirCachePath}");
         }
-        return new GitRepoInfo
-        {
-            Url = Url.Decode(match.Groups[1].Value, true),
-            Tag = Url.Decode(match.Groups[2].Value, true)
-        };
+        return new GitRepoInfo(
+            Url: Url.Decode(match.Groups[1].Value, true),
+            Tag: Url.Decode(match.Groups[2].Value, true)
+        );
     }
 }
+
+[ExcludeFromCodeCoverage]
+file record GitRepoInfo(string Url, string Tag) : IPathManager.IGitRepoInfo;

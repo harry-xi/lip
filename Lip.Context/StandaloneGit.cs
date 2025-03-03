@@ -38,7 +38,7 @@ public class StandaloneGit : IGit
             .ExecuteAsync();
     }
 
-    public async Task<List<IGit.ListRemoteResultItem>> ListRemote(string repository, bool refs = false, bool tags = false)
+    public async Task<List<IGit.IListRemoteResultItem>> ListRemote(string repository, bool refs = false, bool tags = false)
     {
         using Stream stdInStream = Console.OpenStandardInput();
         using MemoryStream outStream = new();
@@ -65,11 +65,9 @@ public class StandaloneGit : IGit
             .Select(line =>
             {
                 string[] parts = line.Split('\t');
-                return new IGit.ListRemoteResultItem
-                {
-                    Sha = parts[0],
-                    Ref = parts[1]
-                };
+                return new ListRemoteResultItem(Sha: parts[0], Ref: parts[1]);
             })];
     }
 }
+
+file record ListRemoteResultItem(string Sha, string Ref) : IGit.IListRemoteResultItem;

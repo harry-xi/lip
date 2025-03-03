@@ -1,5 +1,6 @@
 using DotNet.Globbing;
 using Flurl;
+using Lip.Migration;
 using Scriban;
 using Semver;
 using System.Diagnostics.CodeAnalysis;
@@ -313,6 +314,10 @@ public record PackageManifest
         JsonElement jsonElement = (await JsonDocument.ParseAsync(
             stream,
             _jsonDocumentOptions)).RootElement;
+
+        // When reading from a stream, the JSON may follow an older format. So we need to migrate
+        // it.
+        jsonElement = Migrator.Migrate(jsonElement);
 
         return FromJsonElement(jsonElement);
     }

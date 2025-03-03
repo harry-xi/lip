@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Lip.Migration\Lip.Migration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="C-Sharp-Algorithms" Version="1.0.0" />
     <PackageReference Include="DotNet.Glob" Version="3.1.3" />
     <PackageReference Include="Flurl" Version="4.0.0" />

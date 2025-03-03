@@ -22,6 +22,7 @@ jobs:
         project:
           - Lip.Context
           - Lip.Core
+          - Lip.Migration
         runtime:
           - linux-arm64
           - linux-x64

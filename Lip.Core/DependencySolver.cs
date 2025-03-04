@@ -1,6 +1,5 @@
 using Algorithms.Graphs;
 using DataStructures.Graphs;
-using DataStructures.Lists;
 using Semver;
 using SharpCompress;
 using System.Diagnostics.CodeAnalysis;
@@ -51,11 +50,10 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
             dependencyGraph,
             Sources: [.. vertices.Where(v => v.Package.Locked)]);
 
-        var unnecessaryPackages = vertices
+        List<PackageIdentifier> unnecessaryPackages = [.. vertices
             .Where(v => !v.Package.Locked)
             .Where(v => !bfs.HasPathTo(v))
-            .Select(v => v.Package.Specifier.Identifier)
-            .ToList();
+            .Select(v => v.Package.Specifier.Identifier)];
 
         return unnecessaryPackages;
     }
@@ -67,11 +65,12 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     {
         await Task.Delay(0); // Suppress warning.
 
-        GraphForResolveDependencies.Vertex initialState = new()
+        StateForResolveDependencies initialState = new()
         {
             Candidates = primaryPackageSpecifiers.ToDictionary(
                 packageSpecifier => packageSpecifier.Identifier,
                 packageSpecifier => new List<SemVersion> { packageSpecifier.Version }),
+            NextSelection = null,
             Selected = []
         };
 
@@ -80,185 +79,165 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
                 packageSpecifier => packageSpecifier.Identifier,
                 packageSpecifier => packageSpecifier.Version);
 
-        GraphForResolveDependencies graph = new(_packageManager, installedPackages, knownPackages);
+        Stack<StateForResolveDependencies> stack = new();
+        stack.Push(initialState);
 
-        graph.AddVertex(initialState);
-
-        try
+        while (stack.Count > 0)
         {
-            GraphForResolveDependencies.Vertex matchedState = DepthFirstSearcher.FindFirstMatch(
-                graph,
-                initialState,
-                vertex => vertex.Candidates.Count == 0);
+            StateForResolveDependencies currentState = stack.Pop();
 
-            return [.. matchedState.Selected.Select(kvp => PackageSpecifier.FromIdentifier(kvp.Key, kvp.Value))];
+            if (!await currentState.ResolveSelection(_packageManager, knownPackages))
+            {
+                continue;
+            }
 
+            if (currentState.Candidates.Count == 0)
+            {
+                return [.. currentState.Selected.Select(kvp => PackageSpecifier.FromIdentifier(kvp.Key, kvp.Value))];
+            }
+
+            List<PackageSpecifier> preferredPackages = [.. installedPackages.Select(kvp => PackageSpecifier.FromIdentifier(kvp.Key, kvp.Value))];
+
+            List<StateForResolveDependencies> neighbors = currentState.GetNeighbors(preferredPackages);
+
+            // Reversely push the neighbors to the stack to explore the preferred packages first.
+            neighbors.Reverse();
+
+            neighbors.ForEach(stack.Push);
         }
-        catch (Exception e) when (e.Message == "Item was not found!")
-        {
-            return null;
-        }
+
+        throw new InvalidOperationException("Failed to resolve dependencies.");
     }
 }
 
-file class GraphForResolveDependencies(
-    IPackageManager packageManager,
-    Dictionary<PackageIdentifier, SemVersion> installedPackages,
-    List<PackageLock.Package> knownPackages)
-    : DirectedSparseGraph<GraphForResolveDependencies.Vertex>
+[ExcludeFromCodeCoverage]
+file record StateForResolveDependencies
 {
-    public class Vertex : IComparable<Vertex>
+    public required Dictionary<PackageIdentifier, List<SemVersion>> Candidates { get; set; }
+
+    public required Tuple<PackageIdentifier, SemVersion>? NextSelection { get; set; }
+
+    public required Dictionary<PackageIdentifier, SemVersion> Selected { get; set; }
+
+    /// <summary>
+    /// Gets the neighbors of the state by selecting the candidate with least versions to
+    /// explore. The versions are sorted by the preferred packages and then by the version
+    /// precedence.
+    /// </summary>
+    /// <param name="preferredPackages">The preferred packages to explore first.</param>
+    /// <returns>The neighbors of the state which are not normalized.</returns>
+    public List<StateForResolveDependencies> GetNeighbors(List<PackageSpecifier> preferredPackages)
     {
-        public required Dictionary<PackageIdentifier, List<SemVersion>> Candidates { get; init; }
-        public required Dictionary<PackageIdentifier, SemVersion> Selected { get; init; }
-
-        public int CompareTo(Vertex? other) => throw new NotImplementedException();
-
-        public override bool Equals(object? obj)
+        if (Candidates.Count == 0)
         {
-            return obj is Vertex other
-                && Candidates.Count == other.Candidates.Count
-                && Selected.Count == other.Selected.Count
-                && Candidates.All(c => other.Candidates.TryGetValue(c.Key, out var val)
-                    && c.Value.OrderBy(v => v.ToString()).SequenceEqual(val.OrderBy(v => v.ToString())))
-                && Selected.All(s => other.Selected.TryGetValue(s.Key, out var val)
-                    && s.Value == val);
+            return [];
         }
 
-        public override int GetHashCode()
+        if (Candidates.Any(kvp => kvp.Value.Count == 0))
         {
-            HashCode hash = new();
-
-            foreach (var candidate in Candidates.OrderBy(c => c.Key.ToString()))
-            {
-                hash.Add(candidate.Key);
-                foreach (var version in candidate.Value.OrderBy(v => v.ToString()))
-                {
-                    hash.Add(version);
-                }
-            }
-
-            foreach (var selected in Selected.OrderBy(s => s.Key.ToString()))
-            {
-                hash.Add(selected.Key);
-                hash.Add(selected.Value);
-            }
-
-            return hash.ToHashCode();
+            throw new InvalidOperationException("There are candidates with no versions to explore.");
         }
 
-        /// <summary>
-        /// Normalize the vertex by removing the candidates that are already selected. If the
-        /// vertex is invalid, i.e. there are candidates that have no versions to explore, or
-        /// there are candidates that does not contain the selected version, return null.
-        /// </summary>
-        /// <returns>The normalized vertex or null if the vertex is invalid.</returns>
-        public Vertex? Normalized()
-        {
-            // If there are candidates that have no versions to explore, return null.
-            if (Candidates.Any(kvp => kvp.Value.Count == 0))
-            {
-                return null;
-            }
-
-            // If there are candidates selected but not containing the selected version, return
-            // null.
-            if (Candidates.Any(kvp => Selected.ContainsKey(kvp.Key) && !kvp.Value.Contains(Selected[kvp.Key])))
-            {
-                return null;
-            }
-
-            // Remove the selected versions from the candidates.
-            return new Vertex
-            {
-                Candidates = Candidates
-                    .Where(kvp => !Selected.ContainsKey(kvp.Key))
-                    .ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value
-                    ),
-                Selected = Selected
-            };
-        }
-    }
-
-    private readonly Dictionary<PackageIdentifier, SemVersion> _installedPackages = installedPackages;
-    private readonly List<PackageLock.Package> _knownPackages = knownPackages;
-    private readonly IPackageManager _packageManager = packageManager;
-
-    public override DLinkedList<Vertex> Neighbours(Vertex vertex)
-    {
-        if (!HasVertex(vertex) || vertex.Candidates.Count == 0)
-        {
-            return base.Neighbours(vertex);
-        }
-
-        // Select the candidate with least versions and get sorted versions. The installed
-        // version is always preferred.
-        KeyValuePair<PackageIdentifier, List<SemVersion>> packageCandidate = vertex.Candidates.MinBy(kvp => kvp.Value.Count);
-        IOrderedEnumerable<SemVersion> versionCandidates = packageCandidate.Value
-            .OrderByDescending(v => _installedPackages.TryGetValue(packageCandidate.Key, out var installedVersion) && v == installedVersion)
+        KeyValuePair<PackageIdentifier, List<SemVersion>> candidateToExplore = Candidates.MinBy(kvp => kvp.Value.Count);
+        IOrderedEnumerable<SemVersion> candidateVersionsToExplorer = candidateToExplore.Value
+            .OrderByDescending(v => preferredPackages.Contains(PackageSpecifier.FromIdentifier(
+                candidateToExplore.Key,
+                v)))
             .ThenBy(v => v, SemVersion.PrecedenceComparer);
 
-        // Process each version candidate
-        List<Vertex> neighbors = [.. Task.WhenAll(versionCandidates.Select(async version =>
+        return [.. candidateVersionsToExplorer.Select(version =>
         {
-            PackageSpecifier packageSpecifier = PackageSpecifier.FromIdentifier(packageCandidate.Key, version);
+            Dictionary<PackageIdentifier, List<SemVersion>> newCandidates = Candidates
+                .Where(kvp => kvp.Key != candidateToExplore.Key)
+                .ToDictionary();
 
-            Dictionary<PackageIdentifier, SemVersionRange> dependencies = await GetDependencies(packageSpecifier);
-
-            KeyValuePair<PackageIdentifier, List<SemVersion>>[] dependencyCandidates = await Task.WhenAll(dependencies.Select(async dep =>
-            {
-                List<SemVersion> remoteVersions = await _packageManager.GetPackageRemoteVersions(dep.Key);
-                List<SemVersion> validVersions = [.. remoteVersions.Where(v => dep.Value.Contains(v))];
-                return new KeyValuePair<PackageIdentifier, List<SemVersion>>(dep.Key, validVersions);
-            }));
-
-            Dictionary<PackageIdentifier, List<SemVersion>> newCandidates = vertex.Candidates
-                .Where(kvp => kvp.Key != packageCandidate.Key)
-                .Concat(dependencyCandidates)
-                .GroupBy(kvp => kvp.Key)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Count() > 1
-                        ? [.. g.First().Value.Intersect(g.Last().Value)]
-                        : g.First().Value // Get the intersection of the versions.
-                );
-
-            Dictionary<PackageIdentifier, SemVersion> newSelected = vertex.Selected
-                .Concat([new KeyValuePair<PackageIdentifier, SemVersion>(packageCandidate.Key, version)])
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            Vertex? newVertex = new Vertex
+            return this with
             {
                 Candidates = newCandidates,
-                Selected = newSelected
-            }.Normalized();
-
-            return newVertex;
-        })).Result.Where(v => v != null)];
-
-        foreach (Vertex neighbor in neighbors)
-        {
-            AddVertex(neighbor);
-            AddEdge(vertex, neighbor);
-        }
-
-        return base.Neighbours(vertex);
+                NextSelection = new Tuple<PackageIdentifier, SemVersion>(candidateToExplore.Key, version),
+                Selected = Selected.ToDictionary(), // Clone the selected dictionary.
+            };
+        })];
     }
 
-    private async Task<Dictionary<PackageIdentifier, SemVersionRange>> GetDependencies(PackageSpecifier packageSpecifier)
+    /// <summary>
+    /// Resolve the selection.
+    /// </summary>
+    /// <param name="packageManager"></param>
+    /// <param name="knownPackages"></param>
+    /// <returns>True if the state is valid. False otherwise.</returns>
+    public async Task<bool> ResolveSelection(IPackageManager packageManager, List<PackageLock.Package> knownPackages)
+    {
+        if (Candidates.Any(kvp => Selected.ContainsKey(kvp.Key)))
+        {
+            return false;
+        }
+
+        if (NextSelection == null)
+        {
+            return true;
+        }
+
+        if (Candidates.ContainsKey(NextSelection.Item1)
+            || Selected.ContainsKey(NextSelection.Item1))
+        {
+            return false;
+        }
+
+        PackageSpecifier specifier = PackageSpecifier.FromIdentifier(NextSelection.Item1, NextSelection.Item2);
+
+        Dictionary<PackageIdentifier, SemVersionRange> dependenciesInRange = await GetDependencies(specifier, packageManager, knownPackages);
+
+        Dictionary<PackageIdentifier, List<SemVersion>> dependencyCandidates = (await Task.WhenAll(
+            dependenciesInRange.Select(async dep =>
+                {
+                    List<SemVersion> remoteVersions = await packageManager.GetPackageRemoteVersions(dep.Key);
+                    List<SemVersion> validVersions = [.. remoteVersions.Where(v => dep.Value.Contains(v))];
+                    return new KeyValuePair<PackageIdentifier, List<SemVersion>>(dep.Key, validVersions);
+                })
+        )).ToDictionary();
+
+        Dictionary<PackageIdentifier, List<SemVersion>> newCandidates = Candidates
+            .Where(kvp => kvp.Key != NextSelection.Item1)
+            .Concat(dependencyCandidates)
+            .GroupBy(kvp => kvp.Key)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Count() > 1
+                    ? [.. g.First().Value.Intersect(g.Last().Value)]
+                    : g.First().Value // Get the intersection of the versions.
+            );
+
+        if (newCandidates.Any(kvp => kvp.Value.Count == 0))
+        {
+            return false;
+        }
+
+        Candidates = newCandidates;
+
+        Selected.Add(NextSelection.Item1, NextSelection.Item2);
+
+        NextSelection = null;
+
+        return true;
+    }
+
+    private static async Task<Dictionary<PackageIdentifier, SemVersionRange>> GetDependencies(
+        PackageSpecifier packageSpecifier,
+        IPackageManager packageManager,
+        List<PackageLock.Package> knownPackages
+    )
     {
         // To support installing packages not in cache.
-        if (_knownPackages.Any(p => p.Specifier == packageSpecifier))
+        if (knownPackages.Any(p => p.Specifier == packageSpecifier))
         {
-            return _knownPackages
+            return knownPackages
                 .First(p => p.Specifier == packageSpecifier)
                 .Variant.Dependencies;
         }
 
-        PackageManifest manifest = await _packageManager.GetPackageManifestFromCache(packageSpecifier)
-            ?? throw new InvalidOperationException($"Package manifest for {packageSpecifier} not found.");
+        PackageManifest manifest = await packageManager.GetPackageManifestFromCache(packageSpecifier)
+            ?? throw new InvalidOperationException($"Failed to get package manifest for {packageSpecifier}.");
 
         PackageManifest.Variant variant = manifest.GetVariant(packageSpecifier.VariantLabel, RuntimeInformation.RuntimeIdentifier)
             ?? throw new InvalidOperationException($"Variant {packageSpecifier.VariantLabel} not found for {packageSpecifier}.");

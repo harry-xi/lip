@@ -10,12 +10,14 @@ public class StandaloneGit : IGit
 
     public static async Task<StandaloneGit?> Create()
     {
-        var result = await Cli.Wrap("git")
-            .WithArguments("--version")
-            .WithValidation(CommandResultValidation.None)
-            .ExecuteAsync();
-
-        return result.ExitCode == 0 ? new StandaloneGit() : null;
+        try
+        {
+            return await CreateInternal();
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task Clone(string repository, string directory, string? branch = null, int? depth = null)
@@ -67,6 +69,16 @@ public class StandaloneGit : IGit
                 string[] parts = line.Split('\t');
                 return new ListRemoteResultItem(Sha: parts[0], Ref: parts[1]);
             })];
+    }
+
+    private static async Task<StandaloneGit?> CreateInternal()
+    {
+        var result = await Cli.Wrap("git")
+            .WithArguments("--version")
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync();
+
+        return result.ExitCode == 0 ? new StandaloneGit() : null;
     }
 }
 

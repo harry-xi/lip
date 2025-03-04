@@ -27,6 +27,11 @@ public class ArchiveFileSource(IFileSystem fileSystem, string archiveFilePath) :
         List<IFileSourceEntry> entries = [];
         while (reader.MoveToNextEntry())
         {
+            if (reader.Entry.IsDirectory)
+            {
+                continue;
+            }
+
             // We don't know when the key is null, so we suppress the warning.
             entries.Add(new ArchiveFileSourceEntry(_fileSystem, _archiveFilePath, reader.Entry.Key!));
         }

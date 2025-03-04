@@ -41,4 +41,9 @@ commandApp.Configure(config =>
     config.AddCommand<ViewCommand>("view");
 });
 
-return await commandApp.RunAsync(args);
+int result = await commandApp.RunAsync(args);
+
+// To make sure that the progress bar is displayed correctly.
+await Task.Delay(10);
+
+return result;

@@ -27,7 +27,7 @@ public partial class Lip
 
         if (path is null)
         {
-            return packageManifest.ToJsonElement().ToString();
+            return packageManifest.ToJsonElement().GetRawText();
         }
 
         Template template = Template.Parse(path, lexerOptions: new()

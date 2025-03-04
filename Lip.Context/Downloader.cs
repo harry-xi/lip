@@ -20,7 +20,7 @@ public class Downloader(IUserInteraction userInteraction) : IDownloader
             string urlString = url.ToString();
             if (urlString.Length > 50)
             {
-                urlString = urlString[..15] + "..." + urlString[^35..];
+                urlString = urlString[..15] + " ... " + urlString[^35..];
             }
 
             await _userInteraction.UpdateProgress(

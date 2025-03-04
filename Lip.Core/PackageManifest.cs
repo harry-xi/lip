@@ -229,29 +229,27 @@ public record PackageManifest
     [ExcludeFromCodeCoverage] // TODO: Add unit tests for this method.
     public static PackageManifest FromJsonElement(JsonElement jsonElement)
     {
-        RawPackageManifest rawPackageManifest = RawPackageManifest.FromJsonElement(jsonElement);
-
-        RawPackageManifest rawPackageManifestRendered = rawPackageManifest.WithTemplateRendered();
+        RawPackageManifest rawPackageManifest = RawPackageManifest.FromJsonElement(jsonElement).WithTemplateRendered();
 
         // Validate format version and UUID.
 
-        if (rawPackageManifestRendered.FormatVersion != DefaultFormatVersion)
+        if (rawPackageManifest.FormatVersion != DefaultFormatVersion)
         {
             throw new SchemaViolationException(
                 "format_version",
-                $"Expected format version {DefaultFormatVersion}, but got {rawPackageManifestRendered.FormatVersion}.");
+                $"Expected format version {DefaultFormatVersion}, but got {rawPackageManifest.FormatVersion}.");
         }
 
-        if (rawPackageManifestRendered.FormatUuid != DefaultFormatUuid)
+        if (rawPackageManifest.FormatUuid != DefaultFormatUuid)
         {
             throw new SchemaViolationException(
                 "format_uuid",
-                $"Expected format UUID '{DefaultFormatUuid}', but got '{rawPackageManifestRendered.FormatUuid}'.");
+                $"Expected format UUID '{DefaultFormatUuid}', but got '{rawPackageManifest.FormatUuid}'.");
         }
 
         PackageManifest packageManifest = new()
         {
-            ToothPath = rawPackageManifestRendered.Tooth,
+            ToothPath = rawPackageManifest.Tooth,
             Version = SemVersion.Parse(rawPackageManifest.Version),
             Info = new InfoType
             {

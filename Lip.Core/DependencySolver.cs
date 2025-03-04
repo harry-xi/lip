@@ -120,7 +120,7 @@ file class GraphForResolveDependencies(
                 && Candidates.Count == other.Candidates.Count
                 && Selected.Count == other.Selected.Count
                 && Candidates.All(c => other.Candidates.TryGetValue(c.Key, out var val)
-                    && c.Value.OrderBy(v => v).SequenceEqual(val.OrderBy(v => v)))
+                    && c.Value.OrderBy(v => v.ToString()).SequenceEqual(val.OrderBy(v => v.ToString())))
                 && Selected.All(s => other.Selected.TryGetValue(s.Key, out var val)
                     && s.Value == val);
         }
@@ -129,16 +129,16 @@ file class GraphForResolveDependencies(
         {
             HashCode hash = new();
 
-            foreach (var candidate in Candidates.OrderBy(c => c.Key))
+            foreach (var candidate in Candidates.OrderBy(c => c.Key.ToString()))
             {
                 hash.Add(candidate.Key);
-                foreach (var version in candidate.Value.OrderBy(v => v))
+                foreach (var version in candidate.Value.OrderBy(v => v.ToString()))
                 {
                     hash.Add(version);
                 }
             }
 
-            foreach (var selected in Selected.OrderBy(s => s.Key))
+            foreach (var selected in Selected.OrderBy(s => s.Key.ToString()))
             {
                 hash.Add(selected.Key);
                 hash.Add(selected.Value);

@@ -28,42 +28,52 @@ class UserInteraction : IUserInteraction
 
     public async Task RunProgressService()
     {
-        await AnsiConsole.Progress()
-        .Columns([
-            new TaskDescriptionColumn()
-            {
-                Alignment = Justify.Left,
-            },
-            new ProgressBarColumn(),
-            new PercentageColumn(),
-            new RemainingTimeColumn(),
-            new SpinnerColumn(),
-        ])
-        .StartAsync(async ctx =>
+        while (true)
         {
-            Dictionary<string, ProgressTask> tasks = [];
+            await Task.Delay(1);
 
-            while (true)
+            if (_progressUpdates.IsEmpty)
             {
-                await Task.Delay(100); // Same as Progress.RefreshRate.
-
-                foreach (var (id, (progress, description)) in _progressUpdates)
-                {
-                    if (!tasks.TryGetValue(id, out ProgressTask? value))
-                    {
-                        value = ctx.AddTask(description);
-                        tasks[id] = value;
-                    }
-
-                    value.Description = description;
-                    value.Value = progress;
-                }
-
-                // Here some updates may be ignored, but we don't know how to handle it.
-
-                _progressUpdates.Clear();
+                continue;
             }
-        });
+
+            await AnsiConsole.Progress()
+                .Columns([
+                    new TaskDescriptionColumn()
+                    {
+                        Alignment = Justify.Left,
+                    },
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new RemainingTimeColumn(),
+                    new SpinnerColumn(),
+                ])
+                .StartAsync(async ctx =>
+                {
+                    Dictionary<string, ProgressTask> tasks = [];
+
+                    do
+                    {
+                        foreach (var (id, (progress, description)) in _progressUpdates)
+                        {
+                            if (!tasks.TryGetValue(id, out ProgressTask? value))
+                            {
+                                value = ctx.AddTask(description);
+                                tasks[id] = value;
+                            }
+
+                            value.Description = description;
+                            value.Value = progress;
+                        }
+
+                        // Here some updates may be ignored, but we don't know how to handle it.
+
+                        _progressUpdates.Clear();
+
+                        await Task.Delay(1);
+                    } while (!ctx.IsFinished);
+                });
+        }
     }
 
     public async Task UpdateProgress(string id, float progress, string format, params object[] args)

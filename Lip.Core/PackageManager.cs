@@ -1,5 +1,6 @@
 using DotNet.Globbing;
 using Flurl;
+using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Semver;
 using System.IO.Abstractions;
@@ -106,21 +107,17 @@ public class PackageManager(
                         "list")
             );
 
-            foreach (Url url in _goModuleProxies)
+            foreach (Url goModuleProxyUrl in _goModuleProxies)
             {
-                Url goModuleVersionListUrl = url
+                Url goModuleVersionListUrl = goModuleProxyUrl.Clone()
                     .AppendPathSegments(
                         GoModule.EscapePath(packageSpecifier.ToothPath),
                         "@v",
                         "list");
 
-                string tempFilePath = _context.FileSystem.Path.GetTempFileName();
-
                 try
                 {
-                    await _context.Downloader.DownloadFile(goModuleVersionListUrl, tempFilePath);
-
-                    string goModuleVersionListText = await _context.FileSystem.File.ReadAllTextAsync(tempFilePath);
+                    string goModuleVersionListText = await goModuleVersionListUrl.GetStringAsync();
 
                     return [.. goModuleVersionListText
                         .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -131,7 +128,7 @@ public class PackageManager(
                 }
                 catch (Exception ex)
                 {
-                    _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", url);
+                    _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", goModuleVersionListUrl);
                 }
             }
 
@@ -171,6 +168,8 @@ public class PackageManager(
             Version = packageManifest.Version,
             VariantLabel = variantLabel
         };
+
+        _context.Logger.LogDebug("Installing package {packageSpecifier}...", packageSpecifier);
 
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
@@ -329,6 +328,8 @@ public class PackageManager(
             return;
         }
 
+        _context.Logger.LogDebug("Uninstalling package {packageSpecifier}...", packageToUninstall.Specifier);
+
         // Run pre-uninstall scripts.
 
         if (!ignoreScripts)
@@ -445,6 +446,8 @@ public class PackageManager(
                 }
             });
         }
+
+        _context.Logger.LogInformation("Package {packageSpecifier} uninstalled.", packageToUninstall.Specifier);
     }
 
     private async Task<IFileSource> GetAssetFileSource(PackageManifest.Asset asset, IFileSource packageFileScore)

@@ -84,10 +84,10 @@ public static class GoModule
 
     public static string EscapeVersion(string v)
     {
-        if (!CheckElem(v) || v.Contains('!'))
-        {
-            throw new ArgumentException($"{v} is not a valid Go module version.", nameof(v));
-        }
+        // if (!CheckElem(v) || v.Contains('!'))
+        // {
+        //     throw new ArgumentException($"{v} is not a valid Go module version.", nameof(v));
+        // }
 
         return EscapeString(v);
     }

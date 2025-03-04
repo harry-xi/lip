@@ -122,15 +122,12 @@ public partial class Lip
 
         List<PackageSpecifier> primaryPackageSpecifiers = [
             .. packageInstallDetails
-            .Select(detail => new PackageSpecifier()
-            {
-                ToothPath = detail.Manifest.ToothPath,
-                VariantLabel = detail.VariantLabel,
-                Version = detail.Manifest.Version
-            }),
+                .Select(detail => detail.Specifier),
             .. packageLock.Packages
-            .Where(@lock => @lock.Locked)
-            .Select(@lock => @lock.Specifier)];
+                .Where(@lock => @lock.Locked)
+                .Select(@lock => @lock.Specifier)
+                .Where(specifier => !packageInstallDetails.Any(detail => detail.Specifier.Identifier == specifier.Identifier))
+        ];
 
         List<PackageSpecifier> packageSpecifiersToInstall = (args.NoDependencies
             ? primaryPackageSpecifiers
@@ -155,13 +152,6 @@ public partial class Lip
 
         foreach (PackageSpecifier packageSpecifierToInstall in packageSpecifiersToInstall)
         {
-            // Skip primary package specifiers because they are already in the install details.
-
-            if (primaryPackageSpecifiers.Contains(packageSpecifierToInstall))
-            {
-                continue;
-            }
-
             // If installed with the same version, skip.
 
             PackageLock.Package? installedPackage = await _packageManager.GetPackageFromLock(
@@ -171,12 +161,7 @@ public partial class Lip
             {
                 _context.Logger.LogInformation(
                     "Dependency package '{specifier}' is already installed. Skipping.",
-                    new PackageSpecifier()
-                    {
-                        ToothPath = packageSpecifierToInstall.ToothPath,
-                        VariantLabel = packageSpecifierToInstall.VariantLabel,
-                        Version = packageSpecifierToInstall.Version
-                    }
+                    packageSpecifierToInstall
                 );
                 continue;
             }
@@ -194,17 +179,20 @@ public partial class Lip
 
             // Add to install details.
 
-            IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifierToInstall);
-
-            PackageManifest packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource)
-                ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifierToInstall}'.");
-
-            packageInstallDetails.Add(new PackageInstallDetail
+            if (!packageInstallDetails.Any(detail => detail.Specifier == packageSpecifierToInstall))
             {
-                FileSource = fileSource,
-                Manifest = packageManifest,
-                VariantLabel = packageSpecifierToInstall.VariantLabel
-            });
+                IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifierToInstall);
+
+                PackageManifest packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource)
+                    ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifierToInstall}'.");
+
+                packageInstallDetails.Add(new PackageInstallDetail
+                {
+                    FileSource = fileSource,
+                    Manifest = packageManifest,
+                    VariantLabel = packageSpecifierToInstall.VariantLabel
+                });
+            }
         }
 
         // Uninstall packages in topological order.

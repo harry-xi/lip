@@ -109,7 +109,7 @@ public partial class Lip
 
             if (!await _context.UserInteraction.Confirm(
                 "Do you want to create the following package manifest file?\n{0}",
-                manifest.ToJsonElement().ToString()))
+                manifest.ToJsonElement().GetRawText()))
             {
                 throw new OperationCanceledException("Operation canceled by the user.");
             }

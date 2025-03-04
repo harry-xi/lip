@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -5,9 +6,16 @@ namespace Lip.Core;
 
 public partial class Lip
 {
+    [ExcludeFromCodeCoverage]
     public record ConfigDeleteArgs { }
+
+    [ExcludeFromCodeCoverage]
     public record ConfigGetArgs { }
+
+    [ExcludeFromCodeCoverage]
     public record ConfigListArgs { }
+
+    [ExcludeFromCodeCoverage]
     public record ConfigSetArgs { }
 
     public async Task ConfigDelete(List<string> keys, ConfigDeleteArgs _)
@@ -83,6 +91,8 @@ public partial class Lip
             object convertedValue = Convert.ChangeType(value, matchedProperty.PropertyType);
             matchedProperty.SetValue(newRuntimeConfig, convertedValue);
         }
+
+        _context.FileSystem.CreateParentDirectory(_pathManager.RuntimeConfigPath);
 
         await _context.FileSystem.File.WriteAllBytesAsync(_pathManager.RuntimeConfigPath, newRuntimeConfig.ToJsonBytes());
     }

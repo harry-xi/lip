@@ -9,46 +9,6 @@ public class LipConfigTests
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
     [Fact]
-    public void ConfigDeleteArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Lip.ConfigDeleteArgs args = new();
-
-        // Act.
-        args = args with { };
-    }
-
-    [Fact]
-    public void ConfigGetArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Lip.ConfigGetArgs args = new();
-
-        // Act.
-        args = args with { };
-    }
-
-    [Fact]
-    public void ConfigListArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Lip.ConfigListArgs args = new();
-
-        // Act.
-        args = args with { };
-    }
-
-    [Fact]
-    public void ConfigSetArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Lip.ConfigSetArgs args = new();
-
-        // Act.
-        args = args with { };
-    }
-
-    [Fact]
     public async Task ConfigDelete_SingleItem_ResetsToDefault()
     {
         // Arrange.
@@ -115,6 +75,39 @@ public class LipConfigTests
             "cache": "/custom/cache",
             "github_proxies": "",
             "go_module_proxies": "https://proxy.golang.org"
+        }
+        """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
+    }
+
+    [Fact]
+    public async Task ConfigDelete_RcFileNotExists_CreatesNewFile()
+    {
+        // Arrange.
+        RuntimeConfig initialRuntimeConfig = new()
+        {
+            Cache = "/custom/cache",
+            GitHubProxies = ["https://github-proxy.com"],
+            GoModuleProxies = ["https://custom-proxy.io"],
+        };
+
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>());
+
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+
+        // Act.
+        await lip.ConfigDelete(["github_proxies"], new Lip.ConfigDeleteArgs());
+
+        // Assert.
+        Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
+
+        Assert.Equal($$"""
+        {
+            "cache": "/custom/cache",
+            "github_proxies": "",
+            "go_module_proxies": "https://custom-proxy.io"
         }
         """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
     }
@@ -363,6 +356,39 @@ public class LipConfigTests
         {
             "cache": "/path/to/cache",
             "github_proxies": "https://github.com",
+            "go_module_proxies": "https://proxy.golang.org"
+        }
+        """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));
+    }
+
+    [Fact]
+    public async Task ConfigSet_RcFileNotExists_CreatesNewFile()
+    {
+        // Arrange.
+        RuntimeConfig initialRuntimeConfig = new();
+
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>());
+
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+
+        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+
+        Dictionary<string, string> keyValuePairs = new()
+        {
+            { "cache", "/path/to/cache" },
+        };
+
+        // Act.
+        await lip.ConfigSet(keyValuePairs, new Lip.ConfigSetArgs());
+
+        // Assert.
+        Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
+
+        Assert.Equal($$"""
+        {
+            "cache": "/path/to/cache",
+            "github_proxies": "",
             "go_module_proxies": "https://proxy.golang.org"
         }
         """.ReplaceLineEndings(), fileSystem.File.ReadAllText(s_runtimeConfigPath));

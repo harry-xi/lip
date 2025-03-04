@@ -1,8 +1,9 @@
-using Lip.CLI;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
+
+namespace Lip.CLI;
 
 [Description("Show information about a package. If not cached, lip will download the package.")]
 class ViewCommand : AsyncCommand<ViewCommand.Settings>
@@ -20,7 +21,7 @@ class ViewCommand : AsyncCommand<ViewCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Lip.Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
 
         string result = await lip.View(settings.Package, settings.Path, new());
 

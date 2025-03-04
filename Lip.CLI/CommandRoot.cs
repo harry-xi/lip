@@ -1,4 +1,3 @@
-using Lip.CLI;
 using Lip.Context;
 using Lip.Core;
 using Microsoft.Extensions.Logging;
@@ -8,6 +7,8 @@ using Spectre.Console.Cli;
 using System.ComponentModel;
 using System.IO.Abstractions;
 using System.Reflection;
+
+namespace Lip.CLI;
 
 [Description("lip is a general package manager.")]
 class CommandRoot : AsyncCommand<CommandRoot.Settings>
@@ -39,7 +40,9 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
         return -1;
     }
 
-    public static async Task<(Lip.Core.Lip lip, ILogger logger, UserInteraction userInteraction)> Prepare(BaseCommandSettings settings)
+    public static async Task<(Core.Lip lip, ILogger logger, UserInteraction userInteraction)> Prepare(
+        BaseCommandSettings settings,
+        bool doNotRunProgressService = false)
     {
         ILogger logger = CreateLogger(settings.Quiet, settings.Verbose);
 
@@ -47,12 +50,12 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
 
         UserInteraction userInteraction = new();
 
-        Lip.Core.Lip lip = Lip.Core.Lip.Create(
+        Core.Lip lip = Core.Lip.Create(
             runtimeConfig,
-            new Context
+            new Context.Context
             {
                 CommandRunner = new CommandRunner(),
-                Downloader = new Lip.Context.Downloader(userInteraction),
+                Downloader = new Context.Downloader(userInteraction),
                 FileSystem = new FileSystem(),
                 Git = await StandaloneGit.Create(),
                 Logger = logger,
@@ -60,6 +63,11 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
                 WorkingDir = Directory.GetCurrentDirectory()
             }
         );
+
+        if (!doNotRunProgressService)
+        {
+            _ = userInteraction.RunProgressService(); // Run in the background.
+        }
 
         return (lip, logger, userInteraction);
     }

@@ -3,7 +3,7 @@
 ## Usage
 
 ```shell
-lip install [<package> ...]
+lip install [packages]
 ```
 
 ## Description
@@ -45,6 +45,12 @@ Examples:
 
 - `github.com/futrime/example-package@1.0.0`
 - `github.com/futrime/example-package#variant_1@1.0.0`
+
+## Arguments
+
+- `packages[]`
+
+  The packages to install. If no packages are specified, lip will install the package in the current directory.
 
 ## Options
 

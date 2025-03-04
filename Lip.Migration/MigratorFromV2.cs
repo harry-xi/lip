@@ -40,9 +40,6 @@ public static class MigratorFromV2
                 new Manifest.Variant
                 {
                 // Use matching platform information.
-                Label = string.IsNullOrEmpty(matchingPlatform.GOARCH)
-                        ? matchingPlatform.GOOS
-                        : $"{matchingPlatform.GOOS}-{matchingPlatform.GOARCH}",
                 Platform = GetRIDFromGo(matchingPlatform.GOARCH, matchingPlatform.GOOS),
                 Dependencies = matchingPlatform.Dependencies,
                 PreserveFiles = matchingPlatform.Files?.Preserve,
@@ -52,7 +49,14 @@ public static class MigratorFromV2
                     [
                         new Manifest.Asset
                         {
-                        Type = Manifest.Asset.TypeEnum.Self,
+                        Type = matchingPlatform.AssetUrl.Split('.').Last() switch
+                        {
+                            "tar" => Manifest.Asset.TypeEnum.Tar,
+                            "tgz" => Manifest.Asset.TypeEnum.Tgz,
+                            "gz" => Manifest.Asset.TypeEnum.Tgz,
+                            "zip" => Manifest.Asset.TypeEnum.Zip,
+                            _ => Manifest.Asset.TypeEnum.Uncompressed
+                        },
                         Urls = [matchingPlatform.AssetUrl],
                         Placements = ConvertPlacements(matchingPlatform.Files?.Place ?? manifestV2.Files?.Place)
                         }
@@ -75,7 +79,14 @@ public static class MigratorFromV2
                     [
                         new Manifest.Asset
                         {
-                        Type = Manifest.Asset.TypeEnum.Self,
+                        Type = manifestV2.AssetUrl.Split('.').Last() switch
+                        {
+                            "tar" => Manifest.Asset.TypeEnum.Tar,
+                            "tgz" => Manifest.Asset.TypeEnum.Tgz,
+                            "gz" => Manifest.Asset.TypeEnum.Tgz,
+                            "zip" => Manifest.Asset.TypeEnum.Zip,
+                            _ => Manifest.Asset.TypeEnum.Uncompressed
+                        },
                         Urls = [manifestV2.AssetUrl],
                         Placements = ConvertPlacements(manifestV2.Files?.Place)
                         }

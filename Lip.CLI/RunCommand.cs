@@ -1,7 +1,8 @@
-using Lip.CLI;
 using Microsoft.Extensions.Logging;
 using Spectre.Console.Cli;
 using System.ComponentModel;
+
+namespace Lip.CLI;
 
 [Description("Run a script specified in the `tooth.json` file. Built-in script hooks cannot be run with this command.")]
 class RunCommand : AsyncCommand<RunCommand.Settings>
@@ -19,7 +20,7 @@ class RunCommand : AsyncCommand<RunCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Lip.Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
 
         await lip.Run(settings.Script, new()
         {

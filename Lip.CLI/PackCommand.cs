@@ -1,7 +1,8 @@
-using Lip.CLI;
 using Microsoft.Extensions.Logging;
 using Spectre.Console.Cli;
 using System.ComponentModel;
+
+namespace Lip.CLI;
 
 [Description("Create a archive from the current directory, containing all files to place specified in the `tooth.json` file.")]
 class PackCommand : AsyncCommand<PackCommand.Settings>
@@ -28,7 +29,7 @@ class PackCommand : AsyncCommand<PackCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Lip.Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
 
         await lip.Pack(settings.OutputPath, new()
         {
@@ -36,9 +37,9 @@ class PackCommand : AsyncCommand<PackCommand.Settings>
             IgnoreScripts = settings.IgnoreScripts,
             ArchiveFormat = settings.ArchiveFormat switch
             {
-                "zip" => Lip.Core.Lip.PackArgs.ArchiveFormatType.Zip,
-                "tar" => Lip.Core.Lip.PackArgs.ArchiveFormatType.Tar,
-                "tgz" or "tar.gz" => Lip.Core.Lip.PackArgs.ArchiveFormatType.TarGz,
+                "zip" => Core.Lip.PackArgs.ArchiveFormatType.Zip,
+                "tar" => Core.Lip.PackArgs.ArchiveFormatType.Tar,
+                "tgz" or "tar.gz" => Core.Lip.PackArgs.ArchiveFormatType.TarGz,
                 _ => throw new ArgumentException($"Invalid archive format: {settings.ArchiveFormat}")
             }
         });

@@ -3,7 +3,7 @@
 ## Usage
 
 ```shell
-lip uninstall <packages[]>
+lip uninstall <package ...>
 ```
 
 ## Description
@@ -12,7 +12,7 @@ Uninstall packages and unused dependencies.
 
 ## Arguments
 
-- `packages[]`
+- `package`
 
   The packages to uninstall.
 

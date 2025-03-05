@@ -42,6 +42,10 @@ public static class MigratorFromV2
             Variants = [
                 new Manifest.Variant
                 {
+                    Platform = RuntimeInformation.RuntimeIdentifier,
+                },
+                new Manifest.Variant
+                {
                     Dependencies = manifestV2.Dependencies,
                     Assets = manifestV2.AssetUrl is not null
                         ?
@@ -108,11 +112,7 @@ public static class MigratorFromV2
                         Scripts = p.Commands is not null
                             ? ConvertCommandsToScripts(p.Commands)
                             : null
-                    }) ?? [],
-                new Manifest.Variant
-                {
-                    Platform = RuntimeInformation.RuntimeIdentifier,
-                }
+                    }) ?? []
             ]
         };
 

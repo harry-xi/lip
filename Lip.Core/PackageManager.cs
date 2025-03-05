@@ -1,6 +1,7 @@
 using DotNet.Globbing;
 using Flurl;
 using Flurl.Http;
+using Golang.Org.X.Mod;
 using Microsoft.Extensions.Logging;
 using Semver;
 using System.IO.Abstractions;
@@ -100,18 +101,20 @@ public class PackageManager(
         if (_goModuleProxies.Count != 0)
         {
             List<Url> goModuleVersionListUrls = _goModuleProxies.ConvertAll(proxy =>
-                proxy.Clone()
+                proxy
+                    .Clone()
                     .AppendPathSegments(
-                        GoModule.EscapePath(packageSpecifier.ToothPath),
+                        Module.EscapePath(packageSpecifier.ToothPath).Item1,
                         "@v",
                         "list")
             );
 
             foreach (Url goModuleProxyUrl in _goModuleProxies)
             {
-                Url goModuleVersionListUrl = goModuleProxyUrl.Clone()
+                Url goModuleVersionListUrl = goModuleProxyUrl
+                    .Clone()
                     .AppendPathSegments(
-                        GoModule.EscapePath(packageSpecifier.ToothPath),
+                        Module.EscapePath(packageSpecifier.ToothPath).Item1,
                         "@v",
                         "list");
 

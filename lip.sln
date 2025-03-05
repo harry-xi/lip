@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lip.Migration", "Lip.Migrat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lip.Migration.Tests", "Lip.Migration.Tests\Lip.Migration.Tests.csproj", "{B3895AED-5609-510F-BA87-FC3FADC068CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Golang.Org.X.Mod.Tests", "Golang.Org.X.Mod.Tests\Golang.Org.X.Mod.Tests.csproj", "{884173E7-8510-CA1E-8014-D2C712CBDD90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Golang.Org.X.Mod", "Golang.Org.X.Mod\Golang.Org.X.Mod.csproj", "{FFA3B86A-9257-0903-13C8-0B6C78874A9A}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lip.CLI", "Lip.CLI\Lip.CLI.csproj", "{DEF73744-8EE6-B3C7-E20C-46F57A03AF4A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lip.Core.Tests", "Lip.Core.Tests\Lip.Core.Tests.csproj", "{CA8447B6-DB89-13AB-034B-8AB536EB7594}"
@@ -32,6 +36,14 @@ Global
 		{B3895AED-5609-510F-BA87-FC3FADC068CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3895AED-5609-510F-BA87-FC3FADC068CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3895AED-5609-510F-BA87-FC3FADC068CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{884173E7-8510-CA1E-8014-D2C712CBDD90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{884173E7-8510-CA1E-8014-D2C712CBDD90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{884173E7-8510-CA1E-8014-D2C712CBDD90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{884173E7-8510-CA1E-8014-D2C712CBDD90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFA3B86A-9257-0903-13C8-0B6C78874A9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFA3B86A-9257-0903-13C8-0B6C78874A9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFA3B86A-9257-0903-13C8-0B6C78874A9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFA3B86A-9257-0903-13C8-0B6C78874A9A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DEF73744-8EE6-B3C7-E20C-46F57A03AF4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DEF73744-8EE6-B3C7-E20C-46F57A03AF4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEF73744-8EE6-B3C7-E20C-46F57A03AF4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -49,6 +61,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2277D48F-C96C-4D7E-8FA1-ED811933D65B}
+		SolutionGuid = {E7BAFF1E-C104-42C6-B27E-F5AF98CA63F5}
 	EndGlobalSection
 EndGlobal

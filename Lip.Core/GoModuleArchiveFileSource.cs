@@ -1,3 +1,4 @@
+using Golang.Org.X.Mod;
 using Semver;
 using System.IO.Abstractions;
 
@@ -11,7 +12,7 @@ public class GoModuleArchiveFileSource(
 {
     private readonly string _archiveFilePath = archiveFilePath;
     private readonly IFileSystem _fileSystem = fileSystem;
-    private readonly string _prefix = $"{goModulePath}@{GoModule.CanonicalVersion(version.ToString())}/";
+    private readonly string _prefix = $"{goModulePath}@{Module.CanonicalVersion("v" + version.ToString())}/";
 
     public override async Task<List<IFileSourceEntry>> GetAllEntries()
     {

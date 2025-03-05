@@ -1,4 +1,5 @@
 using Flurl;
+using Golang.Org.X.Mod;
 using Microsoft.Extensions.Logging;
 using Semver;
 using System.Diagnostics.CodeAnalysis;
@@ -54,7 +55,11 @@ public class CacheManager(
             // For typical URLs, just return the URL.
             if (url.Host == "github.com" && _githubProxies.Count != 0)
             {
-                return _githubProxies.Select(proxy => proxy.AppendPathSegment(url.Path).SetQueryParams(url.QueryParams));
+                return _githubProxies.Select(proxy => proxy
+                    .Clone()
+                    .AppendPathSegment(url.Path)
+                    .SetQueryParams(url.QueryParams)
+                );
             }
 
             return [url];
@@ -187,11 +192,12 @@ public class CacheManager(
         SemVersion version = packageSpecifier.Version;
 
         List<Url> archiveFileUrls = _goModuleProxies.ConvertAll(proxy =>
-            proxy.Clone()
+            proxy
+                .Clone()
                 .AppendPathSegments(
-                    GoModule.EscapePath(packageSpecifier.ToothPath),
+                    Module.EscapePath(packageSpecifier.ToothPath).Item1,
                     "@v",
-                    GoModule.EscapeVersion(GoModule.CanonicalVersion(version.ToString())) + ".zip"
+                    Module.EscapeVersion(Module.CanonicalVersion("v" + version.ToString())).Item1 + ".zip"
                 )
         );
 

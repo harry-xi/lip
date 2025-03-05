@@ -1,3 +1,4 @@
+using Golang.Org.X.Mod;
 using System.Text.RegularExpressions;
 
 namespace Lip.Core;
@@ -110,7 +111,7 @@ public static class StringValidator
     /// <returns>True if the tooth path is valid; otherwise, false.</returns>
     public static bool CheckToothPath(string toothPath)
     {
-        return GoModule.CheckPath(toothPath);
+        return Module.CheckPath(toothPath) is null;
     }
 
     /// <summary>

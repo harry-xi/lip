@@ -129,6 +129,15 @@ public class MigrationFromV1Tests
                 "variants": [
                     {
                         "label": null,
+                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                        "dependencies": null,
+                        "assets": null,
+                        "preserve_files": null,
+                        "remove_files": null,
+                        "scripts": null
+                    },
+                    {
+                        "label": null,
                         "platform": null,
                         "dependencies": {},
                         "assets": [
@@ -144,15 +153,6 @@ public class MigrationFromV1Tests
                                 ]
                             }
                         ],
-                        "preserve_files": null,
-                        "remove_files": null,
-                        "scripts": null
-                    },
-                    {
-                        "label": null,
-                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
-                        "dependencies": null,
-                        "assets": null,
                         "preserve_files": null,
                         "remove_files": null,
                         "scripts": null

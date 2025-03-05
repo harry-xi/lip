@@ -154,6 +154,15 @@ public class MigratorFromV2Tests
                 "variants": [
                     {
                         "label": null,
+                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
+                        "dependencies": null,
+                        "assets": null,
+                        "preserve_files": null,
+                        "remove_files": null,
+                        "scripts": null
+                    },
+                    {
+                        "label": null,
                         "platform": null,
                         "dependencies": {
                             "github.com/LiteLDev/bds": "1.21.60",
@@ -205,15 +214,6 @@ public class MigratorFromV2Tests
                                 "IF EXIST bedrock_server.exe (DEL bedrock_server.exe.bak) ELSE (REN bedrock_server.exe.bak bedrock_server.exe)"
                             ]
                         }
-                    },
-                    {
-                        "label": null,
-                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
-                        "dependencies": null,
-                        "assets": null,
-                        "preserve_files": null,
-                        "remove_files": null,
-                        "scripts": null
                     }
                 ]
             }

@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0] - 2025-03-05
+
+### Added
+
+- Multiple variant support
+- Glob pattern support for files
+- Glob pattern support for platform matching
+- Multiple asset support
+- Alternative asset source support
+- Migration support for schema version 1 and 2 to 3
+- Dependency resolution support
+- Package pruning support
+- Git support for asset source
+
+### Changed
+
+- Rewrite everything with C# and .NET 9.0
+- Update schema to version 3
+- Rewrite lip core library as a C# class library
+
 ## [0.24.0] - 2024-10-01
 
 ### Added
@@ -461,6 +481,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#140]: https://github.com/futrime/lip/issues/140
 [#157]: https://github.com/futrime/lip/issues/157
 
+[0.25.0]: https://github.com/futrime/lip/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/futrime/lip/compare/v0.23.2...v0.24.0
 [0.23.2]: https://github.com/futrime/lip/compare/v0.23.1...v0.23.2
 [0.23.1]: https://github.com/futrime/lip/compare/v0.23.0...v0.23.1

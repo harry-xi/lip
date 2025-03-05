@@ -20,6 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         project:
+          - Golang.Org.X.Mod
           - Lip.Context
           - Lip.Core
           - Lip.Migration
@@ -123,10 +124,14 @@ jobs:
       fail-fast: false
       matrix:
         project:
+          - Golang.Org.X.Mod
+          - Golang.Org.X.Mod.Tests
           - Lip.CLI
           - Lip.Context
           - Lip.Core
           - Lip.Core.Tests
+          - Lip.Migration
+          - Lip.Migration.Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -145,7 +150,9 @@ jobs:
       fail-fast: false
       matrix:
         project:
+          - Golang.Org.X.Mod.Tests
           - Lip.Core.Tests
+          - Lip.Migration.Tests
         runs-on:
           - macos-latest
           - ubuntu-latest

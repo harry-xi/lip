@@ -119,23 +119,23 @@ jobs:
       - run: |
           cp CHANGELOG.md COPYING README.md artifact/
 
-      - if: startsWith(matrix.runtime, 'win') == true
+      - if: startsWith(matrix.runtime, 'linux') == false
         run: |
           zip -r ../${{ github.event.repository.name }}-${{ matrix.runtime }}.zip *
         working-directory: artifact
 
-      - if: startsWith(matrix.runtime, 'win') == false
+      - if: startsWith(matrix.runtime, 'linux') == true
         run: |
           tar -czvf ../${{ github.event.repository.name }}-${{ matrix.runtime }}.tar.gz *
         working-directory: artifact
 
-      - if: startsWith(matrix.runtime, 'win') == true
+      - if: startsWith(matrix.runtime, 'linux') == false
         uses: softprops/action-gh-release@v2
         with:
           files: |
             ${{ github.event.repository.name }}-${{ matrix.runtime }}.zip
 
-      - if: startsWith(matrix.runtime, 'win') == false
+      - if: startsWith(matrix.runtime, 'linux') == true
         uses: softprops/action-gh-release@v2
         with:
           files: |

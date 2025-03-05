@@ -22,15 +22,13 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Lip.Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await Prepare(settings);
+        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await Prepare(settings);
 
         if (settings.Version)
         {
-            Assembly assembly = Assembly.GetEntryAssembly()!;
+            SemVersion version = SemVersion.FromVersion(Assembly.GetEntryAssembly()!.GetName().Version!);
 
-            SemVersion version = SemVersion.FromVersion(assembly.GetName().Version!);
-
-            AnsiConsole.MarkupLine($"lip {version} from {assembly.Location}".EscapeMarkup());
+            AnsiConsole.MarkupLine(version.ToString().EscapeMarkup());
 
             return 0;
         }

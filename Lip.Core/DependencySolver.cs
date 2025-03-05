@@ -46,9 +46,17 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
 
         // Find unnecessary packages.
 
+        var sourceList = vertices.Where(v => v.Package.Locked).ToList();
+
+        // If no locked packages, all packages are unnecessary.
+        if (sourceList.Count == 0)
+        {
+            return [.. vertices.Select(v => v.Package.Specifier.Identifier)];
+        }
+
         BreadthFirstShortestPaths<VertexForGetUnnecessaryPackages> bfs = new(
             dependencyGraph,
-            Sources: [.. vertices.Where(v => v.Package.Locked)]);
+            Sources: sourceList);
 
         List<PackageIdentifier> unnecessaryPackages = [.. vertices
             .Where(v => !v.Package.Locked)

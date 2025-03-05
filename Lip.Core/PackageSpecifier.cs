@@ -57,7 +57,8 @@ public record PackageSpecifier
     {
         if (!StringValidator.CheckPackageSpecifier(text))
         {
-            throw new ArgumentException($"Invalid package specifier '{text}'.", nameof(text));
+            throw new ArgumentException(
+                $"Invalid package specifier '{text}'. Expected format is 'toothPath[#variantLabel]@version'.", nameof(text));
         }
 
         string[] parts = text.Split('@');

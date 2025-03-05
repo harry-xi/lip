@@ -1,4 +1,5 @@
 using Lip.CLI;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 var commandApp = new CommandApp();
@@ -9,9 +10,7 @@ commandApp.Configure(config =>
 {
     config.SetApplicationName("lip");
 
-#if DEBUG
     config.PropagateExceptions();
-#endif
 
     config.AddBranch<CacheSettings>("cache", config =>
     {
@@ -41,9 +40,17 @@ commandApp.Configure(config =>
     config.AddCommand<ViewCommand>("view");
 });
 
-int result = await commandApp.RunAsync(args);
+try
+{
+    var result = await commandApp.RunAsync(args);
 
-// To make sure that the progress bar is displayed correctly.
-await Task.Delay(10);
+    // To make sure that the progress bar is displayed correctly.
+    await Task.Delay(10);
 
-return result;
+    return result;
+}
+catch (Exception ex)
+{
+    AnsiConsole.WriteException(ex);
+    return 1;
+}

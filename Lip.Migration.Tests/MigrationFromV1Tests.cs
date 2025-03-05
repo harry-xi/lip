@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace Lip.Migration.Tests;
@@ -113,7 +114,7 @@ public class MigrationFromV1Tests
 
         using JsonDocument jsonDocumentV1 = JsonDocument.Parse(jsonTextV1);
 
-        string expectedJsonTextV3 = """
+        string expectedJsonTextV3 = $$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -149,7 +150,7 @@ public class MigrationFromV1Tests
                     },
                     {
                         "label": null,
-                        "platform": "osx-arm64",
+                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
                         "dependencies": null,
                         "assets": null,
                         "preserve_files": null,

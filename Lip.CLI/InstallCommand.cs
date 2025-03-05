@@ -11,7 +11,7 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
     {
         [CommandArgument(0, "[package ...]")]
         [Description("The packages to install. If no packages are specified, lip will install the package in the current directory.")]
-        public required string[] Packages { get; init; }
+        public required string[]? Packages { get; init; }
 
         [CommandOption("--dry-run")]
         [Description("Do not actually install any packages. Be aware that files will still be downloaded and cached.")]
@@ -38,7 +38,7 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
     {
         (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
 
-        await lip.Install([.. settings.Packages], new()
+        await lip.Install(settings.Packages?.ToList(), new()
         {
             DryRun = settings.DryRun,
             Force = settings.Force,

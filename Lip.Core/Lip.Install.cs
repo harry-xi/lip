@@ -45,8 +45,11 @@ public partial class Lip
         public required string VariantLabel { get; init; }
     }
 
-    public async Task Install(List<string> userInputPackageTexts, InstallArgs args)
+    public async Task Install(List<string>? userInputPackageTexts, InstallArgs args)
     {
+        // If no packages are specified, add the current directory as a package specifier.
+        userInputPackageTexts ??= ["."];
+
         // Parse user input package texts for packages and check conflicts.
 
         TopoSortedPackageList<PackageInstallDetail> packageInstallDetails = [];

@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace Lip.Migration;
@@ -7,9 +6,14 @@ public static class MigratorFromV1
 {
     public static bool IsMigratable(JsonElement json)
     {
-        return json.TryGetProperty("format_version", out var version)
-               && version.TryGetInt32(out var v)
-               && v == 1;
+        try
+        {
+            return json.GetProperty("format_version").GetInt64() == 1;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     public static JsonElement Migrate(JsonElement json)
@@ -33,7 +37,7 @@ public static class MigratorFromV1
             : []
         };
 
-        ManifestV2.CommandsType? ConvertCommands(List<ManifestV1.Command>? commands)
+        static ManifestV2.CommandsType? ConvertCommands(List<ManifestV1.Command>? commands)
         {
             if (commands == null)
                 return null;
@@ -71,7 +75,7 @@ public static class MigratorFromV1
             Files = manifestV1.Placement != null
             ? new ManifestV2.FilesType
             {
-                Place = [.. manifestV1.Placement.Select(p => new ManifestV2.PlaceType { Src = p.Source, Dest = p.Destination })]
+                Place = [.. manifestV1.Placement.Select(p => new ManifestV2.PlaceType { Src = p.Source, Dest = p.Destination.TrimEnd('*') })]
             }
             : null,
             Platforms = null // No conversion for platforms from ManifestV1

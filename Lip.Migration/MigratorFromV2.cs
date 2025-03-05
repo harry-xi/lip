@@ -44,7 +44,8 @@ public static class MigratorFromV2
                 {
                     Dependencies = manifestV2.Dependencies,
                     Assets = manifestV2.AssetUrl is not null
-                        ? [
+                        ?
+                        [
                             new Manifest.Asset
                             {
                                 Type = manifestV2.AssetUrl.Split('.').Last() switch
@@ -62,7 +63,15 @@ public static class MigratorFromV2
                                                                      .ToList()
                             }
                         ]
-                        : null,
+                        :
+                        [
+                            new Manifest.Asset
+                            {
+                                Type = Manifest.Asset.TypeEnum.Self,
+                                Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                                                     .ToList()
+                            }
+                        ],
                     PreserveFiles = manifestV2.Files?.Preserve,
                     RemoveFiles = manifestV2.Files?.Remove,
                     Scripts = manifestV2.Commands is not null

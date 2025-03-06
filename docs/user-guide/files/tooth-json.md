@@ -179,7 +179,7 @@ Array of paths or glob patterns for files to remove during uninstallation. This 
 
 ### variants[].scripts (optional)
 
-Commands to execute in the workspace. Define as key-value pairs where keys are script names and values are arrays of commands to execute in order. If more than matched variants define the same script, only the last one is used.
+Commands to execute in the workspace. Define as key-value pairs where keys are script names and values are arrays of commands to execute in order. If more than matched variants define the same script, only the last one is used even if the script is not defined, i.e. you are always recommended to define scripts as late as possible.
 
 Built-in script hooks (all values are string arrays):
 

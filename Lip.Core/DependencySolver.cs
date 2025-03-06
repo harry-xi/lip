@@ -151,7 +151,7 @@ file record StateForResolveDependencies
             .OrderByDescending(v => preferredPackages.Contains(PackageSpecifier.FromIdentifier(
                 candidateToExplore.Key,
                 v)))
-            .ThenBy(v => v, SemVersion.PrecedenceComparer);
+            .ThenByDescending(v => v, SemVersion.PrecedenceComparer);
 
         return [.. candidateVersionsToExplorer.Select(version =>
         {

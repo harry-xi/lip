@@ -26,11 +26,17 @@ public class Downloader(IUserInteraction userInteraction) : IDownloader
             await _userInteraction.UpdateProgress(
                 url,
                 Convert.ToSingle(e.ProgressPercentage / 100),
-                "Downloading {0}",
-                urlString
+                "Downloading {0} ({1:0.00} MB/s)",
+                urlString,
+                e.BytesPerSecondSpeed / 1024 / 1024
             );
         };
 
         await downloader.StartAsync();
+
+        if (downloader.Status == DownloadStatus.Failed)
+        {
+            throw new InvalidOperationException($"Download failed for URL {url}");
+        }
     }
 }

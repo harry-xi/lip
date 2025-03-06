@@ -29,12 +29,24 @@ public record PackageLock
         public required string VariantLabel
         {
             private get => _variantLabel;
-            init => _variantLabel = StringValidator.CheckVariantLabel(value)
-                ? value
-                : throw new SchemaViolationException(
-                    "packages[].variant",
-                    $"Invalid variant label '{value}'."
-                );
+            init
+            {
+                if (!StringValidator.CheckVariantLabel(value))
+                {
+                    throw new SchemaViolationException(
+                        "packages[].variant_format",
+                        $"Variant label '{value}' does not meet the required format."
+                    );
+                }
+                if (Manifest.GetVariant(value, RuntimeInformation.RuntimeIdentifier) is null)
+                {
+                    throw new SchemaViolationException(
+                        "packages[].variant",
+                        $"No matching variant found for label '{value}' with runtime identifier '{RuntimeInformation.RuntimeIdentifier}'."
+                    );
+                }
+                _variantLabel = value;
+            }
         }
         private readonly string _variantLabel = string.Empty;
     }

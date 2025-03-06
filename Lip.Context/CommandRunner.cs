@@ -11,7 +11,7 @@ public class CommandRunner : ICommandRunner
         using Stream stdOutStream = Console.OpenStandardOutput();
         using Stream stdErrStream = Console.OpenStandardError();
 
-        await Cli.Wrap(OperatingSystem.IsWindows() ? "cmd.exe" : "sh")
+        CommandResult result = await Cli.Wrap(OperatingSystem.IsWindows() ? "cmd.exe" : "sh")
             .WithArguments(
             [
                 OperatingSystem.IsWindows() ? "/c" : "-c",
@@ -22,5 +22,10 @@ public class CommandRunner : ICommandRunner
             .WithStandardOutputPipe(PipeTarget.ToStream(stdOutStream))
             .WithStandardErrorPipe(PipeTarget.ToStream(stdErrStream))
             .ExecuteAsync();
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException($"Command failed with exit code {result.ExitCode}");
+        }
     }
 }

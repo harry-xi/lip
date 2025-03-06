@@ -8,7 +8,7 @@ First things first, open your terminal and run this command to make sure lip is 
 
 ```bash
 $ lip --version
-0.25.1
+0.26.0
 ```
 
 If that looks good, you're all set—lip is working like a charm.

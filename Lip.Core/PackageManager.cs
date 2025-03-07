@@ -201,17 +201,14 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            packageVariant.Scripts.PreInstall.ForEach(script =>
+            foreach (var script in packageVariant.Scripts.PreInstall)
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
-
                 if (!dryRun)
                 {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
+                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                 }
-            });
+            }
         }
 
         // Place files.
@@ -263,17 +260,14 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            packageVariant.Scripts.Install.ForEach(script =>
+            foreach (var script in packageVariant.Scripts.Install)
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
-
                 if (!dryRun)
                 {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
+                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                 }
-            });
+            }
         }
 
         // Update package lock.
@@ -297,16 +291,14 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            packageVariant.Scripts.PostInstall.ForEach(script =>
+            foreach (var script in packageVariant.Scripts.PostInstall)
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
                 {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
+                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                 }
-            });
+            }
         }
 
         _context.Logger.LogInformation("Package {packageSpecifier} installed.", packageSpecifier);
@@ -337,34 +329,28 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            packageToUninstall.Variant.Scripts.PreUninstall.ForEach(script =>
+            foreach (var script in packageToUninstall.Variant.Scripts.PreUninstall)
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
-
                 if (!dryRun)
                 {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
+                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                 }
-            });
+            }
         }
 
         // Run uninstall scripts.
 
         if (!ignoreScripts)
         {
-            packageToUninstall.Variant.Scripts.Uninstall.ForEach(script =>
+            foreach (var script in packageToUninstall.Variant.Scripts.Uninstall)
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
-
                 if (!dryRun)
                 {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
+                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                 }
-            });
+            }
         }
 
         // Remove placed files.
@@ -437,17 +423,14 @@ public class PackageManager(
 
         if (!ignoreScripts)
         {
-            packageToUninstall.Variant.Scripts.PostUninstall.ForEach(script =>
+            foreach (var script in packageToUninstall.Variant.Scripts.PostUninstall)
             {
                 _context.Logger.LogDebug("Running script: {script}", script);
-
                 if (!dryRun)
                 {
-                    _context.CommandRunner.Run(
-                        script,
-                        _pathManager.WorkingDir);
+                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                 }
-            });
+            }
         }
 
         _context.Logger.LogInformation("Package {packageSpecifier} uninstalled.", packageToUninstall.Specifier);

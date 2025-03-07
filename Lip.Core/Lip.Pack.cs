@@ -30,21 +30,23 @@ public partial class Lip
 
         if (!args.IgnoreScripts)
         {
-            packageManifest.GetVariant(
+            var prePackScripts = packageManifest.GetVariant(
                 string.Empty,
                 RuntimeInformation.RuntimeIdentifier)?
                 .Scripts
-                .PrePack
-                .ForEach(script =>
+                .PrePack;
+
+            if (prePackScripts != null)
+            {
+                foreach (var script in prePackScripts)
+                {
+                    _context.Logger.LogDebug("Running script: {script}", script);
+                    if (!args.DryRun)
                     {
-                        _context.Logger.LogDebug("Running script: {script}", script);
-                        if (!args.DryRun)
-                        {
-                            _context.CommandRunner.Run(
-                                script,
-                                _pathManager.WorkingDir);
-                        }
-                    });
+                        await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    }
+                }
+            }
         }
 
         // Pack files in the archive.
@@ -95,21 +97,23 @@ public partial class Lip
 
         if (!args.IgnoreScripts)
         {
-            packageManifest.GetVariant(
+            var postPackScripts = packageManifest.GetVariant(
                 string.Empty,
                 RuntimeInformation.RuntimeIdentifier)?
                 .Scripts
-                .PostPack
-                .ForEach(script =>
+                .PostPack;
+
+            if (postPackScripts != null)
+            {
+                foreach (var script in postPackScripts)
+                {
+                    _context.Logger.LogDebug("Running script: {script}", script);
+                    if (!args.DryRun)
                     {
-                        _context.Logger.LogDebug("Running script: {script}", script);
-                        if (!args.DryRun)
-                        {
-                            _context.CommandRunner.Run(
-                                script,
-                                _pathManager.WorkingDir);
-                        }
-                    });
+                        await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    }
+                }
+            }
         }
     }
 }

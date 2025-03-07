@@ -39,11 +39,9 @@ public static class MigratorFromV2
                 Tags = manifestV2.Info.Tags,
                 AvatarUrl = manifestV2.Info.AvatarUrl
             },
-            Variants = [
-                new Manifest.Variant
-                {
-                    Platform = RuntimeInformation.RuntimeIdentifier,
-                },
+            Variants =
+            [
+                new Manifest.Variant { Platform = RuntimeInformation.RuntimeIdentifier, },
                 new Manifest.Variant
                 {
                     Dependencies = manifestV2.Dependencies,
@@ -60,22 +58,25 @@ public static class MigratorFromV2
                                     "zip" => Manifest.Asset.TypeEnum.Zip,
                                     _ => Manifest.Asset.TypeEnum.Uncompressed
                                 },
-                                Urls = [
+                                Urls =
+                                [
                                     manifestV2.AssetUrl
                                 ],
                                 Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
-                                                                     .ToList()
+                                    .ToList()
                             }
                         ]
-                        :
-                        [
-                            new Manifest.Asset
-                            {
-                                Type = Manifest.Asset.TypeEnum.Self,
-                                Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
-                                                                     .ToList()
-                            }
-                        ],
+                        : manifestV2.Platforms is null
+                            ?
+                            [
+                                new Manifest.Asset
+                                {
+                                    Type = Manifest.Asset.TypeEnum.Self,
+                                    Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                        .ToList()
+                                }
+                            ]
+                            : [],
                     PreserveFiles = manifestV2.Files?.Preserve,
                     RemoveFiles = manifestV2.Files?.Remove,
                     Scripts = manifestV2.Commands is not null
@@ -88,7 +89,8 @@ public static class MigratorFromV2
                         Platform = ConvertGOARCHAndGOOSToPlatform(p.GOARCH, p.GOOS),
                         Dependencies = p.Dependencies,
                         Assets = p.AssetUrl is not null
-                            ? [
+                            ?
+                            [
                                 new Manifest.Asset
                                 {
                                     Type = p.AssetUrl.Split('.').Last() switch
@@ -99,11 +101,15 @@ public static class MigratorFromV2
                                         "zip" => Manifest.Asset.TypeEnum.Zip,
                                         _ => Manifest.Asset.TypeEnum.Uncompressed
                                     },
-                                    Urls = [
+                                    Urls =
+                                    [
                                         p.AssetUrl
                                     ],
-                                    Placements = p.Files?.Place?.Select(ConvertPlaceToPlacement)
-                                                        .ToList()
+                                    Placements = manifestV2.Files?.Place is not null
+                                        ? manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                            .ToList()
+                                        : p.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                            .ToList(),
                                 }
                             ]
                             : null,

@@ -105,7 +105,7 @@ public static class MigratorFromV2
                                     [
                                         p.AssetUrl
                                     ],
-                                    Placements = manifestV2.Files?.Place is not null
+                                    Placements = manifestV2.Files?.Place is not null && p.Files?.Place is null
                                         ? manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
                                             .ToList()
                                         : p.Files?.Place?.Select(ConvertPlaceToPlacement)

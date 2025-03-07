@@ -227,7 +227,7 @@ public partial class Lip
     {
         // First, check if package text refers to a local directory containing a tooth.json file.
 
-        string possibleDirPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, userInputPackageText.Split('#')[0]);
+        string possibleDirPath = _context.FileSystem.Path.Combine(_pathManager.WorkingDir, userInputPackageText.Split('#')[0]);
 
         if (_context.FileSystem.Directory.Exists(possibleDirPath))
         {
@@ -248,7 +248,7 @@ public partial class Lip
 
         // Second, check if package text refers to a local archive file.
 
-        string possibleFilePath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, userInputPackageText.Split('#')[0]);
+        string possibleFilePath = _context.FileSystem.Path.Combine(_pathManager.WorkingDir, userInputPackageText.Split('#')[0]);
 
         if (_context.FileSystem.File.Exists(possibleFilePath))
         {

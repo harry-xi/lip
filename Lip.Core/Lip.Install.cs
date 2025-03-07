@@ -272,10 +272,11 @@ public partial class Lip
             }
         }
 
-        // Third, assume package text is a package specifier.
+        // Third, check if package text is a package specifier.
 
+        if (userInputPackageText.Contains('@'))
         {
-            var packageSpecifier = PackageSpecifier.Parse(userInputPackageText);
+            PackageSpecifier packageSpecifier = PackageSpecifier.Parse(userInputPackageText);
 
             IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 
@@ -289,6 +290,34 @@ public partial class Lip
                     Manifest = packageManifest,
                     VariantLabel = packageSpecifier.VariantLabel
                 };
+            }
+        }
+
+        // Third, assume package text is a package identifier and look for the latest version.
+
+        {
+            PackageIdentifier packageIdentifier = PackageIdentifier.Parse(userInputPackageText);
+
+            IOrderedEnumerable<SemVersion> packageVersionList = (await _packageManager.GetPackageRemoteVersions(packageIdentifier))
+                .OrderByDescending(v => v, SemVersion.PrecedenceComparer);
+
+            if (packageVersionList.Any())
+            {
+                PackageSpecifier packageSpecifier = PackageSpecifier.FromIdentifier(packageIdentifier, packageVersionList.First());
+
+                IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
+
+                PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource);
+
+                if (packageManifest is not null)
+                {
+                    return new()
+                    {
+                        FileSource = fileSource,
+                        Manifest = packageManifest,
+                        VariantLabel = packageSpecifier.VariantLabel
+                    };
+                }
             }
         }
 

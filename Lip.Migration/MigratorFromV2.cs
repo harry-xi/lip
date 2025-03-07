@@ -41,84 +41,111 @@ public static class MigratorFromV2
             },
             Variants =
             [
-                new Manifest.Variant { Platform = RuntimeInformation.RuntimeIdentifier, },
-                new Manifest.Variant
-                {
-                    Dependencies = manifestV2.Dependencies,
-                    Assets = manifestV2.AssetUrl is not null
-                        ?
-                        [
-                            new Manifest.Asset
-                            {
-                                Type = manifestV2.AssetUrl.Split('.').Last() switch
-                                {
-                                    "tar" => Manifest.Asset.TypeEnum.Tar,
-                                    "tgz" => Manifest.Asset.TypeEnum.Tgz,
-                                    "gz" => Manifest.Asset.TypeEnum.Tgz,
-                                    "zip" => Manifest.Asset.TypeEnum.Zip,
-                                    _ => Manifest.Asset.TypeEnum.Uncompressed
-                                },
-                                Urls =
-                                [
-                                    manifestV2.AssetUrl
-                                ],
-                                Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
-                                    .ToList()
-                            }
-                        ]
-                        : manifestV2.Platforms is null
-                            ?
-                            [
-                                new Manifest.Asset
-                                {
-                                    Type = Manifest.Asset.TypeEnum.Self,
-                                    Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
-                                        .ToList()
-                                }
-                            ]
-                            : [],
-                    PreserveFiles = manifestV2.Files?.Preserve,
-                    RemoveFiles = manifestV2.Files?.Remove,
-                    Scripts = manifestV2.Commands is not null
-                        ? ConvertCommandsToScripts(manifestV2.Commands)
-                        : null
-                },
+                // If manifest v2 has platforms, use properties from platforms firstly, if platforms don't have some properties, obtain them from global.
+                // If platforms not exist, generating a variant with server's architecture and properties from global.
                 .. manifestV2.Platforms?
-                    .Select(p => new Manifest.Variant
-                    {
-                        Platform = ConvertGOARCHAndGOOSToPlatform(p.GOARCH, p.GOOS),
-                        Dependencies = p.Dependencies,
-                        Assets = p.AssetUrl is not null
-                            ?
-                            [
-                                new Manifest.Asset
-                                {
-                                    Type = p.AssetUrl.Split('.').Last() switch
-                                    {
-                                        "tar" => Manifest.Asset.TypeEnum.Tar,
-                                        "tgz" => Manifest.Asset.TypeEnum.Tgz,
-                                        "gz" => Manifest.Asset.TypeEnum.Tgz,
-                                        "zip" => Manifest.Asset.TypeEnum.Zip,
-                                        _ => Manifest.Asset.TypeEnum.Uncompressed
-                                    },
-                                    Urls =
-                                    [
-                                        p.AssetUrl
-                                    ],
-                                    Placements = manifestV2.Files?.Place is not null && p.Files?.Place is null
-                                        ? manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
-                                            .ToList()
-                                        : p.Files?.Place?.Select(ConvertPlaceToPlacement)
-                                            .ToList(),
-                                }
-                            ]
-                            : null,
-                        PreserveFiles = p.Files?.Preserve,
-                        RemoveFiles = p.Files?.Remove,
-                        Scripts = p.Commands is not null
-                            ? ConvertCommandsToScripts(p.Commands)
-                            : null
-                    }) ?? []
+                       .Select(p => new Manifest.Variant
+                       {
+                           // For satisfy one non-globbed variant must exist rule
+                           Platform =
+                               ConvertGOARCHAndGOOSToPlatform(
+                                   p.GOARCH, p.GOOS).Replace("*", RuntimeInformation.RuntimeIdentifier.Split('-')[1]),
+                           Dependencies = p.Dependencies ?? manifestV2.Dependencies,
+                           Assets = p.AssetUrl is not null
+                               ?
+                               [
+                                   new Manifest.Asset
+                                   {
+                                       Type = p.AssetUrl.Split('.').Last() switch
+                                       {
+                                           "tar" => Manifest.Asset.TypeEnum.Tar,
+                                           "tgz" => Manifest.Asset.TypeEnum.Tgz,
+                                           "gz" => Manifest.Asset.TypeEnum.Tgz,
+                                           "zip" => Manifest.Asset.TypeEnum.Zip,
+                                           _ => Manifest.Asset.TypeEnum.Uncompressed
+                                       },
+                                       Urls =
+                                       [
+                                           p.AssetUrl
+                                       ],
+                                       Placements =
+                                           p.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                               .ToList() ?? manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                               .ToList(),
+                                   }
+                               ]
+                               : manifestV2.AssetUrl is not null
+                                   ?
+                                   [
+                                       new Manifest.Asset
+                                       {
+                                           Type = manifestV2.AssetUrl.Split('.').Last() switch
+                                           {
+                                               "tar" => Manifest.Asset.TypeEnum.Tar,
+                                               "tgz" => Manifest.Asset.TypeEnum.Tgz,
+                                               "gz" => Manifest.Asset.TypeEnum.Tgz,
+                                               "zip" => Manifest.Asset.TypeEnum.Zip,
+                                               _ => Manifest.Asset.TypeEnum.Uncompressed
+                                           },
+                                           Urls =
+                                           [
+                                               manifestV2.AssetUrl
+                                           ],
+                                           Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                               .ToList()
+                                       }
+                                   ]
+                                   : null,
+                           PreserveFiles = p.Files?.Preserve ?? manifestV2.Files?.Preserve,
+                           RemoveFiles = p.Files?.Remove ?? manifestV2.Files?.Remove,
+                           Scripts = p.Commands is not null
+                               ? ConvertCommandsToScripts(p.Commands)
+                               : manifestV2.Commands is not null
+                                   ? ConvertCommandsToScripts(manifestV2.Commands)
+                                   : null
+                       }) ??
+                   [
+                       new Manifest.Variant
+                       {
+                           Platform = RuntimeInformation.RuntimeIdentifier,
+                           Dependencies = manifestV2.Dependencies,
+                           Assets = manifestV2.AssetUrl is not null
+                               ?
+                               [
+                                   new Manifest.Asset
+                                   {
+                                       Type = manifestV2.AssetUrl.Split('.').Last() switch
+                                       {
+                                           "tar" => Manifest.Asset.TypeEnum.Tar,
+                                           "tgz" => Manifest.Asset.TypeEnum.Tgz,
+                                           "gz" => Manifest.Asset.TypeEnum.Tgz,
+                                           "zip" => Manifest.Asset.TypeEnum.Zip,
+                                           _ => Manifest.Asset.TypeEnum.Uncompressed
+                                       },
+                                       Urls =
+                                       [
+                                           manifestV2.AssetUrl
+                                       ],
+                                       Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                           .ToList()
+                                   }
+                               ]
+                               :
+                               [
+                                   new Manifest.Asset
+                                   {
+                                       Type = Manifest.Asset.TypeEnum.Self,
+                                       Placements = manifestV2.Files?.Place?.Select(ConvertPlaceToPlacement)
+                                           .ToList()
+                                   }
+                               ],
+                           PreserveFiles = manifestV2.Files?.Preserve,
+                           RemoveFiles = manifestV2.Files?.Remove,
+                           Scripts = manifestV2.Commands is not null
+                               ? ConvertCommandsToScripts(manifestV2.Commands)
+                               : null
+                       }
+                   ]
             ]
         };
 

@@ -32,6 +32,7 @@ commandApp.Configure(config =>
     config.AddCommand<InitCommand>("init");
     config.AddCommand<InstallCommand>("install");
     config.AddCommand<ListCommand>("list");
+    config.AddCommand<MigrateCommand>("migrate");
     config.AddCommand<PackCommand>("pack");
     config.AddCommand<PruneCommand>("prune");
     config.AddCommand<RunCommand>("run");

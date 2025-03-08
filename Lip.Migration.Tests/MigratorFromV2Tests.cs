@@ -154,16 +154,7 @@ public class MigratorFromV2Tests
                 "variants": [
                     {
                         "label": null,
-                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
-                        "dependencies": null,
-                        "assets": null,
-                        "preserve_files": null,
-                        "remove_files": null,
-                        "scripts": null
-                    },
-                    {
-                        "label": null,
-                        "platform": null,
+                        "platform": "win-x64",
                         "dependencies": {
                             "github.com/LiteLDev/bds": "1.21.60",
                             "github.com/LiteLDev/CrashLogger": "1.3.x",
@@ -191,15 +182,6 @@ public class MigratorFromV2Tests
                         "remove_files": [
                             "bedrock_server_mod.exe"
                         ],
-                        "scripts": null
-                    },
-                    {
-                        "label": null,
-                        "platform": "win-x64",
-                        "dependencies": null,
-                        "assets": null,
-                        "preserve_files": null,
-                        "remove_files": null,
                         "scripts": {
                             "pre_install": null,
                             "install": null,

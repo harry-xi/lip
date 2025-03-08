@@ -130,15 +130,6 @@ public class MigrationFromV1Tests
                     {
                         "label": null,
                         "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
-                        "dependencies": null,
-                        "assets": null,
-                        "preserve_files": null,
-                        "remove_files": null,
-                        "scripts": null
-                    },
-                    {
-                        "label": null,
-                        "platform": null,
                         "dependencies": {},
                         "assets": [
                             {

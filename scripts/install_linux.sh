@@ -36,7 +36,7 @@ rm -rf $TEMP_DIR
 
 # Hint the user to add the binary to PATH.
 echo "Please add $INSTALL_DIR to PATH to use the 'lip' command."
-echo "You can do this by adding the following line to your shell profile:"
+echo "You can do this by adding the following line to your shell profile (~/.profile, ~/.bash_profile, etc):"
 echo
 echo "PATH=\"\$HOME/$INSTALL_DIR_FROM_HOME:\$PATH\""
 echo

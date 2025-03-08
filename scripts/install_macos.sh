@@ -24,7 +24,8 @@ echo "Downloading $DOWNLOAD_URL"
 curl -fLS $DOWNLOAD_URL | tar -x -C $TEMP_DIR
 
 # Install the binary.
-INSTALL_DIR="$HOME/Library/Application\ Support/lip"
+INSTALL_DIR_FROM_HOME="Library/Application Support/lip"
+INSTALL_DIR="$HOME/$INSTALL_DIR_FROM_HOME"
 echo "Installing to $INSTALL_DIR"
 if [ ! -d "$INSTALL_DIR" ]; then
   mkdir -p "$INSTALL_DIR"
@@ -33,29 +34,9 @@ chmod 755 "$TEMP_DIR/lip"
 mv "$TEMP_DIR/lip" "$INSTALL_DIR"
 rm -rf $TEMP_DIR
 
-# Check if the binary is in PATH.
-if echo $PATH | grep -Fq "$INSTALL_DIR"; then
-  exit 0
-fi
-
-# Add to PATH.
-if [ "$SHELL" = "/bin/zsh" ]; then
-  SHELL_RC="$HOME/.zshrc"
-elif [ "$SHELL" = "/bin/bash" ]; then
-  SHELL_RC="$HOME/.bashrc"
-else
-  echo "Unsupported shell: $SHELL"
-  echo "Please add $INSTALL_DIR to your PATH manually."
-  exit 0
-fi
-
-# Add if not already in PATH.
-SET_PATH_CMD="export PATH=\"\$PATH:$INSTALL_DIR\""
-if grep -Fq "$SET_PATH_CMD" $SHELL_RC; then
-  exit 0
-fi
-echo "Adding $INSTALL_DIR to PATH..."
-echo >> $SHELL_RC
-echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> $SHELL_RC
-echo >> $SHELL_RC
-echo "Please restart your shell or run 'source $SHELL_RC' to use the 'lip' command."
+# Hint the user to add the binary to PATH.
+echo "Please add $INSTALL_DIR to PATH to use the 'lip' command."
+echo "You can do this by adding the following line to your shell profile:"
+echo
+echo "PATH=\"\$HOME/$INSTALL_DIR_FROM_HOME:\$PATH\""
+echo

@@ -1,56 +1,37 @@
-# 安装 lip
+# 安装
 
-目前，lip 安装程序尚未实现。您可以按照以下说明手动安装 lip。
+目前尚未实现 lip 安装器。您可以按照下面的说明手动安装 lip。
 
 ## lip CLI
 
-要安装 lip CLI，请从 [GitHub](https://github.com/futrime/lip/releases/latest) 下载您平台的最新版本存档，提取它，并将提取的目录添加到您的 PATH 中。
+为了简化安装过程，您可以使用以下命令：
 
-为了简化过程，您可以使用以下命令：
-
-
-- 在Windows x64:
+对于 Windows (x64) 平台，请运行以下命令：
   
-    ```cmd
-    mkdir -p %LocalAppData%\lip
-    curl -L https://github.com/futrime/lip/releases/latest/download/lip-win-x64.zip -o %LocalAppData%\lip\lip.zip
-    tar -xf %LocalAppData%\lip\lip.zip -C %LocalAppData%\lip
-    del %LocalAppData%\lip\lip.zip
-    setx PATH "%PATH%;%LocalAppData%\lip"
-    ```
+```shell
+mkdir -p %LocalAppData%\lip
+curl -L https://github.com/futrime/lip/releases/latest/download/lip-win-x64.zip -o %LocalAppData%\lip\lip.zip
+tar -xf %LocalAppData%\lip\lip.zip -C %LocalAppData%\lip
+del %LocalAppData%\lip\lip.zip
+setx PATH "%PATH%;%LocalAppData%\lip"
+```
 
-- 在Linux x64:
+对于 Windows (arm64) 平台，请将上面命令中的 `lip-win-x64.zip` 替换为 `lip-win-arm64.zip`。
+
+对于 Linux，运行以下命令，并按照脚本中的提示完成安装：
   
-    ```bash
-    mkdir -p ~/.local/share/lip
-    curl -L https://github.com/futrime/lip/releases/latest/download/lip-linux-x64.tar.gz -o ~/.local/share/lip/lip.tar.gz
-    tar -xf ~/.local/share/lip/lip.tar.gz -C ~/.local/share/lip
-    rm ~/.local/share/lip/lip.tar.gz
-    export PATH="$PATH:~/.local/share/lip"
-    ```
+```shell
+curl -fsSL https://raw.githubusercontent.com/futrime/lip/HEAD/scripts/install_linux.sh | sh
+```
 
-    然后，将以下行添加到您的 shell 配置文件中（例如，`~/.bashrc`、`~/.zshrc` 或 `~/.profile`）：
-
-    ```bash
-    export PATH="$PATH:~/.local/share/lip"
-    ```
-
-- 在macOS arm64:
+对于 macOS，运行以下命令，并按照脚本中的提示完成安装：
   
-    ```bash
-    mkdir -p ~/Library/Application\ Support/lip
-    curl -L https://github.com/futrime/lip/releases/latest/download/lip-osx-arm64.zip -o ~/Library/Application\ Support/lip/lip.zip
-    tar -xf ~/Library/Application\ Support/lip/lip.zip -C ~/Library/Application\ Support/lip
-    rm ~/Library/Application\ Support/lip/lip.zip
-    export PATH="$PATH:~/Library/Application\ Support/lip"
-    ```
+```shell
+curl -fsSL https://raw.githubusercontent.com/futrime/lip/HEAD/scripts/install_macos.sh | sh
+```
 
-    然后，将以下行添加到您的 shell 配置文件中（例如，`~/.bashrc`、`~/.zshrc` 或 `~/.profile`）：
-
-    ```bash
-    export PATH="$PATH:~/Library/Application\ Support/lip"
-    ```
+若需手动安装 lip CLI，请从 [GitHub](https://github.com/futrime/lip/releases/latest) 下载适用于您平台的最新发行版压缩包，解压后将解压目录添加到您的 PATH 中。
 
 ## lip GUI
 
-lip GUI 正在开发中，尚未可供安装。
+lip GUI 正在开发中，目前还无法安装。

@@ -18,7 +18,7 @@ public static class MigratorFromV1
 
     public static JsonElement Migrate(JsonElement json)
     {
-        var manifestV1 = json.Deserialize<ManifestV1>()
+        var manifestV1 = JsonSerializer.Deserialize(json, ManifestV1JsonContext.Default.ManifestV1)
             ?? throw new JsonException("Failed to deserialize the obsolete manifest.");
 
         var info = new ManifestV2.InfoType
@@ -81,6 +81,6 @@ public static class MigratorFromV1
             Platforms = null // No conversion for platforms from ManifestV1
         };
 
-        return MigratorFromV2.Migrate(JsonSerializer.SerializeToElement(manifestV2));
+        return MigratorFromV2.Migrate(JsonSerializer.SerializeToElement(manifestV2, ManifestV2JsonContext.Default.ManifestV2));
     }
 }

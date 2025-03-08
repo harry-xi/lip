@@ -129,7 +129,7 @@ public record PackageLock
 }
 
 [ExcludeFromCodeCoverage]
-file record RawPackageLock
+internal record RawPackageLock
 {
     public record Package
     {
@@ -166,14 +166,27 @@ file record RawPackageLock
 
     public static async Task<RawPackageLock> FromStream(Stream stream)
     {
-        return await JsonSerializer.DeserializeAsync<RawPackageLock>(
+        return await JsonSerializer.DeserializeAsync(
             stream,
-            _jsonSerializerOptions)
+            RawPackageLockJsonContext.Default.RawPackageLock)
             ?? throw new SchemaViolationException("", "JSON bytes deserialized to null.");
     }
 
     public async Task ToStream(Stream stream)
     {
-        await JsonSerializer.SerializeAsync(stream, this, _jsonSerializerOptions);
+        await JsonSerializer.SerializeAsync(stream, this, RawPackageLockJsonContext.Default.RawPackageLock);
     }
+}
+
+[JsonSourceGenerationOptions(
+    AllowTrailingCommas = true,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    IndentSize = 4,
+    ReadCommentHandling = JsonCommentHandling.Skip,
+    WriteIndented = true,
+    GenerationMode = JsonSourceGenerationMode.Metadata
+)]
+[JsonSerializable(typeof(RawPackageLock))]
+internal partial class RawPackageLockJsonContext : JsonSerializerContext
+{
 }

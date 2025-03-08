@@ -67,3 +67,8 @@ public record ManifestV1
         public string? GOARCH { get; set; }
     }
 }
+
+[JsonSerializable(typeof(ManifestV1))]
+public partial class ManifestV1JsonContext : JsonSerializerContext
+{
+}

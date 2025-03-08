@@ -294,7 +294,7 @@ public record PackageManifest
                         kvp => (kvp.Value.ValueKind == JsonValueKind.Array
                                 && kvp.Value.EnumerateArray()
                                     .All(elem => elem.ValueKind == JsonValueKind.String))
-                            ? kvp.Value.Deserialize<List<string>>()!
+                            ? kvp.Value.Deserialize(RawPackageManifestJsonContext.Default.ListString)!
                             : throw new SchemaViolationException(
                                 $"variants[].assets[].scripts.'{kvp.Key}'",
                                 $"Invalid script list"
@@ -418,7 +418,7 @@ public record PackageManifest
                     PostUninstall = variant.Scripts.PostUninstall,
                     AdditionalProperties = variant.Scripts.AdditionalScripts.ToDictionary(
                         kvp => kvp.Key,
-                        kvp => JsonSerializer.SerializeToElement(kvp.Value, _jsonSerializerOptions)
+                        kvp => JsonSerializer.SerializeToElement(kvp.Value, RawPackageManifestJsonContext.Default.ListString)
                     )
                 }
             })
@@ -437,11 +437,11 @@ public record PackageManifest
 }
 
 [ExcludeFromCodeCoverage]
-file record RawPackageManifest
+internal record RawPackageManifest
 {
     public record Asset
     {
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter<TypeEnum>))]
         public enum TypeEnum
         {
             [JsonStringEnumMemberName("self")]
@@ -483,7 +483,7 @@ file record RawPackageManifest
 
     public record Placement
     {
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter<TypeEnum>))]
         public enum TypeEnum
         {
             [JsonStringEnumMemberName("file")]
@@ -529,7 +529,7 @@ file record RawPackageManifest
         public List<string>? PostUninstall { get; init; }
 
         [JsonExtensionData]
-        public Dictionary<string, JsonElement>? AdditionalProperties { get; init; }
+        public Dictionary<string, JsonElement>? AdditionalProperties { get; set; }
     }
 
     public record Variant
@@ -585,20 +585,20 @@ file record RawPackageManifest
 
     public static RawPackageManifest FromJsonElement(JsonElement jsonElement)
     {
-        return JsonSerializer.Deserialize<RawPackageManifest>(
+        return JsonSerializer.Deserialize(
             jsonElement,
-            _jsonSerializerOptions)
+            RawPackageManifestJsonContext.Default.RawPackageManifest)
             ?? throw new SchemaViolationException("", "JSON bytes deserialized to null.");
     }
 
     public JsonElement ToJsonElement()
     {
-        return JsonSerializer.SerializeToElement(this, _jsonSerializerOptions);
+        return JsonSerializer.SerializeToElement(this, RawPackageManifestJsonContext.Default.RawPackageManifest);
     }
 
     public RawPackageManifest WithTemplateRendered()
     {
-        string jsonText = JsonSerializer.Serialize(this);
+        string jsonText = JsonSerializer.Serialize(this, RawPackageManifestJsonContext.Default.RawPackageManifest);
 
         Template template = Template.Parse(jsonText);
 
@@ -610,4 +610,19 @@ file record RawPackageManifest
 
         return FromJsonElement(jsonElementRendered);
     }
+}
+
+[JsonSourceGenerationOptions(
+    AllowTrailingCommas = true,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    IndentSize = 4,
+    ReadCommentHandling = JsonCommentHandling.Skip,
+    WriteIndented = true,
+    GenerationMode = JsonSourceGenerationMode.Metadata
+)]
+[JsonSerializable(typeof(RawPackageManifest))]
+[JsonSerializable(typeof(RawPackageManifest.Asset.TypeEnum), TypeInfoPropertyName = "RawPackageManifestAssetTypeEnumTypeInfo")]
+[JsonSerializable(typeof(RawPackageManifest.Placement.TypeEnum), TypeInfoPropertyName = "RawPackageManifestPlacementTypeEnumTypeInfo")]
+internal partial class RawPackageManifestJsonContext : JsonSerializerContext
+{
 }

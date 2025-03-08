@@ -36,7 +36,7 @@ public record Manifest
         [JsonPropertyName("placements")]
         public List<Placement>? Placements { get; set; }
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter<TypeEnum>))]
         public enum TypeEnum
         {
             [JsonStringEnumMemberName("self")]
@@ -78,7 +78,7 @@ public record Manifest
         [JsonPropertyName("dest")]
         public required string Dest { get; set; }
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter<TypeEnum>))]
         public enum TypeEnum
         {
             [JsonStringEnumMemberName("file")]
@@ -141,4 +141,11 @@ public record Manifest
         [JsonPropertyName("scripts")]
         public ScriptsType? Scripts { get; set; }
     }
+}
+
+[JsonSerializable(typeof(Manifest))]
+[JsonSerializable(typeof(Manifest.Asset.TypeEnum), TypeInfoPropertyName = "AssetTypeEnumTypeInfo")]
+[JsonSerializable(typeof(Manifest.Placement.TypeEnum), TypeInfoPropertyName = "PlacementTypeEnumTypeInfo")]
+public partial class ManifestJsonContext : JsonSerializerContext
+{
 }

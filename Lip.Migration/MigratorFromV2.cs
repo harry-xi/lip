@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Lip.Migration;
@@ -24,7 +25,7 @@ public static class MigratorFromV2
         Regex regex = new(@"\$\(([^)]+?)\)");
         string jsonString = regex.Replace(json.GetRawText(), "{{$1}}");
 
-        ManifestV2 manifestV2 = JsonSerializer.Deserialize<ManifestV2>(jsonString)!;
+        ManifestV2 manifestV2 = JsonSerializer.Deserialize(jsonString, ManifestV2JsonContext.Default.ManifestV2)!;
 
         Manifest manifest = new()
         {
@@ -155,7 +156,7 @@ public static class MigratorFromV2
             manifest.Variants.Insert(0, new Manifest.Variant { Platform = RuntimeInformation.RuntimeIdentifier });
         }
 
-        return JsonSerializer.SerializeToElement(manifest);
+        return JsonSerializer.SerializeToElement(manifest, ManifestJsonContext.Default.Manifest);
     }
 
     private static Manifest.ScriptsType ConvertCommandsToScripts(ManifestV2.CommandsType commands)
@@ -207,4 +208,8 @@ public static class MigratorFromV2
                 : Manifest.Placement.TypeEnum.File
         };
     }
+}
+[JsonSerializable(typeof(ManifestV2))]
+public partial class ManifestV2JsonContext : JsonSerializerContext
+{
 }

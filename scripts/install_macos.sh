@@ -21,7 +21,7 @@ DOWNLOAD_URL="$GITHUB_MIRROR/futrime/lip/releases/latest/download/lip-osx-$PLATF
 # Download the release.
 TEMP_DIR=$(mktemp -d)
 echo "Downloading $DOWNLOAD_URL"
-curl -fLsS $DOWNLOAD_URL | tar -x -C $TEMP_DIR
+curl -fLS $DOWNLOAD_URL | tar -x -C $TEMP_DIR
 
 # Install the binary.
 INSTALL_DIR="$HOME/Library/Application\ Support/lip"

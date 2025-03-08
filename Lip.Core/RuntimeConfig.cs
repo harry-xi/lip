@@ -54,7 +54,7 @@ public record RuntimeConfig
                 Cache = raw.Cache ?? Path.Join(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip", "cache"),
                 GitHubProxiesText = raw.GitHubProxies ?? "",
-                GoModuleProxiesText = raw.GoModuleProxies ?? "https://proxy.golang.org"
+                GoModuleProxiesText = raw.GoModuleProxies ?? "https://goproxy.io"
             };
         }
         catch (Exception ex) when (ex is JsonException)

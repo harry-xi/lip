@@ -39,7 +39,7 @@
   
     ```bash
     mkdir -p ~/Library/Application\ Support/lip
-    curl -L https://github.com/futrime/lip/releases/latest/download/lip-osx-x64.zip -o ~/Library/Application\ Support/lip/lip.zip
+    curl -L https://github.com/futrime/lip/releases/latest/download/lip-osx-arm64.zip -o ~/Library/Application\ Support/lip/lip.zip
     tar -xf ~/Library/Application\ Support/lip/lip.zip -C ~/Library/Application\ Support/lip
     rm ~/Library/Application\ Support/lip/lip.zip
     export PATH="$PATH:~/Library/Application\ Support/lip"

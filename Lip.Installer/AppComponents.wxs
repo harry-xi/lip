@@ -10,7 +10,7 @@
                 <File Source="..\bin\Lip.Core.pdb"/>
                 <File Source="..\bin\Lip.Context.pdb"/>
                 <File Source="..\bin\Golang.Org.X.Mod.pdb"/>
-                <Environment Id='UpdatePath' Name='PATH' Action='set' Permanent='yes' System='yes' Part='last'
+                <Environment Id='UpdatePath' Name='PATH' Action='set' Permanent='no' System='yes' Part='last'
                              Value='[INSTALLFOLDER]'/>
             </Component>
         </ComponentGroup>

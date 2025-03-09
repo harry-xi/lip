@@ -129,8 +129,10 @@ jobs:
           name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
-  build-windows-installer:
+  build-cli-windows-installer:
     needs: build-app
+    permissions:
+      contents: read
     strategy:
       matrix:
         include:

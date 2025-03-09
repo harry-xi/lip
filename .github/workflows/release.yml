@@ -79,6 +79,8 @@ jobs:
 
   build-cli-windows-installer:
     needs: build-app
+    permissions:
+      contents: read
     strategy:
       matrix:
         include:

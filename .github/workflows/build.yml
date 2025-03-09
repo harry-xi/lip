@@ -4,11 +4,17 @@ on:
       - .github/workflows/build.yml
       - '**.cs'
       - '**.csproj'
+      - '**.wixproj'
+      - '**.wxl'
+      - '**.wxs'
   push:
     paths:
       - .github/workflows/build.yml
       - '**.cs'
       - '**.csproj'
+      - '**.wixproj'
+      - '**.wxl'
+      - '**.wxs'
   workflow_dispatch:
 
 env:

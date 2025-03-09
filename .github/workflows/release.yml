@@ -72,26 +72,47 @@ jobs:
           -p:PublishSingleFile=true
           -p:Version=${{ steps.get-version.outputs.replaced }}
 
-      - if: startsWith(matrix.runtime, 'win') == true
-        name: Build installer
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
+          path: bin/
+          
+  build-installer:
+    needs: build-app
+    strategy:
+      matrix:
+        include:
+          - runtime: win-arm64
+            runs-on: windows-latest
+          - runtime: win-x64
+            runs-on: windows-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download cli artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-Lip.CLI-${{ github.sha }}
+          path: bin/
+
+      - name: Build installer
         run: >
           dotnet build Lip.Installer
           --configuration Release
           --output bin-installer
           --runtime ${{ matrix.runtime }}
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
-          path: bin/
-
-      - if: startsWith(matrix.runtime, 'win') == true
-        name: Upload installer
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-Lip.Installer-${{ matrix.runtime }}-${{ github.sha }}
-          path: bin-installer/
-
+          path: bin-installer/  
+        
   update-release-notes:
     permissions:
       contents: write
@@ -133,13 +154,6 @@ jobs:
           name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: artifact/
 
-      - if: startsWith(matrix.runtime, 'win') == true
-        name: Download installer
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-${{ matrix.runtime }}-${{ github.sha }}
-          path: artifact-installer/
-
       - run: |
           cp CHANGELOG.md COPYING README.md artifact/
 
@@ -165,14 +179,31 @@ jobs:
           files: |
             ${{ github.event.repository.name }}-${{ matrix.runtime }}.tar.gz
 
-      - if: startsWith(matrix.runtime, 'win') == true
-        name: Rename installer
+  upload-installer-to-release:
+    needs: build-installer
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        runtime:
+          - win-arm64
+          - win-x64
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-Lip.Installer-${{ matrix.runtime }}-${{ github.sha }}
+          path: artifact-installer/
+          
+      - name: Rename installer
         run: |
           mv artifact-installer/en-US/Lip.Installer.msi artifact-installer/lip-${{ matrix.runtime }}-en-US.msi
           mv artifact-installer/zh-CN/Lip.Installer.msi artifact-installer/lip-${{ matrix.runtime }}-zh-CN.msi
 
-      - if: startsWith(matrix.runtime, 'win') == true
-        name: Upload installer to release
+      - name: Upload installer to release
         uses: softprops/action-gh-release@v2
         with:
           files: |

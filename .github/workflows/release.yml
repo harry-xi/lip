@@ -75,7 +75,7 @@ jobs:
       - if: startsWith(matrix.runtime, 'win') == true
         name: Build installer
         run: >
-          dotnet publish Lip.Installer
+          dotnet build Lip.Installer
           --configuration Release
           --output bin-installer
           --runtime ${{ matrix.runtime }}

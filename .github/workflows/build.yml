@@ -123,6 +123,39 @@ jobs:
           name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
+  build-windows-installer:
+    needs: build-app
+    strategy:
+      matrix:
+        include:
+          - runtime: arm64
+            runs-on: windows-latest
+          - runtime: x64
+            runs-on: windows-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}-${{ github.sha }}
+          path: bin/
+
+      - run: >
+          dotnet build Lip.Installer
+          --configuration Release
+          --output bin-installer
+          --p:Platform=${{ matrix.runtime }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}-${{ github.sha }}
+          path: bin-installer/
+
   check-style:
     strategy:
       fail-fast: false

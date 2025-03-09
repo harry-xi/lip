@@ -16,7 +16,7 @@ if [ -z "$GITHUB_MIRROR" ]; then
   GITHUB_MIRROR="https://github.com"
 fi
 GITHUB_MIRROR=$(echo "$GITHUB_MIRROR" | sed 's:/*$::')
-DOWNLOAD_URL="$GITHUB_MIRROR/futrime/lip/releases/latest/download/lip-linux-$PLATFORM_SUFFIX.tar.gz"
+DOWNLOAD_URL="$GITHUB_MIRROR/futrime/lip/releases/latest/download/lip-cli-linux-$PLATFORM_SUFFIX.tar.gz"
 
 # Download the release.
 TEMP_DIR=$(mktemp -d)

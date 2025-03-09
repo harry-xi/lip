@@ -1,6 +1,6 @@
-﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-    <Package Name="lip" Manufacturer="futrime" Version="0.27.2.0" UpgradeCode="c9beb1d4-e698-4d84-a644-9e0c4b2e72bd">
+    <Package Name="lip" Manufacturer="futrime" Version="0.0.0.0" UpgradeCode="c9beb1d4-e698-4d84-a644-9e0c4b2e72bd">
         <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)"/>
 
         <MediaTemplate EmbedCab="yes"/>

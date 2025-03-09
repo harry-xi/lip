@@ -82,9 +82,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - runtime: win-arm64
+          - runtime: arm64
             runs-on: windows-latest
-          - runtime: win-x64
+          - runtime: x64
             runs-on: windows-latest
     runs-on: ${{ matrix.runs-on }}
     steps:
@@ -113,7 +113,7 @@ jobs:
       - name: Download cli artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-Lip.CLI-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
       - name: Build installer
@@ -121,12 +121,12 @@ jobs:
           dotnet build Lip.Installer
           --configuration Release
           --output bin-installer
-          --runtime ${{ matrix.runtime }}
+          --p:Platform=${{ matrix.runtime }}
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}-${{ github.sha }}
           path: bin-installer/  
         
   update-release-notes:

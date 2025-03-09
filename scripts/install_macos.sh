@@ -24,7 +24,7 @@ echo "Downloading $DOWNLOAD_URL"
 curl -fLS $DOWNLOAD_URL | tar -x -C $TEMP_DIR
 
 # Install the binary.
-INSTALL_DIR_FROM_HOME="Library/Application Support/lip"
+INSTALL_DIR_FROM_HOME=".local/bin"
 INSTALL_DIR="$HOME/$INSTALL_DIR_FROM_HOME"
 echo "Installing to $INSTALL_DIR"
 if [ ! -d "$INSTALL_DIR" ]; then

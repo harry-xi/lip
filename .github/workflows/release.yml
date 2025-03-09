@@ -243,7 +243,7 @@ jobs:
           path: artifact-installer/
 
       - run: |
-          mv artifact-installer/${{ matrix.lang }}/Lip.Installer.msi artifact-installer/${{ github.event.repository.name }}-${{ matrix.runtime }}-${{ matrix.lang }}.msi
+          mv artifact-installer/${{ matrix.lang }}/Lip.Installer.msi artifact-installer/${{ github.event.repository.name }}-cli-${{ matrix.runtime }}-${{ matrix.lang }}.msi
 
       - uses: softprops/action-gh-release@v2
         with:

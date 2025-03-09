@@ -90,4 +90,12 @@ plugins:
             Commands: 命令
             Files: 文件
             Get Packages: 获取软件包
+
+        - locale: zh-yue
+          name: 粵語
+          nav_translations:
+            User Guide: 用戶手冊
+            Commands: 指令
+            Files: 檔案
+            Get Packages: 攞取軟件包
   - search

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Generate the platform suffix based on the architecture.
 ARCH=$(arch)
 if [ "$ARCH" = "aarch64" ]; then

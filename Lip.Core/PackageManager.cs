@@ -179,7 +179,9 @@ public class PackageManager(
 
         PackageSpecifier packageSpecifier = new()
         {
-            ToothPath = packageManifest.ToothPath, Version = packageManifest.Version, VariantLabel = variantLabel
+            ToothPath = packageManifest.ToothPath,
+            Version = packageManifest.Version,
+            VariantLabel = variantLabel
         };
 
         _context.Logger.LogDebug("Installing package {packageSpecifier}...", packageSpecifier);
@@ -290,7 +292,10 @@ public class PackageManager(
 
         packageLock.Packages.Add(new()
         {
-            Manifest = packageManifest, VariantLabel = variantLabel, Locked = locked, Files = placedFiles,
+            Manifest = packageManifest,
+            VariantLabel = variantLabel,
+            Locked = locked,
+            Files = placedFiles,
         });
 
         if (!dryRun)

@@ -56,6 +56,20 @@ public class DirectoryFileSourceEntry(IFileSystem fileSystem, string filePath, s
 
     public string Key { get; } = key;
 
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.CompletedTask; // Suppress warning.
+
+        GC.SuppressFinalize(this);
+
+        Dispose();
+    }
+
     public async Task<Stream> OpenRead()
     {
         await Task.Delay(0); // To avoid warning.

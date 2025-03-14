@@ -101,11 +101,7 @@ public class GoModuleArchiveFileSourceTests
     public void Entry_Key_ReturnsKey()
     {
         // Arrange.
-        MockFileSystem fileSystem = new();
-
-        CreateTestFiles(fileSystem, ArchiveType.Tar, CompressionType.None, new() { { "key", "test content" } });
-
-        GoModuleArchiveFileSourceEntry fileSourceEntry = new(fileSystem, "archive", "key", "path/to/entry");
+        GoModuleArchiveFileSourceEntry fileSourceEntry = new("key", "path/to/entry", new MemoryStream());
 
         // Act.
         string key = fileSourceEntry.Key;

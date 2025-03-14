@@ -98,6 +98,11 @@ public partial class Lip
             }
         }
 
+        foreach (var entry in allEntries)
+        {
+            await entry.DisposeAsync();
+        }
+
         // Run post-pack scripts.
 
         if (!args.IgnoreScripts)

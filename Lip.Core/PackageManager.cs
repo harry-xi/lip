@@ -269,6 +269,8 @@ public class PackageManager(
                         placedFiles.Add(_context.FileSystem.Path.Join(place.Dest, destRelative));
                     }
                 }
+
+                await fileSourceEntry.DisposeAsync();
             }
         }
 

@@ -17,7 +17,7 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
 
     public async IAsyncEnumerable<IFileSourceEntry> GetAllEntries()
     {
-        await Task.Delay(0); // To avoid warning.
+        await Task.CompletedTask; // To avoid warning.
 
         foreach (var filePath in _fileSystem.Directory.EnumerateFiles(_rootDirPath, "*", SearchOption.AllDirectories))
         {
@@ -31,7 +31,7 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
 
     public async Task<IFileSourceEntry?> GetEntry(string key)
     {
-        await Task.Delay(0); // To avoid warning.
+        await Task.CompletedTask; // To avoid warning.
 
         if (!StringValidator.CheckPlaceDestPath(key))
         {
@@ -72,7 +72,7 @@ public class DirectoryFileSourceEntry(IFileSystem fileSystem, string filePath, s
 
     public async Task<Stream> OpenRead()
     {
-        await Task.Delay(0); // To avoid warning.
+        await Task.CompletedTask; // To avoid warning.
 
         return _fileSystem.File.OpenRead(_filePath);
     }

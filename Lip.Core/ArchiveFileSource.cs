@@ -18,7 +18,7 @@ public class ArchiveFileSource(IFileSystem fileSystem, string archiveFilePath) :
 
     public virtual async IAsyncEnumerable<IFileSourceEntry> GetAllEntries()
     {
-        await Task.Delay(0); // Suppress warning.
+        await Task.CompletedTask; // Suppress warning.
 
         using FileSystemStream fileStream = _fileSystem.File.OpenRead(_archiveFilePath);
         using IReader reader = ReaderFactory.Open(fileStream);
@@ -101,7 +101,7 @@ public class ArchiveFileSourceEntry(
 
     public async Task<Stream> OpenRead()
     {
-        await Task.Delay(0); // Suppress warning.
+        await Task.CompletedTask; // Suppress warning.
 
         _contentStream.Position = 0;
 

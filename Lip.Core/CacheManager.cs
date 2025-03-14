@@ -35,7 +35,7 @@ public class CacheManager(
 
     public async Task Clean()
     {
-        await Task.Delay(0); // Suppress warning.
+        await Task.CompletedTask; // Suppress warning.
 
         string baseCacheDir = _pathManager.BaseCacheDir;
 
@@ -97,7 +97,7 @@ public class CacheManager(
 
     public async Task<ICacheManager.ICacheSummary> List()
     {
-        await Task.Delay(0); // Suppress warning.
+        await Task.CompletedTask; // Suppress warning.
 
         List<IFileInfo> downloadedFiles = [];
 

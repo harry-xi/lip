@@ -19,20 +19,19 @@ public class GoModuleArchiveFileSource(
     private readonly string _prefix =
         $"{goModulePath}@{Module.CanonicalVersion("v" + (version.MetadataIdentifiers.Count == 0 && version.Major >= 2 ? version + "+incompatible" : version.ToString()))}/";
 
-    public override async Task<List<IFileSourceEntry>> GetAllEntries()
+    public override async IAsyncEnumerable<IFileSourceEntry> GetAllEntries()
     {
-        List<IFileSourceEntry> entries =
-        [
-            .. (await base.GetAllEntries())
-            .Where(entry => entry.Key.StartsWith(_prefix))
-            .Select(entry => new GoModuleArchiveFileSourceEntry(
-                _fileSystem,
-                _archiveFilePath,
-                entry.Key[_prefix.Length..],
-                entry.Key))
-        ];
-
-        return entries;
+        await foreach (var entry in base.GetAllEntries())
+        {
+            if (entry.Key.StartsWith(_prefix))
+            {
+                yield return new GoModuleArchiveFileSourceEntry(
+                    _fileSystem,
+                    _archiveFilePath,
+                    entry.Key[_prefix.Length..],
+                    entry.Key);
+            }
+        }
     }
 
     public override async Task<IFileSourceEntry?> GetEntry(string key)

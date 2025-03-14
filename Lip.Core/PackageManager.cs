@@ -234,9 +234,9 @@ public class PackageManager(
         {
             IFileSource fileSource = await GetAssetFileSource(asset, packageFileSource);
 
-            List<IFileSourceEntry> entrys = await fileSource.GetAllEntries();
+            IAsyncEnumerable<IFileSourceEntry> entrys = fileSource.GetAllEntries();
 
-            foreach (IFileSourceEntry fileSourceEntry in await fileSource.GetAllEntries())
+            await foreach (IFileSourceEntry fileSourceEntry in fileSource.GetAllEntries())
             {
                 foreach (PackageManifest.Placement place in asset.Placements)
                 {

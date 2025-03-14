@@ -15,19 +15,18 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
     private readonly string _rootDirPath = rootDirPath;
     private readonly IFileSystem _fileSystem = fileSystem;
 
-    public async Task<List<IFileSourceEntry>> GetAllEntries()
+    public async IAsyncEnumerable<IFileSourceEntry> GetAllEntries()
     {
         await Task.Delay(0); // To avoid warning.
 
-        return [.. _fileSystem.Directory.EnumerateFiles(
-            _rootDirPath,
-            "*",
-            SearchOption.AllDirectories)
-            .Select(filePath => new DirectoryFileSourceEntry(
+        foreach (var filePath in _fileSystem.Directory.EnumerateFiles(_rootDirPath, "*", SearchOption.AllDirectories))
+        {
+            yield return new DirectoryFileSourceEntry(
                 _fileSystem,
                 filePath,
                 _fileSystem.Path.GetRelativePath(_rootDirPath, filePath)
-                .Replace(_fileSystem.Path.DirectorySeparatorChar, '/')))];
+                    .Replace(_fileSystem.Path.DirectorySeparatorChar, '/'));
+        }
     }
 
     public async Task<IFileSourceEntry?> GetEntry(string key)

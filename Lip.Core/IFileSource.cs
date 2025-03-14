@@ -9,7 +9,7 @@ public interface IFileSource
     /// Retrieves all entries from the file source.
     /// </summary>
     /// <returns>All files in the file source.</returns>
-    Task<List<IFileSourceEntry>> GetAllEntries();
+    IAsyncEnumerable<IFileSourceEntry> GetAllEntries();
 
     /// <summary>
     /// Retrieves an entry from the file source by its key.

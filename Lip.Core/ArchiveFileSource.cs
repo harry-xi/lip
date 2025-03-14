@@ -16,15 +16,13 @@ public class ArchiveFileSource(IFileSystem fileSystem, string archiveFilePath) :
     private readonly string _archiveFilePath = archiveFilePath;
     private readonly IFileSystem _fileSystem = fileSystem;
 
-    public virtual async Task<List<IFileSourceEntry>> GetAllEntries()
+    public virtual async IAsyncEnumerable<IFileSourceEntry> GetAllEntries()
     {
         await Task.Delay(0); // Suppress warning.
 
         using FileSystemStream fileStream = _fileSystem.File.OpenRead(_archiveFilePath);
-
         using IReader reader = ReaderFactory.Open(fileStream);
 
-        List<IFileSourceEntry> entries = [];
         while (reader.MoveToNextEntry())
         {
             if (reader.Entry.IsDirectory)
@@ -32,11 +30,8 @@ public class ArchiveFileSource(IFileSystem fileSystem, string archiveFilePath) :
                 continue;
             }
 
-            // We don't know when the key is null, so we suppress the warning.
-            entries.Add(new ArchiveFileSourceEntry(_fileSystem, _archiveFilePath, reader.Entry.Key!));
+            yield return new ArchiveFileSourceEntry(_fileSystem, _archiveFilePath, reader.Entry.Key!);
         }
-
-        return entries;
     }
 
     public virtual async Task<IFileSourceEntry?> GetEntry(string key)

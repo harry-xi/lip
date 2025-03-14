@@ -17,7 +17,7 @@ public class ArchiveFileSourceTests
     [InlineData(ArchiveType.Tar, CompressionType.None)]
     [InlineData(ArchiveType.Tar, CompressionType.GZip)]
     [InlineData(ArchiveType.Tar, CompressionType.LZip)]
-    public async Task GetAllFiles_ReturnsFiles(ArchiveType archiveType, CompressionType compressionType)
+    public void GetAllFiles_ReturnsFiles(ArchiveType archiveType, CompressionType compressionType)
     {
         // Arrange.
         MockFileSystem fileSystem = new();
@@ -35,11 +35,11 @@ public class ArchiveFileSourceTests
         ArchiveFileSource fileSource = new(fileSystem, "archive");
 
         // Act.
-        List<IFileSourceEntry> files = await fileSource.GetAllEntries();
+        IAsyncEnumerable<IFileSourceEntry> files = fileSource.GetAllEntries();
 
         // Assert.
         Assert.Collection(
-            files,
+            files.ToBlockingEnumerable(),
             async file =>
             {
                 Assert.Equal("path/to/entry1", file.Key);

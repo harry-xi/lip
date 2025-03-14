@@ -167,10 +167,18 @@ public class CacheManager(
 
     private async Task<IDirectoryInfo> GetGitRepoDir(PackageSpecifier packageSpecifier)
     {
-        string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
+        Url repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
+
+        // Replace with GitHub proxy if available.
+        Url actualUrl = repoUrl.Host == "github.com" && _githubProxies.Count != 0
+            ? _githubProxies[0].Clone()
+                               .AppendPathSegment(repoUrl.Path)
+                               .SetQueryParams(repoUrl.QueryParams)
+            : repoUrl;
+
         string tag = $"v{packageSpecifier.Version}";
 
-        string repoDirPath = _pathManager.GetGitRepoDirCachePath(repoUrl, tag);
+        string repoDirPath = _pathManager.GetGitRepoDirCachePath(actualUrl, tag);
 
         if (!_context.FileSystem.Directory.Exists(repoDirPath))
         {
@@ -178,7 +186,7 @@ public class CacheManager(
 
             // Here we assume that git availability is checked before calling this method.
             await _context.Git!.Clone(
-                repoUrl,
+                actualUrl,
                 repoDirPath,
                 branch: tag,
                 depth: 1);

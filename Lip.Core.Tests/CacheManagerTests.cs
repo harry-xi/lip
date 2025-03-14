@@ -311,6 +311,32 @@ public class CacheManagerTests
     }
 
     [Fact]
+    public async Task GetPackageFileSource_WithGitHubProxy_Returns()
+    {
+        // Arrange.
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Fgithub-proxy%2Frepo", "v1.0.0", "file"), new MockFileData("content") }
+        });
+
+        Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
+
+        PathManager pathManager = new(fileSystem, s_cacheDir);
+
+        CacheManager cacheManager = new(context.Object, pathManager, [Url.Parse("https://example.com/github-proxy")], []);
+
+        var packageSpecifier = PackageSpecifier.Parse("github.com/repo@1.0.0");
+
+        // Act.
+        IFileSource fileSource = await cacheManager.GetPackageFileSource(packageSpecifier);
+
+        // Assert.
+        Assert.Equal("content", new StreamReader(await fileSource.GetFileStream("file") ?? Stream.Null).ReadToEnd());
+    }
+
+    [Fact]
     public async Task GetPackageFileSource_GitRepoNotCached_Returns()
     {
         // Arrange.

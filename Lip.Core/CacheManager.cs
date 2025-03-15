@@ -50,20 +50,23 @@ public class CacheManager(
     public async Task<IFileInfo> GetFileFromUrls(List<Url> originalUrls)
     {
         // Apply GitHub proxy to GitHub URLs.
-        List<Url> actualUrls = [.. originalUrls.SelectMany(url =>
-        {
-            // For typical URLs, just return the URL.
-            if (url.Host == "github.com" && _githubProxies.Count != 0)
+        List<Url> actualUrls =
+        [
+            .. originalUrls.SelectMany(url =>
             {
-                return _githubProxies.Select(proxy => proxy
-                    .Clone()
-                    .AppendPathSegment(url.Path)
-                    .SetQueryParams(url.QueryParams)
-                );
-            }
+                // For typical URLs, just return the URL.
+                if (url.Host == "github.com" && _githubProxies.Count != 0)
+                {
+                    return _githubProxies.Select(proxy => proxy
+                        .Clone()
+                        .AppendPathSegment(url.Path)
+                        .SetQueryParams(url.QueryParams)
+                    );
+                }
 
-            return [url];
-        })];
+                return [url];
+            })
+        ];
 
         return await GetFileDirectlyFromUrls(actualUrls);
     }
@@ -105,7 +108,8 @@ public class CacheManager(
 
         if (_context.FileSystem.Directory.Exists(baseDownloadedFileCacheDir))
         {
-            foreach (IFileInfo fileInfo in _context.FileSystem.DirectoryInfo.New(baseDownloadedFileCacheDir).EnumerateFiles())
+            foreach (IFileInfo fileInfo in _context.FileSystem.DirectoryInfo.New(baseDownloadedFileCacheDir)
+                         .EnumerateFiles())
             {
                 downloadedFiles.Add(fileInfo);
             }
@@ -117,7 +121,8 @@ public class CacheManager(
 
         if (_context.FileSystem.Directory.Exists(baseGitRepoCacheDir))
         {
-            foreach (IDirectoryInfo dirInfo in _context.FileSystem.DirectoryInfo.New(baseGitRepoCacheDir).EnumerateDirectories())
+            foreach (IDirectoryInfo dirInfo in _context.FileSystem.DirectoryInfo.New(baseGitRepoCacheDir)
+                         .EnumerateDirectories())
             {
                 foreach (IDirectoryInfo subdirInfo in dirInfo.EnumerateDirectories())
                 {
@@ -127,7 +132,8 @@ public class CacheManager(
         }
 
         return new CacheSummary(
-            DownloadedFiles: downloadedFiles.ToDictionary(file => _pathManager.ParseDownloadedFileCachePath(file.FullName)),
+            DownloadedFiles: downloadedFiles.ToDictionary(file =>
+                _pathManager.ParseDownloadedFileCachePath(file.FullName)),
             GitRepos: gitRepos.ToDictionary(dir => _pathManager.ParseGitRepoDirCachePath(dir.FullName))
         );
     }
@@ -172,8 +178,8 @@ public class CacheManager(
         // Replace with GitHub proxy if available.
         Url actualUrl = repoUrl.Host == "github.com" && _githubProxies.Count != 0
             ? _githubProxies[0].Clone()
-                               .AppendPathSegment(repoUrl.Path)
-                               .SetQueryParams(repoUrl.QueryParams)
+                .AppendPathSegment(repoUrl.Path)
+                .SetQueryParams(repoUrl.QueryParams)
             : repoUrl;
 
         string tag = $"v{packageSpecifier.Version}";
@@ -198,6 +204,13 @@ public class CacheManager(
     private async Task<IFileInfo> GetGoModuleArchive(PackageSpecifier packageSpecifier)
     {
         SemVersion version = packageSpecifier.Version;
+
+        // When major >= 2 and there's no go.mod, GoProxy will add +incompatible in version
+        // Reference: https://stackoverflow.com/questions/57355929/what-does-incompatible-in-go-mod-mean-will-it-cause-harm
+        if (version.Major >= 2)
+        {
+            version = version.WithMetadata("incompatible");
+        }
 
         List<Url> archiveFileUrls = _goModuleProxies.ConvertAll(proxy =>
             proxy

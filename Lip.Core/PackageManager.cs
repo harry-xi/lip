@@ -393,6 +393,10 @@ public class PackageManager(
                 {
                     _context.FileSystem.File.Delete(destPath);
                 }
+                else if (_context.FileSystem.Directory.Exists(destPath))
+                {
+                    _context.FileSystem.Directory.Delete(destPath, true);
+                }
 
                 RemoveParentDirectoriesUntilWorkingDir(destPath);
             }
@@ -421,6 +425,10 @@ public class PackageManager(
                 if (_context.FileSystem.File.Exists(destPath))
                 {
                     _context.FileSystem.File.Delete(destPath);
+                }
+                else if (_context.FileSystem.Directory.Exists(destPath))
+                {
+                    _context.FileSystem.Directory.Delete(destPath, true);
                 }
 
                 RemoveParentDirectoriesUntilWorkingDir(destPath);

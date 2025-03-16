@@ -71,7 +71,7 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
         List<PackageSpecifier> installedPackageSpecifiers,
         List<PackageLock.Package> knownPackages)
     {
-        await Task.Delay(0); // Suppress warning.
+        await Task.CompletedTask; // Suppress warning.
 
         StateForResolveDependencies initialState = new()
         {

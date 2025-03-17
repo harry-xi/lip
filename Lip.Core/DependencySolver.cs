@@ -1,5 +1,6 @@
 using Algorithms.Graphs;
 using DataStructures.Graphs;
+using Microsoft.Extensions.Logging;
 using Semver;
 using SharpCompress;
 using System.Diagnostics.CodeAnalysis;
@@ -11,13 +12,14 @@ public interface IDependencySolver
 {
     Task<List<PackageIdentifier>> GetUnnecessaryPackages();
     Task<List<PackageSpecifier>?> ResolveDependencies(
-        List<PackageSpecifier> primaryPackageSpecifiers,
-        List<PackageSpecifier> installedPackageSpecifiers,
-        List<PackageLock.Package> knownPackages);
+        IEnumerable<PackageSpecifier> primaryPackageSpecifiers,
+        IEnumerable<PackageSpecifier> installedPackageSpecifiers,
+        IEnumerable<PackageLock.Package> knownPackages);
 }
 
-public class DependencySolver(IPackageManager packageManager) : IDependencySolver
+public class DependencySolver(IContext context, IPackageManager packageManager) : IDependencySolver
 {
+    private readonly IContext _context = context;
     private readonly IPackageManager _packageManager = packageManager;
 
     public async Task<List<PackageIdentifier>> GetUnnecessaryPackages()
@@ -67,11 +69,13 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
     }
 
     public async Task<List<PackageSpecifier>?> ResolveDependencies(
-        List<PackageSpecifier> primaryPackageSpecifiers,
-        List<PackageSpecifier> installedPackageSpecifiers,
-        List<PackageLock.Package> knownPackages)
+        IEnumerable<PackageSpecifier> primaryPackageSpecifiers,
+        IEnumerable<PackageSpecifier> installedPackageSpecifiers,
+        IEnumerable<PackageLock.Package> knownPackages)
     {
         await Task.CompletedTask; // Suppress warning.
+
+        _context.Logger.LogDebug("Resolving dependencies...");
 
         StateForResolveDependencies initialState = new()
         {
@@ -81,11 +85,6 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
             NextSelection = null,
             Selected = []
         };
-
-        Dictionary<PackageIdentifier, SemVersion> installedPackages = installedPackageSpecifiers
-            .ToDictionary(
-                packageSpecifier => packageSpecifier.Identifier,
-                packageSpecifier => packageSpecifier.Version);
 
         Stack<StateForResolveDependencies> stack = new();
         stack.Push(initialState);
@@ -104,9 +103,13 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
                 return [.. currentState.Selected.Select(kvp => PackageSpecifier.FromIdentifier(kvp.Key, kvp.Value))];
             }
 
-            List<PackageSpecifier> preferredPackages = [.. installedPackages.Select(kvp => PackageSpecifier.FromIdentifier(kvp.Key, kvp.Value))];
+            List<StateForResolveDependencies> neighbors = currentState.GetNeighbors(preferredPackages: installedPackageSpecifiers);
 
-            List<StateForResolveDependencies> neighbors = currentState.GetNeighbors(preferredPackages);
+            _context.Logger.LogDebug("Exploring {NeighborsCount} neighbors:", neighbors.Count);
+            foreach (StateForResolveDependencies neighbor in neighbors)
+            {
+                _context.Logger.LogDebug("  {Neighbor}@{Version}", neighbor.NextSelection?.Item1, neighbor.NextSelection?.Item2);
+            }
 
             // Reversely push the neighbors to the stack to explore the preferred packages first.
             neighbors.Reverse();
@@ -114,11 +117,10 @@ public class DependencySolver(IPackageManager packageManager) : IDependencySolve
             neighbors.ForEach(stack.Push);
         }
 
-        throw new InvalidOperationException("Failed to resolve dependencies.");
+        throw new InvalidOperationException("Cannot find a valid state to satisfy all dependencies.");
     }
 }
 
-[ExcludeFromCodeCoverage]
 file record StateForResolveDependencies
 {
     public required Dictionary<PackageIdentifier, List<SemVersion>> Candidates { get; set; }
@@ -132,9 +134,12 @@ file record StateForResolveDependencies
     /// explore. The versions are sorted by the preferred packages and then by the version
     /// precedence.
     /// </summary>
+    /// <remarks>
+    /// After calling this method, ResolveSelection() must be called.
+    /// </remarks>
     /// <param name="preferredPackages">The preferred packages to explore first.</param>
     /// <returns>The neighbors of the state which are not normalized.</returns>
-    public List<StateForResolveDependencies> GetNeighbors(List<PackageSpecifier> preferredPackages)
+    public List<StateForResolveDependencies> GetNeighbors(IEnumerable<PackageSpecifier> preferredPackages)
     {
         if (Candidates.Count == 0)
         {
@@ -169,16 +174,17 @@ file record StateForResolveDependencies
     }
 
     /// <summary>
-    /// Resolve the selection.
+    /// Resolve the selection. This will pop next selection from candidates, and add it to selected.
     /// </summary>
     /// <param name="packageManager"></param>
     /// <param name="knownPackages"></param>
     /// <returns>True if the state is valid. False otherwise.</returns>
-    public async Task<bool> ResolveSelection(IPackageManager packageManager, List<PackageLock.Package> knownPackages)
+    public async Task<bool> ResolveSelection(IPackageManager packageManager, IEnumerable<PackageLock.Package> knownPackages)
     {
+        // The intersection of candidates and selected must be empty.
         if (Candidates.Any(kvp => Selected.ContainsKey(kvp.Key)))
         {
-            return false;
+            throw new InvalidOperationException("There are candidates that are already selected.");
         }
 
         if (NextSelection == null)
@@ -186,24 +192,38 @@ file record StateForResolveDependencies
             return true;
         }
 
-        if (Candidates.ContainsKey(NextSelection.Item1)
-            || Selected.ContainsKey(NextSelection.Item1))
+        if (Candidates.ContainsKey(NextSelection.Item1))
         {
-            return false;
+            throw new InvalidOperationException("The next selection is in candidates.");
+        }
+
+        if (Selected.ContainsKey(NextSelection.Item1))
+        {
+            throw new InvalidOperationException("The next selection is already selected.");
         }
 
         PackageSpecifier specifier = PackageSpecifier.FromIdentifier(NextSelection.Item1, NextSelection.Item2);
 
         Dictionary<PackageIdentifier, SemVersionRange> dependenciesInRange = await GetDependencies(specifier, packageManager, knownPackages);
 
-        Dictionary<PackageIdentifier, List<SemVersion>> dependencyCandidates = (await Task.WhenAll(
-            dependenciesInRange.Select(async dep =>
-                {
-                    List<SemVersion> remoteVersions = await packageManager.GetPackageRemoteVersions(dep.Key);
-                    List<SemVersion> validVersions = [.. remoteVersions.Where(v => dep.Value.Contains(v))];
-                    return new KeyValuePair<PackageIdentifier, List<SemVersion>>(dep.Key, validVersions);
-                })
-        )).ToDictionary();
+        Dictionary<PackageIdentifier, List<SemVersion>> dependencyCandidates = [];
+        foreach (var dep in dependenciesInRange)
+        {
+            IEnumerable<SemVersion> localVersions = knownPackages
+                .Where(package => package.Specifier.Identifier == dep.Key)
+                .Select(package => package.Specifier.Version);
+            List<SemVersion> remoteVersions = [];
+            try
+            {
+                remoteVersions = await packageManager.GetPackageRemoteVersions(dep.Key);
+            }
+            catch (Exception) { }
+            List<SemVersion> validVersions = [
+                ..localVersions.Where(dep.Value.Contains),
+                ..remoteVersions.Where(dep.Value.Contains),
+            ];
+            dependencyCandidates.Add(dep.Key, validVersions);
+        }
 
         Dictionary<PackageIdentifier, List<SemVersion>> newCandidates = Candidates
             .Where(kvp => kvp.Key != NextSelection.Item1)
@@ -233,7 +253,7 @@ file record StateForResolveDependencies
     private static async Task<Dictionary<PackageIdentifier, SemVersionRange>> GetDependencies(
         PackageSpecifier packageSpecifier,
         IPackageManager packageManager,
-        List<PackageLock.Package> knownPackages
+        IEnumerable<PackageLock.Package> knownPackages
     )
     {
         // To support installing packages not in cache.

@@ -139,8 +139,9 @@ public class PackageManager(
                 }
                 catch (Exception ex)
                 {
-                    _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.",
+                    _context.Logger.LogWarning("Failed to download {Url}. Attempting next URL.",
                         goModuleVersionListUrl);
+                    _context.Logger.LogDebug(ex, "");
                 }
             }
 
@@ -181,9 +182,9 @@ public class PackageManager(
                 catch (Exception ex)
                 {
                     _context.Logger.LogWarning(
-                        ex,
                         "Failed to clone {Url}. Attempting next URL.",
                         url);
+                    _context.Logger.LogDebug(ex, "");
                 }
             }
         }

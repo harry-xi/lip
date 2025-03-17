@@ -89,7 +89,8 @@ public class CacheManager(
             }
             catch (Exception ex)
             {
-                _context.Logger.LogWarning(ex, "Failed to get Go module archive for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+                _context.Logger.LogWarning("Failed to get Go module archive for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+                _context.Logger.LogDebug(ex, "");
             }
         }
 
@@ -105,7 +106,8 @@ public class CacheManager(
             }
             catch (Exception ex)
             {
-                _context.Logger.LogWarning(ex, "Failed to get Git repo for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+                _context.Logger.LogWarning("Failed to get Git repo for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+                _context.Logger.LogDebug(ex, "");
             }
         }
 
@@ -180,7 +182,8 @@ public class CacheManager(
             }
             catch (Exception ex)
             {
-                _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", url);
+                _context.Logger.LogWarning("Failed to download {Url}. Attempting next URL.", url);
+                _context.Logger.LogDebug(ex, "");
             }
         }
 
@@ -236,7 +239,8 @@ public class CacheManager(
             }
             catch (Exception ex)
             {
-                _context.Logger.LogWarning(ex, "Failed to clone {Url}. Attempting next URL.", url);
+                _context.Logger.LogWarning("Failed to clone {Url}. Attempting next URL.", url);
+                _context.Logger.LogDebug(ex, "");
             }
         }
 

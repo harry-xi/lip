@@ -74,28 +74,42 @@ public class CacheManager(
     public async Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier)
     {
         // First, try to get the package from the Go module proxy.
-
         if (_goModuleProxies.Count != 0)
         {
-            IFileInfo goModuleArchive = await GetGoModuleArchive(packageSpecifier);
+            _context.Logger.LogDebug("Attempting to get file source of package {Specifier} from Go module proxy.", packageSpecifier);
 
-            return new GoModuleArchiveFileSource(
-                _context.FileSystem,
-                goModuleArchive.FullName,
-                packageSpecifier.ToothPath,
-                packageSpecifier.Version);
+            try
+            {
+                IFileInfo goModuleArchive = await GetGoModuleArchive(packageSpecifier);
+                return new GoModuleArchiveFileSource(
+                    _context.FileSystem,
+                    goModuleArchive.FullName,
+                    packageSpecifier.ToothPath,
+                    packageSpecifier.Version);
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning(ex, "Failed to get Go module archive for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+            }
         }
 
         // Next, try to get the package from the Git repository.
-
         if (_context.Git is not null)
         {
-            IDirectoryInfo repoDir = await GetGitRepoDir(packageSpecifier);
+            _context.Logger.LogDebug("Attempting to get file source of package {Specifier} from Git repository.", packageSpecifier);
 
-            return new DirectoryFileSource(_context.FileSystem, repoDir.FullName);
+            try
+            {
+                IDirectoryInfo repoDir = await GetGitRepoDir(packageSpecifier);
+                return new DirectoryFileSource(_context.FileSystem, repoDir.FullName);
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning(ex, "Failed to get Git repo for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+            }
         }
 
-        throw new InvalidOperationException("No remote source is available.");
+        throw new InvalidOperationException("Failed to get package file source from any source.");
     }
 
     public async Task<ICacheManager.ICacheSummary> List()
@@ -186,10 +200,10 @@ public class CacheManager(
             )
             : [repoUrl];
 
-        return await GetGitRepoDirDirectlyFromUrl(actualUrls, $"v{packageSpecifier.Version}");
+        return await GetGitRepoDirDirectlyFromUrls(actualUrls, $"v{packageSpecifier.Version}");
     }
 
-    private async Task<IDirectoryInfo> GetGitRepoDirDirectlyFromUrl(IEnumerable<Url> actualUrls, string tag)
+    private async Task<IDirectoryInfo> GetGitRepoDirDirectlyFromUrls(IEnumerable<Url> actualUrls, string tag)
     {
         foreach (Url url in actualUrls)
         {

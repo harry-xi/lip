@@ -189,8 +189,7 @@ public class PackageManager(
         }
 
         // Otherwise, no remote source is available.
-
-        throw new InvalidOperationException("No remote source is available.");
+        throw new InvalidOperationException("Failed to get remote versions from all sources.");
     }
 
     public async Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun,

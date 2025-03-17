@@ -80,9 +80,9 @@ public partial class Lip
             .Select(detail => detail.Specifier);
 
         _context.Logger.LogDebug("Packages from user input:");
-        foreach (PackageSpecifier specifier in userInputSpecifiers)
+        foreach (PackageSpecifier userInputSpecifier in userInputSpecifiers)
         {
-            _context.Logger.LogDebug("  {specifier}", specifier);
+            _context.Logger.LogDebug("  {specifier}", userInputSpecifier);
         }
 
         // Validate user input package install details.
@@ -125,9 +125,9 @@ public partial class Lip
             .Select(@lock => @lock.Specifier);
 
         _context.Logger.LogDebug("Installed packages:");
-        foreach (PackageSpecifier specifier in installedSpecifiers)
+        foreach (PackageSpecifier installedSpecifier in installedSpecifiers)
         {
-            _context.Logger.LogDebug("  {specifier}", specifier);
+            _context.Logger.LogDebug("  {specifier}", installedSpecifier);
         }
 
         #endregion
@@ -147,9 +147,9 @@ public partial class Lip
             .Select(@lock => @lock.Specifier);
 
         _context.Logger.LogDebug("Locked packages:");
-        foreach (PackageSpecifier specifier in lockedSpecifiers)
+        foreach (PackageSpecifier lockedSpecifier in lockedSpecifiers)
         {
-            _context.Logger.LogDebug("  {specifier}", specifier);
+            _context.Logger.LogDebug("  {specifier}", lockedSpecifier);
         }
 
         #endregion
@@ -170,8 +170,8 @@ public partial class Lip
                 ..userInputSpecifiers,
                 ..installedSpecifiers
                     // User input packages take precedence over other packages.
-                    .Where(specifier => !userInputSpecifiers
-                        .Any(userInputSpecifier => userInputSpecifier.Identifier == specifier.Identifier)
+                    .Where(installedSpecifier => !userInputSpecifiers
+                        .Any(userInputSpecifier => userInputSpecifier.Identifier == installedSpecifier.Identifier)
                     ),
             ]
             : await _dependencySolver.ResolveDependencies(
@@ -179,8 +179,8 @@ public partial class Lip
                     ..userInputDetails.Select(detail => detail.Specifier),
                     ..lockedSpecifiers
                         // User input packages take precedence over other packages.
-                        .Where(specifier => !userInputSpecifiers
-                            .Any(userInputSpecifier => userInputSpecifier.Identifier == specifier.Identifier)
+                        .Where(lockedSpecifier => !userInputSpecifiers
+                            .Any(userInputSpecifier => userInputSpecifier.Identifier == lockedSpecifier.Identifier)
                         ),
                 ],
                 installedPackageSpecifiers: installedSpecifiers,
@@ -197,9 +197,9 @@ public partial class Lip
             ) ?? throw new InvalidOperationException("Cannot resolve dependencies.");
 
         _context.Logger.LogDebug("Dependent packages:");
-        foreach (PackageSpecifier specifier in dependentSpecifiers)
+        foreach (PackageSpecifier dependentSpecifier in dependentSpecifiers)
         {
-            _context.Logger.LogDebug("  {specifier}", specifier);
+            _context.Logger.LogDebug("  {specifier}", dependentSpecifier);
         }
 
         #endregion
@@ -251,23 +251,23 @@ public partial class Lip
 
         installDetails.AddRange(userInputDetails);
 
-        foreach (PackageSpecifier specifier in dependentSpecifiers)
+        foreach (PackageSpecifier dependentSpecifier in dependentSpecifiers)
         {
-            if (installedSpecifiers.Any(specifier => specifier.Identifier == specifier.Identifier))
+            if (installedSpecifiers.Any(installedSpecifier => installedSpecifier.Identifier == dependentSpecifier.Identifier))
             {
                 continue;
             }
 
-            IFileSource fileSource = await _cacheManager.GetPackageFileSource(specifier);
+            IFileSource fileSource = await _cacheManager.GetPackageFileSource(dependentSpecifier);
 
             PackageManifest manifest = await _packageManager.GetPackageManifestFromFileSource(fileSource)
-                ?? throw new InvalidOperationException($"Cannot get package manifest from package '{specifier}'.");
+                ?? throw new InvalidOperationException($"Cannot get package manifest from package '{dependentSpecifier}'.");
 
             installDetails.Add(new PackageInstallDetail
             {
                 FileSource = fileSource,
                 Manifest = manifest,
-                VariantLabel = specifier.VariantLabel,
+                VariantLabel = dependentSpecifier.VariantLabel,
             });
         }
 
@@ -293,15 +293,15 @@ public partial class Lip
             ..userInputSpecifiers,
             ..lockedSpecifiers
                 // User input packages take precedence over other packages.
-                .Where(specifier => !userInputSpecifiers
-                    .Any(userInputSpecifier => userInputSpecifier.Identifier == specifier.Identifier)
+                .Where(lockedSpecifier => !userInputSpecifiers
+                    .Any(userInputSpecifier => userInputSpecifier.Identifier == lockedSpecifier.Identifier)
                 ),
         ];
 
         _context.Logger.LogDebug("Packages to lock:");
-        foreach (PackageSpecifier specifier in specifiersToLock)
+        foreach (PackageSpecifier specifierToLock in specifiersToLock)
         {
-            _context.Logger.LogDebug("  {specifier}", specifier);
+            _context.Logger.LogDebug("  {specifier}", specifierToLock);
         }
 
         #endregion

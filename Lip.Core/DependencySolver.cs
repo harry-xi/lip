@@ -86,6 +86,12 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
             Selected = []
         };
 
+        _context.Logger.LogDebug("Initial candidates:");
+        foreach (var kvp in initialState.Candidates)
+        {
+            _context.Logger.LogDebug("  {Package}@{Versions}", kvp.Key, kvp.Value);
+        }
+
         Stack<StateForResolveDependencies> stack = new();
         stack.Push(initialState);
 
@@ -148,7 +154,8 @@ file record StateForResolveDependencies
 
         if (Candidates.Any(kvp => kvp.Value.Count == 0))
         {
-            throw new InvalidOperationException("There are candidates with no versions to explore.");
+            throw new InvalidOperationException("There are candidates with no versions to explore: " +
+                string.Join(", ", Candidates.Where(kvp => kvp.Value.Count == 0).Select(kvp => kvp.Key)));
         }
 
         KeyValuePair<PackageIdentifier, List<SemVersion>> candidateToExplore = Candidates.MinBy(kvp => kvp.Value.Count);
@@ -184,7 +191,8 @@ file record StateForResolveDependencies
         // The intersection of candidates and selected must be empty.
         if (Candidates.Any(kvp => Selected.ContainsKey(kvp.Key)))
         {
-            throw new InvalidOperationException("There are candidates that are already selected.");
+            throw new InvalidOperationException("There are candidates that are already selected: " +
+                string.Join(", ", Candidates.Where(kvp => Selected.ContainsKey(kvp.Key)).Select(kvp => kvp.Key)));
         }
 
         if (NextSelection == null)
@@ -194,12 +202,12 @@ file record StateForResolveDependencies
 
         if (Candidates.ContainsKey(NextSelection.Item1))
         {
-            throw new InvalidOperationException("The next selection is in candidates.");
+            throw new InvalidOperationException($"The next selection is in candidates: {NextSelection.Item1}");
         }
 
         if (Selected.ContainsKey(NextSelection.Item1))
         {
-            throw new InvalidOperationException("The next selection is already selected.");
+            throw new InvalidOperationException($"The next selection is already selected: {NextSelection.Item1}");
         }
 
         PackageSpecifier specifier = PackageSpecifier.FromIdentifier(NextSelection.Item1, NextSelection.Item2);

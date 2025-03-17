@@ -253,7 +253,8 @@ public partial class Lip
 
         foreach (PackageSpecifier dependentSpecifier in dependentSpecifiers)
         {
-            if (installedSpecifiers.Any(installedSpecifier => installedSpecifier.Identifier == dependentSpecifier.Identifier))
+            if (installedSpecifiers.Any(installedSpecifier => installedSpecifier.Identifier == dependentSpecifier.Identifier)
+                || userInputDetails.Any(userInputDetail => userInputDetail.Specifier.Identifier == dependentSpecifier.Identifier))
             {
                 continue;
             }

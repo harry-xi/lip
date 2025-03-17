@@ -154,6 +154,8 @@ public class CacheManager(
         {
             string filePath = _pathManager.GetDownloadedFileCachePath(url);
 
+            _context.Logger.LogDebug("Downloading {Url} to {FilePath}.", url, filePath);
+
             _context.FileSystem.CreateParentDirectory(filePath);
 
             try
@@ -175,30 +177,56 @@ public class CacheManager(
     {
         Url repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
 
-        // Replace with GitHub proxy if available.
-        Url actualUrl = repoUrl.Host == "github.com" && _githubProxies.Count != 0
-            ? _githubProxies[0].Clone()
+        // Apply GitHub proxy to GitHub URLs.
+        IEnumerable<Url> actualUrls = (repoUrl.Host == "github.com" && _githubProxies.Count != 0)
+            ? _githubProxies.Select(proxy => proxy
+                .Clone()
                 .AppendPathSegment(repoUrl.Path)
                 .SetQueryParams(repoUrl.QueryParams)
-            : repoUrl;
+            )
+            : [repoUrl];
 
-        string tag = $"v{packageSpecifier.Version}";
+        return await GetGitRepoDirDirectlyFromUrl(actualUrls, $"v{packageSpecifier.Version}");
+    }
 
-        string repoDirPath = _pathManager.GetGitRepoDirCachePath(actualUrl, tag);
-
-        if (!_context.FileSystem.Directory.Exists(repoDirPath))
+    private async Task<IDirectoryInfo> GetGitRepoDirDirectlyFromUrl(IEnumerable<Url> actualUrls, string tag)
+    {
+        foreach (Url url in actualUrls)
         {
-            _context.FileSystem.CreateParentDirectory(repoDirPath);
+            string repoDirPath = _pathManager.GetGitRepoDirCachePath(url, tag);
 
-            // Here we assume that git availability is checked before calling this method.
-            await _context.Git!.Clone(
-                actualUrl,
-                repoDirPath,
-                branch: tag,
-                depth: 1);
+            if (_context.FileSystem.Directory.Exists(repoDirPath))
+            {
+                return _context.FileSystem.DirectoryInfo.New(repoDirPath);
+            }
         }
 
-        return _context.FileSystem.DirectoryInfo.New(repoDirPath);
+        foreach (Url url in actualUrls)
+        {
+            string repoDirPath = _pathManager.GetGitRepoDirCachePath(url, tag);
+
+            _context.Logger.LogDebug("Cloning {Url} to {RepoDirPath}.", url, repoDirPath);
+
+            _context.FileSystem.CreateParentDirectory(repoDirPath);
+
+            try
+            {
+                // Here we assume that git availability is checked before calling this method.
+                await _context.Git!.Clone(
+                    url,
+                    repoDirPath,
+                    branch: tag,
+                    depth: 1
+                );
+                return _context.FileSystem.DirectoryInfo.New(repoDirPath);
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning(ex, "Failed to clone {Url}. Attempting next URL.", url);
+            }
+        }
+
+        throw new InvalidOperationException("All clone attempts failed.");
     }
 
     private async Task<IFileInfo> GetGoModuleArchive(PackageSpecifier packageSpecifier)

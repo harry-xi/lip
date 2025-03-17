@@ -29,7 +29,7 @@ public class CacheManager(
     List<Url> goModuleProxies) : ICacheManager
 {
     private readonly IContext _context = context;
-    private readonly List<Url> _githubProxies = gitHubProxies;
+    private readonly List<Url> _gitHubProxies = gitHubProxies;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly IPathManager _pathManager = pathManager;
 
@@ -55,9 +55,9 @@ public class CacheManager(
             .. originalUrls.SelectMany(url =>
             {
                 // For typical URLs, just return the URL.
-                if (url.Host == "github.com" && _githubProxies.Count != 0)
+                if (url.Host == "github.com" && _gitHubProxies.Count != 0)
                 {
-                    return _githubProxies.Select(proxy => proxy
+                    return _gitHubProxies.Select(proxy => proxy
                         .Clone()
                         .AppendPathSegment(url.Path)
                         .SetQueryParams(url.QueryParams)
@@ -178,8 +178,8 @@ public class CacheManager(
         Url repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
 
         // Apply GitHub proxy to GitHub URLs.
-        IEnumerable<Url> actualUrls = (repoUrl.Host == "github.com" && _githubProxies.Count != 0)
-            ? _githubProxies.Select(proxy => proxy
+        IEnumerable<Url> actualUrls = (repoUrl.Host == "github.com" && _gitHubProxies.Count != 0)
+            ? _gitHubProxies.Select(proxy => proxy
                 .Clone()
                 .AppendPathSegment(repoUrl.Path)
                 .SetQueryParams(repoUrl.QueryParams)

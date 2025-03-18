@@ -11,7 +11,13 @@ updates:
       interval: "daily"
   - package-ecosystem: "nuget"
     directories:
-      - Golang.*
-      - Lip.*
+      - Golang.Org.X.Mod
+      - Golang.Org.X.Mod.Tests
+      - Lip.CLI
+      - Lip.Context
+      - Lip.Core
+      - Lip.Core.Tests
+      - Lip.Migration
+      - Lip.Migration.Tests
     schedule:
       interval: "daily"

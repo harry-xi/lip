@@ -20,15 +20,15 @@
                 Value="license.rtf"
         />
         <UIRef Id="WixUI_ErrorProgressText"/>
-
+        
         <netfx:DotNetCompatibilityCheck
-                Id="DotNetNotInstalled"
                 Property="DOTNETRUNTIMECHECK"
                 RollForward="major"
-                RuntimeType="desktop"
+                RuntimeType="core"
                 Platform="$(sys.BUILDARCH)"
                 Version="9.0.0"
         />
-        <Launch Condition="DotNetNotInstalled" Message="!(loc.DotNetNotInstalled)"/>
+        
+        <Launch Condition="DOTNETRUNTIMECHECK = 0" Message="!(loc.DotNetNotInstalled)"/>
     </Package>
 </Wix>

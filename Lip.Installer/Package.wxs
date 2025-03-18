@@ -1,5 +1,6 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
     <Package Name="lip" Manufacturer="futrime" Version="0.0.0.0" UpgradeCode="c9beb1d4-e698-4d84-a644-9e0c4b2e72bd">
         <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)"/>
 
@@ -13,10 +14,21 @@
                 Id="WixUI_InstallDir"
                 InstallDirectory="INSTALLFOLDER"
         />
+
         <WixVariable
                 Id="WixUILicenseRtf"
                 Value="license.rtf"
         />
         <UIRef Id="WixUI_ErrorProgressText"/>
+
+        <netfx:DotNetCompatibilityCheck
+                Id="DotNetNotInstalled"
+                Property="DOTNETRUNTIMECHECK"
+                RollForward="major"
+                RuntimeType="desktop"
+                Platform="$(sys.BUILDARCH)"
+                Version="9.0.0"
+        />
+        <Launch Condition="DotNetNotInstalled" Message="!(loc.DotNetNotInstalled)"/>
     </Package>
 </Wix>

@@ -20,6 +20,9 @@ jobs:
           - osx-x64
           - win-arm64
           - win-x64
+        self-contained:
+          - true
+          - false
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-22.04
@@ -33,6 +36,10 @@ jobs:
             runs-on: windows-latest
           - runtime: win-x64
             runs-on: windows-latest
+          - self-contained: true
+            sc-flag: -self-contained
+          - self-contained: false
+            sc-flag: ''
     permissions:
       contents: read
     runs-on: ${{ matrix.runs-on }}
@@ -68,13 +75,13 @@ jobs:
           --configuration Release
           --output bin
           --runtime ${{ matrix.runtime }}
-          --self-contained true
+          --self-contained ${{ matrix.self-contained }}
           -p:PublishSingleFile=true
           -p:Version=${{ steps.get-version.outputs.replaced }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
           path: bin/
 
   build-cli-windows-installer:
@@ -160,6 +167,9 @@ jobs:
         runtime:
           - linux-arm64
           - linux-x64
+        sc-flag:
+          - ''
+          - -self-contained
         include:
           - project: Lip.CLI
             sub-name: cli
@@ -168,20 +178,20 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
           path: artifact/
 
       - run: |
           cp CHANGELOG.md COPYING README.md artifact/
 
       - run: |
-          tar -czvf ../${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}.tar.gz *
+          tar -czvf ../${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.tar.gz *
         working-directory: artifact
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}.tar.gz
+            ${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.tar.gz
 
   upload-to-release-macos-and-windows:
     needs:
@@ -200,6 +210,9 @@ jobs:
           - osx-x64
           - win-arm64
           - win-x64
+        sc-flag:
+          - ''
+          - -self-contained
         include:
           - project: Lip.CLI
             sub-name: cli
@@ -208,20 +221,20 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
           path: artifact/
 
       - run: |
           cp CHANGELOG.md COPYING README.md artifact/
 
       - run: |
-          zip -r ../${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}.zip *
+          zip -r ../${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.zip *
         working-directory: artifact
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}.zip
+            ${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.zip
 
   upload-to-release-windows-installer:
     needs: build-cli-windows-installer

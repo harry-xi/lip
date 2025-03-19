@@ -29,10 +29,12 @@ public class PackageManager(
     IContext context,
     ICacheManager cacheManager,
     IPathManager pathManager,
+    List<Url> gitHubProxies,
     List<Url> goModuleProxies) : IPackageManager
 {
     private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IContext _context = context;
+    private readonly List<Url> _gitHubProxies = gitHubProxies;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly IPathManager _pathManager = pathManager;
 
@@ -137,8 +139,9 @@ public class PackageManager(
                 }
                 catch (Exception ex)
                 {
-                    _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.",
+                    _context.Logger.LogWarning("Failed to download {Url}. Attempting next URL.",
                         goModuleVersionListUrl);
+                    _context.Logger.LogDebug(ex, "");
                 }
             }
 
@@ -151,21 +154,43 @@ public class PackageManager(
 
         if (_context.Git is not null)
         {
-            string repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
-            return
-            [
-                .. (await _context.Git.ListRemote(repoUrl, refs: true, tags: true))
-                .Where(item => item.Ref.StartsWith("refs/tags/v"))
-                .Select(item => item.Ref)
-                .Select(refName => refName.Substring("refs/tags/v".Length))
-                .Where(version => SemVersion.TryParse(version, out _))
-                .Select(version => SemVersion.Parse(version))
-            ];
+            Url repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
+
+            // Apply GitHub proxy to GitHub URLs.
+            IEnumerable<Url> actualUrls = (repoUrl.Host == "github.com" && _gitHubProxies.Count != 0)
+                ? _gitHubProxies.Select(proxy => proxy
+                    .Clone()
+                    .AppendPathSegment(repoUrl.Path)
+                    .SetQueryParams(repoUrl.QueryParams)
+                )
+                : [repoUrl];
+
+            foreach (Url url in actualUrls)
+            {
+                try
+                {
+                    return
+                    [
+                        .. (await _context.Git.ListRemote(repoUrl, refs: true, tags: true))
+                            .Where(item => item.Ref.StartsWith("refs/tags/v"))
+                            .Select(item => item.Ref)
+                            .Select(refName => refName["refs/tags/v".Length..])
+                            .Where(version => SemVersion.TryParse(version, out _))
+                            .Select(version => SemVersion.Parse(version))
+                    ];
+                }
+                catch (Exception ex)
+                {
+                    _context.Logger.LogWarning(
+                        "Failed to clone {Url}. Attempting next URL.",
+                        url);
+                    _context.Logger.LogDebug(ex, "");
+                }
+            }
         }
 
         // Otherwise, no remote source is available.
-
-        throw new InvalidOperationException("No remote source is available.");
+        throw new InvalidOperationException("Failed to get remote versions from all sources.");
     }
 
     public async Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun,

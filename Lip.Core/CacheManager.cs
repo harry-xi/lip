@@ -29,7 +29,7 @@ public class CacheManager(
     List<Url> goModuleProxies) : ICacheManager
 {
     private readonly IContext _context = context;
-    private readonly List<Url> _githubProxies = gitHubProxies;
+    private readonly List<Url> _gitHubProxies = gitHubProxies;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly IPathManager _pathManager = pathManager;
 
@@ -55,9 +55,9 @@ public class CacheManager(
             .. originalUrls.SelectMany(url =>
             {
                 // For typical URLs, just return the URL.
-                if (url.Host == "github.com" && _githubProxies.Count != 0)
+                if (url.Host == "github.com" && _gitHubProxies.Count != 0)
                 {
-                    return _githubProxies.Select(proxy => proxy
+                    return _gitHubProxies.Select(proxy => proxy
                         .Clone()
                         .AppendPathSegment(url.Path)
                         .SetQueryParams(url.QueryParams)
@@ -74,28 +74,44 @@ public class CacheManager(
     public async Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier)
     {
         // First, try to get the package from the Go module proxy.
-
         if (_goModuleProxies.Count != 0)
         {
-            IFileInfo goModuleArchive = await GetGoModuleArchive(packageSpecifier);
+            _context.Logger.LogDebug("Attempting to get file source of package {Specifier} from Go module proxy.", packageSpecifier);
 
-            return new GoModuleArchiveFileSource(
-                _context.FileSystem,
-                goModuleArchive.FullName,
-                packageSpecifier.ToothPath,
-                packageSpecifier.Version);
+            try
+            {
+                IFileInfo goModuleArchive = await GetGoModuleArchive(packageSpecifier);
+                return new GoModuleArchiveFileSource(
+                    _context.FileSystem,
+                    goModuleArchive.FullName,
+                    packageSpecifier.ToothPath,
+                    packageSpecifier.Version);
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning("Failed to get Go module archive for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+                _context.Logger.LogDebug(ex, "");
+            }
         }
 
         // Next, try to get the package from the Git repository.
-
         if (_context.Git is not null)
         {
-            IDirectoryInfo repoDir = await GetGitRepoDir(packageSpecifier);
+            _context.Logger.LogDebug("Attempting to get file source of package {Specifier} from Git repository.", packageSpecifier);
 
-            return new DirectoryFileSource(_context.FileSystem, repoDir.FullName);
+            try
+            {
+                IDirectoryInfo repoDir = await GetGitRepoDir(packageSpecifier);
+                return new DirectoryFileSource(_context.FileSystem, repoDir.FullName);
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning("Failed to get Git repo for package {ToothPath} version {Version}.", packageSpecifier.ToothPath, packageSpecifier.Version);
+                _context.Logger.LogDebug(ex, "");
+            }
         }
 
-        throw new InvalidOperationException("No remote source is available.");
+        throw new InvalidOperationException("Failed to get package file source from any source.");
     }
 
     public async Task<ICacheManager.ICacheSummary> List()
@@ -154,6 +170,8 @@ public class CacheManager(
         {
             string filePath = _pathManager.GetDownloadedFileCachePath(url);
 
+            _context.Logger.LogDebug("Downloading {Url} to {FilePath}.", url, filePath);
+
             _context.FileSystem.CreateParentDirectory(filePath);
 
             try
@@ -164,7 +182,8 @@ public class CacheManager(
             }
             catch (Exception ex)
             {
-                _context.Logger.LogWarning(ex, "Failed to download {Url}. Attempting next URL.", url);
+                _context.Logger.LogWarning("Failed to download {Url}. Attempting next URL.", url);
+                _context.Logger.LogDebug(ex, "");
             }
         }
 
@@ -175,30 +194,57 @@ public class CacheManager(
     {
         Url repoUrl = Url.Parse($"https://{packageSpecifier.ToothPath}");
 
-        // Replace with GitHub proxy if available.
-        Url actualUrl = repoUrl.Host == "github.com" && _githubProxies.Count != 0
-            ? _githubProxies[0].Clone()
+        // Apply GitHub proxy to GitHub URLs.
+        IEnumerable<Url> actualUrls = (repoUrl.Host == "github.com" && _gitHubProxies.Count != 0)
+            ? _gitHubProxies.Select(proxy => proxy
+                .Clone()
                 .AppendPathSegment(repoUrl.Path)
                 .SetQueryParams(repoUrl.QueryParams)
-            : repoUrl;
+            )
+            : [repoUrl];
 
-        string tag = $"v{packageSpecifier.Version}";
+        return await GetGitRepoDirDirectlyFromUrls(actualUrls, $"v{packageSpecifier.Version}");
+    }
 
-        string repoDirPath = _pathManager.GetGitRepoDirCachePath(actualUrl, tag);
-
-        if (!_context.FileSystem.Directory.Exists(repoDirPath))
+    private async Task<IDirectoryInfo> GetGitRepoDirDirectlyFromUrls(IEnumerable<Url> actualUrls, string tag)
+    {
+        foreach (Url url in actualUrls)
         {
-            _context.FileSystem.CreateParentDirectory(repoDirPath);
+            string repoDirPath = _pathManager.GetGitRepoDirCachePath(url, tag);
 
-            // Here we assume that git availability is checked before calling this method.
-            await _context.Git!.Clone(
-                actualUrl,
-                repoDirPath,
-                branch: tag,
-                depth: 1);
+            if (_context.FileSystem.Directory.Exists(repoDirPath))
+            {
+                return _context.FileSystem.DirectoryInfo.New(repoDirPath);
+            }
         }
 
-        return _context.FileSystem.DirectoryInfo.New(repoDirPath);
+        foreach (Url url in actualUrls)
+        {
+            string repoDirPath = _pathManager.GetGitRepoDirCachePath(url, tag);
+
+            _context.Logger.LogDebug("Cloning {Url} to {RepoDirPath}.", url, repoDirPath);
+
+            _context.FileSystem.CreateParentDirectory(repoDirPath);
+
+            try
+            {
+                // Here we assume that git availability is checked before calling this method.
+                await _context.Git!.Clone(
+                    url,
+                    repoDirPath,
+                    branch: tag,
+                    depth: 1
+                );
+                return _context.FileSystem.DirectoryInfo.New(repoDirPath);
+            }
+            catch (Exception ex)
+            {
+                _context.Logger.LogWarning("Failed to clone {Url}. Attempting next URL.", url);
+                _context.Logger.LogDebug(ex, "");
+            }
+        }
+
+        throw new InvalidOperationException("All clone attempts failed.");
     }
 
     private async Task<IFileInfo> GetGoModuleArchive(PackageSpecifier packageSpecifier)

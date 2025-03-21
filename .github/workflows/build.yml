@@ -142,11 +142,21 @@ jobs:
       contents: read
     strategy:
       matrix:
+        runtime:
+          - arm64
+          - x64
+        self-contained:
+          - true
+          - false
         include:
           - runtime: arm64
             runs-on: windows-latest
           - runtime: x64
             runs-on: windows-latest
+          - self-contained: true
+            sc-flag: -self-contained
+          - self-contained: false
+            sc-flag: ''
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -157,7 +167,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
           path: bin/
 
       - run: >
@@ -168,7 +178,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
           path: bin-installer/
 
   check-style:

@@ -30,7 +30,7 @@
         />
 
         <Property Id="WixUnelevatedShellExecTarget"
-                  Value="https://dotnet.microsoft.com/zh-cn/download/dotnet/thank-you/runtime-9.0.3-windows-x64-installer"/>
+                  Value="https://dotnet.microsoft.com/download/dotnet/thank-you/runtime-9.0.3-windows-x64-installer"/>
         <CustomAction Id="DownloadDotNetCustomAction" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)"
                       DllEntry="WixUnelevatedShellExec" Execute="immediate" Return="check"/>
         <CustomAction Id="DotNetNotInstalled" Error="!(loc.DotNetNotInstalled)"/>

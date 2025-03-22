@@ -90,21 +90,11 @@ jobs:
       contents: read
     strategy:
       matrix:
-        runtime:
-          - arm64
-          - x64
-        self-contained:
-          - true
-          - false
         include:
           - runtime: arm64
             runs-on: windows-latest
           - runtime: x64
             runs-on: windows-latest
-          - self-contained: true
-            sc-flag: -self-contained
-          - self-contained: false
-            sc-flag: ''
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -121,27 +111,31 @@ jobs:
           replace-with: ""
 
       # Prevent versions like 1.1.1-rc.1
-      - run: |
+      - name: Modify version of installer
+        run: |
           $inputString = "${{ steps.get-version.outputs.replaced }}"
           if ($inputString -match "^(.*?)-") { $result = $matches[1] } else { $result = $inputString }
           (Get-Content Package.wxs) -replace '0\.0\.0\.0', "$result.0" | Set-Content Package.wxs
         shell: pwsh
         working-directory: Lip.Installer
 
-      - uses: actions/download-artifact@v4
+      - name: Download cli artifact
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
 
-      - run: >
+      - name: Build installer
+        run: >
           dotnet build Lip.Installer
           --configuration Release
           --output bin-installer
           --p:Platform=${{ matrix.runtime }}
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}-${{ github.sha }}
           path: bin-installer/
 
   update-release-notes:
@@ -255,21 +249,18 @@ jobs:
         runtime:
           - win-arm64
           - win-x64
-        sc-flag:
-          - ''
-          - -self-contained
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Lip.Installer-${{ matrix.runtime }}-${{ github.sha }}
           path: artifact-installer/
 
       - run: |
-          mv artifact-installer/${{ matrix.lang }}/Lip.Installer.msi artifact-installer/${{ github.event.repository.name }}-cli-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ matrix.lang }}.msi
+          mv artifact-installer/${{ matrix.lang }}/Lip.Installer.msi artifact-installer/${{ github.event.repository.name }}-cli-${{ matrix.runtime }}-${{ matrix.lang }}.msi
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifact-installer/${{ github.event.repository.name }}-cli-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ matrix.lang }}.msi
+            artifact-installer/${{ github.event.repository.name }}-cli-${{ matrix.runtime }}-${{ matrix.lang }}.msi

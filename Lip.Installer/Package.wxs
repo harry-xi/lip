@@ -20,7 +20,8 @@
                 Value="license.rtf"
         />
         <UIRef Id="WixUI_ErrorProgressText"/>
-
+        
+        <?ifndef $(DisableDotNetCheck) ?>
         <netfx:DotNetCompatibilityCheck
                 Property="DOTNETRUNTIMECHECK"
                 RollForward="major"
@@ -36,8 +37,11 @@
         <CustomAction Id="DotNetNotInstalled" Error="!(loc.DotNetNotInstalled)"/>
 
         <InstallUISequence>
-            <Custom Action="DownloadDotNetCustomAction" After="CostFinalize" Condition="NOT Installed AND DOTNETRUNTIMECHECK &lt;&gt; 0"/>
-            <Custom Action="DotNetNotInstalled" After="DownloadDotNetCustomAction" Condition="NOT Installed AND DOTNETRUNTIMECHECK &lt;&gt; 0"/>
+            <Custom Action="DownloadDotNetCustomAction" After="CostFinalize"
+                    Condition="NOT Installed AND DOTNETRUNTIMECHECK &lt;&gt; 0"/>
+            <Custom Action="DotNetNotInstalled" After="DownloadDotNetCustomAction"
+                    Condition="NOT Installed AND DOTNETRUNTIMECHECK &lt;&gt; 0"/>
         </InstallUISequence>
+        <?endif ?>
     </Package>
 </Wix>

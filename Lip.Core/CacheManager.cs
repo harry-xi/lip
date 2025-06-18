@@ -38,11 +38,30 @@ public class CacheManager(
         await Task.CompletedTask; // Suppress warning.
 
         string baseCacheDir = _pathManager.BaseCacheDir;
-
-        if (_context.FileSystem.Directory.Exists(baseCacheDir))
+        if (!_context.FileSystem.Directory.Exists(baseCacheDir))
         {
-            _context.FileSystem.Directory.Delete(baseCacheDir, recursive: true);
+            return;
         }
+
+        string baseGitRepoCacheDir = _pathManager.BaseGitRepoCacheDir;
+
+        if (_context.FileSystem.Directory.Exists(baseGitRepoCacheDir))
+        {
+            foreach (var repo in _context.FileSystem.DirectoryInfo.New(baseGitRepoCacheDir).EnumerateDirectories())
+            {
+                foreach (var version in _context.FileSystem.DirectoryInfo.New(repo.FullName).EnumerateDirectories())
+                {
+                    var dirInfo = _context.FileSystem.DirectoryInfo.New(_context.FileSystem.Path.Join(version.FullName, ".git", "objects", "pack"));
+
+                    foreach (var file in dirInfo.GetFiles())
+                    {
+                        file.Attributes = FileAttributes.Normal;
+                    }
+                }
+            }
+        }
+        _context.FileSystem.Directory.Delete(baseCacheDir, recursive: true);
+
     }
 
     public async Task<IFileInfo> GetFileFromUrl(Url url) => await GetFileFromUrls([url]);

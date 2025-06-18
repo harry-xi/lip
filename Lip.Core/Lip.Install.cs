@@ -15,6 +15,8 @@ public partial class Lip
         public required bool IgnoreScripts { get; init; }
         public required bool NoDependencies { get; init; }
         public required bool Update { get; init; }
+
+        public required bool OverwriteFiles { get; init; }
     }
 
     [ExcludeFromCodeCoverage]
@@ -329,7 +331,9 @@ public partial class Lip
                 packageInstallDetail.VariantLabel,
                 args.DryRun,
                 args.IgnoreScripts,
-                locked: specifiersToLock.Contains(packageInstallDetail.Specifier));
+                locked: specifiersToLock.Contains(packageInstallDetail.Specifier),
+                args.OverwriteFiles
+                );
         }
     }
 

@@ -279,7 +279,8 @@ public class PackageManager(
                         var select = await _context.UserInteraction.PromptForSelection(["Yes", "No", "All"], $"File {destPath} already exists. Overwrite It?");
                         if (select == "No")
                         {
-                            throw new InvalidOperationException($"File {destPath} already exists.");
+                            // throw new InvalidOperationException($"File {destPath} already exists.");
+                            continue;
                         }
                         if (select == "All")
                         {

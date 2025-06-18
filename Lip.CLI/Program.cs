@@ -52,6 +52,21 @@ try
 }
 catch (Exception ex)
 {
-    AnsiConsole.WriteException(ex);
+    AnsiConsole.WriteException(ex, new ExceptionSettings
+    {
+        Style = new ExceptionStyle
+        {
+            Exception = new Style().Foreground(Color.Red),
+            Message = new Style().Foreground(Color.Red),
+            NonEmphasized = new Style().Foreground(Color.Grey),
+            Parenthesis = new Style().Foreground(Color.Grey),
+            Method = new Style().Foreground(Color.Grey),
+            ParameterName = new Style().Foreground(Color.Grey),
+            ParameterType = new Style().Foreground(Color.Grey),
+            Path = new Style().Foreground(Color.Grey),
+            LineNumber = new Style().Foreground(Color.Grey),
+            Dimmed = new Style().Foreground(Color.Grey)
+        }
+    });
     return 1;
 }

@@ -155,8 +155,10 @@ jobs:
             runs-on: windows-latest
           - self-contained: true
             sc-flag: -self-contained
+            ds-flag: -p:DefineConstants="DisableDotNetCheck"
           - self-contained: false
             sc-flag: ''
+            ds-flag: ''
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
@@ -174,7 +176,8 @@ jobs:
           dotnet build Lip.Installer
           --configuration Release
           --output bin-installer
-          --p:Platform=${{ matrix.runtime }}
+          -p:Platform=${{ matrix.runtime }}
+          ${{ matrix.ds-flag }}
 
       - uses: actions/upload-artifact@v4
         with:

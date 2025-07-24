@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Lip.GUI.Lite.Helpers
 {
-    internal class LoggerWrapper : ILogger
+    internal class EmptyLogger : ILogger
     {
         private class NullScope : IDisposable
         {
@@ -27,7 +27,7 @@ namespace Lip.GUI.Lite.Helpers
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var logstr = formatter(state, exception);
+            //var logstr = formatter(state, exception);
             //throw new NotImplementedException();
         }
     }

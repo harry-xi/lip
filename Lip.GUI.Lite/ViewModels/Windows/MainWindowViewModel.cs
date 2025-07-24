@@ -25,11 +25,11 @@ namespace Lip.GUI.Lite.ViewModels.Windows
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Home24 },
                 TargetPageType = typeof(Views.Pages.DashboardPage)
             },
-            new NavigationViewItem()
-            {   Content = "Bedrinth",
-                Icon = new SymbolIcon { Symbol = SymbolRegular.Box24 },
-                TargetPageType = typeof(Views.Pages.BedrinthPacksList)
-            },
+            //new NavigationViewItem()
+            //{   Content = "Bedrinth",
+            //    Icon = new SymbolIcon { Symbol = SymbolRegular.Box24 },
+            //    TargetPageType = typeof(Views.Pages.BedrinthPacksList)
+            //},
         };
 
         [ObservableProperty]
@@ -52,8 +52,7 @@ namespace Lip.GUI.Lite.ViewModels.Windows
         [ObservableProperty]
         private bool _isWorkspaceFlyoutOpen;
 
-        public IEnumerable<Workspace> AvailableWorkspaces =>
-            _workspaces.Where(ws => ws != _currentWorkspace);
+        public IEnumerable<Workspace> AvailableWorkspaces => Workspaces.Where(ws => ws != CurrentWorkspace);
 
         public string CurrentWorkspaceDisplayName => CurrentWorkspace?.Name ?? "无工作区";
         public bool HasCurrentWorkspace => CurrentWorkspace != null;
@@ -118,9 +117,9 @@ namespace Lip.GUI.Lite.ViewModels.Windows
 
         private void RefreshWorkspaces()
         {
-            _workspaces.Clear();
+            Workspaces.Clear();
             foreach (var ws in _workspacesService.Workspaces)
-                _workspaces.Add(ws);
+                Workspaces.Add(ws);
             CurrentWorkspace = _workspacesService.CurrentWorkspace;
             OnPropertyChanged(nameof(AvailableWorkspaces));
             OnPropertyChanged(nameof(CurrentWorkspaceDisplayName));

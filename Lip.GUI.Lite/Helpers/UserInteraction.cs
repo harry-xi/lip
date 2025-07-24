@@ -3,11 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
-using System.Windows.Controls;
-using TextBox = Wpf.Ui.Controls.TextBox;
 using TextBlock = Wpf.Ui.Controls.TextBlock;
+using TextBox = Wpf.Ui.Controls.TextBox;
 
 namespace Lip.GUI.Lite.Helpers
 {
@@ -50,10 +50,26 @@ namespace Lip.GUI.Lite.Helpers
         public async Task<string> PromptForSelection(IEnumerable<string> options, string format, params object[] args)
         {
             var message = string.Format(format, args);
-            var comboBox = new ComboBox { ItemsSource = options.ToList(), SelectedIndex = 0, MinWidth = 200 };
+            var optionList = options.ToList();
+            var selected = optionList.FirstOrDefault();
+
             var panel = new StackPanel();
             panel.Children.Add(new TextBlock { Text = message, Margin = new System.Windows.Thickness(0, 0, 0, 8) });
-            panel.Children.Add(comboBox);
+
+            var radioButtons = new List<RadioButton>();
+            foreach (var option in optionList)
+            {
+                var radio = new RadioButton
+                {
+                    Content = option,
+                    GroupName = "Selections",
+                    Margin = new System.Windows.Thickness(0, 0, 0, 4),
+                    IsChecked = option == selected
+                };
+                radio.Checked += (s, e) => selected = option;
+                radioButtons.Add(radio);
+                panel.Children.Add(radio);
+            }
 
             var dialog = new ContentDialog(dialogService.GetDialogHost())
             {
@@ -63,16 +79,40 @@ namespace Lip.GUI.Lite.Helpers
                 CloseButtonText = "Cancel"
             };
             var result = await dialog.ShowAsync();
-            return result == ContentDialogResult.Primary && comboBox.SelectedItem != null
-                ? comboBox.SelectedItem.ToString()!
-                : options.FirstOrDefault() ?? string.Empty;
+            return result == ContentDialogResult.Primary && !string.IsNullOrEmpty(selected)
+                ? selected
+                : optionList.FirstOrDefault() ?? string.Empty;
         }
 
         public Task UpdateProgress(string id, float progress, string format, params object[] args)
         {
-            var str = string.Format(format, args);
-            // Progress update can be implemented via Snackbar, StatusBar, or custom controls. Placeholder here.
             return Task.CompletedTask;
+        }
+    }
+
+    internal class EmptyUserInteraction : IUserInteraction
+    {
+        public async Task<bool> Confirm(string format, params object[] args)
+        {
+            await Task.CompletedTask;
+            return false;
+        }
+
+        public async Task<string> PromptForInput(string defaultValue, string format, params object[] args)
+        {
+            await Task.CompletedTask;
+            return defaultValue;
+        }
+
+        public async Task<string> PromptForSelection(IEnumerable<string> options, string format, params object[] args)
+        {
+            await Task.CompletedTask;
+            return options.FirstOrDefault() ?? string.Empty;
+        }
+
+        public async Task UpdateProgress(string id, float progress, string format, params object[] args)
+        {
+            await Task.CompletedTask;
         }
     }
 }

@@ -209,7 +209,7 @@ public class PackageManager(
             VariantLabel = variantLabel
         };
 
-        _context.Logger.LogDebug("Installing package {packageSpecifier}...", packageSpecifier);
+        _context.Logger.LogDebug(LogEventID.InstallingPackage, "Installing package {packageSpecifier}...", packageSpecifier);
 
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
@@ -244,7 +244,7 @@ public class PackageManager(
         {
             foreach (var script in packageVariant.Scripts.PreInstall)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _context.Logger.LogDebug(LogEventID.RunningScript, "Running script: {script}", script);
                 if (!dryRun)
                 {
                     await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
@@ -314,7 +314,7 @@ public class PackageManager(
         {
             foreach (var script in packageVariant.Scripts.Install)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _context.Logger.LogDebug(LogEventID.RunningScript, "Running script: {script}", script);
                 if (!dryRun)
                 {
                     await _context.CommandRunner.Run(script, _pathManager.WorkingDir);

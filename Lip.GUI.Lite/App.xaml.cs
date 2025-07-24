@@ -48,6 +48,9 @@ namespace Lip.GUI.Lite
 
                 services.AddSingleton<WorkspaceManageService>();
 
+                // Add BedrinthApiService
+                services.AddSingleton<BedrinthApiService>();
+
                 // Main window with navigation
                 services.AddSingleton<INavigationWindow, MainWindow>();
                 services.AddSingleton<MainWindowViewModel>();
@@ -56,8 +59,9 @@ namespace Lip.GUI.Lite
                 services.AddSingleton<DashboardViewModel>();
                 services.AddSingleton<SettingsPage>();
                 services.AddSingleton<SettingsViewModel>();
-                services.AddSingleton<BedrinthPacksList>();
-                services.AddSingleton<BedrinthPacksListViewModel>();
+                //services.AddSingleton<BedrinthPacksList>();
+                //services.AddSingleton<BedrinthPacksListViewModel>();
+                //services.AddSingleton<BedrinthPack>();
             }).Build();
 
         /// <summary>

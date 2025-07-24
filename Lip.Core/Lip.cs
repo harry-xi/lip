@@ -1,4 +1,5 @@
 using Flurl;
+using Microsoft.Extensions.Logging;
 
 namespace Lip.Core;
 
@@ -29,4 +30,12 @@ public partial class Lip(
 
         return new Lip(runtimeConfig, context, cacheManager, dependencySolver, packageManager, pathManager);
     }
+}
+
+public class LogEventID
+{
+    public static readonly EventId InstallingPackage = 0;
+    public static readonly EventId PackageInstalled = 1;
+    public static readonly EventId RunningScript = 2;
+
 }

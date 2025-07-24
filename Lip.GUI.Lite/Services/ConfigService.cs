@@ -18,7 +18,7 @@ namespace Lip.GUI.Lite.Services
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
         public AppConfig Config { get; private set; } = null!;
-        public RuntimeConfig RuntimeConfig { get; private set; } = null!;
+        public RuntimeConfig RuntimeConfig { get; set; } = null!;
 
         public async Task Load()
         {
@@ -57,6 +57,11 @@ namespace Lip.GUI.Lite.Services
             await File.WriteAllBytesAsync(_runtimeConfigPath, RuntimeConfig.ToJsonBytes());
 
 
+        }
+
+        public void UpdateRuntimeConfig(Func<RuntimeConfig, RuntimeConfig> updater)
+        {
+            RuntimeConfig = updater(RuntimeConfig);
         }
 
         public async Task Save()

@@ -19,7 +19,7 @@ public interface IPackageManager
     Task<List<SemVersion>> GetPackageRemoteVersions(PackageIdentifier packageSpecifier);
 
     Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts,
-        bool locked);
+        bool locked, bool overwriteFile);
 
     Task SaveCurrentPackageManifest(PackageManifest packageManifest);
     Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts);
@@ -194,7 +194,7 @@ public class PackageManager(
     }
 
     public async Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun,
-        bool ignoreScripts, bool locked)
+        bool ignoreScripts, bool locked, bool overwriteFile)
     {
         using Stream packageManifestFileStream =
             await packageFileSource.GetFileStream(_pathManager.PackageManifestFileName)
@@ -274,9 +274,18 @@ public class PackageManager(
 
                     string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, place.Dest, destRelative);
 
-                    if (_context.FileSystem.Path.Exists(destPath))
+                    if (!overwriteFile && _context.FileSystem.Path.Exists(destPath))
                     {
-                        throw new InvalidOperationException($"File {destPath} already exists.");
+                        var select = await _context.UserInteraction.PromptForSelection(["Yes", "No", "All"], $"File {destPath} already exists. Overwrite It?");
+                        if (select == "No")
+                        {
+                            // throw new InvalidOperationException($"File {destPath} already exists.");
+                            continue;
+                        }
+                        if (select == "All")
+                        {
+                            overwriteFile = true;
+                        }
                     }
 
                     _context.Logger.LogDebug("Placing file: {entryKey} -> {destPath}", fileSourceEntry.Key, destPath);

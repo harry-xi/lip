@@ -18,7 +18,8 @@ public partial class Lip
             Force = args.Force,
             IgnoreScripts = args.IgnoreScripts,
             NoDependencies = args.NoDependencies,
-            Update = true
+            Update = true,
+            OverwriteFiles = false,
         });
     }
 }

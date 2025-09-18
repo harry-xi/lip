@@ -32,6 +32,10 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         [CommandOption("-U|--update")]
         [Description("Update the package to the specified version if the installed version is older.")]
         public required bool Update { get; init; }
+
+        [CommandOption("--overwrite-files")]
+        [Description("Overwrite existing files in the folder")]
+        public required bool OverwriteFiles { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -45,6 +49,7 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
             IgnoreScripts = settings.IgnoreScripts,
             NoDependencies = settings.NoDependencies,
             Update = settings.Update,
+            OverwriteFiles = settings.OverwriteFiles,
         });
 
         return 0;

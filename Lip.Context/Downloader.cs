@@ -13,6 +13,13 @@ public class Downloader(IUserInteraction userInteraction) : IDownloader
         await using IDownload downloader = DownloadBuilder.New()
             .WithUrl(url)
             .WithFileLocation(destinationPath)
+            .WithConfiguration(new DownloadConfiguration
+            {
+                RequestConfiguration =
+                {
+                    Proxy = HttpClient.DefaultProxy
+                }
+            })
             .Build();
 
         downloader.DownloadProgressChanged += async (sender, e) =>

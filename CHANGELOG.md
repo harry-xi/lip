@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.0] - 2025-09-18
+
+### Added
+
+- Added --overwrite-files and UserInteraction when meet existing file @harryxi
+
+### Changed
+
+- Skip instead of throwing an exception when a file is duplicated @harryxi
+- Improved exception output @harryxi
+
+### Fixed
+
+- Use system default proxy [#282] @harryxi
+- Fixed fail to remove git repo from cache @harryxi
+
 ## [0.31.0] - 2025-03-23
 
 ### Added
@@ -624,7 +640,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#140]: https://github.com/futrime/lip/issues/140
 [#157]: https://github.com/futrime/lip/issues/157
 [#218]: https://github.com/futrime/lip/issues/218
+[#282]: https://github.com/futrime/lip/issues/282
 
+[0.32.0]: https://github.com/futrime/lip/compare/v0.31.0...v0.32.0
 [0.31.0]: https://github.com/futrime/lip/compare/v0.30.2...v0.31.0
 [0.30.2]: https://github.com/futrime/lip/compare/v0.30.1...v0.30.2
 [0.30.1]: https://github.com/futrime/lip/compare/v0.30.0...v0.30.1

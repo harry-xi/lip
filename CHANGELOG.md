@@ -9,17 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added --overwrite-files and UserInteraction when meet existing file @harryxi
+- Added --overwrite-files and UserInteraction when meet existing file @harry-xi
 
 ### Changed
 
-- Skip instead of throwing an exception when a file is duplicated @harryxi
-- Improved exception output @harryxi
+- Skip instead of throwing an exception when a file is duplicated @harry-xi
+- Improved exception output @harry-xi
 
 ### Fixed
 
-- Use system default proxy [#282] @harryxi
-- Fixed fail to remove git repo from cache @harryxi
+- Use system default proxy [#282] @harry-xi
+- Fixed fail to remove git repo from cache @harry-xi
 
 ## [0.31.0] - 2025-03-23
 

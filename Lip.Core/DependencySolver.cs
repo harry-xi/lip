@@ -7,7 +7,7 @@ namespace Lip.Core;
 public interface IDependencySolver
 {
     Task<List<PackageSpecifier>?> ResolveDependencies(
-        IEnumerable<PackageSpecifier> primaryPackageSpecifiers,
+        IEnumerable<(PackageIdentifier Identifier, SemVersionRange VersionRange)> primaryPackageRequirements,
         IEnumerable<PackageLock.Package> knownPackages);
 }
 
@@ -18,15 +18,31 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
 
 
     public async Task<List<PackageSpecifier>?> ResolveDependencies(
-        IEnumerable<PackageSpecifier> primaryPackageSpecifiers,
+        IEnumerable<(PackageIdentifier Identifier, SemVersionRange VersionRange)> primaryPackageRequirements,
         IEnumerable<PackageLock.Package> knownPackages)
     {
         _context.Logger.LogDebug("Resolving dependencies...");
 
-        Dictionary<PackageIdentifier, HashSet<SemVersion>> candidates = primaryPackageSpecifiers.ToDictionary(
-            static ps => ps.Identifier,
-            static ps => new HashSet<SemVersion> { ps.Version }
-        );
+        Dictionary<PackageIdentifier, HashSet<SemVersion>> candidates = [];
+
+        foreach ((PackageIdentifier identifier, SemVersionRange versionRange) in primaryPackageRequirements)
+        {
+            if (candidates.ContainsKey(identifier))
+            {
+                throw new ArgumentException($"Duplicate primary package requirement for '{identifier}'.", nameof(primaryPackageRequirements));
+            }
+
+            HashSet<SemVersion> availableVersions = await FetchAvailableVersions(identifier, knownPackages);
+            HashSet<SemVersion> compatibleVersions = [.. availableVersions.Where(versionRange.Contains)];
+
+            if (compatibleVersions.Count == 0)
+            {
+                _context.Logger.LogError("No compatible versions found for primary package '{identifier}' within range '{versionRange}'.", identifier, versionRange);
+                return null;
+            }
+
+            candidates[identifier] = compatibleVersions;
+        }
 
         Dictionary<PackageIdentifier, SemVersion> selected = [];
 

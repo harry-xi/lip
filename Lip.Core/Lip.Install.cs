@@ -177,13 +177,14 @@ public partial class Lip
                     ),
             ]
             : await _dependencySolver.ResolveDependencies(
-                primaryPackageSpecifiers: [
-                    ..userInputDetails.Select(detail => detail.Specifier),
+                primaryPackageRequirements: [
+                    ..userInputDetails.Select(detail => (detail.Specifier.Identifier, SemVersionRange.Parse(detail.Specifier.Version.ToString()))),
                     ..lockedSpecifiers
                         // User input packages take precedence over other packages.
                         .Where(lockedSpecifier => !userInputSpecifiers
                             .Any(userInputSpecifier => userInputSpecifier.Identifier == lockedSpecifier.Identifier)
-                        ),
+                        )
+                        .Select(lockedSpecifier => (lockedSpecifier.Identifier, SemVersionRange.Parse(lockedSpecifier.Version.ToString()))),
                 ],
                 knownPackages: [
                     ..packageLock.Packages,

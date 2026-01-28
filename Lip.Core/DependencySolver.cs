@@ -6,7 +6,6 @@ namespace Lip.Core;
 
 public interface IDependencySolver
 {
-    Task<List<PackageIdentifier>> GetUnnecessaryPackages();
     Task<List<PackageSpecifier>?> ResolveDependencies(
         IEnumerable<PackageSpecifier> primaryPackageSpecifiers,
         IEnumerable<PackageLock.Package> knownPackages);
@@ -17,50 +16,6 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
     private readonly IContext _context = context;
     private readonly IPackageManager _packageManager = packageManager;
 
-    public async Task<List<PackageIdentifier>> GetUnnecessaryPackages()
-    {
-        PackageLock currentPackageLock = await _packageManager.GetCurrentPackageLock();
-        Dictionary<PackageIdentifier, PackageLock.Package> allPackages = currentPackageLock.Packages.ToDictionary(p => p.Specifier.Identifier);
-        List<PackageLock.Package> lockedPackages = [.. currentPackageLock.Packages.Where(p => p.Locked)];
-
-        // BFS to find all reachable packages from locked packages
-        HashSet<PackageIdentifier> reachable = [];
-        Queue<PackageIdentifier> queue = new();
-
-        foreach (PackageLock.Package? pkg in lockedPackages)
-        {
-            if (reachable.Add(pkg.Specifier.Identifier))
-            {
-                queue.Enqueue(pkg.Specifier.Identifier);
-            }
-        }
-
-        while (queue.Count > 0)
-        {
-            PackageIdentifier id = queue.Dequeue();
-            if (!allPackages.TryGetValue(id, out PackageLock.Package? pkg))
-            {
-                continue;
-            }
-
-            foreach (PackageIdentifier depId in pkg.Variant.Dependencies.Keys)
-            {
-                // Only traverse if the dependency exists in the lock file
-                if (allPackages.ContainsKey(depId))
-                {
-                    if (reachable.Add(depId))
-                    {
-                        queue.Enqueue(depId);
-                    }
-                }
-            }
-        }
-
-        return [.. currentPackageLock.Packages
-                .Where(p => !p.Locked)
-                .Where(p => !reachable.Contains(p.Specifier.Identifier))
-                .Select(p => p.Specifier.Identifier)];
-    }
 
     public async Task<List<PackageSpecifier>?> ResolveDependencies(
         IEnumerable<PackageSpecifier> primaryPackageSpecifiers,

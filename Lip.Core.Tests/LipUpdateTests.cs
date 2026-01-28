@@ -103,11 +103,14 @@ public class LipUpdateTests
 
         // We use a locked package to verify it requests AtLeast version (which implies UpgradeLockedPackages=true)
         var lockedPackage = CreateLockedPackage("locked-pkg", "1.0.0");
+        var pkgUpdateLocked = CreateLockedPackage("pkg-update", "1.0.0"); // Update package is also installed
 
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
-            .ReturnsAsync(new PackageLock { Packages = [lockedPackage] });
+            .ReturnsAsync(new PackageLock { Packages = [lockedPackage, pkgUpdateLocked] });
         _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
              .ReturnsAsync(lockedPackage);
+        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-update")))
+             .ReturnsAsync(pkgUpdateLocked);
 
         // Mock user input resolution
         _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.IsAny<PackageIdentifier>()))
@@ -133,5 +136,39 @@ public class LipUpdateTests
             ),
             It.IsAny<IEnumerable<PackageLock.Package>>()
         ), Times.Once);
+    }
+    [Fact]
+    public async Task Update_WithUninstalledPackage_LogsWarningAndDoesNotInstall()
+    {
+        // Arrange
+        var userInput = new List<string> { "github.com/test/uninstalled-pkg" };
+        var args = new Lip.UpdateArgs
+        {
+            DryRun = false,
+            IgnoreScripts = false,
+            NoDependencies = false
+        };
+
+        // Mock empty package lock (package is not installed)
+        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+            .ReturnsAsync(new PackageLock { Packages = [] });
+
+        // Act
+        await _lip.Update(userInput, args);
+
+        // Assert
+        // Verify ResolveDependencies was NEVER called (since Install should be skipped)
+        _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
+            It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(),
+            It.IsAny<IEnumerable<PackageLock.Package>>()
+        ), Times.Never);
+
+        // Verify warning was logged
+        _loggerMock.Verify(static l => l.Log(
+            LogLevel.Warning,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>(static (v, t) => v.ToString()!.Contains("is not installed. Skipping.")),
+            null,
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
 }

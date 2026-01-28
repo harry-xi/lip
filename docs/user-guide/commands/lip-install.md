@@ -58,9 +58,7 @@ Examples:
 
   Do not actually install any packages. Be aware that files will still be downloaded and cached.
 
-- `-f, --force`
 
-  Force the installation of the package. When a package is already installed but its version is different from the specified version, lip will reinstall the package.
 
 - `--ignore-scripts`
 

@@ -11,7 +11,7 @@ public partial class Lip
     public record InstallArgs
     {
         public required bool DryRun { get; init; }
-        public required bool Force { get; init; }
+
         public required bool IgnoreScripts { get; init; }
         public required bool NoDependencies { get; init; }
         public required bool Update { get; init; }
@@ -96,7 +96,6 @@ public partial class Lip
             // If (1) not installed, (2) force, or (3) update is specified and the installed
             // package is older, it is okay.
             if (installedPackage is null
-                || args.Force
                 || (args.Update
                     && installedPackage.Specifier.Version.ComparePrecedenceTo(detail.Manifest.Version) < 0)
             )

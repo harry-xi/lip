@@ -22,10 +22,7 @@ Update packages and their dependencies from various sources. Equivalent to `lip 
 
   Do not actually update any packages. Be aware that files will still be downloaded and cached.
 
-- `-f, --force`
 
-  Force the installation of the package. When a package is already installed but its version is
-  higher than the specified version, lip will still reinstall the package.
 
 - `--ignore-scripts`
 

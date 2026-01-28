@@ -17,9 +17,7 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         [Description("Do not actually install any packages. Be aware that files will still be downloaded and cached.")]
         public required bool DryRun { get; init; }
 
-        [CommandOption("-f|--force")]
-        [Description("Force the installation of the package. When a package is already installed but its version is different from the specified version, lip will reinstall the package.")]
-        public required bool Force { get; init; }
+
 
         [CommandOption("--ignore-scripts")]
         [Description("Do not run any scripts during installation.")]
@@ -45,7 +43,7 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         await lip.Install(settings.Packages?.ToList(), new()
         {
             DryRun = settings.DryRun,
-            Force = settings.Force,
+
             IgnoreScripts = settings.IgnoreScripts,
             NoDependencies = settings.NoDependencies,
             Update = settings.Update,

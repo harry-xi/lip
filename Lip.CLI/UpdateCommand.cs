@@ -17,9 +17,7 @@ class UpdateCommand : AsyncCommand<UpdateCommand.Settings>
         [Description("Simulate the update without making any changes. Files will still be downloaded and cached.")]
         public required bool DryRun { get; init; }
 
-        [CommandOption("-f|--force")]
-        [Description("Force the installation of the package. When a package is already installed but its version is higher than the specified version, lip will still reinstall the package.")]
-        public required bool Force { get; init; }
+
 
         [CommandOption("--ignore-scripts")]
         [Description("Do not run any scripts during updating.")]
@@ -37,7 +35,7 @@ class UpdateCommand : AsyncCommand<UpdateCommand.Settings>
         await lip.Update([.. settings.Packages], new()
         {
             DryRun = settings.DryRun,
-            Force = settings.Force,
+
             IgnoreScripts = settings.IgnoreScripts,
             NoDependencies = settings.NoDependencies
         });

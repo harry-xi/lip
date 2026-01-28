@@ -14,7 +14,7 @@ public partial class Lip
 
         public required bool IgnoreScripts { get; init; }
         public required bool NoDependencies { get; init; }
-        public required bool Update { get; init; }
+        public required bool UpgradeLockedPackages { get; init; }
 
         public required bool OverwriteFiles { get; init; }
     }
@@ -87,26 +87,7 @@ public partial class Lip
             _context.Logger.LogDebug("  {specifier}", userInputSpecifier);
         }
 
-        // Validate user input package install details.
-        foreach (var detail in userInputDetails)
-        {
-            PackageLock.Package? installedPackage = await _packageManager.GetPackageFromLock(
-                detail.Specifier.Identifier);
 
-            // If (1) not installed, (2) force, or (3) update is specified and the installed
-            // package is older, it is okay.
-            if (installedPackage is null
-                || (args.Update
-                    && installedPackage.Specifier.Version.ComparePrecedenceTo(detail.Manifest.Version) < 0)
-            )
-            {
-                continue;
-            }
-
-            // Otherwise, there is a conflict.
-            throw new InvalidOperationException(
-                $"Package '{detail.Specifier}' from input is already installed with version '{installedPackage.Specifier.Version}'.");
-        }
 
         #endregion
 
@@ -183,7 +164,11 @@ public partial class Lip
                         .Where(lockedSpecifier => !userInputSpecifiers
                             .Any(userInputSpecifier => userInputSpecifier.Identifier == lockedSpecifier.Identifier)
                         )
-                        .Select(lockedSpecifier => (lockedSpecifier.Identifier, SemVersionRange.Parse(lockedSpecifier.Version.ToString()))),
+                        .Select(lockedSpecifier => (
+                             lockedSpecifier.Identifier,
+                             args.UpgradeLockedPackages
+                                 ? SemVersionRange.AtLeast(lockedSpecifier.Version)
+                                 : SemVersionRange.Parse(lockedSpecifier.Version.ToString()))),
                 ],
                 knownPackages: [
                     ..packageLock.Packages,

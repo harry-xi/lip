@@ -27,9 +27,7 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         [Description("Bypass dependency resolution and only install the specified packages.")]
         public required bool NoDependencies { get; init; }
 
-        [CommandOption("-U|--update")]
-        [Description("Update the package to the specified version if the installed version is older.")]
-        public required bool Update { get; init; }
+
 
         [CommandOption("--overwrite-files")]
         [Description("Overwrite existing files in the folder")]
@@ -46,7 +44,7 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
 
             IgnoreScripts = settings.IgnoreScripts,
             NoDependencies = settings.NoDependencies,
-            Update = settings.Update,
+            UpgradeLockedPackages = false,
             OverwriteFiles = settings.OverwriteFiles,
         });
 

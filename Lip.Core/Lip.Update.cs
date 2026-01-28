@@ -18,7 +18,7 @@ public partial class Lip
 
             IgnoreScripts = args.IgnoreScripts,
             NoDependencies = args.NoDependencies,
-            Update = true,
+            UpgradeLockedPackages = true,
             OverwriteFiles = false,
         });
     }

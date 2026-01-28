@@ -185,7 +185,6 @@ public partial class Lip
                             .Any(userInputSpecifier => userInputSpecifier.Identifier == lockedSpecifier.Identifier)
                         ),
                 ],
-                installedPackageSpecifiers: installedSpecifiers,
                 knownPackages: [
                     ..packageLock.Packages,
                     ..userInputDetails.Select(detail => new PackageLock.Package()

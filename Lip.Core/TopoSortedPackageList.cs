@@ -1,7 +1,4 @@
-using Algorithms.Graphs;
-using DataStructures.Graphs;
 using Semver;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Lip.Core;
 
@@ -15,14 +12,6 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
     {
         public Dictionary<PackageIdentifier, SemVersionRange> Dependencies { get; }
         public PackageSpecifier Specifier { get; }
-    }
-
-    [ExcludeFromCodeCoverage]
-    private class ItemWrapper : IComparable<ItemWrapper>
-    {
-        public required T Item { get; init; }
-
-        public int CompareTo(ItemWrapper? other) => throw new NotImplementedException();
     }
 
     public new T this[int index]
@@ -75,31 +64,60 @@ public class TopoSortedPackageList<T> : List<T> where T : TopoSortedPackageList<
 
     private void TopoSort()
     {
-        DirectedSparseGraph<ItemWrapper> dependencyGraph = new();
+        if (Count == 0) return;
 
-        dependencyGraph.AddVertices([.. this.Select(item => new ItemWrapper { Item = item })]);
+        // Snapshot current items
+        var items = new List<T>(this);
+        // Create a lookup for quick access to items in the list
+        var itemMap = items.ToDictionary(i => i.Specifier.Identifier);
 
-        // Add edges.
-        foreach (ItemWrapper vertex in dependencyGraph.Vertices)
+        var visited = new HashSet<PackageIdentifier>();
+        var visiting = new HashSet<PackageIdentifier>();
+        var sorted = new List<T>(Count);
+
+        void Visit(T item)
         {
-            IEnumerable<ItemWrapper> dependencies = vertex.Item.Dependencies
-                .Select(dep => dependencyGraph.Vertices.FirstOrDefault(
-                    v => dep.Key == v.Item.Specifier.Identifier
-                         && dep.Value.Contains(v.Item.Specifier.Version)))
-                .Where(dep => dep is not null)!;
+            var id = item.Specifier.Identifier;
+            if (visited.Contains(id)) return;
 
-            foreach (ItemWrapper dependency in dependencies)
+            if (visiting.Contains(id))
             {
-                dependencyGraph.AddEdge(vertex, dependency);
+                // Cycle detected. 
+                // We treat the cyclic dependency as "resolved" to break the infinite loop 
+                // and proceed with partial ordering.
+                return;
             }
+
+            visiting.Add(id);
+
+            // Visit dependencies first
+            foreach (var dep in item.Dependencies)
+            {
+                if (itemMap.TryGetValue(dep.Key, out var depItem))
+                {
+                    if (dep.Value.Contains(depItem.Specifier.Version))
+                    {
+                        Visit(depItem);
+                    }
+                }
+            }
+
+            visiting.Remove(id);
+            visited.Add(id);
+            sorted.Add(item);
         }
 
-        // Topologically sort the graph.
-        IEnumerable<T> sortedElements = TopologicalSorter.Sort(dependencyGraph)
-            .Select(wrapper => wrapper.Item);
+        foreach (var item in items)
+        {
+            Visit(item);
+        }
 
-        // Update the list. Note that the order is reversed.
+        // The DFS post-order traversal gives us [Leaf, ..., Root] (Dependency, ..., Dependent).
+        // The requirement is "package... listed BEFORE its dependencies".
+        // So we need [Root, ..., Leaf] -> Reverse the list.
+        sorted.Reverse();
+
         Clear();
-        base.AddRange(sortedElements);
+        base.AddRange(sorted);
     }
 }

@@ -6,8 +6,8 @@ The following versions of lip are currently supported with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.29.x   | :white_check_mark: |
-| < 0.29.0   | :x:                |
+| 0.33.x   | :white_check_mark: |
+| < 0.33.0   | :x:                |
 
 ## Reporting a Vulnerability
 

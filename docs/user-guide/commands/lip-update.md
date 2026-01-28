@@ -8,7 +8,7 @@ lip update <package ...>
 
 ## Description
 
-Update packages and their dependencies from various sources. Equivalent to `lip install --update <package...>`.
+Update packages and their dependencies from various sources.
 
 ## Arguments
 

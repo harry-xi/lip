@@ -58,6 +58,10 @@ Examples:
 
   Do not actually install any packages. Be aware that files will still be downloaded and cached.
 
+- `--overwrite-files`
+
+  Overwrite existing files in the folder.
+
 
 
 - `--ignore-scripts`

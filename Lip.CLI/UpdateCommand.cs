@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace Lip.CLI;
 
-[Description("Update packages and their dependencies from various sources. Equivalent to `lip install --update <package...>`.")]
+[Description("Update packages and their dependencies from various sources.")]
 class UpdateCommand : AsyncCommand<UpdateCommand.Settings>
 {
     public class Settings : BaseCommandSettings

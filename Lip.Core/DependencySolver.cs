@@ -30,12 +30,14 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
 
         Dictionary<PackageIdentifier, SemVersion> selected = [];
 
-        return await Backtrack(candidates, selected, knownPackages)
-            ? [.. selected.Select(static kv => PackageSpecifier.FromIdentifier(kv.Key, kv.Value))]
+        var result = await Backtrack(candidates, selected, knownPackages);
+
+        return result != null
+            ? [.. result.Select(static kv => PackageSpecifier.FromIdentifier(kv.Key, kv.Value))]
             : throw new InvalidOperationException("Cannot find a valid state to satisfy all dependencies.");
     }
 
-    private async Task<bool> Backtrack(
+    private async Task<Dictionary<PackageIdentifier, SemVersion>?> Backtrack(
         Dictionary<PackageIdentifier, HashSet<SemVersion>> candidates,
         Dictionary<PackageIdentifier, SemVersion> selected,
         IEnumerable<PackageLock.Package> knownPackages)
@@ -43,7 +45,7 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
         // 1. Base case: All candidates resolved
         if (candidates.Count == 0)
         {
-            return true;
+            return selected;
         }
 
         // 2. Heuristic: Pick candidate with fewest version options (Fail-First)
@@ -119,14 +121,15 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
             if (isValidBranch)
             {
                 // Recurse
-                if (await Backtrack(nextCandidates, nextSelected, knownPackages))
+                var result = await Backtrack(nextCandidates, nextSelected, knownPackages);
+                if (result != null)
                 {
-                    return true;
+                    return result;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
     private async Task<HashSet<SemVersion>> FetchAvailableVersions(PackageIdentifier id, IEnumerable<PackageLock.Package> known)

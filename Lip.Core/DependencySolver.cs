@@ -46,7 +46,8 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
 
         Dictionary<PackageIdentifier, SemVersion> selected = [];
 
-        var result = await Backtrack(candidates, selected, knownPackages);
+        HashSet<PackageIdentifier> primaryIdentifiers = [.. primaryPackageRequirements.Select(x => x.Identifier)];
+        var result = await Backtrack(candidates, selected, knownPackages, primaryIdentifiers);
 
         return result != null
             ? [.. result.Select(static kv => PackageSpecifier.FromIdentifier(kv.Key, kv.Value))]
@@ -56,7 +57,8 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
     private async Task<Dictionary<PackageIdentifier, SemVersion>?> Backtrack(
         Dictionary<PackageIdentifier, HashSet<SemVersion>> candidates,
         Dictionary<PackageIdentifier, SemVersion> selected,
-        IEnumerable<PackageLock.Package> knownPackages)
+        IEnumerable<PackageLock.Package> knownPackages,
+        HashSet<PackageIdentifier> primaryIdentifiers)
     {
         // 1. Base case: All candidates resolved
         if (candidates.Count == 0)
@@ -67,9 +69,20 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
         // 2. Heuristic: Pick candidate with fewest version options (Fail-First)
         (PackageIdentifier nextId, HashSet<SemVersion> versions) = candidates.MinBy(x => x.Value.Count);
 
-        // 3. Sort versions: Prefer lower versions
-        List<SemVersion> sortedVersions = [.. versions
-                .OrderBy(v => v, SemVersion.PrecedenceComparer)];
+        // 3. Sort versions: 
+        // - Primary packages: Prefer lower versions (Oldest)
+        // - Dependencies: Prefer higher versions (Newest)
+        bool isPrimary = primaryIdentifiers.Contains(nextId);
+        List<SemVersion> sortedVersions;
+
+        if (isPrimary)
+        {
+            sortedVersions = [.. versions.OrderBy(v => v, SemVersion.PrecedenceComparer)];
+        }
+        else
+        {
+            sortedVersions = [.. versions.OrderByDescending(v => v, SemVersion.PrecedenceComparer)];
+        }
 
         foreach (SemVersion? version in sortedVersions)
         {
@@ -137,7 +150,7 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
             if (isValidBranch)
             {
                 // Recurse
-                var result = await Backtrack(nextCandidates, nextSelected, knownPackages);
+                var result = await Backtrack(nextCandidates, nextSelected, knownPackages, primaryIdentifiers);
                 if (result != null)
                 {
                     return result;

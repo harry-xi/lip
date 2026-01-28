@@ -230,7 +230,7 @@ public class DependencySolverTests
         // Assert
         Assert.NotNull(result);
         var selectedB = result.Single(p => p.Identifier.ToothPath == "example.com/b");
-        Assert.True(selectedB.Version.ComparePrecedenceTo(SemVersion.Parse("1.1.0")) >= 0);
+        Assert.Equal("1.2.0", selectedB.Version.ToString());
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public class DependencySolverTests
         // It should pick one. Which one depends on sort order.
         // Versions are sorted by PrecedenceComparer.
         // The loop is foreach(version in sortedVersions).
-        // If 1.0 < 2.0, and ascending, it tries 1.0 first.
+        // If 1.0 < 2.0, and ascending (primary), it tries 1.0 first.
         // So expected is 1.0.0.
         Assert.Equal("1.0.0", result[0].Version.ToString());
     }

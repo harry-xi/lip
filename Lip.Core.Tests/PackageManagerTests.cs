@@ -95,7 +95,7 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        return new PackageManager(context.Object, cacheManager, pathManager, [], []);
+        return new PackageManager(context.Object, cacheManager, pathManager);
     }
 
     [Fact]
@@ -209,58 +209,6 @@ public class PackageManagerTests
     }
 
     [Fact]
-    public async Task GetPackageManifestFromSpecifier_Found()
-    {
-        // Arrange.
-        var expectedPackage = s_examplePackage_1;
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {
-                Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Fpkg", "v1.0.0", "tooth.json"),
-                new MockFileData(TestExtensions.ToJsonBytes(expectedPackage))
-            },
-        });
-
-        Mock<IContext> context = new();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
-        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
-
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
-
-        // Act.
-        var pkg = await packageManager.GetPackageManifestFromCache(new PackageSpecifier(
-            new PackageIdentifier(expectedPackage.ToothPath, ""),
-            expectedPackage.Version));
-
-        // Assert.
-        // Assert.
-        Assert.Equal(TestExtensions.ToJsonBytes(expectedPackage), TestExtensions.ToJsonBytes(pkg));
-    }
-
-    [Fact]
-    public async Task GetPackageManifestFromSpecifier_NotFound()
-    {
-        // Arrange.
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>());
-
-        Mock<IContext> context = new();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
-        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
-
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
-
-        // Act.
-        var pkg = await packageManager.GetPackageManifestFromCache(new PackageSpecifier(
-            new PackageIdentifier(s_examplePackage_1.ToothPath, ""),
-            s_examplePackage_1.Version));
-
-        // Assert.
-        Assert.Null(pkg);
-    }
-
-    [Fact]
     public async Task GetPackageManifestFromFileSource_Found()
     {
         // Arrange.
@@ -278,10 +226,8 @@ public class PackageManagerTests
         var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        // Act.
         var pkg = await packageManager.GetPackageManifestFromFileSource(fileSource);
 
-        // Assert.
         // Assert.
         Assert.Equal(TestExtensions.ToJsonBytes(expectedPackage), TestExtensions.ToJsonBytes(pkg));
     }
@@ -300,112 +246,10 @@ public class PackageManagerTests
         var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        // Act.
         var pkg = await packageManager.GetPackageManifestFromFileSource(fileSource);
 
         // Assert.
         Assert.Null(pkg);
-    }
-
-    [Fact]
-    public async Task GetPackageRemoteVersions_WithGoModuleProxy()
-    {
-        // Arrange.
-        var expectedVersions = new List<SemVersion> { new(0, 1, 0), new(0, 2, 0), new(0, 3, 0) };
-        var versionFile = string.Join("\n", expectedVersions.Select((ver) => "v" + ver.ToString())) + "\n0.4.0\n15.0.0";
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
-
-        var context = new Mock<IContext>();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
-
-        var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
-
-        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, [], [Url.Parse("https://example.com")]);
-
-        // Act.
-        using var httpTest = new HttpTest();
-        httpTest.RespondWith(versionFile);
-
-        var result = await packageManager.GetPackageRemoteVersions(new PackageIdentifier("example.com/user/repo", ""));
-
-        // Assert.
-        Assert.Equal(expectedVersions, result);
-    }
-
-    [Fact]
-    public async Task GetPackageRemoteVersions_WithGit()
-    {
-        // Arrange.
-        var expectedVersions = new List<SemVersion> { new(0, 1, 0), new(0, 2, 0), new(0, 3, 0) };
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
-
-        var git = new Mock<IGit>();
-        git.Setup(g => g.ListRemote("https://example.com/user/repo", true, true))
-        .Returns(
-            Task<List<IGit.IListRemoteResultItem>>.Factory.StartNew(() => [
-                new ListRemoteResultItem("175394eb04c96bd99dc095bbbd337008a9cbffa1", "refs/tags/v0.1.0"),
-                new ListRemoteResultItem("ef73ef6d1aadb96355f13cba845a79727cc52ddd", "refs/tags/v0.2.0"),
-                new ListRemoteResultItem("278d385619bbc5191eb326fee5f89fe6af2b1031", "refs/tags/v0.3.0"),
-                new ListRemoteResultItem("a9e0f95779dcaa218d763a4278813f2298305f07", "refs/pull/101/head"),
-                new ListRemoteResultItem("66fdb3a16edbcc48e7de49f9b786f38680116477", "refs/heads/feat/schema-v3")
-            ])
-        );
-
-        var context = new Mock<IContext>();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.Git).Returns(git.Object);
-
-        var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
-
-        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, [], []);
-
-        // Act.
-        var result = await packageManager.GetPackageRemoteVersions(new PackageIdentifier("example.com/user/repo", ""));
-
-        // Assert.
-        Assert.Equal(expectedVersions, result);
-    }
-
-    [Fact]
-    public async Task GetPackageRemoteVersions_WithGoModuleProxyFailed_And_NoGit()
-    {
-        // Arrange.
-        var packageSpecifier = new PackageIdentifier("example.com/user/repo", "");
-
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
-
-        var downloader = new Mock<IDownloader>();
-        downloader.Setup(d => d.DownloadFile(Url.Parse("https://example.com/example.com/user/repo/@v/list"), It.IsAny<string>()))
-        .Callback<Url, string>((_, _) =>
-        {
-            throw new Exception("DownLoad FAIL");
-        });
-
-        var logger = new Mock<ILogger>();
-
-        var context = new Mock<IContext>();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.Downloader).Returns(downloader.Object);
-        context.SetupGet(c => c.Logger).Returns(logger.Object);
-
-        var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
-
-        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, [], [Url.Parse("https://example.com")]);
-
-        // Act. & Assert.
-        await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
-        {
-            var result = await packageManager.GetPackageRemoteVersions(packageSpecifier);
-        });
     }
 
     [Fact]
@@ -728,7 +572,7 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, [], []);
+        var packageManager = new PackageManager(context.Object, cacheManager, pathManager);
 
         // Act.
         await packageManager.InstallPackage(fileSource, "", dryRun, ignoreScripts, false, false);
@@ -867,7 +711,7 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, [], []);
+        var packageManager = new PackageManager(context.Object, cacheManager, pathManager);
 
         // Act.
         // It should NOT throw, but skip overwrite because User selected "No"
@@ -1013,7 +857,7 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager, [], []);
+        var packageManager = new PackageManager(context.Object, cacheManager, pathManager);
 
         await packageManager.InstallPackage(fileSource, "", false, true, false, false);
 

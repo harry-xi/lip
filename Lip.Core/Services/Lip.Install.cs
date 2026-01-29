@@ -391,7 +391,7 @@ public partial class Lip
         {
             PackageIdentifier packageIdentifier = PackageIdentifier.Parse(userInputPackageText);
 
-            IOrderedEnumerable<SemVersion> packageVersionList = (await _packageManager.GetPackageRemoteVersions(packageIdentifier))
+            IOrderedEnumerable<SemVersion> packageVersionList = (await _packageRegistry.GetVersions(packageIdentifier))
                 .OrderByDescending(v => v, SemVersion.PrecedenceComparer);
 
             if (packageVersionList.Any())

@@ -1,5 +1,6 @@
 using Flurl;
 using Lip.Core;
+using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
@@ -15,6 +16,7 @@ public class LipUpdateTests
     private readonly Mock<IContext> _contextMock = new();
     private readonly Mock<IDependencySolver> _dependencySolverMock = new();
     private readonly Mock<IPackageManager> _packageManagerMock = new();
+    private readonly Mock<IPackageRegistry> _packageRegistryMock = new();
     private readonly Mock<IPathManager> _pathManagerMock = new();
     private readonly RuntimeConfig _runtimeConfig = new();
     private readonly MockFileSystem _fileSystem = new();
@@ -35,6 +37,7 @@ public class LipUpdateTests
             _cacheManagerMock.Object,
             _dependencySolverMock.Object,
             _packageManagerMock.Object,
+            _packageRegistryMock.Object,
             _pathManagerMock.Object);
     }
 
@@ -114,7 +117,7 @@ public class LipUpdateTests
              .ReturnsAsync(pkgUpdateLocked);
 
         // Mock user input resolution
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.IsAny<PackageIdentifier>()))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
             .ReturnsAsync(new Mock<IFileSource>().Object);

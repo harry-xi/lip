@@ -9,12 +9,14 @@ public partial class Lip(
     ICacheManager cacheManager,
     IDependencySolver dependencySolver,
     IPackageManager packageManager,
+    IPackageRegistry packageRegistry,
     IPathManager pathManager)
 {
     private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IContext _context = context;
     private readonly IDependencySolver _dependencySolver = dependencySolver;
     private readonly IPackageManager _packageManager = packageManager;
+    private readonly IPackageRegistry _packageRegistry = packageRegistry;
     private readonly IPathManager _pathManager = pathManager;
     private readonly RuntimeConfig _runtimeConfig = runtimeConfig;
 
@@ -25,10 +27,10 @@ public partial class Lip(
 
         PathManager pathManager = new(context.FileSystem, runtimeConfig.Cache, context.WorkingDir);
         CacheManager cacheManager = new(context, pathManager, gitHubProxies, goModuleProxies);
-        PackageManager packageManager = new(context, cacheManager, pathManager, gitHubProxies, goModuleProxies);
-        PackageRegistry packageRegistry = new(packageManager);
+        PackageManager packageManager = new(context, cacheManager, pathManager);
+        PackageRegistry packageRegistry = new(context, cacheManager, pathManager, gitHubProxies, goModuleProxies);
         DependencySolver dependencySolver = new(context, packageRegistry);
 
-        return new Lip(runtimeConfig, context, cacheManager, dependencySolver, packageManager, pathManager);
+        return new Lip(runtimeConfig, context, cacheManager, dependencySolver, packageManager, packageRegistry, pathManager);
     }
 }

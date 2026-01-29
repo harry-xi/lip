@@ -1,5 +1,6 @@
 using Flurl;
 using Lip.Core;
+using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
@@ -15,6 +16,7 @@ public class LipInstallTests
     private readonly Mock<IContext> _contextMock = new();
     private readonly Mock<IDependencySolver> _dependencySolverMock = new();
     private readonly Mock<IPackageManager> _packageManagerMock = new();
+    private readonly Mock<IPackageRegistry> _packageRegistryMock = new();
     private readonly Mock<IPathManager> _pathManagerMock = new();
     private readonly RuntimeConfig _runtimeConfig = new();
     private readonly MockFileSystem _fileSystem = new();
@@ -35,6 +37,7 @@ public class LipInstallTests
             _cacheManagerMock.Object,
             _dependencySolverMock.Object,
             _packageManagerMock.Object,
+            _packageRegistryMock.Object,
             _pathManagerMock.Object);
     }
 
@@ -111,7 +114,7 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
             .ReturnsAsync(lockedPackage);
 
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
@@ -155,7 +158,7 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
             .ReturnsAsync(lockedPackage);
 
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
@@ -201,7 +204,7 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageFromLock(existingPkgId))
              .ReturnsAsync(existingPkg);
 
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(existingPkgId))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(existingPkgId))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
@@ -241,7 +244,7 @@ public class LipInstallTests
              .ReturnsAsync(pkgOld);
 
         // User Input Resolution Mocking
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-a")))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-a")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Identifier.ToString() == "github.com/test/pkg-a")))
             .ReturnsAsync(new Mock<IFileSource>().Object);
@@ -375,7 +378,7 @@ public class LipInstallTests
 
         // Mock generic setups for valid install flow
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.IsAny<PackageIdentifier>()))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
              .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
              .ReturnsAsync(new Mock<IFileSource>().Object);
@@ -410,7 +413,7 @@ public class LipInstallTests
 
         // Mock setup
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.IsAny<PackageIdentifier>()))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
              .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
              .ReturnsAsync(new Mock<IFileSource>().Object);
@@ -481,7 +484,7 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
 
         // Return empty list implies package not found remotely
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.IsAny<PackageIdentifier>()))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
              .ReturnsAsync(new List<SemVersion>());
 
         // Act & Assert
@@ -567,7 +570,7 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageFromLock(pkgBOld.Specifier.Identifier)).ReturnsAsync(pkgBOld);
 
         // Remote B (new)
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-b")))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-b")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
              .ReturnsAsync(new Mock<IFileSource>().Object);
@@ -620,7 +623,7 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageFromLock(pkgBLocked.Specifier.Identifier)).ReturnsAsync(pkgBLocked);
 
         // Setup A
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-a")))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-a")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Identifier.ToString() == "github.com/test/pkg-a")))
              .ReturnsAsync(new Mock<IFileSource>().Object);
@@ -669,7 +672,7 @@ public class LipInstallTests
         var sourceA = new Mock<IFileSource>();
         var sourceB = new Mock<IFileSource>();
 
-        _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.IsAny<PackageIdentifier>()))
+        _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
              .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Identifier.ToString() == "github.com/test/pkg-a")))

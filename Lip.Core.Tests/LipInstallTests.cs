@@ -250,8 +250,8 @@ public class LipInstallTests
 
         // Dependency Resolution Result
         // Should return pkg-a and pkg-b (dependency of a)
-        var pkgA = new PackageSpecifier { ToothPath = "github.com/test/pkg-a", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" };
-        var pkgB = new PackageSpecifier { ToothPath = "github.com/test/pkg-b", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" };
+        var pkgA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
+        var pkgB = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-b", ""), SemVersion.Parse("1.0.0"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(
             It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(),
@@ -342,7 +342,7 @@ public class LipInstallTests
 
         // Identify dependency solver call
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
-             .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier { ToothPath = "github.com/test/local-pkg", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" } });
+             .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/local-pkg", ""), SemVersion.Parse("1.0.0")) });
 
         // Mock caching (GetPackageFileSource needs to return something for the result of dependency resolution)
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
@@ -382,7 +382,7 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
-        var pkgA = new PackageSpecifier { ToothPath = "github.com/test/pkg-a", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" };
+        var pkgA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { pkgA });
 
@@ -454,7 +454,7 @@ public class LipInstallTests
              .ReturnsAsync(CreateManifest("pkg-spec", "1.2.3"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
-             .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier { ToothPath = "github.com/test/pkg-spec", Version = SemVersion.Parse("1.2.3"), VariantLabel = "" } });
+             .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-spec", ""), SemVersion.Parse("1.2.3")) });
 
         // Act
         await _lip.Install(userInput, args);
@@ -527,7 +527,7 @@ public class LipInstallTests
 
         // Expect default variant label.
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
-             .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier { ToothPath = "github.com/test/archive-pkg", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" } });
+             .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/archive-pkg", ""), SemVersion.Parse("1.0.0")) });
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
             .ReturnsAsync(new Mock<IFileSource>().Object);
@@ -628,8 +628,8 @@ public class LipInstallTests
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
         // Resolution returns A and B
-        var specA = new PackageSpecifier { ToothPath = "github.com/test/pkg-a", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" };
-        var specB = new PackageSpecifier { ToothPath = "github.com/test/pkg-b", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" };
+        var specA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
+        var specB = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-b", ""), SemVersion.Parse("1.0.0"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });
@@ -683,8 +683,8 @@ public class LipInstallTests
              .ReturnsAsync(CreateManifest("pkg-b", "1.0.0"));
 
         // Resolution returns A and B (B is dependency of A)
-        var specA = new PackageSpecifier { ToothPath = "github.com/test/pkg-a", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" };
-        var specB = new PackageSpecifier { ToothPath = "github.com/test/pkg-b", Version = SemVersion.Parse("1.0.0"), VariantLabel = "" };
+        var specA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
+        var specB = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-b", ""), SemVersion.Parse("1.0.0"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });

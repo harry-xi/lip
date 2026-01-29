@@ -50,7 +50,7 @@ public class DependencySolver(IContext context, IPackageRegistry packageRegistry
         var result = await Backtrack(candidates, selected, knownPackages, primaryIdentifiers);
 
         return result != null
-            ? [.. result.Select(static kv => PackageSpecifier.FromIdentifier(kv.Key, kv.Value))]
+            ? [.. result.Select(static kv => new PackageSpecifier(kv.Key, kv.Value))]
             : throw new InvalidOperationException("Cannot find a valid state to satisfy all dependencies.");
     }
 
@@ -94,7 +94,7 @@ public class DependencySolver(IContext context, IPackageRegistry packageRegistry
 
             try
             {
-                Dictionary<PackageIdentifier, SemVersionRange> dependencies = await GetDependencies(PackageSpecifier.FromIdentifier(nextId, version), _packageRegistry, knownPackages);
+                Dictionary<PackageIdentifier, SemVersionRange> dependencies = await GetDependencies(new PackageSpecifier(nextId, version), _packageRegistry, knownPackages);
 
                 foreach ((PackageIdentifier depId, SemVersionRange range) in dependencies)
                 {

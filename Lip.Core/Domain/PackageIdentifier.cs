@@ -1,112 +1,67 @@
 using Golang.Org.X.Mod;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Lip.Core;
 
-public record PackageIdentifier
+public partial record PackageIdentifier(string ToothPath, string VariantLabel = "")
 {
-    public required string ToothPath
-    {
-        get => _toothPath;
-        init
-        {
-            if (!IsValidToothPath(value))
-            {
-                throw new ArgumentException($"Invalid tooth path {value}.", nameof(ToothPath));
-            }
+    public string ToothPath { get; init; } = IsValidToothPath(ToothPath)
+        ? ToothPath
+        : throw new ArgumentException($"Invalid tooth path {ToothPath}.", nameof(ToothPath));
 
-            _toothPath = value;
-        }
-    }
-    private readonly string _toothPath = string.Empty;
-
-    public required string VariantLabel
-    {
-        get => _variantLabel;
-        init
-        {
-            if (!IsValidVariantLabel(value))
-            {
-                throw new ArgumentException($"Invalid variant label {value}.", nameof(VariantLabel));
-            }
-
-            _variantLabel = value;
-        }
-    }
-    private string _variantLabel = string.Empty;
-
-    public static PackageIdentifier Parse(string text)
-    {
-        if (!IsValid(text))
-        {
-            throw new ArgumentException($"Invalid package identifier '{text}'.", nameof(text));
-        }
-
-        string[] parts = text.Split('#');
-
-        return new PackageIdentifier
-        {
-            ToothPath = parts[0],
-            VariantLabel = parts.ElementAtOrDefault(1) ?? string.Empty
-        };
-    }
+    public string VariantLabel { get; init; } = IsValidVariantLabel(VariantLabel)
+        ? VariantLabel
+        : throw new ArgumentException($"Invalid variant label {VariantLabel}.", nameof(VariantLabel));
 
     public override string ToString()
     {
         return $"{ToothPath}{(VariantLabel != string.Empty ? "#" : string.Empty)}{VariantLabel}";
     }
 
-
-    /// <summary>
-    /// Checks if the package identifier is valid.
-    /// </summary>
-    /// <param name="packageIdentifier">The package identifier to validate.</param>
-    /// <returns>True if the package identifier is valid; otherwise, false.</returns>
-    public static bool IsValid(string packageIdentifier)
+    public static PackageIdentifier Parse(string text)
     {
-        // Split the package specifier into tooth path and variant label.
-        string[] toothPathAndVariantLabel = packageIdentifier.Split('#');
+        if (!TryParse(text, out PackageIdentifier? result))
+        {
+            throw new FormatException($"Invalid package identifier '{text}'.");
+        }
+        return result;
+    }
 
-        if (toothPathAndVariantLabel.Length > 2)
+    public static bool TryParse(string text, [NotNullWhen(true)] out PackageIdentifier? result)
+    {
+        result = null;
+        Match match = IdentifierRegex().Match(text);
+        if (!match.Success)
         {
             return false;
         }
 
-        string toothPath = toothPathAndVariantLabel[0];
-        if (!IsValidToothPath(toothPath))
+        string toothPath = match.Groups["path"].Value;
+        string variantLabel = match.Groups["label"].Value;
+
+        if (!IsValidToothPath(toothPath) || !IsValidVariantLabel(variantLabel))
         {
             return false;
         }
 
-        if (toothPathAndVariantLabel.Length == 2)
-        {
-            string variantLabel = toothPathAndVariantLabel[1];
-            if (!IsValidVariantLabel(variantLabel))
-            {
-                return false;
-            }
-        }
-
+        result = new PackageIdentifier(toothPath, variantLabel);
         return true;
     }
 
-    /// <summary>
-    /// Checks if the tooth path is valid.
-    /// </summary>
-    /// <param name="toothPath">The tooth path to validate.</param>
-    /// <returns>True if the tooth path is valid; otherwise, false.</returns>
+    [GeneratedRegex(@"^(?<path>[^#]+)(?:#(?<label>[^#]*))?$")]
+    private static partial Regex IdentifierRegex();
+
     public static bool IsValidToothPath(string toothPath)
     {
         return Module.CheckPath(toothPath) is null;
     }
 
-    /// <summary>
-    /// Checks if the variant label is valid.
-    /// </summary>
-    /// <param name="variantLabel">The variant label to validate.</param>
-    /// <returns>True if the variant label is valid; otherwise, false.</returns>
     public static bool IsValidVariantLabel(string variantLabel)
     {
-        return new Regex("^([a-z0-9]+(_[a-z0-9]+)*)?$").IsMatch(variantLabel);
+        return VariantLabelRegex().IsMatch(variantLabel);
     }
+
+    [GeneratedRegex("^([a-z0-9]+(_[a-z0-9]+)*)?$")]
+    private static partial Regex VariantLabelRegex();
 }

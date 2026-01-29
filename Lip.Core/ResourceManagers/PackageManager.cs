@@ -202,12 +202,7 @@ public class PackageManager(
 
         PackageManifest packageManifest = await PackageManifest.FromStream(packageManifestFileStream);
 
-        PackageSpecifier packageSpecifier = new()
-        {
-            ToothPath = packageManifest.ToothPath,
-            Version = packageManifest.Version,
-            VariantLabel = variantLabel
-        };
+        PackageSpecifier packageSpecifier = new(new PackageIdentifier(packageManifest.ToothPath, variantLabel), packageManifest.Version);
 
         _context.Logger.LogDebug("Installing package {packageSpecifier}...", packageSpecifier);
 

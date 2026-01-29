@@ -15,12 +15,7 @@ public record PackageLock
 
         public required PackageManifest Manifest { private get; init; }
 
-        public PackageSpecifier Specifier => new()
-        {
-            ToothPath = Manifest.ToothPath,
-            VariantLabel = VariantLabel,
-            Version = Manifest.Version,
-        };
+        public PackageSpecifier Specifier => new(new PackageIdentifier(Manifest.ToothPath, VariantLabel), Manifest.Version);
 
         public PackageManifest.Variant Variant => Manifest.GetVariant(
             VariantLabel,

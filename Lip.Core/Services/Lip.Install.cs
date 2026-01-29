@@ -37,12 +37,7 @@ public partial class Lip
 
         public required PackageManifest Manifest { get; init; }
 
-        public PackageSpecifier Specifier => new()
-        {
-            ToothPath = Manifest.ToothPath,
-            VariantLabel = VariantLabel,
-            Version = Manifest.Version
-        };
+        public PackageSpecifier Specifier => new(new PackageIdentifier(Manifest.ToothPath, VariantLabel), Manifest.Version);
 
         public required string VariantLabel { get; init; }
     }
@@ -401,7 +396,7 @@ public partial class Lip
 
             if (packageVersionList.Any())
             {
-                PackageSpecifier packageSpecifier = PackageSpecifier.FromIdentifier(packageIdentifier, packageVersionList.First());
+                PackageSpecifier packageSpecifier = new(packageIdentifier, packageVersionList.First());
 
                 IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 

@@ -176,7 +176,7 @@ public class PackageManagerTests
             { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(TestExtensions.ToJsonBytes(s_examplePackageLock)) }
         });
 
-        var specifier = new PackageIdentifier { ToothPath = expectedPackage.ToothPath, VariantLabel = "variant" };
+        var specifier = new PackageIdentifier(expectedPackage.ToothPath, "variant");
 
         // Act.
         var pkg = await packageManager.GetPackageFromLock(specifier);
@@ -198,7 +198,7 @@ public class PackageManagerTests
             { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(TestExtensions.ToJsonBytes(s_examplePackageLock)) }
         });
 
-        var specifier = new PackageIdentifier { ToothPath = "example.com/pkg1", VariantLabel = "variant" };
+        var specifier = new PackageIdentifier("example.com/pkg1", "variant");
 
         // Act.
         var pkg = await packageManager.GetPackageFromLock(specifier);
@@ -229,12 +229,9 @@ public class PackageManagerTests
         var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        var pkg = await packageManager.GetPackageManifestFromCache(new PackageSpecifier
-        {
-            ToothPath = expectedPackage.ToothPath,
-            VariantLabel = "",
-            Version = expectedPackage.Version
-        });
+        var pkg = await packageManager.GetPackageManifestFromCache(new PackageSpecifier(
+            new PackageIdentifier(expectedPackage.ToothPath, ""),
+            expectedPackage.Version));
 
         // Assert.
         // Assert.
@@ -255,12 +252,9 @@ public class PackageManagerTests
         var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        var pkg = await packageManager.GetPackageManifestFromCache(new PackageSpecifier
-        {
-            ToothPath = s_examplePackage_1.ToothPath,
-            VariantLabel = "",
-            Version = s_examplePackage_1.Version
-        });
+        var pkg = await packageManager.GetPackageManifestFromCache(new PackageSpecifier(
+            new PackageIdentifier(s_examplePackage_1.ToothPath, ""),
+            s_examplePackage_1.Version));
 
         // Assert.
         Assert.Null(pkg);
@@ -336,7 +330,7 @@ public class PackageManagerTests
         using var httpTest = new HttpTest();
         httpTest.RespondWith(versionFile);
 
-        var result = await packageManager.GetPackageRemoteVersions(new PackageIdentifier { ToothPath = "example.com/user/repo", VariantLabel = "" });
+        var result = await packageManager.GetPackageRemoteVersions(new PackageIdentifier("example.com/user/repo", ""));
 
         // Assert.
         Assert.Equal(expectedVersions, result);
@@ -373,11 +367,7 @@ public class PackageManagerTests
         var packageManager = new PackageManager(context.Object, cacheManager, pathManager, [], []);
 
         // Act.
-        var result = await packageManager.GetPackageRemoteVersions(new PackageIdentifier
-        {
-            ToothPath = "example.com/user/repo",
-            VariantLabel = ""
-        });
+        var result = await packageManager.GetPackageRemoteVersions(new PackageIdentifier("example.com/user/repo", ""));
 
         // Assert.
         Assert.Equal(expectedVersions, result);
@@ -387,11 +377,7 @@ public class PackageManagerTests
     public async Task GetPackageRemoteVersions_WithGoModuleProxyFailed_And_NoGit()
     {
         // Arrange.
-        var packageSpecifier = new PackageIdentifier
-        {
-            ToothPath = "example.com/user/repo",
-            VariantLabel = ""
-        };
+        var packageSpecifier = new PackageIdentifier("example.com/user/repo", "");
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
 
@@ -1032,11 +1018,7 @@ public class PackageManagerTests
         await packageManager.InstallPackage(fileSource, "", false, true, false, false);
 
         // Act.
-        await packageManager.UninstallPackage(new PackageIdentifier()
-        {
-            VariantLabel = manifest.Variants.First().Label,
-            ToothPath = manifest.ToothPath,
-        }, dryRun, ignoreScripts);
+        await packageManager.UninstallPackage(new PackageIdentifier(manifest.ToothPath, manifest.Variants.First().Label), dryRun, ignoreScripts);
 
         // Assert.
         // == Check Filse ==
@@ -1101,11 +1083,7 @@ public class PackageManagerTests
         var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        await packageManager.UninstallPackage(new PackageIdentifier()
-        {
-            VariantLabel = "",
-            ToothPath = "exampel.com/pkg",
-        }, true, true);
+        await packageManager.UninstallPackage(new PackageIdentifier("exampel.com/pkg", ""), true, true);
 
         // Assert.
         // ?

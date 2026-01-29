@@ -485,11 +485,7 @@ public class PackageManifestTests
             Dependencies = new()
             {
                 [
-                    new()
-                    {
-                        ToothPath = "exmaple.com/pkg",
-                        VariantLabel = string.Empty
-                    }
+                    new PackageIdentifier("exmaple.com/pkg", string.Empty)
                 ] = SemVersionRange.Parse("1.0.0")
             },
             Assets = [],
@@ -643,11 +639,7 @@ public class PackageManifestTests
                 Dependencies = new()
                 {
                     [
-                        new()
-                        {
-                            ToothPath = "example.com/pkg",
-                            VariantLabel = string.Empty
-                        }
+                        new PackageIdentifier("example.com/pkg", string.Empty)
                     ] = SemVersionRange.Parse("*")
                 },
                 Assets = [

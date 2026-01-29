@@ -10,11 +10,7 @@ public class PackageIdentifierTests
     public void Constructor_ValidValues_ReturnsCorrectInstance()
     {
         // Arrange & Act.
-        PackageIdentifier identifier = new()
-        {
-            ToothPath = _defaultToothPath,
-            VariantLabel = _defaultVariantLabel,
-        };
+        PackageIdentifier identifier = new(_defaultToothPath, _defaultVariantLabel);
 
         PackageIdentifier newIdentifier = identifier with { };
 
@@ -27,11 +23,7 @@ public class PackageIdentifierTests
     public void Constructor_InvalidToothPath_ThrowsArgumentException()
     {
         // Arrange & Act & Assert.
-        ArgumentException exception = Assert.Throws<ArgumentException>(() => new PackageIdentifier
-        {
-            ToothPath = "invalid tooth path",
-            VariantLabel = _defaultVariantLabel,
-        });
+        ArgumentException exception = Assert.Throws<ArgumentException>(() => new PackageIdentifier("invalid tooth path", _defaultVariantLabel));
         Assert.Equal("ToothPath", exception.ParamName);
     }
 
@@ -39,11 +31,7 @@ public class PackageIdentifierTests
     public void Constructor_InvalidVariantLabel_ThrowsArgumentException()
     {
         // Arrange & Act & Assert.
-        ArgumentException exception = Assert.Throws<ArgumentException>(() => new PackageIdentifier
-        {
-            ToothPath = _defaultToothPath,
-            VariantLabel = "invalid-variant",
-        });
+        ArgumentException exception = Assert.Throws<ArgumentException>(() => new PackageIdentifier(_defaultToothPath, "invalid-variant"));
         Assert.Equal("VariantLabel", exception.ParamName);
     }
 
@@ -70,25 +58,20 @@ public class PackageIdentifierTests
     }
 
     [Fact]
-    public void Parse_InvalidText_ThrowsArgumentException()
+    public void Parse_InvalidText_ThrowsFormatException()
     {
         // Arrange.
         string text = "invalid text";
 
         // Act & Assert.
-        ArgumentException exception = Assert.Throws<ArgumentException>(() => PackageIdentifier.Parse(text));
-        Assert.Equal("text", exception.ParamName);
+        Assert.Throws<FormatException>(() => PackageIdentifier.Parse(text));
     }
 
     [Fact]
     public void ToString_WithVariantLabel_ReturnsCorrectText()
     {
         // Arrange.
-        PackageIdentifier identifier = new()
-        {
-            ToothPath = _defaultToothPath,
-            VariantLabel = _defaultVariantLabel,
-        };
+        PackageIdentifier identifier = new(_defaultToothPath, _defaultVariantLabel);
 
         // Act.
         string text = identifier.ToString();
@@ -101,11 +84,7 @@ public class PackageIdentifierTests
     public void ToString_WithoutVariantLabel_ReturnsCorrectText()
     {
         // Arrange
-        PackageIdentifier identifier = new()
-        {
-            ToothPath = _defaultToothPath,
-            VariantLabel = string.Empty,
-        };
+        PackageIdentifier identifier = new(_defaultToothPath, string.Empty);
 
         // Act
         string text = identifier.ToString();
@@ -118,9 +97,9 @@ public class PackageIdentifierTests
     [Theory]
     [InlineData("example.com/pkg")]
     [InlineData("example.com/pkg#variant")]
-    public void IsValid_ValidIdentifier_ReturnsTrue(string identifier)
+    public void TryParse_ValidIdentifier_ReturnsTrue(string identifier)
     {
-        Assert.True(PackageIdentifier.IsValid(identifier));
+        Assert.True(PackageIdentifier.TryParse(identifier, out _));
     }
 
     [Theory]
@@ -128,9 +107,9 @@ public class PackageIdentifierTests
     [InlineData("example.com//pkg")]
     [InlineData("example.com/pkg#invalid!variant")]
     [InlineData("example.com/pkg#invalid#variant")]
-    public void IsValid_InvalidIdentifier_ReturnsFalse(string identifier)
+    public void TryParse_InvalidIdentifier_ReturnsFalse(string identifier)
     {
-        Assert.False(PackageIdentifier.IsValid(identifier));
+        Assert.False(PackageIdentifier.TryParse(identifier, out _));
     }
 
     [Theory]

@@ -108,12 +108,7 @@ public class PackageLockTests
         }
         """;
 
-    private static readonly PackageSpecifier _defaultSpecifier = new()
-    {
-        ToothPath = "example.com/pkg",
-        VariantLabel = _defaultVariantLabel,
-        Version = new(1, 0, 0)
-    };
+    private static readonly PackageSpecifier _defaultSpecifier = new(new PackageIdentifier("example.com/pkg", _defaultVariantLabel), new(1, 0, 0));
 
     private const string _defaultVariantLabel = "variant";
 

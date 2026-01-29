@@ -1,3 +1,4 @@
+using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Semver;
 using System.Runtime.InteropServices;
@@ -11,11 +12,10 @@ public interface IDependencySolver
         IEnumerable<PackageLock.Package> knownPackages);
 }
 
-public class DependencySolver(IContext context, IPackageManager packageManager) : IDependencySolver
+public class DependencySolver(IContext context, IPackageRegistry packageRegistry) : IDependencySolver
 {
     private readonly IContext _context = context;
-    private readonly IPackageManager _packageManager = packageManager;
-
+    private readonly IPackageRegistry _packageRegistry = packageRegistry;
 
     public async Task<List<PackageSpecifier>?> ResolveDependencies(
         IEnumerable<(PackageIdentifier Identifier, SemVersionRange VersionRange)> primaryPackageRequirements,
@@ -94,7 +94,7 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
 
             try
             {
-                Dictionary<PackageIdentifier, SemVersionRange> dependencies = await GetDependencies(PackageSpecifier.FromIdentifier(nextId, version), _packageManager, knownPackages);
+                Dictionary<PackageIdentifier, SemVersionRange> dependencies = await GetDependencies(PackageSpecifier.FromIdentifier(nextId, version), _packageRegistry, knownPackages);
 
                 foreach ((PackageIdentifier depId, SemVersionRange range) in dependencies)
                 {
@@ -181,7 +181,7 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
 
         try
         {
-            List<SemVersion> remoteVersions = await _packageManager.GetPackageRemoteVersions(id);
+            List<SemVersion> remoteVersions = await _packageRegistry.GetVersions(id);
             if (remoteVersions != null)
             {
                 result.UnionWith(remoteVersions);
@@ -197,7 +197,7 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
 
     private static async Task<Dictionary<PackageIdentifier, SemVersionRange>> GetDependencies(
         PackageSpecifier packageSpecifier,
-        IPackageManager packageManager,
+        IPackageRegistry packageRegistry,
         IEnumerable<PackageLock.Package> knownPackages
     )
     {
@@ -206,7 +206,7 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
             return knownPkg.Variant.Dependencies;
         }
 
-        PackageManifest? manifest = await packageManager.GetPackageManifestFromCache(packageSpecifier) ?? throw new InvalidOperationException($"Failed to get package manifest for {packageSpecifier}.");
+        PackageManifest? manifest = await packageRegistry.GetManifest(packageSpecifier) ?? throw new InvalidOperationException($"Failed to get package manifest for {packageSpecifier}.");
         PackageManifest.Variant? variant = manifest.GetVariant(packageSpecifier.VariantLabel, RuntimeInformation.RuntimeIdentifier);
         return variant == null
             ? throw new InvalidOperationException($"Variant {packageSpecifier.VariantLabel} not found for {packageSpecifier}.")

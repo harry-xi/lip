@@ -2,24 +2,25 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.Runtime.InteropServices;
+using Lip.Core.PackageRegistries;
 
 namespace Lip.Core.Tests;
 
 public class DependencySolverTests
 {
     private readonly Mock<IContext> _mockContext;
-    private readonly Mock<IPackageManager> _mockPackageManager;
+    private readonly Mock<IPackageRegistry> _mockPackageRegistry;
     private readonly DependencySolver _solver;
 
     public DependencySolverTests()
     {
         _mockContext = new Mock<IContext>();
-        _mockPackageManager = new Mock<IPackageManager>();
+        _mockPackageRegistry = new Mock<IPackageRegistry>();
 
         // Mock logger
         _mockContext.Setup(c => c.Logger).Returns(new Mock<ILogger>().Object);
 
-        _solver = new DependencySolver(_mockContext.Object, _mockPackageManager.Object);
+        _solver = new DependencySolver(_mockContext.Object, _mockPackageRegistry.Object);
     }
 
     private static (PackageManifest Manifest, PackageLock.Package Package) CreatePackage(string toothPath, string version, string variantLabel = "", Dictionary<string, string>? dependencies = null)
@@ -73,7 +74,7 @@ public class DependencySolverTests
     private void SetupManifest(string toothPath, string version, string variantLabel = "", Dictionary<string, string>? dependencies = null)
     {
         var (manifest, pkg) = CreatePackage(toothPath, version, variantLabel, dependencies);
-        _mockPackageManager.Setup(pm => pm.GetPackageManifestFromCache(It.Is<PackageSpecifier>(s =>
+        _mockPackageRegistry.Setup(pm => pm.GetManifest(It.Is<PackageSpecifier>(s =>
             s.ToString() == pkg.Specifier.ToString())))
             .ReturnsAsync(manifest);
     }
@@ -81,7 +82,7 @@ public class DependencySolverTests
     private void SetupRemoteVersions(string toothPath, string variantLabel, params string[] versions)
     {
         var id = PackageIdentifier.Parse(string.IsNullOrEmpty(variantLabel) ? toothPath : $"{toothPath}#{variantLabel}");
-        _mockPackageManager.Setup(pm => pm.GetPackageRemoteVersions(id))
+        _mockPackageRegistry.Setup(pm => pm.GetVersions(id))
             .ReturnsAsync(versions.Select(v => SemVersion.Parse(v)).ToList());
     }
 
@@ -199,8 +200,8 @@ public class DependencySolverTests
         Assert.NotNull(result);
         Assert.Contains(result, p => p.ToString() == "example.com/b@1.0.0");
 
-        // Verify GetPackageManifestFromCache was NOT called for B
-        _mockPackageManager.Verify(pm => pm.GetPackageManifestFromCache(It.Is<PackageSpecifier>(s => s.ToString() == "example.com/b@1.0.0")), Times.Never);
+        // Verify GetPackageManifest was NOT called for B
+        _mockPackageRegistry.Verify(pm => pm.GetManifest(It.Is<PackageSpecifier>(s => s.ToString() == "example.com/b@1.0.0")), Times.Never);
     }
 
     [Fact]
@@ -245,7 +246,7 @@ public class DependencySolverTests
         var (_, knownB) = CreatePackage("example.com/b", "1.0.0");
 
         // Mock remote fetch failure for B, but success for A
-        _mockPackageManager.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToothPath == "example.com/b")))
+        _mockPackageRegistry.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToothPath == "example.com/b")))
             .ThrowsAsync(new HttpRequestException("Network failure"));
         SetupRemoteVersions("example.com/a", "", "1.0.0"); // Re-setup A
 
@@ -277,7 +278,7 @@ public class DependencySolverTests
             Variants = [] // Empty variants
         };
 
-        _mockPackageManager.Setup(pm => pm.GetPackageManifestFromCache(It.Is<PackageSpecifier>(s => s.ToString() == "example.com/b@1.0.0")))
+        _mockPackageRegistry.Setup(pm => pm.GetManifest(It.Is<PackageSpecifier>(s => s.ToString() == "example.com/b@1.0.0")))
             .ReturnsAsync(manifestB);
 
         // Act & Assert

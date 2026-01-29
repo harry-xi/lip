@@ -20,13 +20,14 @@ public class LipInstallTests
     private readonly MockFileSystem _fileSystem = new();
     private readonly Mock<ILogger> _loggerMock = new();
 
+    private readonly string _workingDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"C:\app" : "/app";
     private readonly Lip _lip;
 
     public LipInstallTests()
     {
         _contextMock.Setup(c => c.FileSystem).Returns(_fileSystem);
         _contextMock.Setup(c => c.Logger).Returns(_loggerMock.Object);
-        _pathManagerMock.Setup(p => p.WorkingDir).Returns("/app");
+        _pathManagerMock.Setup(p => p.WorkingDir).Returns(_workingDir);
 
         _lip = new Lip(
             _runtimeConfig,
@@ -107,6 +108,8 @@ public class LipInstallTests
 
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
             .ReturnsAsync(new PackageLock { Packages = [lockedPackage] });
+        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
+            .ReturnsAsync(lockedPackage);
 
         _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
@@ -116,8 +119,11 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("new-pkg", "2.0.0"));
 
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+            .ReturnsAsync(new List<PackageSpecifier>());
+
         // Act
-        try { await _lip.Install(userInput, args); } catch { }
+        await _lip.Install(userInput, args);
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
@@ -146,6 +152,8 @@ public class LipInstallTests
 
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
             .ReturnsAsync(new PackageLock { Packages = [lockedPackage] });
+        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
+            .ReturnsAsync(lockedPackage);
 
         _packageManagerMock.Setup(pm => pm.GetPackageRemoteVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
@@ -155,8 +163,11 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("new-pkg", "2.0.0"));
 
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+            .ReturnsAsync(new List<PackageSpecifier>());
+
         // Act
-        try { await _lip.Install(userInput, args); } catch { }
+        await _lip.Install(userInput, args);
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
@@ -198,22 +209,11 @@ public class LipInstallTests
         _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("existing-pkg", "1.0.0"));
 
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+            .ReturnsAsync(new List<PackageSpecifier>());
+
         // Act & Assert
-        try
-        {
-            await _lip.Install(userInput, args);
-        }
-        catch (InvalidOperationException ex)
-        {
-            if (ex.Message.Contains("already installed"))
-            {
-                Assert.Fail("Should not throw InvalidOperationException for existing package.");
-            }
-        }
-        catch
-        {
-            // Ignore other exceptions
-        }
+        await _lip.Install(userInput, args);
     }
 
     [Fact]
@@ -332,8 +332,8 @@ public class LipInstallTests
              .ReturnsAsync(new PackageLock { Packages = [] });
 
         // Mock FileSystem for directory check
-        // The path will be combined with WorkingDir (/app)
-        _fileSystem.AddDirectory("/app/local-pkg");
+        // The path will be combined with WorkingDir
+        _fileSystem.AddDirectory(Path.Combine(_workingDir, "local-pkg"));
 
         // Mock Manifest for local directory
         // GetPackageManifestFromFileSource should be called with DirectoryFileSource
@@ -519,7 +519,7 @@ public class LipInstallTests
             0x00, 0x00, 0x00, 0x00, // Uncompressed size
             0x00, 0x00, 0x00, 0x00  // Filename length / Extra field length
         };
-        _fileSystem.AddFile("/app/package.zip", new MockFileData(zipBytes));
+        _fileSystem.AddFile(Path.Combine(_workingDir, "package.zip"), new MockFileData(zipBytes));
 
         // Mock Manifest
         _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<ArchiveFileSource>()))

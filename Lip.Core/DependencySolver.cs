@@ -73,16 +73,11 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
         // - Primary packages: Prefer lower versions (Oldest)
         // - Dependencies: Prefer higher versions (Newest)
         bool isPrimary = primaryIdentifiers.Contains(nextId);
-        List<SemVersion> sortedVersions;
+        List<SemVersion> sortedVersions = isPrimary
+            ? [.. versions.OrderBy(v => v, SemVersion.PrecedenceComparer)]
+            : [.. versions.OrderByDescending(v => v, SemVersion.PrecedenceComparer)];
 
-        if (isPrimary)
-        {
-            sortedVersions = [.. versions.OrderBy(v => v, SemVersion.PrecedenceComparer)];
-        }
-        else
-        {
-            sortedVersions = [.. versions.OrderByDescending(v => v, SemVersion.PrecedenceComparer)];
-        }
+        Exception? lastRelevantException = null;
 
         foreach (SemVersion? version in sortedVersions)
         {
@@ -141,9 +136,16 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
                     }
                 }
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
-                // If fetching dependencies fails, this branch is invalid
+                // Capture exceptions related to missing manifests/variants for better error reporting
+                lastRelevantException = ex;
+                isValidBranch = false;
+            }
+            catch (Exception ex) when (ex is System.Net.Http.HttpRequestException || ex is System.IO.IOException)
+            {
+                // Network or I/O errors - capture but continue trying other versions
+                lastRelevantException ??= ex;
                 isValidBranch = false;
             }
 
@@ -156,6 +158,14 @@ public class DependencySolver(IContext context, IPackageManager packageManager) 
                     return result;
                 }
             }
+        }
+
+        // If all branches failed and we have a relevant exception, include it in the error
+        if (lastRelevantException != null)
+        {
+            throw new InvalidOperationException(
+                $"Cannot find a valid state to satisfy all dependencies. Last error: {lastRelevantException.Message}",
+                lastRelevantException);
         }
 
         return null;

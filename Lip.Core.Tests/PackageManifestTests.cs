@@ -764,4 +764,59 @@ public class PackageManifestTests
         // Assert.
         Assert.Equal(_outputJson.ReplaceLineEndings(), Encoding.UTF8.GetString(stream.ToArray()));
     }
+
+
+    [Theory]
+    [InlineData("script")]
+    [InlineData("script_name")]
+    public void IsValidScriptName_CommonInput_ReturnsTrue(string scriptName)
+    {
+        Assert.True(PackageManifest.IsValidScriptName(scriptName));
+    }
+
+    [Theory]
+    [InlineData("script-name")]
+    [InlineData("script name")]
+    [InlineData("script_name!")]
+    public void IsValidScriptName_InvalidInput_ReturnsFalse(string scriptName)
+    {
+        Assert.False(PackageManifest.IsValidScriptName(scriptName));
+    }
+
+    [Theory]
+    [InlineData("tag")]
+    [InlineData("tag:subtag")]
+    public void IsValidTag_CommonInput_ReturnsTrue(string tag)
+    {
+        Assert.True(PackageManifest.IsValidTag(tag));
+    }
+
+    [Theory]
+    [InlineData("tag name")]
+    [InlineData("tag!")]
+    public void IsValidTag_InvalidInput_ReturnsFalse(string tag)
+    {
+        Assert.False(PackageManifest.IsValidTag(tag));
+    }
+
+    [Theory]
+    [InlineData("folder/subfolder")]
+    [InlineData("path")]
+    public void IsValidPlacementDest_SafePath_ReturnsTrue(string path)
+    {
+        Assert.True(PackageManifest.IsValidPlacementDest(path));
+    }
+
+    [Fact]
+    public void IsValidPlacementDest_PathWithDoubleDots_ReturnsFalse()
+    {
+        Assert.False(PackageManifest.IsValidPlacementDest("folder/../escape"));
+    }
+
+    [Fact]
+    public void IsValidPlacementDest_PathWithRoot_ReturnsFalse()
+    {
+        string path = OperatingSystem.IsWindows() ? "C:\\root" : "/root";
+        Assert.False(PackageManifest.IsValidPlacementDest(path));
+    }
 }

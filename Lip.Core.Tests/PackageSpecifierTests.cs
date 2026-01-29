@@ -171,4 +171,23 @@ public class PackageSpecifierTests
         // Assert
         Assert.Equal($"{_defaultToothPath}@{_defaultVersion}", specifierText);
     }
+
+
+    [Theory]
+    [InlineData("example.com/pkg#variant@1.0.0")]
+    [InlineData("example.com/pkg@2.0.0")]
+    public void IsValid_ValidSpecifier_ReturnsTrue(string specifier)
+    {
+        Assert.True(PackageSpecifier.IsValid(specifier));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("example.com/pkg")]
+    [InlineData("example.com/pkg#variant@invalid")]
+    [InlineData("invalid//pkg#variant@1.0.0")]
+    public void IsValid_InvalidSpecifier_ReturnsFalse(string specifier)
+    {
+        Assert.False(PackageSpecifier.IsValid(specifier));
+    }
 }

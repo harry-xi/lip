@@ -7,6 +7,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+
 
 namespace Lip.Core;
 
@@ -42,7 +44,7 @@ public record PackageManifest
         public required List<string> Tags
         {
             get => _tags;
-            init => _tags = value.ConvertAll(tag => StringValidator.CheckTag(tag)
+            init => _tags = value.ConvertAll(tag => IsValidTag(tag)
                 ? tag
                 : throw new SchemaViolationException("info.tags[]", $"Tag '{tag}' is invalid."));
         }
@@ -66,7 +68,7 @@ public record PackageManifest
         public required string Dest
         {
             get => _dest;
-            init => _dest = StringValidator.CheckPlaceDestPath(value)
+            init => _dest = IsValidPlacementDest(value)
                 ? value
                 : throw new SchemaViolationException(
                     "variants[].assets[].placements[].dest",
@@ -97,7 +99,7 @@ public record PackageManifest
         {
             get => _additionalScripts;
             init => _additionalScripts = value.ToDictionary(
-                kvp => StringValidator.CheckScriptName(kvp.Key)
+                kvp => IsValidScriptName(kvp.Key)
                     ? kvp.Key
                     : throw new SchemaViolationException(
                         $"variants[].assets[].scripts.'{kvp.Key}'",
@@ -124,7 +126,7 @@ public record PackageManifest
         {
             get => _preserveFiles;
             init => _preserveFiles = value.ConvertAll(
-                preserveFile => StringValidator.CheckPlaceDestPath(preserveFile)
+                preserveFile => IsValidPlacementDest(preserveFile)
                     ? preserveFile
                     : throw new SchemaViolationException(
                         "variants[].preserve_files[]",
@@ -138,7 +140,7 @@ public record PackageManifest
         {
             get => _removeFiles;
             init => _removeFiles = value.ConvertAll(
-                removeFile => StringValidator.CheckPlaceDestPath(removeFile)
+                removeFile => IsValidPlacementDest(removeFile)
                     ? removeFile
                     : throw new SchemaViolationException(
                         "variants[].remove_file[]",
@@ -211,7 +213,7 @@ public record PackageManifest
     public required string ToothPath
     {
         get => _toothPath;
-        init => _toothPath = StringValidator.CheckToothPath(value)
+        init => _toothPath = PackageIdentifier.IsValidToothPath(value)
             ? value
             : throw new SchemaViolationException(
                 "tooth",
@@ -433,6 +435,47 @@ public record PackageManifest
         await using Utf8JsonWriter jsonWriter = new(stream, _jsonWriterOptions);
 
         jsonElement.WriteTo(jsonWriter);
+    }
+
+
+    /// <summary>
+    /// Checks if the tag is valid.
+    /// </summary>
+    /// <param name="tag">The tag to validate.</param>
+    /// <returns>True if the tag is valid; otherwise, false.</returns>
+    public static bool IsValidTag(string tag)
+    {
+        return new Regex("^[a-z0-9-]+(:[a-z0-9-]+)?$").IsMatch(tag);
+    }
+
+    /// <summary>
+    /// Checks if the script name is valid.
+    /// </summary>
+    /// <param name="scriptName">The script name to validate.</param>
+    /// <returns>True if the script name is valid; otherwise, false.</returns>
+    public static bool IsValidScriptName(string scriptName)
+    {
+        return new Regex("^[a-z0-9]+(_[a-z0-9]+)*$").IsMatch(scriptName);
+    }
+
+    /// <summary>
+    /// Checks if the path is safe to place files to.
+    /// </summary>
+    /// <param name="path">The path to validate.</param>
+    /// <returns>True if the path is safe to place files to; otherwise, false.</returns>
+    public static bool IsValidPlacementDest(string path)
+    {
+        if (Path.IsPathFullyQualified(path) || Path.IsPathRooted(path))
+        {
+            return false;
+        }
+
+        if (path.Contains(".."))
+        {
+            return false;
+        }
+
+        return true;
     }
 }
 

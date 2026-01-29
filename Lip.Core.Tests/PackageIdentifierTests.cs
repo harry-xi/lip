@@ -113,4 +113,67 @@ public class PackageIdentifierTests
         // Assert
         Assert.Equal(_defaultToothPath, text);
     }
+
+
+    [Theory]
+    [InlineData("example.com/pkg")]
+    [InlineData("example.com/pkg#variant")]
+    public void IsValid_ValidIdentifier_ReturnsTrue(string identifier)
+    {
+        Assert.True(PackageIdentifier.IsValid(identifier));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("example.com//pkg")]
+    [InlineData("example.com/pkg#invalid!variant")]
+    [InlineData("example.com/pkg#invalid#variant")]
+    public void IsValid_InvalidIdentifier_ReturnsFalse(string identifier)
+    {
+        Assert.False(PackageIdentifier.IsValid(identifier));
+    }
+
+    [Theory]
+    [InlineData("example123.example-domain/example-pkg.example_pkg~Example123")]
+    [InlineData("example.com/~a12")]
+    [InlineData("github.com/user/repo")]
+    public void IsValidToothPath_ValidPath_ReturnsTrue(string path)
+    {
+        Assert.True(PackageIdentifier.IsValidToothPath(path));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("-example.com/pkg")]
+    [InlineData("example.com//pkg")]
+    [InlineData("example.com/pkg/")]
+    [InlineData("example/pkg")]
+    [InlineData("Example.com/pkg")]
+    [InlineData("example\0.com/pkg")]
+    [InlineData("example.com/../pkg")]
+    [InlineData("example.com/.pkg")]
+    [InlineData("example.com/pkg.")]
+    [InlineData("example.com/p*kg")]
+    [InlineData("example.com/con.pkg")]
+    [InlineData("example.com/pkg~123")]
+    public void IsValidToothPath_InvalidPath_ReturnsFalse(string path)
+    {
+        Assert.False(PackageIdentifier.IsValidToothPath(path));
+    }
+
+    [Theory]
+    [InlineData("variant")]
+    [InlineData("variant_name")]
+    public void IsValidVariantLabel_ValidLabel_ReturnsTrue(string label)
+    {
+        Assert.True(PackageIdentifier.IsValidVariantLabel(label));
+    }
+
+    [Theory]
+    [InlineData("invalid-variant")]
+    [InlineData("invalid!variant")]
+    public void IsValidVariantLabel_InvalidLabel_ReturnsFalse(string label)
+    {
+        Assert.False(PackageIdentifier.IsValidVariantLabel(label));
+    }
 }

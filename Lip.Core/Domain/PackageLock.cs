@@ -31,7 +31,7 @@ public record PackageLock
             private get => _variantLabel;
             init
             {
-                if (!StringValidator.CheckVariantLabel(value))
+                if (!PackageIdentifier.IsValidVariantLabel(value))
                 {
                     throw new SchemaViolationException(
                         "packages[].variant_format",

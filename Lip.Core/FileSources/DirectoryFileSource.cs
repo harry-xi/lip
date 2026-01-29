@@ -33,7 +33,7 @@ public class DirectoryFileSource(IFileSystem fileSystem, string rootDirPath) : I
     {
         await Task.CompletedTask; // To avoid warning.
 
-        if (!StringValidator.CheckPlaceDestPath(key))
+        if (!PackageManifest.IsValidPlacementDest(key))
         {
             return null;
         }

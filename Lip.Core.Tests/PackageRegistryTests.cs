@@ -42,7 +42,7 @@ public class PackageRegistryTests
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
             {
                 Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Fpkg", "v1.0.0", "tooth.json"),
-                new MockFileData(TestExtensions.ToJsonBytes(expectedPackage))
+                new MockFileData(LipTestExtensions.ToJsonBytes(expectedPackage))
             },
         });
 
@@ -61,7 +61,7 @@ public class PackageRegistryTests
             expectedPackage.Version));
 
         // Assert.
-        Assert.Equal(TestExtensions.ToJsonBytes(expectedPackage), TestExtensions.ToJsonBytes(pkg!));
+        Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackage), LipTestExtensions.ToJsonBytes(pkg!));
     }
 
     [Fact]

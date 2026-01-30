@@ -2,23 +2,27 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class ConfigService(RuntimeConfig runtimeConfig, IContext context, IPathManager pathManager)
 {
-    [ExcludeFromCodeCoverage]
-    public record ConfigDeleteArgs { }
+    private readonly RuntimeConfig _runtimeConfig = runtimeConfig;
+    private readonly IContext _context = context;
+    private readonly IPathManager _pathManager = pathManager;
 
     [ExcludeFromCodeCoverage]
-    public record ConfigGetArgs { }
+    public record DeleteArgs { }
 
     [ExcludeFromCodeCoverage]
-    public record ConfigListArgs { }
+    public record GetArgs { }
 
     [ExcludeFromCodeCoverage]
-    public record ConfigSetArgs { }
+    public record ListArgs { }
 
-    public async Task ConfigDelete(List<string> keys, ConfigDeleteArgs _)
+    [ExcludeFromCodeCoverage]
+    public record SetArgs { }
+
+    public async Task Delete(List<string> keys, DeleteArgs _)
     {
         if (keys.Count == 0)
         {
@@ -38,17 +42,17 @@ public partial class Lip
             key => allKeyValuePairs.GetValueOrDefault(key) ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(keys))
         );
 
-        await ConfigSet(keyValuePairs, new());
+        await Set(keyValuePairs, new());
     }
 
-    public Dictionary<string, string> ConfigGet(List<string> keys, ConfigGetArgs args)
+    public Dictionary<string, string> Get(List<string> keys, GetArgs args)
     {
         if (keys.Count == 0)
         {
             throw new ArgumentException("No configuration keys provided.", nameof(keys));
         }
 
-        Dictionary<string, string> allKeyValuePairs = ConfigList(new());
+        Dictionary<string, string> allKeyValuePairs = List(new());
 
         Dictionary<string, string> keyValuePairs = keys.ToDictionary(
             key => key,
@@ -58,7 +62,7 @@ public partial class Lip
         return keyValuePairs;
     }
 
-    public Dictionary<string, string> ConfigList(ConfigListArgs _)
+    public Dictionary<string, string> List(ListArgs _)
     {
         Dictionary<string, string> allKeyValuePairs = typeof(RuntimeConfig).GetProperties()
             .Where(prop => prop.GetCustomAttribute<JsonPropertyNameAttribute>() != null)
@@ -70,7 +74,7 @@ public partial class Lip
         return allKeyValuePairs;
     }
 
-    public async Task ConfigSet(Dictionary<string, string> keyValuePairs, ConfigSetArgs _)
+    public async Task Set(Dictionary<string, string> keyValuePairs, SetArgs _)
     {
         if (keyValuePairs.Count == 0)
         {

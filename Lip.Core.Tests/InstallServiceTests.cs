@@ -1,16 +1,16 @@
 using Flurl;
-using Lip.Core;
 using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
-using Xunit;
 
 namespace Lip.Core.Tests;
 
-public class LipInstallTests
+using global::Lip.Core.Services;
+
+public class InstallServiceTests
 {
     private readonly Mock<ICacheManager> _cacheManagerMock = new();
     private readonly Mock<IContext> _contextMock = new();
@@ -23,20 +23,19 @@ public class LipInstallTests
     private readonly Mock<ILogger> _loggerMock = new();
 
     private readonly string _workingDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"C:\app" : "/app";
-    private readonly Lip _lip;
+    private readonly InstallService _installService;
 
-    public LipInstallTests()
+    public InstallServiceTests()
     {
         _contextMock.Setup(c => c.FileSystem).Returns(_fileSystem);
         _contextMock.Setup(c => c.Logger).Returns(_loggerMock.Object);
         _pathManagerMock.Setup(p => p.WorkingDir).Returns(_workingDir);
 
-        _lip = new Lip(
-            _runtimeConfig,
+        _installService = new InstallService(
             _contextMock.Object,
-            _cacheManagerMock.Object,
-            _dependencySolverMock.Object,
             _packageManagerMock.Object,
+            _dependencySolverMock.Object,
+            _cacheManagerMock.Object,
             _packageRegistryMock.Object,
             _pathManagerMock.Object);
     }
@@ -98,7 +97,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/new-pkg" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -126,7 +125,7 @@ public class LipInstallTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
@@ -142,7 +141,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/new-pkg" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -170,7 +169,7 @@ public class LipInstallTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
@@ -186,7 +185,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/existing-pkg" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -216,7 +215,7 @@ public class LipInstallTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act & Assert
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
     }
 
     [Fact]
@@ -224,7 +223,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -285,7 +284,7 @@ public class LipInstallTests
 
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
 
@@ -321,7 +320,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "./local-pkg" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -352,7 +351,7 @@ public class LipInstallTests
             .ReturnsAsync(new Mock<IFileSource>().Object);
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         // Verify GetPackageManifestFromFileSource was called with DirectoryFileSource
@@ -367,7 +366,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = true,
             IgnoreScripts = false,
@@ -390,7 +389,7 @@ public class LipInstallTests
              .ReturnsAsync(new List<PackageSpecifier> { pkgA });
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         // Verify InstallPackage called with dryRun=true
@@ -402,7 +401,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -421,7 +420,7 @@ public class LipInstallTests
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         // ResolveDependencies should NOT be called
@@ -436,7 +435,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-spec@1.2.3" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -460,7 +459,7 @@ public class LipInstallTests
              .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-spec", ""), SemVersion.Parse("1.2.3")) });
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         _cacheManagerMock.Verify(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Version.ToString() == "1.2.3")), Times.Once);
@@ -471,7 +470,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/unknown-pkg" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -488,7 +487,7 @@ public class LipInstallTests
              .ReturnsAsync(new List<SemVersion>());
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _lip.Install(userInput, args));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _installService.Install(userInput, args));
     }
 
     [Fact]
@@ -496,7 +495,7 @@ public class LipInstallTests
     {
         // Arrange
         var userInput = new List<string> { "package.zip" }; // Use default variant to match CreateManifest
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -536,7 +535,7 @@ public class LipInstallTests
             .ReturnsAsync(new Mock<IFileSource>().Object);
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         _packageManagerMock.Verify(pm => pm.GetPackageManifestFromFileSource(It.IsAny<ArchiveFileSource>()), Times.Once);
@@ -551,7 +550,7 @@ public class LipInstallTests
 
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-b" }; // User updates B
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -578,7 +577,7 @@ public class LipInstallTests
              .ReturnsAsync(CreateManifest("pkg-b", "2.0.0")); // For B new
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         // A should remain installed (not uninstalled)
@@ -607,7 +606,7 @@ public class LipInstallTests
 
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             UpgradeLockedPackages = false,
@@ -638,7 +637,7 @@ public class LipInstallTests
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         // Install pkg-a
@@ -657,7 +656,7 @@ public class LipInstallTests
 
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a", "github.com/test/pkg-b" };
-        var args = new Lip.InstallArgs
+        var args = new InstallService.Args
         {
             DryRun = false,
             UpgradeLockedPackages = false,
@@ -693,7 +692,7 @@ public class LipInstallTests
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });
 
         // Act
-        await _lip.Install(userInput, args);
+        await _installService.Install(userInput, args);
 
         // Assert
         // Both installed exactly once (from user input list, not duplicated by dependency list)

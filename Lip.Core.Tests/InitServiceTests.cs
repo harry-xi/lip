@@ -5,7 +5,9 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Tests;
 
-public class LipInitTests
+using Lip.Core.Services;
+
+public class InitServiceTests
 {
     private static readonly string s_workspacePath = OperatingSystem.IsWindows() ? Path.Join("C:", "path", "to", "workspace") : Path.Join("/", "path", "to", "workspace");
 
@@ -13,7 +15,7 @@ public class LipInitTests
     public void InitArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
-        Lip.InitArgs args = new();
+        InitService.Args args = new();
 
         // Act.
         args = args with { };
@@ -105,15 +107,18 @@ public class LipInitTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var initService = new InitService(context.Object, packageManager, pathManager);
 
-        Lip.InitArgs args = new()
+        InitService.Args args = new()
         {
             Yes = true,
         };
 
         // Act.
-        await lip.Init(args);
+        await initService.Init(args);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
@@ -166,9 +171,12 @@ public class LipInitTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var initService = new InitService(context.Object, packageManager, pathManager);
 
-        Lip.InitArgs args = new()
+        InitService.Args args = new()
         {
             InitAvatarUrl = "https://example.com/avatar.png",
             InitDescription = "An example package.",
@@ -179,7 +187,7 @@ public class LipInitTests
         };
 
         // Act.
-        await lip.Init(args);
+        await initService.Init(args);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
@@ -237,9 +245,12 @@ public class LipInitTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var initService = new InitService(context.Object, packageManager, pathManager);
 
-        Lip.InitArgs args = new()
+        InitService.Args args = new()
         {
             InitAvatarUrl = "https://example.com/avatar.png",
             InitDescription = "An example package.",
@@ -249,7 +260,7 @@ public class LipInitTests
         };
 
         // Act and assert.
-        await Assert.ThrowsAsync<OperationCanceledException>(() => lip.Init(args));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => initService.Init(args));
     }
 
     [Fact]
@@ -270,9 +281,12 @@ public class LipInitTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
         context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var initService = new InitService(context.Object, packageManager, pathManager);
 
-        Lip.InitArgs args = new()
+        InitService.Args args = new()
         {
             InitAvatarUrl = "https://example.com/avatar.png",
             InitDescription = "An example package.",
@@ -282,7 +296,7 @@ public class LipInitTests
             Yes = true,
         };
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Init(args));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => initService.Init(args));
     }
 
     [Fact]
@@ -304,9 +318,12 @@ public class LipInitTests
         context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
         context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var initService = new InitService(context.Object, packageManager, pathManager);
 
-        Lip.InitArgs args = new()
+        InitService.Args args = new()
         {
             Force = true,
             InitAvatarUrl = "https://example.com/avatar.png",
@@ -318,7 +335,7 @@ public class LipInitTests
         };
 
         // Act.
-        await lip.Init(args);
+        await initService.Init(args);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));

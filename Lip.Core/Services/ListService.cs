@@ -1,22 +1,24 @@
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class ListService(IPackageManager packageManager)
 {
-    public record ListArgs { }
+    private readonly IPackageManager _packageManager = packageManager;
 
-    public record ListResultItem
+    public record Args { }
+
+    public record ResultItem
     {
         public required bool Locked { get; init; }
         public required PackageSpecifier Specifier { get; init; }
         public required PackageManifest.Variant Variant { get; init; }
     }
 
-    public async Task<List<ListResultItem>> List(ListArgs args)
+    public async Task<List<ResultItem>> List(Args args)
     {
         PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
 
-        List<ListResultItem> listItems = packageLock.Packages
-            .ConvertAll(@lock => new ListResultItem
+        List<ResultItem> listItems = packageLock.Packages
+            .ConvertAll(@lock => new ResultItem
             {
                 Locked = @lock.Locked,
                 Specifier = @lock.Specifier,

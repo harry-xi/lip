@@ -1,4 +1,6 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core;
+using Lip.Core.PackageRegistries;
+using Lip.Core.Services;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
@@ -17,8 +19,6 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         [Description("Do not actually install any packages. Be aware that files will still be downloaded and cached.")]
         public required bool DryRun { get; init; }
 
-
-
         [CommandOption("--ignore-scripts")]
         [Description("Do not run any scripts during installation.")]
         public required bool IgnoreScripts { get; init; }
@@ -27,8 +27,6 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         [Description("Bypass dependency resolution and only install the specified packages.")]
         public required bool NoDependencies { get; init; }
 
-
-
         [CommandOption("--overwrite-files")]
         [Description("Overwrite existing files in the folder")]
         public required bool OverwriteFiles { get; init; }
@@ -36,12 +34,28 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        await lip.Install(settings.Packages?.ToList(), new()
+        var packageRegistry = new PackageRegistry(
+            prep.Context,
+            prep.CacheManager,
+            prep.PathManager,
+            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        var dependencySolver = new DependencySolver(prep.Context, packageRegistry);
+
+        var installService = new InstallService(
+            prep.Context,
+            prep.PackageManager,
+            dependencySolver,
+            prep.CacheManager,
+            packageRegistry,
+            prep.PathManager);
+
+        await installService.Install(settings.Packages?.ToList(), new InstallService.Args
         {
             DryRun = settings.DryRun,
-
             IgnoreScripts = settings.IgnoreScripts,
             NoDependencies = settings.NoDependencies,
             UpgradeLockedPackages = false,

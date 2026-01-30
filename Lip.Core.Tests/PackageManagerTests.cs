@@ -1,32 +1,15 @@
 using Flurl;
-using Flurl.Http.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
-using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Lip.Core.Tests;
 
 using global::Lip.Core;
 
-public static class TestExtensions
-{
-    public static byte[] ToJsonBytes(PackageManifest manifest)
-    {
-        using var ms = new MemoryStream();
-        manifest.ToStream(ms).Wait();
-        return ms.ToArray();
-    }
-    public static byte[] ToJsonBytes(PackageLock lockFile)
-    {
-        using var ms = new MemoryStream();
-        lockFile.ToStream(ms).Wait();
-        return ms.ToArray();
-    }
-}
+
 
 public class PackageManagerTests
 {
@@ -113,7 +96,7 @@ public class PackageManagerTests
         var result = await packageManager.GetCurrentPackageLock();
 
         // Assert.
-        Assert.Equal(TestExtensions.ToJsonBytes(expectedPackageLock), TestExtensions.ToJsonBytes(result));
+        Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackageLock), LipTestExtensions.ToJsonBytes(result));
     }
 
     [Fact]
@@ -124,14 +107,14 @@ public class PackageManagerTests
 
         var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData>
         {
-            { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(TestExtensions.ToJsonBytes(expectedPackageLock)) }
+            { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(LipTestExtensions.ToJsonBytes(expectedPackageLock)) }
         });
 
         // Act.
         var result = await packageManager.GetCurrentPackageLock();
 
         // Assert.
-        Assert.Equal(TestExtensions.ToJsonBytes(expectedPackageLock), TestExtensions.ToJsonBytes(result));
+        Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackageLock), LipTestExtensions.ToJsonBytes(result));
     }
 
     [Fact]
@@ -154,7 +137,7 @@ public class PackageManagerTests
         var expectedPackage = s_examplePackage_1;
 
         var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData>() {
-            { Path.Join(s_workingDir, "tooth.json"), new MockFileData(TestExtensions.ToJsonBytes(expectedPackage)) }
+            { Path.Join(s_workingDir, "tooth.json"), new MockFileData(LipTestExtensions.ToJsonBytes(expectedPackage)) }
         });
 
         // Act.
@@ -163,7 +146,7 @@ public class PackageManagerTests
 
         // Assert.
         // Assert.
-        Assert.Equal(TestExtensions.ToJsonBytes(expectedPackage), TestExtensions.ToJsonBytes(result));
+        Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackage), LipTestExtensions.ToJsonBytes(result!));
     }
 
     [Fact]
@@ -173,7 +156,7 @@ public class PackageManagerTests
         var expectedPackage = s_examplePackage_1;
 
         var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData> {
-            { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(TestExtensions.ToJsonBytes(s_examplePackageLock)) }
+            { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(LipTestExtensions.ToJsonBytes(s_examplePackageLock)) }
         });
 
         var specifier = new PackageIdentifier(expectedPackage.ToothPath, "variant");
@@ -195,7 +178,7 @@ public class PackageManagerTests
     {
         // Arrange.
         var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData> {
-            { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(TestExtensions.ToJsonBytes(s_examplePackageLock)) }
+            { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(LipTestExtensions.ToJsonBytes(s_examplePackageLock)) }
         });
 
         var specifier = new PackageIdentifier("example.com/pkg1", "variant");
@@ -215,7 +198,7 @@ public class PackageManagerTests
         var expectedPackage = s_examplePackage_1;
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            { Path.Join(s_workingDir, "tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(expectedPackage))}
+            { Path.Join(s_workingDir, "tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(expectedPackage))}
         }, s_workingDir);
 
         var context = new Mock<IContext>();
@@ -229,7 +212,7 @@ public class PackageManagerTests
         var pkg = await packageManager.GetPackageManifestFromFileSource(fileSource);
 
         // Assert.
-        Assert.Equal(TestExtensions.ToJsonBytes(expectedPackage), TestExtensions.ToJsonBytes(pkg));
+        Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackage), LipTestExtensions.ToJsonBytes(pkg!));
     }
 
     [Fact]
@@ -282,7 +265,7 @@ public class PackageManagerTests
         var emptyPack = CreateManifest(toothPath: "example.com/pkg", version: "1.0.0");
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(emptyPack))}
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(emptyPack))}
         }, s_workingDir);
 
         var logger = new Mock<ILogger>();
@@ -330,7 +313,7 @@ public class PackageManagerTests
         };
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(emptyPack))}
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(emptyPack))}
         }, s_workingDir);
 
         var logger = new Mock<ILogger>();
@@ -349,7 +332,7 @@ public class PackageManagerTests
         // Assert.
         var resultPackageLock = fileSystem.GetFile(Path.Join(s_workingDir, "tooth_lock.json")).Contents;
 
-        Assert.Equal(TestExtensions.ToJsonBytes(expectedPackageLock).ToString(), resultPackageLock.ToString()); // ! I don't know why but the bytes didn't equal
+        Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackageLock).ToString(), resultPackageLock.ToString()); // ! I don't know why but the bytes didn't equal
     }
 
     [Fact]
@@ -374,8 +357,8 @@ public class PackageManagerTests
         };
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(emptyPack))},
-            {Path.Join(s_workingDir,"tooth_lock.json"),new MockFileData(TestExtensions.ToJsonBytes(expectedPackageLock))}
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(emptyPack))},
+            {Path.Join(s_workingDir,"tooth_lock.json"),new MockFileData(LipTestExtensions.ToJsonBytes(expectedPackageLock))}
         }, s_workingDir);
 
         var logger = new Mock<ILogger>();
@@ -417,8 +400,8 @@ public class PackageManagerTests
         };
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(emptyPack))},
-            {Path.Join(s_workingDir,"tooth_lock.json"),new MockFileData(TestExtensions.ToJsonBytes(packageLock))}
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(emptyPack))},
+            {Path.Join(s_workingDir,"tooth_lock.json"),new MockFileData(LipTestExtensions.ToJsonBytes(packageLock))}
         }, s_workingDir);
 
         var logger = new Mock<ILogger>();
@@ -531,7 +514,7 @@ public class PackageManagerTests
         };
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(manifest))},
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(manifest))},
             {Path.Join(s_cacheDir,"package","a.txt"),new MockFileData("self file")},
             {Path.Join(s_cacheDir,"package","a","a.txt"),new MockFileData("self file")},
             {Path.Join(s_cacheDir,"package","b","b.txt"),new MockFileData("self file")},
@@ -685,7 +668,7 @@ public class PackageManagerTests
         };
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(manifest))},
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(manifest))},
             {Path.Join(s_cacheDir,"package","a.txt"),new MockFileData("self file")},
             {Path.Join(s_cacheDir,"package","a","a.txt"),new MockFileData("self file")},
             {Path.Join(s_cacheDir,"package","b","b.txt"),new MockFileData("self file")},
@@ -815,7 +798,7 @@ public class PackageManagerTests
         };
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>{
-            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(TestExtensions.ToJsonBytes(manifest))},
+            {Path.Join(s_cacheDir,"package","tooth.json"),new MockFileData(LipTestExtensions.ToJsonBytes(manifest))},
             {Path.Join(s_cacheDir,"package","a.txt"),new MockFileData("self file")},
             {Path.Join(s_cacheDir,"package","a","a.txt"),new MockFileData("self file")},
             {Path.Join(s_cacheDir,"package","b","b.txt"),new MockFileData("self file")},

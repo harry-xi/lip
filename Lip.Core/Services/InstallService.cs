@@ -1,14 +1,28 @@
+using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Semver;
 using SharpCompress.Archives;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class InstallService(
+    IContext context,
+    IPackageManager packageManager,
+    IDependencySolver dependencySolver,
+    ICacheManager cacheManager,
+    IPackageRegistry packageRegistry,
+    IPathManager pathManager)
 {
-    public record InstallArgs
+    private readonly IContext _context = context;
+    private readonly IPackageManager _packageManager = packageManager;
+    private readonly IDependencySolver _dependencySolver = dependencySolver;
+    private readonly ICacheManager _cacheManager = cacheManager;
+    private readonly IPackageRegistry _packageRegistry = packageRegistry;
+    private readonly IPathManager _pathManager = pathManager;
+
+    public record Args
     {
         public required bool DryRun { get; init; }
 
@@ -42,7 +56,7 @@ public partial class Lip
         public required string VariantLabel { get; init; }
     }
 
-    public async Task Install(List<string>? userInputPackageTexts, InstallArgs args)
+    public async Task Install(List<string>? userInputPackageTexts, Args args)
     {
         // Here we regulate the abbreviations of glossary terms used in this method:
         // - UIP: User input packages

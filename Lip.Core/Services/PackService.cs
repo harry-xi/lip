@@ -3,11 +3,15 @@ using SharpCompress.Common;
 using SharpCompress.Writers;
 using System.Runtime.InteropServices;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class PackService(IContext context, IPackageManager packageManager, IPathManager pathManager)
 {
-    public record PackArgs
+    private readonly IContext _context = context;
+    private readonly IPackageManager _packageManager = packageManager;
+    private readonly IPathManager _pathManager = pathManager;
+
+    public record Args
     {
         public enum ArchiveFormatType
         {
@@ -21,7 +25,7 @@ public partial class Lip
         public ArchiveFormatType ArchiveFormat { get; init; } = ArchiveFormatType.Zip;
     }
 
-    public async Task Pack(string outputPath, PackArgs args)
+    public async Task Pack(string outputPath, Args args)
     {
         PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifest()
             ?? throw new InvalidOperationException("No package manifest found.");
@@ -75,15 +79,15 @@ public partial class Lip
             : Stream.Null)
         using (IWriter writer = args.ArchiveFormat switch
         {
-            PackArgs.ArchiveFormatType.Zip => WriterFactory.Open(
+            Args.ArchiveFormatType.Zip => WriterFactory.Open(
                 outputStream,
                 ArchiveType.Zip,
                 new(CompressionType.Deflate)),
-            PackArgs.ArchiveFormatType.Tar => WriterFactory.Open(
+            Args.ArchiveFormatType.Tar => WriterFactory.Open(
                 outputStream,
                 ArchiveType.Tar,
                 new(CompressionType.None)),
-            PackArgs.ArchiveFormatType.TarGz => WriterFactory.Open(
+            Args.ArchiveFormatType.TarGz => WriterFactory.Open(
                 outputStream,
                 ArchiveType.Tar,
                 new(CompressionType.GZip)),

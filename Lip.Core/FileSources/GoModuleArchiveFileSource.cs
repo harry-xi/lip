@@ -1,6 +1,5 @@
 using Golang.Org.X.Mod;
 using Semver;
-using SharpCompress.Common;
 using System.IO.Abstractions;
 
 namespace Lip.Core;

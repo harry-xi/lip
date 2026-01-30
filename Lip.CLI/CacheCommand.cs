@@ -1,13 +1,12 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.PackageRegistries;
+using Lip.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-class CacheSettings : BaseCommandSettings
-{
-}
+class CacheSettings : BaseCommandSettings { }
 
 [Description("Add a package to the cache.")]
 class CacheAddCommand : AsyncCommand<CacheAddCommand.Settings>
@@ -15,61 +14,84 @@ class CacheAddCommand : AsyncCommand<CacheAddCommand.Settings>
     public class Settings : CacheSettings
     {
         [CommandArgument(0, "<package>")]
-        [Description("The package to add.")]
+        [Description("The package specifier to add.")]
         public required string Package { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        await lip.CacheAdd(settings.Package, new());
+        var packageRegistry = new PackageRegistry(
+            prep.Context,
+            prep.CacheManager,
+            prep.PathManager,
+            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        var cacheService = new CacheService(packageRegistry, prep.CacheManager);
+
+        await cacheService.Add(settings.Package, new());
 
         return 0;
     }
 }
 
-[Description("Remove all items from the cache.")]
+[Description("Clean the cache.")]
 class CacheCleanCommand : AsyncCommand<CacheCleanCommand.Settings>
 {
-    public class Settings : CacheSettings
-    {
-    }
+    public class Settings : CacheSettings { }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        await lip.CacheClean(new());
+        var packageRegistry = new PackageRegistry(
+            prep.Context,
+            prep.CacheManager,
+            prep.PathManager,
+            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        var cacheService = new CacheService(packageRegistry, prep.CacheManager);
+
+        await cacheService.Clean(new());
 
         return 0;
     }
 }
 
-[Description("List items in the cache.")]
+[Description("List the cache contents.")]
 class CacheListCommand : AsyncCommand<CacheListCommand.Settings>
 {
-    public class Settings : CacheSettings
-    {
-    }
+    public class Settings : CacheSettings { }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        Core.Lip.CacheListResult result = await lip.CacheList(new());
+        var packageRegistry = new PackageRegistry(
+            prep.Context,
+            prep.CacheManager,
+            prep.PathManager,
+            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
 
-        Tree root = new("Cache");
+        var cacheService = new CacheService(packageRegistry, prep.CacheManager);
 
-        root
-            .AddNode("Downloaded Files")
-            .AddNode(new Rows(result.DownloadedFiles.Select(file => new Text(file))));
+        CacheService.ListResult result = await cacheService.List(new());
 
-        root
-            .AddNode("Git Repos")
-            .AddNode(new Rows(result.GitRepos.Select(repo => new Text(repo))));
+        AnsiConsole.MarkupLine("[bold]Downloaded Files:[/]");
+        foreach (string file in result.DownloadedFiles)
+        {
+            AnsiConsole.MarkupLine($"  {file}".EscapeMarkup());
+        }
 
-        AnsiConsole.Write(root);
+        AnsiConsole.MarkupLine("[bold]Git Repos:[/]");
+        foreach (string repo in result.GitRepos)
+        {
+            AnsiConsole.MarkupLine($"  {repo}".EscapeMarkup());
+        }
 
         return 0;
     }

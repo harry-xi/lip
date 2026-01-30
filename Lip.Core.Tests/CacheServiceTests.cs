@@ -1,12 +1,14 @@
 using Flurl;
+using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace Lip.Core.Tests;
 
-public class LipCacheTests
+public class CacheServiceTests
 {
     private static readonly string s_cacheDir = OperatingSystem.IsWindows()
         ? Path.Join("C:", "path", "to", "cache")
@@ -16,7 +18,7 @@ public class LipCacheTests
     public void CacheAddArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
-        Lip.CacheAddArgs args = new();
+        Services.CacheService.AddArgs args = new();
 
         // Act.
         args = args with { };
@@ -26,7 +28,7 @@ public class LipCacheTests
     public void CacheCleanArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
-        Lip.CacheCleanArgs args = new();
+        Services.CacheService.CleanArgs args = new();
 
         // Act.
         args = args with { };
@@ -36,7 +38,7 @@ public class LipCacheTests
     public void CacheListArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
-        Lip.CacheListArgs args = new();
+        Services.CacheService.ListArgs args = new();
 
         // Act.
         args = args with { };
@@ -46,7 +48,7 @@ public class LipCacheTests
     public void CacheListResult_Constructor_TrivialValues_Passes()
     {
         // Arrange.
-        Lip.CacheListResult result = new()
+        Services.CacheService.ListResult result = new()
         {
             DownloadedFiles = [],
             GitRepos = [],
@@ -75,10 +77,10 @@ public class LipCacheTests
                         "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
                         "assets": [
                             {
-                                "type": "self",
+                                "type": "self"
                             },
                             {
-                                "type": "zip",
+                                "type": "zip"
                             },
                             {
                                 "type": "zip",
@@ -101,26 +103,8 @@ public class LipCacheTests
         MockFileSystem fileSystem = new();
 
         Mock<IDownloader> downloader = new();
-        downloader.Setup(d => d.DownloadFile(
-            Url.Parse("https://example.com/test.file"),
-            Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")))
-            .Callback<Url, string>((_, dest) =>
-            {
-                fileSystem.AddFile(dest, new MockFileData("test"));
-            });
-
         Mock<IGit> git = new();
-        git.Setup(g => g.Clone(
-            "https://example.com/repo",
-            Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0"),
-            "v1.0.0",
-            1))
-            .Callback<string, string, string?, int?>((_, dest, __, ___) =>
-            {
-                fileSystem.AddFile(Path.Join(dest, "tooth.json"), new MockFileData(packageManifestData));
-            });
-
-        var logger = new Mock<ILogger>();
+        Mock<ILogger> logger = new();
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.Downloader).Returns(downloader.Object);
@@ -128,14 +112,37 @@ public class LipCacheTests
         context.SetupGet(c => c.Git).Returns(git.Object);
         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-        Lip lip = Lip.Create(runtimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+
+        var testFileUrl = Url.Parse("https://example.com/test.file");
+        var testFilePath = pathManager.GetDownloadedFileCachePath(testFileUrl);
+        var repoUrl = Url.Parse("https://example.com/repo");
+        var repoDirPath = pathManager.GetGitRepoDirCachePath(repoUrl, "v1.0.0");
+
+        downloader.Setup(d => d.DownloadFile(testFileUrl, testFilePath))
+            .Callback<Url, string>((_, dest) =>
+            {
+                fileSystem.AddFile(dest, new MockFileData("test"));
+            });
+
+        git.Setup(g => g.Clone(repoUrl.ToString(), repoDirPath, "v1.0.0", 1))
+            .Callback<string, string, string?, int?>((_, dest, __, ___) =>
+            {
+                fileSystem.AddFile(Path.Join(dest, "tooth.json"), new MockFileData(packageManifestData));
+            });
+
+        var packageRegistryMock = new Mock<IPackageRegistry>();
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+
+        var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act.
-        await lip.CacheAdd("example.com/repo@1.0.0", new());
+        await cacheService.Add("example.com/repo@1.0.0", new());
 
         // Assert.
-        Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "downloaded_files", "https%3A%2F%2Fexample.com%2Ftest.file")));
-        Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "tooth.json")));
+        Assert.True(fileSystem.File.Exists(testFilePath));
+        Assert.True(fileSystem.File.Exists(Path.Join(repoDirPath, "tooth.json")));
     }
 
     [Fact]
@@ -177,10 +184,15 @@ public class LipCacheTests
         context.SetupGet(c => c.Git).Returns(git.Object);
         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-        Lip lip = Lip.Create(runtimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+        var packageRegistryMock = new Mock<IPackageRegistry>();
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+
+        var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act.
-        await lip.CacheAdd("example.com/repo@1.0.0", new());
+        await cacheService.Add("example.com/repo@1.0.0", new());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "tooth.json")));
@@ -220,10 +232,15 @@ public class LipCacheTests
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-        Lip lip = Lip.Create(runtimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+        var packageRegistryMock = new Mock<IPackageRegistry>();
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+
+        var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.CacheAdd("example.com/repo@1.0.0", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheService.Add("example.com/repo@1.0.0", new()));
     }
 
     [Fact]
@@ -260,10 +277,15 @@ public class LipCacheTests
         context.SetupGet(c => c.Git).Returns(new Mock<IGit>().Object);
         context.SetupGet(c => c.Logger).Returns(logger.Object);
 
-        Lip lip = Lip.Create(runtimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+        var packageRegistryMock = new Mock<IPackageRegistry>();
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+
+        var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.CacheAdd("example.com/repo@1.0.0", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheService.Add("example.com/repo@1.0.0", new()));
     }
 
     [Fact]
@@ -283,10 +305,14 @@ public class LipCacheTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(runtimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+        var packageRegistryMock = new Mock<IPackageRegistry>();
+
+        var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act.
-        await lip.CacheClean(new());
+        await cacheService.Clean(new());
 
         // Assert.
         Assert.False(fileSystem.File.Exists(Path.Join(s_cacheDir, "file")));
@@ -310,10 +336,14 @@ public class LipCacheTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(runtimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+        var packageRegistryMock = new Mock<IPackageRegistry>();
+
+        var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act.
-        Lip.CacheListResult result = await lip.CacheList(new());
+        Services.CacheService.ListResult result = await cacheService.List(new());
 
         // Assert.
         Assert.Equal(new[] { "https://example.com/test.file" }, result.DownloadedFiles);

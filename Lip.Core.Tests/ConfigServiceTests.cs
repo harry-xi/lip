@@ -3,7 +3,7 @@ using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Core.Tests;
 
-public class LipConfigTests
+public class ConfigServiceTests
 {
     private static readonly string s_runtimeConfigPath = Path.Join(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
@@ -26,10 +26,11 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        await lip.ConfigDelete(["github_proxies"], new Lip.ConfigDeleteArgs());
+        await configService.Delete(["github_proxies"], new Services.ConfigService.DeleteArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -62,10 +63,11 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        await lip.ConfigDelete(["github_proxies", "go_module_proxies"], new Lip.ConfigDeleteArgs());
+        await configService.Delete(["github_proxies", "go_module_proxies"], new Services.ConfigService.DeleteArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -95,10 +97,11 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        await lip.ConfigDelete(["github_proxies"], new Lip.ConfigDeleteArgs());
+        await configService.Delete(["github_proxies"], new Services.ConfigService.DeleteArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -120,11 +123,13 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        MockFileSystem fileSystem = new();
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => lip.ConfigDelete([], new Lip.ConfigDeleteArgs()));
+            () => configService.Delete([], new Services.ConfigService.DeleteArgs()));
         Assert.Equal("No configuration keys provided. (Parameter 'keys')", exception.Message);
     }
 
@@ -136,11 +141,13 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        MockFileSystem fileSystem = new();
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => lip.ConfigDelete(["unknown"], new Lip.ConfigDeleteArgs()));
+            () => configService.Delete(["unknown"], new Services.ConfigService.DeleteArgs()));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", exception.Message);
     }
 
@@ -152,11 +159,13 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        MockFileSystem fileSystem = new();
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(
-            () => lip.ConfigDelete(["cache", "unknown"], new Lip.ConfigDeleteArgs()));
+            () => configService.Delete(["cache", "unknown"], new Services.ConfigService.DeleteArgs()));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", argumentException.Message);
     }
 
@@ -174,10 +183,11 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        Dictionary<string, string> result = lip.ConfigGet(["cache"], new Lip.ConfigGetArgs());
+        Dictionary<string, string> result = configService.Get(["cache"], new Services.ConfigService.GetArgs());
 
         // Assert.
         Assert.Single(result);
@@ -201,12 +211,13 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        Dictionary<string, string> result = lip.ConfigGet(
+        Dictionary<string, string> result = configService.Get(
             ["cache", "github_proxies"],
-            new Lip.ConfigGetArgs());
+            new Services.ConfigService.GetArgs());
 
         // Assert.
         Assert.Equal(2, result.Count);
@@ -222,11 +233,13 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        MockFileSystem fileSystem = new();
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => lip.ConfigGet(["unknown"], new Lip.ConfigGetArgs()));
+            () => configService.Get(["unknown"], new Services.ConfigService.GetArgs()));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", exception.Message);
     }
 
@@ -238,11 +251,13 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        MockFileSystem fileSystem = new();
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => lip.ConfigGet(["cache", "unknown"], new Lip.ConfigGetArgs()));
+            () => configService.Get(["cache", "unknown"], new Services.ConfigService.GetArgs()));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", exception.Message);
     }
 
@@ -254,11 +269,13 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        MockFileSystem fileSystem = new();
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => lip.ConfigGet([], new Lip.ConfigGetArgs()));
+            () => configService.Get([], new Services.ConfigService.GetArgs()));
         Assert.Equal("No configuration keys provided. (Parameter 'keys')", exception.Message);
     }
 
@@ -275,10 +292,12 @@ public class LipConfigTests
 
         Mock<IContext> context = new();
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        MockFileSystem fileSystem = new();
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        Dictionary<string, string> result = lip.ConfigList(new Lip.ConfigListArgs());
+        Dictionary<string, string> result = configService.List(new Services.ConfigService.ListArgs());
 
         // Assert.
         Assert.Equal(3, result.Count);
@@ -301,7 +320,8 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -309,7 +329,7 @@ public class LipConfigTests
         };
 
         // Act.
-        await lip.ConfigSet(keyValuePairs, new Lip.ConfigSetArgs());
+        await configService.Set(keyValuePairs, new Services.ConfigService.SetArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -337,7 +357,8 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -347,7 +368,7 @@ public class LipConfigTests
         };
 
         // Act.
-        await lip.ConfigSet(keyValuePairs, new Lip.ConfigSetArgs());
+        await configService.Set(keyValuePairs, new Services.ConfigService.SetArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -372,7 +393,8 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -380,7 +402,7 @@ public class LipConfigTests
         };
 
         // Act.
-        await lip.ConfigSet(keyValuePairs, new Lip.ConfigSetArgs());
+        await configService.Set(keyValuePairs, new Services.ConfigService.SetArgs());
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -408,12 +430,13 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = [];
 
         // Act.
-        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => lip.ConfigSet(keyValuePairs, new Lip.ConfigSetArgs()));
+        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => configService.Set(keyValuePairs, new Services.ConfigService.SetArgs()));
 
         // Assert.
         Assert.Equal("No configuration items provided. (Parameter 'keyValuePairs')", argumentException.Message);
@@ -433,17 +456,18 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
             { "unknown", "value" },
         };
 
-        Lip.ConfigSetArgs args = new();
+        Services.ConfigService.SetArgs args = new();
 
         // Act.
-        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => lip.ConfigSet(keyValuePairs, args));
+        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => configService.Set(keyValuePairs, args));
 
         // Assert.
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keyValuePairs')", argumentException.Message);
@@ -462,7 +486,8 @@ public class LipConfigTests
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(initialRuntimeConfig, context.Object);
+        var pathManager = new PathManager(fileSystem, "/", "/");
+        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -472,7 +497,7 @@ public class LipConfigTests
 
         // Act & Assert.
         ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(
-            () => lip.ConfigSet(keyValuePairs, new Lip.ConfigSetArgs()));
+            () => configService.Set(keyValuePairs, new Services.ConfigService.SetArgs()));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keyValuePairs')", argumentException.Message);
     }
 }

@@ -20,9 +20,18 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
         public required bool Version { get; init; }
     }
 
+    public record PrepareResult(
+        IContext Context,
+        RuntimeConfig RuntimeConfig,
+        IPathManager PathManager,
+        ICacheManager CacheManager,
+        IPackageManager PackageManager,
+        ILogger Logger,
+        UserInteraction UserInteraction);
+
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await Prepare(settings);
+        var result = await Prepare(settings);
 
         if (settings.Version)
         {
@@ -33,12 +42,12 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
             return 0;
         }
 
-        logger.LogCritical("No command specified. Use 'lip --help' for more information.");
+        result.Logger.LogCritical("No command specified. Use 'lip --help' for more information.");
 
         return 0;
     }
 
-    public static async Task<(Core.Lip lip, ILogger logger, UserInteraction userInteraction)> Prepare(
+    public static async Task<PrepareResult> Prepare(
         BaseCommandSettings settings,
         bool doNotRunProgressService = false)
     {
@@ -48,26 +57,43 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
 
         UserInteraction userInteraction = new();
 
-        Core.Lip lip = Core.Lip.Create(
-            runtimeConfig,
-            new Context.Context
-            {
-                CommandRunner = new CommandRunner(),
-                Downloader = new Context.Downloader(userInteraction),
-                FileSystem = new FileSystem(),
-                Git = await StandaloneGit.Create(),
-                Logger = logger,
-                UserInteraction = userInteraction,
-                WorkingDir = Directory.GetCurrentDirectory()
-            }
-        );
+        IContext context = new Context.Context
+        {
+            CommandRunner = new CommandRunner(),
+            Downloader = new Context.Downloader(userInteraction),
+            FileSystem = new FileSystem(),
+            Git = await StandaloneGit.Create(),
+            Logger = logger,
+            UserInteraction = userInteraction,
+            WorkingDir = Directory.GetCurrentDirectory()
+        };
+
+        var pathManager = new PathManager(
+            context.FileSystem,
+            runtimeConfig.Cache,
+            context.WorkingDir);
+
+        var cacheManager = new CacheManager(
+            context,
+            pathManager,
+            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        var packageManager = new PackageManager(context, cacheManager, pathManager);
 
         if (!doNotRunProgressService)
         {
-            _ = userInteraction.RunProgressService(); // Run in the background.
+            _ = userInteraction.RunProgressService();
         }
 
-        return (lip, logger, userInteraction);
+        return new PrepareResult(
+            context,
+            runtimeConfig,
+            pathManager,
+            cacheManager,
+            packageManager,
+            logger,
+            userInteraction);
     }
 
     private static ILogger CreateLogger(bool quiet, bool verbose)

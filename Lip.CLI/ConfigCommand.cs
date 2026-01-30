@@ -1,63 +1,56 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-class ConfigSettings : BaseCommandSettings
-{
-}
+class ConfigSettings : BaseCommandSettings { }
 
-[Description("Delete a configuration value.")]
+[Description("Delete configuration key(s).")]
 class ConfigDeleteCommand : AsyncCommand<ConfigDeleteCommand.Settings>
 {
     public class Settings : ConfigSettings
     {
         [CommandArgument(0, "<key ...>")]
-        [Description("The keys to delete.")]
+        [Description("The configuration keys to delete.")]
         public required string[] Keys { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        await lip.ConfigDelete([.. settings.Keys], new());
+        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
+
+        await configService.Delete([.. settings.Keys], new());
 
         return 0;
     }
 }
 
-[Description("Get a configuration value.")]
+[Description("Get configuration value(s).")]
 class ConfigGetCommand : AsyncCommand<ConfigGetCommand.Settings>
 {
     public class Settings : ConfigSettings
     {
         [CommandArgument(0, "<key ...>")]
-        [Description("The keys to get.")]
+        [Description("The configuration keys to get.")]
         public required string[] Keys { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        Dictionary<string, string> value = lip.ConfigGet([.. settings.Keys], new());
+        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
 
-        Table table = new()
+        Dictionary<string, string> value = configService.Get([.. settings.Keys], new());
+
+        foreach ((string key, string val) in value)
         {
-            Title = new TableTitle("Configuration")
-        };
-
-        table.AddColumns("Key", "Value");
-
-        foreach (KeyValuePair<string, string> entry in value)
-        {
-            table.AddRow(entry.Key.EscapeMarkup(), entry.Value.EscapeMarkup());
+            AnsiConsole.MarkupLine($"{key}={val}".EscapeMarkup());
         }
-
-        AnsiConsole.Write(table);
 
         return 0;
     }
@@ -70,47 +63,49 @@ class ConfigListCommand : AsyncCommand<ConfigListCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        Dictionary<string, string> value = lip.ConfigList(new());
+        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
 
-        Table table = new()
+        Dictionary<string, string> value = configService.List(new());
+
+        foreach ((string key, string val) in value)
         {
-            Title = new TableTitle("Configuration")
-        };
-
-        table.AddColumns("Key", "Value");
-
-        foreach (KeyValuePair<string, string> entry in value)
-        {
-            table.AddRow(entry.Key.EscapeMarkup(), entry.Value.EscapeMarkup());
+            AnsiConsole.MarkupLine($"{key}={val}".EscapeMarkup());
         }
-
-        AnsiConsole.Write(table);
 
         return 0;
     }
 }
 
-[Description("Set a configuration value.")]
+[Description("Set configuration value(s).")]
 class ConfigSetCommand : AsyncCommand<ConfigSetCommand.Settings>
 {
     public class Settings : ConfigSettings
     {
         [CommandArgument(0, "<key=value ...>")]
-        [Description("The key-value pairs to set.")]
-        public required string[] Entries { get; init; }
+        [Description("The configuration key-value pairs to set.")]
+        public required string[] KeyValuePairs { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var prep = await CommandRoot.Prepare(settings);
 
-        Dictionary<string, string> entries = settings.Entries
-            .Select(entry => entry.Split('=', 2))
-            .ToDictionary(entry => entry[0], entry => entry[1]);
+        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
 
-        await lip.ConfigSet(entries, new());
+        Dictionary<string, string> entries = [];
+        foreach (string pair in settings.KeyValuePairs)
+        {
+            string[] parts = pair.Split('=', 2);
+            if (parts.Length != 2)
+            {
+                throw new ArgumentException($"Invalid key-value pair format: '{pair}'. Expected format: 'key=value'.");
+            }
+            entries[parts[0]] = parts[1];
+        }
+
+        await configService.Set(entries, new());
 
         return 0;
     }

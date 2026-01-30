@@ -1,14 +1,17 @@
+using Lip.Core.PackageRegistries;
 using Scriban;
 using Scriban.Parsing;
 using System.Text;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class ViewService(IPackageRegistry packageRegistry)
 {
-    public record ViewArgs { }
+    private readonly IPackageRegistry _packageRegistry = packageRegistry;
 
-    public async Task<string> View(string packageSpecifierText, string? path, ViewArgs args)
+    public record Args { }
+
+    public async Task<string> View(string packageSpecifierText, string? path, Args args)
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 

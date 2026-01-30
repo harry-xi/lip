@@ -1,28 +1,19 @@
 using Microsoft.Extensions.Logging;
-using Semver;
-using System.Diagnostics.CodeAnalysis;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class UninstallService(IContext context, IPackageManager packageManager)
 {
-    public record UninstallArgs
+    private readonly IContext _context = context;
+    private readonly IPackageManager _packageManager = packageManager;
+
+    public record Args
     {
         public required bool DryRun { get; init; }
         public required bool IgnoreScripts { get; init; }
     }
 
-    [ExcludeFromCodeCoverage]
-    private record PackageUninstallDetail : TopoSortedPackageList<PackageUninstallDetail>.IItem
-    {
-        public Dictionary<PackageIdentifier, SemVersionRange> Dependencies => Package.Variant.Dependencies;
-
-        public required PackageLock.Package Package { get; init; }
-
-        public PackageSpecifier Specifier => Package.Specifier;
-    }
-
-    public async Task Uninstall(List<string> packageSpecifierTextsToUninstall, UninstallArgs args)
+    public async Task Uninstall(List<string> packageSpecifierTextsToUninstall, Args args)
     {
         List<PackageIdentifier> packageSpecifiersToUninstallSpecified =
             packageSpecifierTextsToUninstall.ConvertAll(PackageIdentifier.Parse);

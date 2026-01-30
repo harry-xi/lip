@@ -1,13 +1,16 @@
 using Microsoft.Extensions.Logging;
 using Semver;
 using System.Runtime.InteropServices;
-using System.Text;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class InitService(IContext context, IPackageManager packageManager, IPathManager pathManager)
 {
-    public record InitArgs
+    private readonly IContext _context = context;
+    private readonly IPackageManager _packageManager = packageManager;
+    private readonly IPathManager _pathManager = pathManager;
+
+    public record Args
     {
         public bool Force { get; init; } = false;
         public string? InitAvatarUrl { get; init; }
@@ -21,7 +24,7 @@ public partial class Lip
     private const string DefaultTooth = "example.com/org/package";
     private const string DefaultVersion = "0.1.0";
 
-    public async Task Init(InitArgs args)
+    public async Task Init(Args args)
     {
         PackageManifest manifest;
 

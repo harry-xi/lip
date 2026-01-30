@@ -4,7 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Tests;
 
-public class LipRunTests
+using Lip.Core.Services;
+
+public class RunServiceTests
 {
     private static readonly string s_workDir = OperatingSystem.IsWindows()
         ? Path.Join("C:", "path", "to", "work")
@@ -14,7 +16,7 @@ public class LipRunTests
     public void RunArgs_Constructor_TrivialValues_Passes()
     {
         // Arrange.
-        Lip.RunArgs runArgs = new();
+        RunService.Args runArgs = new();
 
         // Act.
         runArgs = runArgs with { };
@@ -56,10 +58,13 @@ public class LipRunTests
         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workDir, s_workDir);
+        var cacheManager = new Mock<ICacheManager>(); // Not used directly
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act.
-        await lip.Run("test", new()
+        await runService.Run("test", new()
         {
             VariantLabel = "test_variant"
         });
@@ -71,13 +76,17 @@ public class LipRunTests
         // Arrange.
         MockFileSystem fileSystem = new();
 
+        Mock<ICommandRunner> commandRunner = new(); // Still need a mock for command runner
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workDir, s_workDir);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Run("test", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("test", new()));
     }
 
     [Fact]
@@ -109,13 +118,19 @@ public class LipRunTests
             { "/path/to/work/tooth.json", new MockFileData(packageManifestData) },
         }, currentDirectory: s_workDir);
 
+        Mock<ICommandRunner> commandRunner = new(); // Still need a mock for command runner
+
         Mock<IContext> context = new();
+        context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workDir, s_workDir);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Run("test", new()
+        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("test", new()
         {
             VariantLabel = "unknown_variant"
         }));
@@ -149,13 +164,19 @@ public class LipRunTests
             { "/path/to/work/tooth.json", new MockFileData(packageManifestData) },
         }, currentDirectory: s_workDir);
 
+        Mock<ICommandRunner> commandRunner = new(); // Still need a mock for command runner
+
         Mock<IContext> context = new();
+        context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workDir, s_workDir);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => lip.Run("unknown_script", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("unknown_script", new()));
     }
 
     [Fact]
@@ -193,9 +214,12 @@ public class LipRunTests
         context.SetupGet(c => c.CommandRunner).Returns(commandRunner.Object);
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        Lip lip = Lip.Create(new(), context.Object);
+        var pathManager = new PathManager(fileSystem, s_workDir, s_workDir);
+        var cacheManager = new Mock<ICacheManager>();
+        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act.
-        await lip.Run("test", new());
+        await runService.Run("test", new());
     }
 }

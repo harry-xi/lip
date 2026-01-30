@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-[Description("This command can be used to set up a new or existing lip package.")]
+[Description("Initialize a new tooth in the current directory.")]
 class InitCommand : AsyncCommand<InitCommand.Settings>
 {
     public class Settings : BaseCommandSettings
@@ -13,45 +13,46 @@ class InitCommand : AsyncCommand<InitCommand.Settings>
         [Description("Overwrite the existing tooth.json file.")]
         public required bool Force { get; init; }
 
-        [CommandOption("--init-avatar-url <url>")]
-        [Description("The avatar URL to use.")]
+        [CommandOption("-y|--yes")]
+        [Description("Use default values for all prompts.")]
+        public required bool Yes { get; init; }
+
+        [CommandOption("--init-avatar-url <URL>")]
+        [Description("The avatar URL for the package.")]
         public required string? InitAvatarUrl { get; init; }
 
-        [CommandOption("--init-description <description>")]
-        [Description("The description to use.")]
+        [CommandOption("--init-description <DESCRIPTION>")]
+        [Description("The description for the package.")]
         public required string? InitDescription { get; init; }
 
-        [CommandOption("--init-name <name>")]
-        [Description("The name to use.")]
+        [CommandOption("--init-name <NAME>")]
+        [Description("The name for the package.")]
         public required string? InitName { get; init; }
 
-        [CommandOption("--init-tooth <tooth>")]
-        [Description("The package's tooth path to use.")]
+        [CommandOption("--init-tooth <TOOTH>")]
+        [Description("The tooth path for the package.")]
         public required string? InitTooth { get; init; }
 
-        [CommandOption("--init-version <version>")]
-        [Description("The version to use.")]
+        [CommandOption("--init-version <VERSION>")]
+        [Description("The version for the package.")]
         public required string? InitVersion { get; init; }
-
-        [CommandOption("-y|--yes")]
-        [Description("Skip confirmation prompts.")]
-        public required bool Yes { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(
-            settings, doNotRunProgressService: true);
+        var prep = await CommandRoot.Prepare(settings);
 
-        await lip.Init(new()
+        var initService = new InitService(prep.Context, prep.PackageManager, prep.PathManager);
+
+        await initService.Init(new InitService.Args
         {
             Force = settings.Force,
+            Yes = settings.Yes,
             InitAvatarUrl = settings.InitAvatarUrl,
             InitDescription = settings.InitDescription,
             InitName = settings.InitName,
             InitTooth = settings.InitTooth,
             InitVersion = settings.InitVersion,
-            Yes = settings.Yes,
         });
 
         return 0;

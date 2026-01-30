@@ -1,24 +1,30 @@
+using Lip.Core.PackageRegistries;
 using System.Runtime.InteropServices;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class CacheService(IPackageRegistry packageRegistry, ICacheManager cacheManager)
 {
-    public record CacheAddArgs { }
-    public record CacheCleanArgs { }
-    public record CacheListArgs { }
-    public record CacheListResult
+    private readonly IPackageRegistry _packageRegistry = packageRegistry;
+    private readonly ICacheManager _cacheManager = cacheManager;
+
+    public record AddArgs { }
+    public record CleanArgs { }
+    public record ListArgs { }
+    public record ListResult
     {
         public required List<string> DownloadedFiles { get; init; }
         public required List<string> GitRepos { get; init; }
     }
 
-    public async Task CacheAdd(string packageSpecifierText, CacheAddArgs _)
+    public async Task Add(string packageSpecifierText, AddArgs _)
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 
         PackageManifest packageManifest = await _packageRegistry.GetManifest(packageSpecifier)
             ?? throw new InvalidOperationException($"Cannot get package manifest from package '{packageSpecifier}'.");
+
+        await _cacheManager.GetPackageFileSource(packageSpecifier);
 
         if (packageManifest.ToothPath != packageSpecifier.ToothPath)
         {
@@ -50,15 +56,15 @@ public partial class Lip
         }
     }
 
-    public async Task CacheClean(CacheCleanArgs _)
+    public async Task Clean(CleanArgs _)
     {
         await _cacheManager.Clean();
     }
 
-    public async Task<CacheListResult> CacheList(CacheListArgs _)
+    public async Task<ListResult> List(ListArgs _)
     {
         ICacheManager.ICacheSummary cacheSummary = await _cacheManager.List();
-        return new CacheListResult
+        return new ListResult
         {
             DownloadedFiles = [.. cacheSummary.DownloadedFiles.Keys],
             GitRepos = [.. cacheSummary.GitRepos.Keys.Select(repo => $"{repo.Url} {repo.Tag}")],

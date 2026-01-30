@@ -1,12 +1,15 @@
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class MigrateService(IContext context, IPathManager pathManager)
 {
-    public record MigrateArgs
+    private readonly IContext _context = context;
+    private readonly IPathManager _pathManager = pathManager;
+
+    public record Args
     {
     }
 
-    public async Task Migrate(string inputPath, string? outputPath, MigrateArgs args)
+    public async Task Migrate(string inputPath, string? outputPath, Args args)
     {
         string realInputPath = _context.FileSystem.Path.Combine(
             _pathManager.WorkingDir,

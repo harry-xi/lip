@@ -1,15 +1,19 @@
 using System.Runtime.InteropServices;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class RunService(IContext context, IPackageManager packageManager, IPathManager pathManager)
 {
-    public record RunArgs
+    private readonly IContext _context = context;
+    private readonly IPackageManager _packageManager = packageManager;
+    private readonly IPathManager _pathManager = pathManager;
+
+    public record Args
     {
         public string VariantLabel { get; init; } = string.Empty;
     }
 
-    public async Task Run(string scriptName, RunArgs args)
+    public async Task Run(string scriptName, Args args)
     {
         PackageManifest? packageManifest = await _packageManager.GetCurrentPackageManifest()
             ?? throw new InvalidOperationException("No package manifest found.");

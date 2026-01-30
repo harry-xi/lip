@@ -1,16 +1,15 @@
 using Flurl;
-using Lip.Core;
 using Lip.Core.PackageRegistries;
+using Lip.Core.Services; // Ensure Services for InstallService/UpdateService
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
-using Xunit;
 
 namespace Lip.Core.Tests;
 
-public class LipUpdateTests
+public class UpdateServiceTests
 {
     private readonly Mock<ICacheManager> _cacheManagerMock = new();
     private readonly Mock<IContext> _contextMock = new();
@@ -23,22 +22,26 @@ public class LipUpdateTests
     private readonly Mock<ILogger> _loggerMock = new();
 
     private readonly string _workingDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"C:\app" : "/app";
-    private readonly Lip _lip;
+    private readonly UpdateService _updateService;
 
-    public LipUpdateTests()
+    public UpdateServiceTests()
     {
         _contextMock.Setup(c => c.FileSystem).Returns(_fileSystem);
         _contextMock.Setup(c => c.Logger).Returns(_loggerMock.Object);
         _pathManagerMock.Setup(p => p.WorkingDir).Returns(_workingDir);
 
-        _lip = new Lip(
-            _runtimeConfig,
+        var installService = new InstallService(
             _contextMock.Object,
-            _cacheManagerMock.Object,
-            _dependencySolverMock.Object,
             _packageManagerMock.Object,
+            _dependencySolverMock.Object,
+            _cacheManagerMock.Object,
             _packageRegistryMock.Object,
             _pathManagerMock.Object);
+
+        _updateService = new UpdateService(
+            _contextMock.Object,
+            _packageManagerMock.Object,
+            installService);
     }
 
     private PackageManifest CreateManifest(string name, string version)
@@ -98,7 +101,7 @@ public class LipUpdateTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-update" };
-        var args = new Lip.UpdateArgs
+        var args = new UpdateService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -129,7 +132,7 @@ public class LipUpdateTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
-        await _lip.Update(userInput, args);
+        await _updateService.Update(userInput, args);
 
         // Assert
         // Verify dependency solver was called with AtLeast range for the locked package
@@ -146,7 +149,7 @@ public class LipUpdateTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/uninstalled-pkg" };
-        var args = new Lip.UpdateArgs
+        var args = new UpdateService.Args
         {
             DryRun = false,
             IgnoreScripts = false,
@@ -158,7 +161,7 @@ public class LipUpdateTests
             .ReturnsAsync(new PackageLock { Packages = [] });
 
         // Act
-        await _lip.Update(userInput, args);
+        await _updateService.Update(userInput, args);
 
         // Assert
         // Verify ResolveDependencies was NEVER called (since Install should be skipped)

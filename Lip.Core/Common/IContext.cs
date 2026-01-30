@@ -1,6 +1,5 @@
 using Flurl;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 
 namespace Lip.Core;

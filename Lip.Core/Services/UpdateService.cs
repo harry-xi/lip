@@ -1,10 +1,14 @@
 using Microsoft.Extensions.Logging;
 
-namespace Lip.Core;
+namespace Lip.Core.Services;
 
-public partial class Lip
+public class UpdateService(IContext context, IPackageManager packageManager, InstallService installService)
 {
-    public record UpdateArgs
+    private readonly IContext _context = context;
+    private readonly IPackageManager _packageManager = packageManager;
+    private readonly InstallService _installService = installService;
+
+    public record Args
     {
         public required bool DryRun { get; init; }
 
@@ -12,7 +16,7 @@ public partial class Lip
         public required bool NoDependencies { get; init; }
     }
 
-    public async Task Update(List<string> userInputPackageTexts, UpdateArgs args)
+    public async Task Update(List<string> userInputPackageTexts, Args args)
     {
         List<string> packagesToUpdate = [];
 
@@ -37,7 +41,7 @@ public partial class Lip
             return;
         }
 
-        await Install(packagesToUpdate, new InstallArgs
+        await _installService.Install(packagesToUpdate, new InstallService.Args
         {
             DryRun = args.DryRun,
             IgnoreScripts = args.IgnoreScripts,

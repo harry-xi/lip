@@ -1,8 +1,8 @@
+using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.Runtime.InteropServices;
-using Lip.Core.PackageRegistries;
 
 namespace Lip.Core.Tests;
 

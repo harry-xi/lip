@@ -3,8 +3,8 @@ using Flurl.Http.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
-using System.IO.Abstractions.TestingHelpers;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -933,5 +933,3 @@ public class PackageManagerTests
         // ?
     }
 }
-
-

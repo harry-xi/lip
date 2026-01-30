@@ -3,10 +3,37 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Services;
 
-public class CacheService(IPackageRegistry packageRegistry, ICacheManager cacheManager)
+public class CacheService
 {
-    private readonly IPackageRegistry _packageRegistry = packageRegistry;
-    private readonly ICacheManager _cacheManager = cacheManager;
+    private readonly IPackageRegistry _packageRegistry;
+    private readonly ICacheManager _cacheManager;
+
+    public CacheService(IContext context)
+    {
+        var pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+
+        _cacheManager = new CacheManager(
+            context,
+            pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        _packageRegistry = new PackageRegistry(
+            context,
+            _cacheManager,
+            pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+    }
+
+    internal CacheService(IPackageRegistry packageRegistry, ICacheManager cacheManager)
+    {
+        _packageRegistry = packageRegistry;
+        _cacheManager = cacheManager;
+    }
 
     public record AddArgs { }
     public record CleanArgs { }

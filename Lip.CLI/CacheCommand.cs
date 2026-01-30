@@ -1,4 +1,3 @@
-using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -20,16 +19,9 @@ class CacheAddCommand : AsyncCommand<CacheAddCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var packageRegistry = new PackageRegistry(
-            prep.Context,
-            prep.CacheManager,
-            prep.PathManager,
-            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        var cacheService = new CacheService(packageRegistry, prep.CacheManager);
+        var cacheService = new CacheService(ctx);
 
         await cacheService.Add(settings.Package, new());
 
@@ -44,16 +36,9 @@ class CacheCleanCommand : AsyncCommand<CacheCleanCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var packageRegistry = new PackageRegistry(
-            prep.Context,
-            prep.CacheManager,
-            prep.PathManager,
-            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        var cacheService = new CacheService(packageRegistry, prep.CacheManager);
+        var cacheService = new CacheService(ctx);
 
         await cacheService.Clean(new());
 
@@ -68,16 +53,9 @@ class CacheListCommand : AsyncCommand<CacheListCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var packageRegistry = new PackageRegistry(
-            prep.Context,
-            prep.CacheManager,
-            prep.PathManager,
-            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        var cacheService = new CacheService(packageRegistry, prep.CacheManager);
+        var cacheService = new CacheService(ctx);
 
         CacheService.ListResult result = await cacheService.List(new());
 

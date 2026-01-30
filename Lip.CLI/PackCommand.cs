@@ -24,9 +24,9 @@ class PackCommand : AsyncCommand<PackCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var packService = new PackService(prep.Context, prep.PackageManager, prep.PathManager);
+        var packService = new PackService(ctx);
 
         await packService.Pack(settings.OutputPath, new PackService.Args
         {

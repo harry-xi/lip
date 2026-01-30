@@ -16,9 +16,9 @@ class RunCommand : AsyncCommand<RunCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var runService = new RunService(prep.Context, prep.PackageManager, prep.PathManager);
+        var runService = new RunService(ctx);
 
         await runService.Run(settings.Script, new()
         {

@@ -20,18 +20,9 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
         public required bool Version { get; init; }
     }
 
-    public record PrepareResult(
-        IContext Context,
-        RuntimeConfig RuntimeConfig,
-        IPathManager PathManager,
-        ICacheManager CacheManager,
-        IPackageManager PackageManager,
-        ILogger Logger,
-        UserInteraction UserInteraction);
-
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var result = await Prepare(settings);
+        var ctx = await CreateContext(settings);
 
         if (settings.Version)
         {
@@ -42,12 +33,12 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
             return 0;
         }
 
-        result.Logger.LogCritical("No command specified. Use 'lip --help' for more information.");
+        ctx.Logger.LogCritical("No command specified. Use 'lip --help' for more information.");
 
         return 0;
     }
 
-    public static async Task<PrepareResult> Prepare(
+    public static async Task<IContext> CreateContext(
         BaseCommandSettings settings,
         bool doNotRunProgressService = false)
     {
@@ -64,36 +55,17 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
             FileSystem = new FileSystem(),
             Git = await StandaloneGit.Create(),
             Logger = logger,
+            RuntimeConfig = runtimeConfig,
             UserInteraction = userInteraction,
             WorkingDir = Directory.GetCurrentDirectory()
         };
-
-        var pathManager = new PathManager(
-            context.FileSystem,
-            runtimeConfig.Cache,
-            context.WorkingDir);
-
-        var cacheManager = new CacheManager(
-            context,
-            pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        var packageManager = new PackageManager(context, cacheManager, pathManager);
 
         if (!doNotRunProgressService)
         {
             _ = userInteraction.RunProgressService();
         }
 
-        return new PrepareResult(
-            context,
-            runtimeConfig,
-            pathManager,
-            cacheManager,
-            packageManager,
-            logger,
-            userInteraction);
+        return context;
     }
 
     private static ILogger CreateLogger(bool quiet, bool verbose)

@@ -5,11 +5,36 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Services;
 
-public class PackService(IContext context, IPackageManager packageManager, IPathManager pathManager)
+public class PackService
 {
-    private readonly IContext _context = context;
-    private readonly IPackageManager _packageManager = packageManager;
-    private readonly IPathManager _pathManager = pathManager;
+    private readonly IContext _context;
+    private readonly IPackageManager _packageManager;
+    private readonly IPathManager _pathManager;
+
+    public PackService(IContext context)
+    {
+        _context = context;
+
+        _pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+
+        var cacheManager = new CacheManager(
+            context,
+            _pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        _packageManager = new PackageManager(context, cacheManager, _pathManager);
+    }
+
+    internal PackService(IContext context, IPackageManager packageManager, IPathManager pathManager)
+    {
+        _context = context;
+        _packageManager = packageManager;
+        _pathManager = pathManager;
+    }
 
     public record Args
     {

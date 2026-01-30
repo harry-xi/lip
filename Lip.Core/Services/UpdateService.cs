@@ -2,11 +2,37 @@ using Microsoft.Extensions.Logging;
 
 namespace Lip.Core.Services;
 
-public class UpdateService(IContext context, IPackageManager packageManager, InstallService installService)
+public class UpdateService
 {
-    private readonly IContext _context = context;
-    private readonly IPackageManager _packageManager = packageManager;
-    private readonly InstallService _installService = installService;
+    private readonly IContext _context;
+    private readonly IPackageManager _packageManager;
+    private readonly InstallService _installService;
+
+    public UpdateService(IContext context)
+    {
+        _context = context;
+        _installService = new InstallService(context);
+
+        var pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+
+        var cacheManager = new CacheManager(
+            context,
+            pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        _packageManager = new PackageManager(context, cacheManager, pathManager);
+    }
+
+    internal UpdateService(IContext context, IPackageManager packageManager, InstallService installService)
+    {
+        _context = context;
+        _packageManager = packageManager;
+        _installService = installService;
+    }
 
     public record Args
     {

@@ -5,9 +5,35 @@ using System.Text;
 
 namespace Lip.Core.Services;
 
-public class ViewService(IPackageRegistry packageRegistry)
+public class ViewService
 {
-    private readonly IPackageRegistry _packageRegistry = packageRegistry;
+    private readonly IPackageRegistry _packageRegistry;
+
+    public ViewService(IContext context)
+    {
+        var pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+
+        var cacheManager = new CacheManager(
+            context,
+            pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        _packageRegistry = new PackageRegistry(
+            context,
+            cacheManager,
+            pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+    }
+
+    internal ViewService(IPackageRegistry packageRegistry)
+    {
+        _packageRegistry = packageRegistry;
+    }
 
     public record Args { }
 

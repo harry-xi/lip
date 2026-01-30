@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Lip.Core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Lip.Migration\Lip.Migration.csproj" />
     <ProjectReference Include="..\Golang.Org.X.Mod\Golang.Org.X.Mod.csproj" />
   </ItemGroup>

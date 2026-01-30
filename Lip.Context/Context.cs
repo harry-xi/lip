@@ -11,6 +11,7 @@ public class Context : IContext
     public required IFileSystem FileSystem { get; init; }
     public required IGit? Git { get; init; }
     public required ILogger Logger { get; init; }
+    public required RuntimeConfig RuntimeConfig { get; init; }
     public required IUserInteraction UserInteraction { get; init; }
     public required string? WorkingDir { get; init; }
 }

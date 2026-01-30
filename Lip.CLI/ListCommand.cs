@@ -12,9 +12,9 @@ class ListCommand : AsyncCommand<ListCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var listService = new ListService(prep.PackageManager);
+        var listService = new ListService(ctx);
 
         List<ListService.ResultItem> result = await listService.List(new());
 

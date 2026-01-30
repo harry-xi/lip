@@ -19,9 +19,9 @@ class ConfigDeleteCommand : AsyncCommand<ConfigDeleteCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
+        var configService = new ConfigService(ctx);
 
         await configService.Delete([.. settings.Keys], new());
 
@@ -41,9 +41,9 @@ class ConfigGetCommand : AsyncCommand<ConfigGetCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
+        var configService = new ConfigService(ctx);
 
         Dictionary<string, string> value = configService.Get([.. settings.Keys], new());
 
@@ -63,9 +63,9 @@ class ConfigListCommand : AsyncCommand<ConfigListCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
+        var configService = new ConfigService(ctx);
 
         Dictionary<string, string> value = configService.List(new());
 
@@ -90,9 +90,9 @@ class ConfigSetCommand : AsyncCommand<ConfigSetCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var configService = new ConfigService(prep.RuntimeConfig, prep.Context, prep.PathManager);
+        var configService = new ConfigService(ctx);
 
         Dictionary<string, string> entries = [];
         foreach (string pair in settings.KeyValuePairs)

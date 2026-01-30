@@ -4,11 +4,29 @@ using System.Text.Json.Serialization;
 
 namespace Lip.Core.Services;
 
-public class ConfigService(RuntimeConfig runtimeConfig, IContext context, IPathManager pathManager)
+public class ConfigService
 {
-    private readonly RuntimeConfig _runtimeConfig = runtimeConfig;
-    private readonly IContext _context = context;
-    private readonly IPathManager _pathManager = pathManager;
+    private readonly RuntimeConfig _runtimeConfig;
+    private readonly IContext _context;
+    private readonly IPathManager _pathManager;
+
+    public ConfigService(IContext context)
+    {
+        _context = context;
+        _runtimeConfig = context.RuntimeConfig;
+
+        _pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+    }
+
+    internal ConfigService(RuntimeConfig runtimeConfig, IContext context, IPathManager pathManager)
+    {
+        _runtimeConfig = runtimeConfig;
+        _context = context;
+        _pathManager = pathManager;
+    }
 
     [ExcludeFromCodeCoverage]
     public record DeleteArgs { }

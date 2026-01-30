@@ -1,5 +1,3 @@
-using Lip.Core;
-using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
 using Spectre.Console.Cli;
 using System.ComponentModel;
@@ -34,24 +32,9 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var packageRegistry = new PackageRegistry(
-            prep.Context,
-            prep.CacheManager,
-            prep.PathManager,
-            prep.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            prep.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        var dependencySolver = new DependencySolver(prep.Context, packageRegistry);
-
-        var installService = new InstallService(
-            prep.Context,
-            prep.PackageManager,
-            dependencySolver,
-            prep.CacheManager,
-            packageRegistry,
-            prep.PathManager);
+        var installService = new InstallService(ctx);
 
         await installService.Install(settings.Packages?.ToList(), new InstallService.Args
         {

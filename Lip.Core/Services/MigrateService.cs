@@ -1,9 +1,25 @@
 namespace Lip.Core.Services;
 
-public class MigrateService(IContext context, IPathManager pathManager)
+public class MigrateService
 {
-    private readonly IContext _context = context;
-    private readonly IPathManager _pathManager = pathManager;
+    private readonly IContext _context;
+    private readonly IPathManager _pathManager;
+
+    public MigrateService(IContext context)
+    {
+        _context = context;
+
+        _pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+    }
+
+    internal MigrateService(IContext context, IPathManager pathManager)
+    {
+        _context = context;
+        _pathManager = pathManager;
+    }
 
     public record Args
     {

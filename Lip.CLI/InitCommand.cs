@@ -40,9 +40,9 @@ class InitCommand : AsyncCommand<InitCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var initService = new InitService(prep.Context, prep.PackageManager, prep.PathManager);
+        var initService = new InitService(ctx);
 
         await initService.Init(new InitService.Args
         {

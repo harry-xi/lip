@@ -24,9 +24,9 @@ class UninstallCommand : AsyncCommand<UninstallCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var uninstallService = new UninstallService(prep.Context, prep.PackageManager);
+        var uninstallService = new UninstallService(ctx);
 
         await uninstallService.Uninstall([.. settings.Packages], new()
         {

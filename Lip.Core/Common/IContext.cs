@@ -16,6 +16,7 @@ public interface IContext
     IFileSystem FileSystem { get; }
     IGit? Git { get; }
     ILogger Logger { get; }
+    RuntimeConfig RuntimeConfig { get; }
     IUserInteraction UserInteraction { get; }
     string? WorkingDir { get; }
 }

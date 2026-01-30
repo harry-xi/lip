@@ -20,9 +20,9 @@ class MigrateCommand : AsyncCommand<MigrateCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var prep = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        var migrateService = new MigrateService(prep.Context, prep.PathManager);
+        var migrateService = new MigrateService(ctx);
 
         await migrateService.Migrate(settings.Path, settings.Output, new());
 

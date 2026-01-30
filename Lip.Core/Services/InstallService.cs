@@ -1,3 +1,4 @@
+using Flurl;
 using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Semver;
@@ -7,20 +8,57 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Services;
 
-public class InstallService(
-    IContext context,
-    IPackageManager packageManager,
-    IDependencySolver dependencySolver,
-    ICacheManager cacheManager,
-    IPackageRegistry packageRegistry,
-    IPathManager pathManager)
+public class InstallService
 {
-    private readonly IContext _context = context;
-    private readonly IPackageManager _packageManager = packageManager;
-    private readonly IDependencySolver _dependencySolver = dependencySolver;
-    private readonly ICacheManager _cacheManager = cacheManager;
-    private readonly IPackageRegistry _packageRegistry = packageRegistry;
-    private readonly IPathManager _pathManager = pathManager;
+    private readonly IContext _context;
+    private readonly IPackageManager _packageManager;
+    private readonly IDependencySolver _dependencySolver;
+    private readonly ICacheManager _cacheManager;
+    private readonly IPackageRegistry _packageRegistry;
+    private readonly IPathManager _pathManager;
+
+    public InstallService(IContext context)
+    {
+        _context = context;
+
+        _pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+
+        _cacheManager = new CacheManager(
+            context,
+            _pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
+
+        _packageManager = new PackageManager(context, _cacheManager, _pathManager);
+
+        _packageRegistry = new PackageRegistries.PackageRegistry(
+            context,
+            _cacheManager,
+            _pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
+
+        _dependencySolver = new DependencySolver(context, _packageRegistry);
+    }
+
+    internal InstallService(
+        IContext context,
+        IPackageManager packageManager,
+        IDependencySolver dependencySolver,
+        ICacheManager cacheManager,
+        IPackageRegistry packageRegistry,
+        IPathManager pathManager)
+    {
+        _context = context;
+        _packageManager = packageManager;
+        _dependencySolver = dependencySolver;
+        _cacheManager = cacheManager;
+        _packageRegistry = packageRegistry;
+        _pathManager = pathManager;
+    }
 
     public record Args
     {

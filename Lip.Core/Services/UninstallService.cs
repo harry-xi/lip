@@ -2,10 +2,34 @@ using Microsoft.Extensions.Logging;
 
 namespace Lip.Core.Services;
 
-public class UninstallService(IContext context, IPackageManager packageManager)
+public class UninstallService
 {
-    private readonly IContext _context = context;
-    private readonly IPackageManager _packageManager = packageManager;
+    private readonly IContext _context;
+    private readonly IPackageManager _packageManager;
+
+    public UninstallService(IContext context)
+    {
+        _context = context;
+
+        var pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+
+        var cacheManager = new CacheManager(
+            context,
+            pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        _packageManager = new PackageManager(context, cacheManager, pathManager);
+    }
+
+    internal UninstallService(IContext context, IPackageManager packageManager)
+    {
+        _context = context;
+        _packageManager = packageManager;
+    }
 
     public record Args
     {

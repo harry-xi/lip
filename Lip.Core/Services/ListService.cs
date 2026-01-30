@@ -1,8 +1,29 @@
 namespace Lip.Core.Services;
 
-public class ListService(IPackageManager packageManager)
+public class ListService
 {
-    private readonly IPackageManager _packageManager = packageManager;
+    private readonly IPackageManager _packageManager;
+
+    public ListService(IContext context)
+    {
+        var pathManager = new PathManager(
+            context.FileSystem,
+            context.RuntimeConfig.Cache,
+            context.WorkingDir);
+
+        var cacheManager = new CacheManager(
+            context,
+            pathManager,
+            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+
+        _packageManager = new PackageManager(context, cacheManager, pathManager);
+    }
+
+    internal ListService(IPackageManager packageManager)
+    {
+        _packageManager = packageManager;
+    }
 
     public record Args { }
 

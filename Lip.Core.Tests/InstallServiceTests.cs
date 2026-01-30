@@ -97,14 +97,6 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/new-pkg" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = true
-        };
 
         var lockedPackage = CreateLockedPackage("locked-pkg", "1.0.0");
 
@@ -125,7 +117,7 @@ public class InstallServiceTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput, upgradeLockedPackages: true);
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
@@ -141,14 +133,6 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/new-pkg" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
 
         var lockedPackage = CreateLockedPackage("locked-pkg", "1.0.0");
 
@@ -169,7 +153,7 @@ public class InstallServiceTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
@@ -185,14 +169,7 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/existing-pkg" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
+
 
         var existingPkgId = PackageIdentifier.Parse("github.com/test/existing-pkg");
         var existingPkg = CreateLockedPackage("existing-pkg", "1.0.0");
@@ -215,7 +192,7 @@ public class InstallServiceTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act & Assert
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
     }
 
     [Fact]
@@ -223,14 +200,7 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
+
 
         // Existing package that should be uninstalled (pkg-old)
         // because it will not be in the dependency resolution result
@@ -284,7 +254,7 @@ public class InstallServiceTests
 
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
 
         // Assert
 
@@ -320,14 +290,7 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "./local-pkg" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
+
 
         // Mock empty lock
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
@@ -351,7 +314,7 @@ public class InstallServiceTests
             .ReturnsAsync(new Mock<IFileSource>().Object);
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
 
         // Assert
         // Verify GetPackageManifestFromFileSource was called with DirectoryFileSource
@@ -366,15 +329,6 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new InstallService.Args
-        {
-            DryRun = true,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
-
         // Mock generic setups for valid install flow
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
@@ -389,7 +343,7 @@ public class InstallServiceTests
              .ReturnsAsync(new List<PackageSpecifier> { pkgA });
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput, dryRun: true);
 
         // Assert
         // Verify InstallPackage called with dryRun=true
@@ -401,15 +355,6 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = true,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
-
         // Mock setup
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
@@ -420,7 +365,7 @@ public class InstallServiceTests
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput, noDependencies: true);
 
         // Assert
         // ResolveDependencies should NOT be called
@@ -435,14 +380,7 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-spec@1.2.3" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
+
 
         // Mock setup
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
@@ -459,7 +397,7 @@ public class InstallServiceTests
              .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-spec", ""), SemVersion.Parse("1.2.3")) });
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
 
         // Assert
         _cacheManagerMock.Verify(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Version.ToString() == "1.2.3")), Times.Once);
@@ -470,14 +408,7 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/unknown-pkg" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
+
 
         // Mock setup
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
@@ -487,7 +418,7 @@ public class InstallServiceTests
              .ReturnsAsync(new List<SemVersion>());
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(async () => await _installService.Install(userInput, args));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await _installService.Install(userInput));
     }
 
     [Fact]
@@ -495,14 +426,7 @@ public class InstallServiceTests
     {
         // Arrange
         var userInput = new List<string> { "package.zip" }; // Use default variant to match CreateManifest
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
+
 
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
 
@@ -535,7 +459,7 @@ public class InstallServiceTests
             .ReturnsAsync(new Mock<IFileSource>().Object);
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
 
         // Assert
         _packageManagerMock.Verify(pm => pm.GetPackageManifestFromFileSource(It.IsAny<ArchiveFileSource>()), Times.Once);
@@ -550,14 +474,6 @@ public class InstallServiceTests
 
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-b" }; // User updates B
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = true,
-            OverwriteFiles = false,
-            UpgradeLockedPackages = false
-        };
 
         // Installed: A, B(old)
         var pkgA = CreateLockedPackage("pkg-a", "1.0.0");
@@ -577,7 +493,7 @@ public class InstallServiceTests
              .ReturnsAsync(CreateManifest("pkg-b", "2.0.0")); // For B new
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput, noDependencies: true);
 
         // Assert
         // A should remain installed (not uninstalled)
@@ -606,14 +522,6 @@ public class InstallServiceTests
 
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            UpgradeLockedPackages = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false
-        };
 
         // Installed: pkg-b (dependency of A)
         var pkgBLocked = CreateLockedPackage("pkg-b", "1.0.0");
@@ -635,9 +543,8 @@ public class InstallServiceTests
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });
-
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
 
         // Assert
         // Install pkg-a
@@ -656,14 +563,6 @@ public class InstallServiceTests
 
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a", "github.com/test/pkg-b" };
-        var args = new InstallService.Args
-        {
-            DryRun = false,
-            UpgradeLockedPackages = false,
-            IgnoreScripts = false,
-            NoDependencies = false,
-            OverwriteFiles = false
-        };
 
         _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
 
@@ -692,7 +591,7 @@ public class InstallServiceTests
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });
 
         // Act
-        await _installService.Install(userInput, args);
+        await _installService.Install(userInput);
 
         // Assert
         // Both installed exactly once (from user input list, not duplicated by dependency list)

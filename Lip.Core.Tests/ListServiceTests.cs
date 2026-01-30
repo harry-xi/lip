@@ -7,55 +7,7 @@ namespace Lip.Core.Tests;
 
 public class ListServiceTests
 {
-    [Fact]
-    public void ListArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Services.ListService.Args listArgs = new();
 
-        // Act.
-        listArgs = listArgs with { };
-    }
-
-    [Fact]
-    public void ListResultItem_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Services.ListService.ResultItem listResultItem = new()
-        {
-            Variant = new PackageManifest.Variant
-            {
-                Label = "variant1",
-                Platform = RuntimeInformation.RuntimeIdentifier,
-                Dependencies = [],
-                Assets = [],
-                PreserveFiles = [],
-                RemoveFiles = [],
-                Scripts = new()
-                {
-                    PreInstall = [],
-                    Install = [],
-                    PostInstall = [],
-                    PrePack = [],
-                    PostPack = [],
-                    PreUninstall = [],
-                    Uninstall = [],
-                    PostUninstall = [],
-                    AdditionalScripts = []
-                }
-            },
-            Specifier = new PackageSpecifier(new PackageIdentifier("example.com/pkg1", ""), SemVersion.Parse("1.0.0")),
-            Locked = true
-        };
-
-        // Act.
-        listResultItem = listResultItem with { };
-
-        // Assert.
-        Assert.Equal("example.com/pkg1", listResultItem.Specifier.ToothPath);
-        Assert.Equal("1.0.0", listResultItem.Specifier.Version.ToString());
-        Assert.True(listResultItem.Locked);
-    }
 
     [Fact]
     public async Task List_ReturnsListItems()
@@ -116,7 +68,7 @@ public class ListServiceTests
         var listService = new Services.ListService(packageManager);
 
         // Act.
-        List<Services.ListService.ResultItem> listItems = await listService.List(new());
+        var listItems = await listService.List();
 
         // Assert.
         Assert.Equal(2, listItems.Count);

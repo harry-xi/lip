@@ -23,7 +23,7 @@ class ConfigDeleteCommand : AsyncCommand<ConfigDeleteCommand.Settings>
 
         var configService = new ConfigService(ctx);
 
-        await configService.Delete([.. settings.Keys], new());
+        await configService.Delete([.. settings.Keys]);
 
         return 0;
     }
@@ -45,7 +45,7 @@ class ConfigGetCommand : AsyncCommand<ConfigGetCommand.Settings>
 
         var configService = new ConfigService(ctx);
 
-        Dictionary<string, string> value = configService.Get([.. settings.Keys], new());
+        Dictionary<string, string> value = configService.Get([.. settings.Keys]);
 
         foreach ((string key, string val) in value)
         {
@@ -67,7 +67,7 @@ class ConfigListCommand : AsyncCommand<ConfigListCommand.Settings>
 
         var configService = new ConfigService(ctx);
 
-        Dictionary<string, string> value = configService.List(new());
+        Dictionary<string, string> value = configService.List();
 
         foreach ((string key, string val) in value)
         {
@@ -105,7 +105,7 @@ class ConfigSetCommand : AsyncCommand<ConfigSetCommand.Settings>
             entries[parts[0]] = parts[1];
         }
 
-        await configService.Set(entries, new());
+        await configService.Set(entries);
 
         return 0;
     }

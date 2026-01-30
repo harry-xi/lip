@@ -21,11 +21,9 @@ public class MigrateService
         _pathManager = pathManager;
     }
 
-    public record Args
-    {
-    }
 
-    public async Task Migrate(string inputPath, string? outputPath, Args args)
+
+    public async Task Migrate(string inputPath, string? outputPath = null)
     {
         string realInputPath = _context.FileSystem.Path.Combine(
             _pathManager.WorkingDir,

@@ -12,15 +12,7 @@ public class RunServiceTests
         ? Path.Join("C:", "path", "to", "work")
         : Path.Join("/", "path", "to", "work");
 
-    [Fact]
-    public void RunArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        RunService.Args runArgs = new();
 
-        // Act.
-        runArgs = runArgs with { };
-    }
 
     [Fact]
     public async Task Run_ValidScript_Passes()
@@ -64,10 +56,7 @@ public class RunServiceTests
         var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act.
-        await runService.Run("test", new()
-        {
-            VariantLabel = "test_variant"
-        });
+        await runService.Run("test", variantLabel: "test_variant");
     }
 
     [Fact]
@@ -86,7 +75,7 @@ public class RunServiceTests
         var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("test", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("test"));
     }
 
     [Fact]
@@ -130,10 +119,7 @@ public class RunServiceTests
         var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("test", new()
-        {
-            VariantLabel = "unknown_variant"
-        }));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("test", variantLabel: "unknown_variant"));
     }
 
     [Fact]
@@ -176,7 +162,7 @@ public class RunServiceTests
         var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("unknown_script", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => runService.Run("unknown_script"));
     }
 
     [Fact]
@@ -220,6 +206,6 @@ public class RunServiceTests
         var runService = new RunService(context.Object, packageManager, pathManager);
 
         // Act.
-        await runService.Run("test", new());
+        await runService.Run("test");
     }
 }

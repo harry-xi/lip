@@ -36,28 +36,25 @@ public class PackService
         _pathManager = pathManager;
     }
 
-    public record Args
+    public enum ArchiveFormatType
     {
-        public enum ArchiveFormatType
-        {
-            Zip,
-            Tar,
-            TarGz,
-        }
-
-        public bool DryRun { get; init; } = false;
-        public bool IgnoreScripts { get; init; } = false;
-        public ArchiveFormatType ArchiveFormat { get; init; } = ArchiveFormatType.Zip;
+        Zip,
+        Tar,
+        TarGz,
     }
 
-    public async Task Pack(string outputPath, Args args)
+    public async Task Pack(
+        string outputPath,
+        bool dryRun = false,
+        bool ignoreScripts = false,
+        ArchiveFormatType archiveFormat = ArchiveFormatType.Zip)
     {
         PackageManifest packageManifest = await _packageManager.GetCurrentPackageManifest()
             ?? throw new InvalidOperationException("No package manifest found.");
 
         // Run pre-pack scripts.
 
-        if (!args.IgnoreScripts)
+        if (!ignoreScripts)
         {
             var prePackScripts = packageManifest.GetVariant(
                 string.Empty,
@@ -70,7 +67,7 @@ public class PackService
                 foreach (var script in prePackScripts)
                 {
                     _context.Logger.LogDebug("Running script: {script}", script);
-                    if (!args.DryRun)
+                    if (!dryRun)
                     {
                         await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                     }
@@ -98,21 +95,20 @@ public class PackService
             .Where(entry => filePlacements.Any(placement => _pathManager.GetPlacementRelativePath(
                 placement,
                 entry.Key) is not null) || entry.Key == _pathManager.PackageManifestFileName)];
-
-        using (Stream outputStream = !args.DryRun
+        using (Stream outputStream = !dryRun
             ? _context.FileSystem.File.Create(outputPath)
             : Stream.Null)
-        using (IWriter writer = args.ArchiveFormat switch
+        using (IWriter writer = archiveFormat switch
         {
-            Args.ArchiveFormatType.Zip => WriterFactory.Open(
+            ArchiveFormatType.Zip => WriterFactory.Open(
                 outputStream,
                 ArchiveType.Zip,
                 new(CompressionType.Deflate)),
-            Args.ArchiveFormatType.Tar => WriterFactory.Open(
+            ArchiveFormatType.Tar => WriterFactory.Open(
                 outputStream,
                 ArchiveType.Tar,
                 new(CompressionType.None)),
-            Args.ArchiveFormatType.TarGz => WriterFactory.Open(
+            ArchiveFormatType.TarGz => WriterFactory.Open(
                 outputStream,
                 ArchiveType.Tar,
                 new(CompressionType.GZip)),
@@ -134,7 +130,7 @@ public class PackService
 
         // Run post-pack scripts.
 
-        if (!args.IgnoreScripts)
+        if (!ignoreScripts)
         {
             var postPackScripts = packageManifest.GetVariant(
                 string.Empty,
@@ -147,7 +143,7 @@ public class PackService
                 foreach (var script in postPackScripts)
                 {
                     _context.Logger.LogDebug("Running script: {script}", script);
-                    if (!args.DryRun)
+                    if (!dryRun)
                     {
                         await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
                     }

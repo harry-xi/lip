@@ -28,11 +28,10 @@ class PackCommand : AsyncCommand<PackCommand.Settings>
 
         var packService = new PackService(ctx);
 
-        await packService.Pack(settings.OutputPath, new PackService.Args
-        {
-            DryRun = settings.DryRun,
-            IgnoreScripts = settings.IgnoreScripts,
-        });
+        await packService.Pack(
+            settings.OutputPath,
+            dryRun: settings.DryRun,
+            ignoreScripts: settings.IgnoreScripts);
 
         return 0;
     }

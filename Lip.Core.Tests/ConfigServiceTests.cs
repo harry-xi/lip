@@ -30,7 +30,7 @@ public class ConfigServiceTests
         var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        await configService.Delete(["github_proxies"], new Services.ConfigService.DeleteArgs());
+        await configService.Delete(["github_proxies"]);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -67,7 +67,7 @@ public class ConfigServiceTests
         var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        await configService.Delete(["github_proxies", "go_module_proxies"], new Services.ConfigService.DeleteArgs());
+        await configService.Delete(["github_proxies", "go_module_proxies"]);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -101,7 +101,7 @@ public class ConfigServiceTests
         var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        await configService.Delete(["github_proxies"], new Services.ConfigService.DeleteArgs());
+        await configService.Delete(["github_proxies"]);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -129,7 +129,7 @@ public class ConfigServiceTests
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => configService.Delete([], new Services.ConfigService.DeleteArgs()));
+            () => configService.Delete([]));
         Assert.Equal("No configuration keys provided. (Parameter 'keys')", exception.Message);
     }
 
@@ -147,7 +147,7 @@ public class ConfigServiceTests
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => configService.Delete(["unknown"], new Services.ConfigService.DeleteArgs()));
+            () => configService.Delete(["unknown"]));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", exception.Message);
     }
 
@@ -165,7 +165,7 @@ public class ConfigServiceTests
 
         // Act & Assert.
         ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(
-            () => configService.Delete(["cache", "unknown"], new Services.ConfigService.DeleteArgs()));
+            () => configService.Delete(["cache", "unknown"]));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", argumentException.Message);
     }
 
@@ -187,7 +187,7 @@ public class ConfigServiceTests
         var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        Dictionary<string, string> result = configService.Get(["cache"], new Services.ConfigService.GetArgs());
+        Dictionary<string, string> result = configService.Get(["cache"]);
 
         // Assert.
         Assert.Single(result);
@@ -216,8 +216,7 @@ public class ConfigServiceTests
 
         // Act.
         Dictionary<string, string> result = configService.Get(
-            ["cache", "github_proxies"],
-            new Services.ConfigService.GetArgs());
+            ["cache", "github_proxies"]);
 
         // Assert.
         Assert.Equal(2, result.Count);
@@ -239,7 +238,7 @@ public class ConfigServiceTests
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => configService.Get(["unknown"], new Services.ConfigService.GetArgs()));
+            () => configService.Get(["unknown"]));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", exception.Message);
     }
 
@@ -257,7 +256,7 @@ public class ConfigServiceTests
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => configService.Get(["cache", "unknown"], new Services.ConfigService.GetArgs()));
+            () => configService.Get(["cache", "unknown"]));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keys')", exception.Message);
     }
 
@@ -275,7 +274,7 @@ public class ConfigServiceTests
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => configService.Get([], new Services.ConfigService.GetArgs()));
+            () => configService.Get([]));
         Assert.Equal("No configuration keys provided. (Parameter 'keys')", exception.Message);
     }
 
@@ -297,7 +296,7 @@ public class ConfigServiceTests
         var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
-        Dictionary<string, string> result = configService.List(new Services.ConfigService.ListArgs());
+        Dictionary<string, string> result = configService.List();
 
         // Assert.
         Assert.Equal(3, result.Count);
@@ -329,7 +328,7 @@ public class ConfigServiceTests
         };
 
         // Act.
-        await configService.Set(keyValuePairs, new Services.ConfigService.SetArgs());
+        await configService.Set(keyValuePairs);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -368,7 +367,7 @@ public class ConfigServiceTests
         };
 
         // Act.
-        await configService.Set(keyValuePairs, new Services.ConfigService.SetArgs());
+        await configService.Set(keyValuePairs);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -402,7 +401,7 @@ public class ConfigServiceTests
         };
 
         // Act.
-        await configService.Set(keyValuePairs, new Services.ConfigService.SetArgs());
+        await configService.Set(keyValuePairs);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(s_runtimeConfigPath));
@@ -436,7 +435,7 @@ public class ConfigServiceTests
         Dictionary<string, string> keyValuePairs = [];
 
         // Act.
-        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => configService.Set(keyValuePairs, new Services.ConfigService.SetArgs()));
+        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => configService.Set(keyValuePairs));
 
         // Assert.
         Assert.Equal("No configuration items provided. (Parameter 'keyValuePairs')", argumentException.Message);
@@ -464,10 +463,10 @@ public class ConfigServiceTests
             { "unknown", "value" },
         };
 
-        Services.ConfigService.SetArgs args = new();
+
 
         // Act.
-        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => configService.Set(keyValuePairs, args));
+        ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(() => configService.Set(keyValuePairs));
 
         // Assert.
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keyValuePairs')", argumentException.Message);
@@ -497,7 +496,7 @@ public class ConfigServiceTests
 
         // Act & Assert.
         ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(
-            () => configService.Set(keyValuePairs, new Services.ConfigService.SetArgs()));
+            () => configService.Set(keyValuePairs));
         Assert.Equal("Unknown configuration key: 'unknown'. (Parameter 'keyValuePairs')", argumentException.Message);
     }
 }

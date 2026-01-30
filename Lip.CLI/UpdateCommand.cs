@@ -32,12 +32,11 @@ class UpdateCommand : AsyncCommand<UpdateCommand.Settings>
 
         var updateService = new UpdateService(ctx);
 
-        await updateService.Update([.. settings.Packages], new()
-        {
-            DryRun = settings.DryRun,
-            IgnoreScripts = settings.IgnoreScripts,
-            NoDependencies = settings.NoDependencies,
-        });
+        await updateService.Update(
+            [.. settings.Packages],
+            dryRun: settings.DryRun,
+            ignoreScripts: settings.IgnoreScripts,
+            noDependencies: settings.NoDependencies);
 
         return 0;
     }

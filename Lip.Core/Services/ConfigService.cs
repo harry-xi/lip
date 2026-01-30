@@ -28,19 +28,9 @@ public class ConfigService
         _pathManager = pathManager;
     }
 
-    [ExcludeFromCodeCoverage]
-    public record DeleteArgs { }
 
-    [ExcludeFromCodeCoverage]
-    public record GetArgs { }
 
-    [ExcludeFromCodeCoverage]
-    public record ListArgs { }
-
-    [ExcludeFromCodeCoverage]
-    public record SetArgs { }
-
-    public async Task Delete(List<string> keys, DeleteArgs _)
+    public async Task Delete(List<string> keys)
     {
         if (keys.Count == 0)
         {
@@ -60,17 +50,17 @@ public class ConfigService
             key => allKeyValuePairs.GetValueOrDefault(key) ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(keys))
         );
 
-        await Set(keyValuePairs, new());
+        await Set(keyValuePairs);
     }
 
-    public Dictionary<string, string> Get(List<string> keys, GetArgs args)
+    public Dictionary<string, string> Get(List<string> keys)
     {
         if (keys.Count == 0)
         {
             throw new ArgumentException("No configuration keys provided.", nameof(keys));
         }
 
-        Dictionary<string, string> allKeyValuePairs = List(new());
+        Dictionary<string, string> allKeyValuePairs = List();
 
         Dictionary<string, string> keyValuePairs = keys.ToDictionary(
             key => key,
@@ -80,7 +70,7 @@ public class ConfigService
         return keyValuePairs;
     }
 
-    public Dictionary<string, string> List(ListArgs _)
+    public Dictionary<string, string> List()
     {
         Dictionary<string, string> allKeyValuePairs = typeof(RuntimeConfig).GetProperties()
             .Where(prop => prop.GetCustomAttribute<JsonPropertyNameAttribute>() != null)
@@ -92,7 +82,7 @@ public class ConfigService
         return allKeyValuePairs;
     }
 
-    public async Task Set(Dictionary<string, string> keyValuePairs, SetArgs _)
+    public async Task Set(Dictionary<string, string> keyValuePairs)
     {
         if (keyValuePairs.Count == 0)
         {

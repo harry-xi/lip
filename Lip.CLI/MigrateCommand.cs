@@ -24,7 +24,7 @@ class MigrateCommand : AsyncCommand<MigrateCommand.Settings>
 
         var migrateService = new MigrateService(ctx);
 
-        await migrateService.Migrate(settings.Path, settings.Output, new());
+        await migrateService.Migrate(settings.Path, settings.Output);
 
         return 0;
     }

@@ -67,15 +67,7 @@ public class ViewServiceTests
         }
         """.ReplaceLineEndings();
 
-    [Fact]
-    public void ViewArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        ViewService.Args viewArgs = new();
 
-        // Act.
-        viewArgs = viewArgs with { };
-    }
 
     [Fact]
     public async Task View_EmptyPath_ReturnsFullManifest()
@@ -88,7 +80,7 @@ public class ViewServiceTests
         ViewService viewService = new ViewService(packageRegistryMock.Object);
 
         // Act.
-        string result = await viewService.View("example.com/repo@1.0.0", null, new());
+        string result = await viewService.View("example.com/repo@1.0.0", null);
 
         // Assert.
         Assert.Equal(s_packageManifestData, result);
@@ -108,7 +100,7 @@ public class ViewServiceTests
         ViewService viewService = new ViewService(packageRegistryMock.Object);
 
         // Act.
-        string result = await viewService.View("example.com/repo@1.0.0", path, new());
+        string result = await viewService.View("example.com/repo@1.0.0", path);
 
         // Assert.
         Assert.Equal(expectedField, result);
@@ -125,7 +117,7 @@ public class ViewServiceTests
         ViewService viewService = new ViewService(packageRegistryMock.Object);
 
         // Act.
-        string result = await viewService.View("example.com/repo@1.0.0", "variants[0].assets[0]", new());
+        string result = await viewService.View("example.com/repo@1.0.0", "variants[0].assets[0]");
 
         // Assert.
         Assert.Equal(@"{type: ""self"", urls: [], placements: []}", result);
@@ -142,7 +134,7 @@ public class ViewServiceTests
         ViewService viewService = new ViewService(packageRegistryMock.Object);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await viewService.View("example.com/invalid@1.0.0", string.Empty, new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await viewService.View("example.com/invalid@1.0.0", string.Empty));
     }
 
     [Fact]
@@ -156,7 +148,7 @@ public class ViewServiceTests
         ViewService viewService = new ViewService(packageRegistryMock.Object);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await viewService.View("example.com/repo@2.0.0", string.Empty, new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await viewService.View("example.com/repo@2.0.0", string.Empty));
     }
 
     [Fact]
@@ -170,7 +162,7 @@ public class ViewServiceTests
         ViewService viewService = new ViewService(packageRegistryMock.Object);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<FormatException>(async () => await viewService.View("example.com/repo@1.0.0", "@#$%^", new()));
+        await Assert.ThrowsAsync<FormatException>(async () => await viewService.View("example.com/repo@1.0.0", "@#$%^"));
     }
 
     [Fact]
@@ -184,7 +176,7 @@ public class ViewServiceTests
         ViewService viewService = new ViewService(packageRegistryMock.Object);
 
         // Act.
-        string result = await viewService.View("example.com/repo@1.0.0", "nonexistent", new());
+        string result = await viewService.View("example.com/repo@1.0.0", "nonexistent");
 
         // Assert.
         Assert.Equal(string.Empty, result);

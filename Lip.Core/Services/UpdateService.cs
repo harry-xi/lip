@@ -34,15 +34,11 @@ public class UpdateService
         _installService = installService;
     }
 
-    public record Args
-    {
-        public required bool DryRun { get; init; }
-
-        public required bool IgnoreScripts { get; init; }
-        public required bool NoDependencies { get; init; }
-    }
-
-    public async Task Update(List<string> userInputPackageTexts, Args args)
+    public async Task Update(
+        List<string> userInputPackageTexts,
+        bool dryRun = false,
+        bool ignoreScripts = false,
+        bool noDependencies = false)
     {
         List<string> packagesToUpdate = [];
 
@@ -67,13 +63,12 @@ public class UpdateService
             return;
         }
 
-        await _installService.Install(packagesToUpdate, new InstallService.Args
-        {
-            DryRun = args.DryRun,
-            IgnoreScripts = args.IgnoreScripts,
-            NoDependencies = args.NoDependencies,
-            UpgradeLockedPackages = true,
-            OverwriteFiles = false,
-        });
+        await _installService.Install(
+            packagesToUpdate,
+            dryRun: dryRun,
+            ignoreScripts: ignoreScripts,
+            noDependencies: noDependencies,
+            upgradeLockedPackages: true,
+            overwriteFiles: false);
     }
 }

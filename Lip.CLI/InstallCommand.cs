@@ -36,14 +36,13 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
 
         var installService = new InstallService(ctx);
 
-        await installService.Install(settings.Packages?.ToList(), new InstallService.Args
-        {
-            DryRun = settings.DryRun,
-            IgnoreScripts = settings.IgnoreScripts,
-            NoDependencies = settings.NoDependencies,
-            UpgradeLockedPackages = false,
-            OverwriteFiles = settings.OverwriteFiles,
-        });
+        await installService.Install(
+            settings.Packages?.ToList(),
+            dryRun: settings.DryRun,
+            ignoreScripts: settings.IgnoreScripts,
+            noDependencies: settings.NoDependencies,
+            upgradeLockedPackages: false,
+            overwriteFiles: settings.OverwriteFiles);
 
         return 0;
     }

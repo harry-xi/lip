@@ -44,16 +44,14 @@ class InitCommand : AsyncCommand<InitCommand.Settings>
 
         var initService = new InitService(ctx);
 
-        await initService.Init(new InitService.Args
-        {
-            Force = settings.Force,
-            Yes = settings.Yes,
-            InitAvatarUrl = settings.InitAvatarUrl,
-            InitDescription = settings.InitDescription,
-            InitName = settings.InitName,
-            InitTooth = settings.InitTooth,
-            InitVersion = settings.InitVersion,
-        });
+        await initService.Init(
+            force: settings.Force,
+            yes: settings.Yes,
+            initAvatarUrl: settings.InitAvatarUrl,
+            initDescription: settings.InitDescription,
+            initName: settings.InitName,
+            initTooth: settings.InitTooth,
+            initVersion: settings.InitVersion);
 
         return 0;
     }

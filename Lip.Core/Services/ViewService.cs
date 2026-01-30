@@ -35,9 +35,9 @@ public class ViewService
         _packageRegistry = packageRegistry;
     }
 
-    public record Args { }
 
-    public async Task<string> View(string packageSpecifierText, string? path, Args args)
+
+    public async Task<string> View(string packageSpecifierText, string? path = null)
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 

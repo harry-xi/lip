@@ -14,53 +14,7 @@ public class CacheServiceTests
         ? Path.Join("C:", "path", "to", "cache")
         : Path.Join("/", "path", "to", "cache");
 
-    [Fact]
-    public void CacheAddArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Services.CacheService.AddArgs args = new();
 
-        // Act.
-        args = args with { };
-    }
-
-    [Fact]
-    public void CacheCleanArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Services.CacheService.CleanArgs args = new();
-
-        // Act.
-        args = args with { };
-    }
-
-    [Fact]
-    public void CacheListArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Services.CacheService.ListArgs args = new();
-
-        // Act.
-        args = args with { };
-    }
-
-    [Fact]
-    public void CacheListResult_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        Services.CacheService.ListResult result = new()
-        {
-            DownloadedFiles = [],
-            GitRepos = [],
-        };
-
-        // Act.
-        result = result with { };
-
-        // Assert.
-        Assert.Empty(result.DownloadedFiles);
-        Assert.Empty(result.GitRepos);
-    }
 
     [Fact]
     public async Task CacheAdd_ValidPackageSpecifier_AddsCache()
@@ -138,7 +92,7 @@ public class CacheServiceTests
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act.
-        await cacheService.Add("example.com/repo@1.0.0", new());
+        await cacheService.Add("example.com/repo@1.0.0");
 
         // Assert.
         Assert.True(fileSystem.File.Exists(testFilePath));
@@ -192,7 +146,7 @@ public class CacheServiceTests
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act.
-        await cacheService.Add("example.com/repo@1.0.0", new());
+        await cacheService.Add("example.com/repo@1.0.0");
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0", "tooth.json")));
@@ -240,7 +194,7 @@ public class CacheServiceTests
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheService.Add("example.com/repo@1.0.0", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheService.Add("example.com/repo@1.0.0"));
     }
 
     [Fact]
@@ -285,7 +239,7 @@ public class CacheServiceTests
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act & Assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheService.Add("example.com/repo@1.0.0", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => cacheService.Add("example.com/repo@1.0.0"));
     }
 
     [Fact]
@@ -312,7 +266,7 @@ public class CacheServiceTests
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
         // Act.
-        await cacheService.Clean(new());
+        await cacheService.Clean();
 
         // Assert.
         Assert.False(fileSystem.File.Exists(Path.Join(s_cacheDir, "file")));
@@ -342,11 +296,10 @@ public class CacheServiceTests
 
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
-        // Act.
-        Services.CacheService.ListResult result = await cacheService.List(new());
+        var (downloadedFiles, gitRepos) = await cacheService.List();
 
         // Assert.
-        Assert.Equal(new[] { "https://example.com/test.file" }, result.DownloadedFiles);
-        Assert.Equal(new[] { "https://example.com/repo v1.0.0" }, result.GitRepos);
+        Assert.Equal(new[] { "https://example.com/test.file" }, downloadedFiles);
+        Assert.Equal(new[] { "https://example.com/repo v1.0.0" }, gitRepos);
     }
 }

@@ -31,13 +31,10 @@ public class UninstallService
         _packageManager = packageManager;
     }
 
-    public record Args
-    {
-        public required bool DryRun { get; init; }
-        public required bool IgnoreScripts { get; init; }
-    }
-
-    public async Task Uninstall(List<string> packageSpecifierTextsToUninstall, Args args)
+    public async Task Uninstall(
+        List<string> packageSpecifierTextsToUninstall,
+        bool dryRun = false,
+        bool ignoreScripts = false)
     {
         List<PackageIdentifier> packageSpecifiersToUninstallSpecified =
             packageSpecifierTextsToUninstall.ConvertAll(PackageIdentifier.Parse);
@@ -71,8 +68,8 @@ public class UninstallService
         {
             await _packageManager.UninstallPackage(
                 packageUninstallDetail.Specifier.Identifier,
-                args.DryRun,
-                args.IgnoreScripts);
+                dryRun,
+                ignoreScripts);
         }
     }
 }

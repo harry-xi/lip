@@ -39,15 +39,7 @@ public class PackServiceTests
         Scripts = CreateEmptyScripts()
     };
 
-    [Fact]
-    public void PackArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        PackService.Args packArgs = new();
 
-        // Act.
-        packArgs = packArgs with { };
-    }
 
     [Fact]
     public async Task Pack_NoPackageManifest_ThrowsInvalidOperationException()
@@ -64,7 +56,7 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act & assert.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => packService.Pack("output", new()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => packService.Pack("output"));
     }
 
     [Theory]
@@ -178,7 +170,7 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
-        await packService.Pack("output", new());
+        await packService.Pack("output");
 
         // Assert.
         Assert.True(fileSystem.File.Exists("output"));
@@ -272,7 +264,7 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
-        await packService.Pack("output", new());
+        await packService.Pack("output");
 
         // Assert.
         Assert.True(fileSystem.File.Exists("output"));
@@ -340,7 +332,7 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act & assert.
-        await Assert.ThrowsAsync<NotImplementedException>(() => packService.Pack("output", new()));
+        await Assert.ThrowsAsync<NotImplementedException>(() => packService.Pack("output"));
     }
 
     [Fact]
@@ -389,10 +381,7 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
-        await packService.Pack("output", new()
-        {
-            DryRun = true
-        });
+        await packService.Pack("output", dryRun: true);
 
         // Assert.
         Assert.False(fileSystem.File.Exists("output"));
@@ -445,10 +434,7 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
-        await packService.Pack("output", new()
-        {
-            IgnoreScripts = true
-        });
+        await packService.Pack("output", ignoreScripts: true);
 
         // Assert.
         Assert.True(fileSystem.File.Exists("output"));
@@ -459,10 +445,10 @@ public class PackServiceTests
     }
 
     [Theory]
-    [InlineData(PackService.Args.ArchiveFormatType.Zip)]
-    [InlineData(PackService.Args.ArchiveFormatType.Tar)]
-    [InlineData(PackService.Args.ArchiveFormatType.TarGz)]
-    public async Task Pack_DifferentArchiveFormats_CreatesArchive(PackService.Args.ArchiveFormatType archiveFormatType)
+    [InlineData(PackService.ArchiveFormatType.Zip)]
+    [InlineData(PackService.ArchiveFormatType.Tar)]
+    [InlineData(PackService.ArchiveFormatType.TarGz)]
+    public async Task Pack_DifferentArchiveFormats_CreatesArchive(PackService.ArchiveFormatType archiveFormatType)
     {
         // Arrange.
         PackageManifest packageManifest = new()
@@ -497,10 +483,7 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
-        await packService.Pack("output", new()
-        {
-            ArchiveFormat = archiveFormatType
-        });
+        await packService.Pack("output", archiveFormat: archiveFormatType);
 
         // Assert.
         Assert.True(fileSystem.File.Exists("output"));
@@ -545,10 +528,9 @@ public class PackServiceTests
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act & assert.
-        await Assert.ThrowsAsync<NotImplementedException>(() => packService.Pack("output", new()
-        {
-            ArchiveFormat = (PackService.Args.ArchiveFormatType)int.MaxValue
-        }));
+        await Assert.ThrowsAsync<NotImplementedException>(() => packService.Pack(
+            "output",
+            archiveFormat: (PackService.ArchiveFormatType)int.MaxValue));
     }
 
     private static string? ReadArchiveEntryContent(

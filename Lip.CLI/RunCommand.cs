@@ -20,10 +20,7 @@ class RunCommand : AsyncCommand<RunCommand.Settings>
 
         var runService = new RunService(ctx);
 
-        await runService.Run(settings.Script, new()
-        {
-            VariantLabel = string.Empty,
-        });
+        await runService.Run(settings.Script);
 
         return 0;
     }

@@ -101,12 +101,6 @@ public class UpdateServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-update" };
-        var args = new UpdateService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false
-        };
 
         // We use a locked package to verify it requests AtLeast version (which implies UpgradeLockedPackages=true)
         var lockedPackage = CreateLockedPackage("locked-pkg", "1.0.0");
@@ -132,7 +126,7 @@ public class UpdateServiceTests
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
-        await _updateService.Update(userInput, args);
+        await _updateService.Update(userInput);
 
         // Assert
         // Verify dependency solver was called with AtLeast range for the locked package
@@ -149,19 +143,8 @@ public class UpdateServiceTests
     {
         // Arrange
         var userInput = new List<string> { "github.com/test/uninstalled-pkg" };
-        var args = new UpdateService.Args
-        {
-            DryRun = false,
-            IgnoreScripts = false,
-            NoDependencies = false
-        };
-
-        // Mock empty package lock (package is not installed)
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
-            .ReturnsAsync(new PackageLock { Packages = [] });
-
         // Act
-        await _updateService.Update(userInput, args);
+        await _updateService.Update(userInput);
 
         // Assert
         // Verify ResolveDependencies was NEVER called (since Install should be skipped)

@@ -28,11 +28,10 @@ class UninstallCommand : AsyncCommand<UninstallCommand.Settings>
 
         var uninstallService = new UninstallService(ctx);
 
-        await uninstallService.Uninstall([.. settings.Packages], new()
-        {
-            DryRun = settings.DryRun,
-            IgnoreScripts = settings.IgnoreScripts,
-        });
+        await uninstallService.Uninstall(
+            [.. settings.Packages],
+            dryRun: settings.DryRun,
+            ignoreScripts: settings.IgnoreScripts);
 
         return 0;
     }

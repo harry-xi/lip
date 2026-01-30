@@ -11,15 +11,7 @@ public class InitServiceTests
 {
     private static readonly string s_workspacePath = OperatingSystem.IsWindows() ? Path.Join("C:", "path", "to", "workspace") : Path.Join("/", "path", "to", "workspace");
 
-    [Fact]
-    public void InitArgs_Constructor_TrivialValues_Passes()
-    {
-        // Arrange.
-        InitService.Args args = new();
 
-        // Act.
-        args = args with { };
-    }
 
     // [Fact]
     // public async Task Init_Interactive_Passes()
@@ -112,13 +104,9 @@ public class InitServiceTests
         var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
-        InitService.Args args = new()
-        {
-            Yes = true,
-        };
 
         // Act.
-        await initService.Init(args);
+        await initService.Init(yes: true);
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
@@ -176,18 +164,15 @@ public class InitServiceTests
         var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
-        InitService.Args args = new()
-        {
-            InitAvatarUrl = "https://example.com/avatar.png",
-            InitDescription = "An example package.",
-            InitName = "Example Package",
-            InitTooth = "example.com/org/package",
-            InitVersion = "0.1.0",
-            Yes = true,
-        };
 
         // Act.
-        await initService.Init(args);
+        await initService.Init(
+            yes: true,
+            initAvatarUrl: "https://example.com/avatar.png",
+            initDescription: "An example package.",
+            initName: "Example Package",
+            initTooth: "example.com/org/package",
+            initVersion: "0.1.0");
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
@@ -250,17 +235,14 @@ public class InitServiceTests
         var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
-        InitService.Args args = new()
-        {
-            InitAvatarUrl = "https://example.com/avatar.png",
-            InitDescription = "An example package.",
-            InitName = "Example Package",
-            InitTooth = "example.com/org/package",
-            InitVersion = "0.1.0",
-        };
 
         // Act and assert.
-        await Assert.ThrowsAsync<OperationCanceledException>(() => initService.Init(args));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => initService.Init(
+            initAvatarUrl: "https://example.com/avatar.png",
+            initDescription: "An example package.",
+            initName: "Example Package",
+            initTooth: "example.com/org/package",
+            initVersion: "0.1.0"));
     }
 
     [Fact]
@@ -286,17 +268,14 @@ public class InitServiceTests
         var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
-        InitService.Args args = new()
-        {
-            InitAvatarUrl = "https://example.com/avatar.png",
-            InitDescription = "An example package.",
-            InitName = "Example Package",
-            InitTooth = "example.com/org/package",
-            InitVersion = "0.1.0",
-            Yes = true,
-        };
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => initService.Init(args));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => initService.Init(
+            yes: true,
+            initAvatarUrl: "https://example.com/avatar.png",
+            initDescription: "An example package.",
+            initName: "Example Package",
+            initTooth: "example.com/org/package",
+            initVersion: "0.1.0"));
     }
 
     [Fact]
@@ -323,19 +302,16 @@ public class InitServiceTests
         var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
-        InitService.Args args = new()
-        {
-            Force = true,
-            InitAvatarUrl = "https://example.com/avatar.png",
-            InitDescription = "An example package.",
-            InitName = "Example Package",
-            InitTooth = "example.com/org/package",
-            InitVersion = "0.1.0",
-            Yes = true,
-        };
 
         // Act.
-        await initService.Init(args);
+        await initService.Init(
+            force: true,
+            yes: true,
+            initAvatarUrl: "https://example.com/avatar.png",
+            initDescription: "An example package.",
+            initName: "Example Package",
+            initTooth: "example.com/org/package",
+            initVersion: "0.1.0");
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));

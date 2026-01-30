@@ -25,7 +25,7 @@ class ViewCommand : AsyncCommand<ViewCommand.Settings>
 
         var viewService = new ViewService(ctx);
 
-        string result = await viewService.View(settings.Package, settings.Path, new());
+        string result = await viewService.View(settings.Package, settings.Path);
 
         AnsiConsole.MarkupLine(result.EscapeMarkup());
 

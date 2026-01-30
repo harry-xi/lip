@@ -16,11 +16,11 @@ class ListCommand : AsyncCommand<ListCommand.Settings>
 
         var listService = new ListService(ctx);
 
-        List<ListService.ResultItem> result = await listService.List(new());
+        var result = await listService.List();
 
-        foreach (ListService.ResultItem item in result)
+        foreach (var (_, specifier, _) in result)
         {
-            AnsiConsole.MarkupLine($"{item.Specifier}".EscapeMarkup());
+            AnsiConsole.MarkupLine($"{specifier}".EscapeMarkup());
         }
 
         return 0;

@@ -35,16 +35,9 @@ public class CacheService
         _cacheManager = cacheManager;
     }
 
-    public record AddArgs { }
-    public record CleanArgs { }
-    public record ListArgs { }
-    public record ListResult
-    {
-        public required List<string> DownloadedFiles { get; init; }
-        public required List<string> GitRepos { get; init; }
-    }
 
-    public async Task Add(string packageSpecifierText, AddArgs _)
+
+    public async Task Add(string packageSpecifierText)
     {
         var packageSpecifier = PackageSpecifier.Parse(packageSpecifierText);
 
@@ -83,18 +76,17 @@ public class CacheService
         }
     }
 
-    public async Task Clean(CleanArgs _)
+    public async Task Clean()
     {
         await _cacheManager.Clean();
     }
 
-    public async Task<ListResult> List(ListArgs _)
+    public async Task<(List<string> DownloadedFiles, List<string> GitRepos)> List()
     {
         ICacheManager.ICacheSummary cacheSummary = await _cacheManager.List();
-        return new ListResult
-        {
-            DownloadedFiles = [.. cacheSummary.DownloadedFiles.Keys],
-            GitRepos = [.. cacheSummary.GitRepos.Keys.Select(repo => $"{repo.Url} {repo.Tag}")],
-        };
+        return (
+            [.. cacheSummary.DownloadedFiles.Keys],
+            [.. cacheSummary.GitRepos.Keys.Select(repo => $"{repo.Url} {repo.Tag}")]
+        );
     }
 }

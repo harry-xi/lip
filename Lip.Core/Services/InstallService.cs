@@ -60,17 +60,6 @@ public class InstallService
         _pathManager = pathManager;
     }
 
-    public record Args
-    {
-        public required bool DryRun { get; init; }
-
-        public required bool IgnoreScripts { get; init; }
-        public required bool NoDependencies { get; init; }
-        public required bool UpgradeLockedPackages { get; init; }
-
-        public required bool OverwriteFiles { get; init; }
-    }
-
     [ExcludeFromCodeCoverage]
     private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.IItem
     {
@@ -94,7 +83,13 @@ public class InstallService
         public required string VariantLabel { get; init; }
     }
 
-    public async Task Install(List<string>? userInputPackageTexts, Args args)
+    public async Task Install(
+        List<string>? userInputPackageTexts,
+        bool dryRun = false,
+        bool ignoreScripts = false,
+        bool noDependencies = false,
+        bool upgradeLockedPackages = false,
+        bool overwriteFiles = false)
     {
         // Here we regulate the abbreviations of glossary terms used in this method:
         // - UIP: User input packages
@@ -193,7 +188,7 @@ public class InstallService
 
         _context.Logger.LogDebug("Getting dependent packages...");
 
-        IEnumerable<PackageSpecifier> dependentSpecifiers = args.NoDependencies
+        IEnumerable<PackageSpecifier> dependentSpecifiers = noDependencies
             // If NoDependencies is specified, assume DP = UIP + IP.
             ? [
                 ..userInputSpecifiers,
@@ -213,7 +208,7 @@ public class InstallService
                         )
                         .Select(lockedSpecifier => (
                              lockedSpecifier.Identifier,
-                             args.UpgradeLockedPackages
+                             upgradeLockedPackages
                                  ? SemVersionRange.AtLeast(lockedSpecifier.Version)
                                  : SemVersionRange.Parse(lockedSpecifier.Version.ToString()))),
                 ],
@@ -349,8 +344,8 @@ public class InstallService
         {
             await _packageManager.UninstallPackage(
                 uninstallDetail.Package.Specifier.Identifier,
-                args.DryRun,
-                args.IgnoreScripts);
+                dryRun,
+                ignoreScripts);
         }
 
         // Install packages in reverse topological order.
@@ -360,10 +355,10 @@ public class InstallService
             await _packageManager.InstallPackage(
                 packageInstallDetail.FileSource,
                 packageInstallDetail.VariantLabel,
-                args.DryRun,
-                args.IgnoreScripts,
+                dryRun,
+                ignoreScripts,
                 locked: specifiersToLock.Contains(packageInstallDetail.Specifier),
-                args.OverwriteFiles
+                overwriteFiles
                 );
         }
     }

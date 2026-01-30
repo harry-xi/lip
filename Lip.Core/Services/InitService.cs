@@ -35,36 +35,32 @@ public class InitService
         _pathManager = pathManager;
     }
 
-    public record Args
-    {
-        public bool Force { get; init; } = false;
-        public string? InitAvatarUrl { get; init; }
-        public string? InitDescription { get; init; }
-        public string? InitName { get; init; }
-        public string? InitTooth { get; init; }
-        public string? InitVersion { get; init; }
-        public bool Yes { get; init; } = false;
-    }
-
     private const string DefaultTooth = "example.com/org/package";
     private const string DefaultVersion = "0.1.0";
 
-    public async Task Init(Args args)
+    public async Task Init(
+        bool force = false,
+        string? initAvatarUrl = null,
+        string? initDescription = null,
+        string? initName = null,
+        string? initTooth = null,
+        string? initVersion = null,
+        bool yes = false)
     {
         PackageManifest manifest;
 
-        if (args.Yes)
+        if (yes)
         {
             manifest = new()
             {
-                ToothPath = args.InitTooth ?? DefaultTooth,
-                Version = SemVersion.Parse(args.InitVersion ?? DefaultVersion),
+                ToothPath = initTooth ?? DefaultTooth,
+                Version = SemVersion.Parse(initVersion ?? DefaultVersion),
                 Info = new()
                 {
-                    Name = args.InitName ?? "",
-                    Description = args.InitDescription ?? "",
+                    Name = initName ?? "",
+                    Description = initDescription ?? "",
                     Tags = [],
-                    AvatarUrl = args.InitAvatarUrl
+                    AvatarUrl = initAvatarUrl
                 },
                 Variants = [
                     new PackageManifest.Variant
@@ -93,11 +89,11 @@ public class InitService
         }
         else
         {
-            string tooth = args.InitTooth ?? await _context.UserInteraction.PromptForInput(DefaultTooth, "Enter the tooth path");
-            string version = args.InitVersion ?? await _context.UserInteraction.PromptForInput(DefaultVersion, "Enter the package version");
-            string name = args.InitName ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package name");
-            string description = args.InitDescription ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package description");
-            string avatarUrl = args.InitAvatarUrl ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package's avatar URL");
+            string tooth = initTooth ?? await _context.UserInteraction.PromptForInput(DefaultTooth, "Enter the tooth path");
+            string version = initVersion ?? await _context.UserInteraction.PromptForInput(DefaultVersion, "Enter the package version");
+            string name = initName ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package name");
+            string description = initDescription ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package description");
+            string avatarUrl = initAvatarUrl ?? await _context.UserInteraction.PromptForInput(string.Empty, "Enter the package's avatar URL");
 
             manifest = new()
             {
@@ -149,7 +145,7 @@ public class InitService
         // Check if the manifest file already exists.
         if (_context.FileSystem.File.Exists(manifestPath))
         {
-            if (!args.Force)
+            if (!force)
             {
                 throw new InvalidOperationException($"The file '{manifestPath}' already exists. Use the -f or --force option to overwrite it.");
             }

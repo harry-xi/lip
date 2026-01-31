@@ -11,19 +11,37 @@ namespace Lip.Core;
 /// <summary>
 /// Represents the package manifest.
 /// </summary>
-public record PackageManifest
+public partial record PackageManifest
 {
     public const int DefaultFormatVersion = 3;
     public const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
 
     [JsonPropertyName("format_version")]
-    public required int FormatVersion { get; init; }
+    public required int FormatVersion
+    {
+        get => field;
+        init => field = value == DefaultFormatVersion
+            ? value
+            : throw new SchemaViolationException("format_version", $"Expected {DefaultFormatVersion}, got {value}.");
+    }
 
     [JsonPropertyName("format_uuid")]
-    public required string FormatUuid { get; init; }
+    public required string FormatUuid
+    {
+        get => field;
+        init => field = value == DefaultFormatUuid
+            ? value
+            : throw new SchemaViolationException("format_uuid", $"Expected '{DefaultFormatUuid}', got '{value}'.");
+    }
 
     [JsonPropertyName("tooth")]
-    public required string ToothPath { get; init; }
+    public required string ToothPath
+    {
+        get => field;
+        init => field = PackageIdentifier.IsValidToothPath(value)
+            ? value
+            : throw new SchemaViolationException("tooth", $"Invalid tooth path '{value}'.");
+    }
 
     [JsonPropertyName("version")]
     [JsonConverter(typeof(SemVersionConverter))]
@@ -71,7 +89,19 @@ public record PackageManifest
         public string Description { get; init; } = "";
 
         [JsonPropertyName("tags")]
-        public List<string> Tags { get; init; } = [];
+        public List<string> Tags
+        {
+            get => field;
+            init
+            {
+                foreach (var tag in value)
+                {
+                    if (!IsValidTag(tag))
+                        throw new SchemaViolationException("info.tags[]", $"Invalid tag '{tag}'.");
+                }
+                field = value;
+            }
+        } = [];
 
         [JsonPropertyName("avatar_url")]
         [JsonConverter(typeof(UrlConverter))]
@@ -96,7 +126,13 @@ public record PackageManifest
         public required string Src { get; init; }
 
         [JsonPropertyName("dest")]
-        public required string Dest { get; init; }
+        public required string Dest
+        {
+            get => field;
+            init => field = IsValidPlacementDest(value)
+                ? value
+                : throw new SchemaViolationException("placements[].dest", $"Invalid destination path '{value}'.");
+        }
     }
 
     public record ScriptsType
@@ -126,7 +162,22 @@ public record PackageManifest
         public List<string> PostUninstall { get; init; } = [];
 
         [JsonExtensionData]
-        public Dictionary<string, JsonElement>? AdditionalProperties { get; init; }
+        public Dictionary<string, JsonElement>? AdditionalProperties
+        {
+            get => field;
+            init
+            {
+                if (value != null)
+                {
+                    foreach (var key in value.Keys)
+                    {
+                        if (!IsValidScriptName(key))
+                            throw new SchemaViolationException($"scripts.'{key}'", $"Invalid script name '{key}'.");
+                    }
+                }
+                field = value;
+            }
+        }
 
         [JsonIgnore]
         public Dictionary<string, List<string>> AdditionalScripts
@@ -159,10 +210,34 @@ public record PackageManifest
         public List<Asset> Assets { get; init; } = [];
 
         [JsonPropertyName("preserve_files")]
-        public List<string> PreserveFiles { get; init; } = [];
+        public List<string> PreserveFiles
+        {
+            get => field;
+            init
+            {
+                foreach (var file in value)
+                {
+                    if (!IsValidPlacementDest(file))
+                        throw new SchemaViolationException("variants[].preserve_files[]", $"Invalid preserve file path '{file}'.");
+                }
+                field = value;
+            }
+        } = [];
 
         [JsonPropertyName("remove_files")]
-        public List<string> RemoveFiles { get; init; } = [];
+        public List<string> RemoveFiles
+        {
+            get => field;
+            init
+            {
+                foreach (var file in value)
+                {
+                    if (!IsValidPlacementDest(file))
+                        throw new SchemaViolationException("variants[].remove_files[]", $"Invalid remove file path '{file}'.");
+                }
+                field = value;
+            }
+        } = [];
 
         [JsonPropertyName("scripts")]
         public ScriptsType Scripts { get; init; } = new();
@@ -172,49 +247,32 @@ public record PackageManifest
             string label = Label ?? "";
             string platform = Platform ?? "";
 
-            // Check if the variant label matches the specified label.
             if (label != targetLabel)
             {
                 if (label == string.Empty)
-                {
                     return false;
-                }
-
                 if (!Glob.Parse(label).IsMatch(targetLabel))
-                {
                     return false;
-                }
             }
 
-            // Check if the platform matches the specified platform.
             if (platform != targetPlatform)
             {
                 if (platform == string.Empty)
-                {
                     return false;
-                }
-
                 if (!Glob.Parse(platform).IsMatch(targetPlatform))
-                {
                     return false;
-                }
             }
 
             return true;
         }
     }
 
-    // Kept for backward compatibility or business logic helper, but logic is simplified
     public Variant? GetVariant(string targetLabel, string targetPlatform)
     {
         if (Variants == null) return null;
 
-        // Find the variant that matches the specified label and platform.
         List<Variant> matchedVariants = Variants.Where(variant => variant.Match(targetLabel, targetPlatform)).ToList();
 
-        // There must be at least one variant fully matched (Exact match check from original code)
-        // Original code: variant.Label == targetLabel && variant.Platform == targetPlatform
-        // Since we are now using nullables, we handle that.
         if (!matchedVariants.Any(
             variant => (variant.Label ?? "") == targetLabel
                        && (variant.Platform ?? "") == targetPlatform))
@@ -222,7 +280,6 @@ public record PackageManifest
             return null;
         }
 
-        // Merge all matched variants into a single variant.
         Variant mergedVariant = new()
         {
             Label = targetLabel,
@@ -254,81 +311,22 @@ public record PackageManifest
         return mergedVariant;
     }
 
-    // Validation methods - kept as statics
-    public static bool IsValidTag(string tag)
-    {
-        return new Regex("^[a-z0-9-]+(:[a-z0-9-]+)?$").IsMatch(tag);
-    }
+    [GeneratedRegex("^[a-z0-9-]+(:[a-z0-9-]+)?$")]
+    private static partial Regex TagRegex();
 
-    public static bool IsValidScriptName(string scriptName)
-    {
-        return new Regex("^[a-z0-9]+(_[a-z0-9]+)*$").IsMatch(scriptName);
-    }
+    public static bool IsValidTag(string tag) => TagRegex().IsMatch(tag);
+
+    [GeneratedRegex("^[a-z0-9]+(_[a-z0-9]+)*$")]
+    private static partial Regex ScriptNameRegex();
+
+    public static bool IsValidScriptName(string scriptName) => ScriptNameRegex().IsMatch(scriptName);
 
     public static bool IsValidPlacementDest(string path)
     {
         if (Path.IsPathFullyQualified(path) || Path.IsPathRooted(path))
-        {
             return false;
-        }
-
         if (path.Contains(".."))
-        {
             return false;
-        }
-
         return true;
-    }
-
-    public void Validate()
-    {
-        foreach (var tag in Info.Tags)
-        {
-            if (!IsValidTag(tag))
-            {
-                throw new SchemaViolationException("info.tags[]", $"Invalid tag '{tag}'.");
-            }
-        }
-
-        foreach (var variant in Variants)
-        {
-            foreach (var asset in variant.Assets)
-            {
-                foreach (var placement in asset.Placements)
-                {
-                    if (!IsValidPlacementDest(placement.Dest))
-                    {
-                        throw new SchemaViolationException("variants[].assets[].placements[].dest", $"Invalid destination path '{placement.Dest}'.");
-                    }
-                }
-            }
-
-            foreach (var preserveFile in variant.PreserveFiles)
-            {
-                if (!IsValidPlacementDest(preserveFile))
-                {
-                    throw new SchemaViolationException("variants[].preserve_files[]", $"Invalid preserve file path '{preserveFile}'.");
-                }
-            }
-
-            foreach (var removeFile in variant.RemoveFiles)
-            {
-                if (!IsValidPlacementDest(removeFile))
-                {
-                    throw new SchemaViolationException("variants[].remove_file[]", $"Invalid remove file path '{removeFile}'.");
-                }
-            }
-
-            if (variant.Scripts.AdditionalProperties != null)
-            {
-                foreach (var key in variant.Scripts.AdditionalProperties.Keys)
-                {
-                    if (!IsValidScriptName(key))
-                    {
-                        throw new SchemaViolationException($"variants[].assets[].scripts.'{key}'", $"Invalid script name '{key}'.");
-                    }
-                }
-            }
-        }
     }
 }

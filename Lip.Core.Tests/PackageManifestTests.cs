@@ -52,22 +52,11 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void Validate_InvalidTags_ThrowsSchemaViolationException()
+    public void InfoType_InvalidTags_ThrowsSchemaViolationException()
     {
-        // Arrange.
-        PackageManifest manifest = new()
-        {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
-            ToothPath = "example.com/pkg",
-            Version = new(0),
-            Info = new() { Tags = ["invalid.tag"] },
-            Variants = []
-        };
-
         // Act & Assert.
         SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => manifest.Validate());
+            () => new PackageManifest.InfoType { Tags = ["invalid.tag"] });
 
         Assert.Equal("info.tags[]", exception.Key);
     }
@@ -94,42 +83,18 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void Validate_InvalidPlacementDest_ThrowsSchemaViolationException()
+    public void Placement_InvalidDest_ThrowsSchemaViolationException()
     {
-        // Arrange.
-        PackageManifest manifest = new()
-        {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
-            ToothPath = "example.com/pkg",
-            Version = new(0),
-            Variants = [
-                new()
-                {
-                    Assets = [
-                        new()
-                        {
-                            Type = PackageManifest.Asset.TypeEnum.Self,
-                            Urls = [],
-                            Placements = [
-                                new()
-                                {
-                                    Type = PackageManifest.Placement.TypeEnum.File,
-                                    Src = string.Empty,
-                                    Dest = "/invalid/dest"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-
         // Act & Assert.
         SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => manifest.Validate());
+            () => new PackageManifest.Placement
+            {
+                Type = PackageManifest.Placement.TypeEnum.File,
+                Src = string.Empty,
+                Dest = "/invalid/dest"
+            });
 
-        Assert.Equal("variants[].assets[].placements[].dest", exception.Key);
+        Assert.Equal("placements[].dest", exception.Key);
     }
 
     [Fact]
@@ -169,7 +134,7 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void Validate_InvalidAdditionalScriptName_ThrowsSchemaViolationException()
+    public void ScriptsType_InvalidAdditionalScriptName_ThrowsSchemaViolationException()
     {
         // Arrange.
         Dictionary<string, JsonElement> additionalScripts = new()
@@ -177,28 +142,11 @@ public class PackageManifestTests
             ["invalid.script.name"] = JsonSerializer.SerializeToElement(new List<string> { string.Empty })
         };
 
-        PackageManifest manifest = new()
-        {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
-            ToothPath = "example.com/pkg",
-            Version = new(0),
-            Variants = [
-                new()
-                {
-                    Scripts = new()
-                    {
-                        AdditionalProperties = additionalScripts
-                    }
-                }
-            ]
-        };
-
         // Act & Assert.
         SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => manifest.Validate());
+            () => new PackageManifest.ScriptsType { AdditionalProperties = additionalScripts });
 
-        Assert.Equal("variants[].assets[].scripts.'invalid.script.name'", exception.Key);
+        Assert.Equal("scripts.'invalid.script.name'", exception.Key);
     }
 
     [Fact]
@@ -244,53 +192,23 @@ public class PackageManifestTests
     }
 
     [Fact]
-    public void Validate_InvalidPreserveFiles_ThrowsSchemaViolationException()
+    public void Variant_InvalidPreserveFiles_ThrowsSchemaViolationException()
     {
-        // Arrange.
-        PackageManifest manifest = new()
-        {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
-            ToothPath = "example.com/pkg",
-            Version = new(0),
-            Variants = [
-                new()
-                {
-                    PreserveFiles = ["/invalid/file"],
-                }
-            ]
-        };
-
         // Act & Assert.
         SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => manifest.Validate());
+            () => new PackageManifest.Variant { PreserveFiles = ["/invalid/file"] });
 
         Assert.Equal("variants[].preserve_files[]", exception.Key);
     }
 
     [Fact]
-    public void Validate_InvalidRemoveFiles_ThrowsSchemaViolationException()
+    public void Variant_InvalidRemoveFiles_ThrowsSchemaViolationException()
     {
-        // Arrange.
-        PackageManifest manifest = new()
-        {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
-            ToothPath = "example.com/pkg",
-            Version = new(0),
-            Variants = [
-                new()
-                {
-                    RemoveFiles = ["/invalid/file"]
-                }
-            ]
-        };
-
         // Act & Assert.
         SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => manifest.Validate());
+            () => new PackageManifest.Variant { RemoveFiles = ["/invalid/file"] });
 
-        Assert.Equal("variants[].remove_file[]", exception.Key);
+        Assert.Equal("variants[].remove_files[]", exception.Key);
     }
 
     [Theory]

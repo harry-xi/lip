@@ -1,7 +1,7 @@
 using CliWrap;
 using Lip.Core;
 
-namespace Lip.Context;
+namespace Lip.Core.Context;
 
 public class CommandRunner : ICommandRunner
 {

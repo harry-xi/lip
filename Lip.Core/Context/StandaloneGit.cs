@@ -2,7 +2,7 @@ using CliWrap;
 using Lip.Core;
 using System.Text;
 
-namespace Lip.Context;
+namespace Lip.Core.Context;
 
 public class StandaloneGit : IGit
 {

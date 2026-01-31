@@ -1,5 +1,5 @@
-using Lip.Context;
 using Lip.Core;
+using Lip.Core.Context;
 using Microsoft.Extensions.Logging;
 using Semver;
 using Spectre.Console;
@@ -48,10 +48,10 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
 
         UserInteraction userInteraction = new();
 
-        IContext context = new Context.Context
+        IContext context = new Context
         {
             CommandRunner = new CommandRunner(),
-            Downloader = new Context.Downloader(userInteraction),
+            Downloader = new Lip.Core.Context.Downloader(userInteraction),
             FileSystem = new FileSystem(),
             Git = await StandaloneGit.Create(),
             Logger = logger,

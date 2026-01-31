@@ -2,7 +2,7 @@ using Downloader;
 using Flurl;
 using Lip.Core;
 
-namespace Lip.Context;
+namespace Lip.Core.Context;
 
 public class Downloader(IUserInteraction userInteraction) : IDownloader
 {

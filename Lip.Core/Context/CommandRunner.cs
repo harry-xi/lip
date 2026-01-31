@@ -1,5 +1,4 @@
 using CliWrap;
-using Lip.Core;
 
 namespace Lip.Core.Context;
 

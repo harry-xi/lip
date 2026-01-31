@@ -1,6 +1,5 @@
 using Downloader;
 using Flurl;
-using Lip.Core;
 
 namespace Lip.Core.Context;
 

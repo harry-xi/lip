@@ -22,16 +22,18 @@ public class InstallService
     {
         _context = context;
 
+        var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
+
         _pathManager = new PathManager(
             context.FileSystem,
-            context.RuntimeConfig.Cache,
+            runtimeConfig.Cache,
             context.WorkingDir);
 
         _cacheManager = new CacheManager(
             context,
             _pathManager,
-            context.RuntimeConfig.GitHubProxies.ConvertAll(Url.Parse),
-            context.RuntimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
+            runtimeConfig.GitHubProxies.ConvertAll(Url.Parse),
+            runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
 
         _packageManager = new PackageManager(context, _cacheManager, _pathManager);
 
@@ -39,8 +41,8 @@ public class InstallService
             context,
             _cacheManager,
             _pathManager,
-            context.RuntimeConfig.GitHubProxies.ConvertAll(Url.Parse),
-            context.RuntimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
+            runtimeConfig.GitHubProxies.ConvertAll(Url.Parse),
+            runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
 
         _dependencySolver = new DependencySolver(context, _packageRegistry);
     }

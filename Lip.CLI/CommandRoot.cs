@@ -44,7 +44,6 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
     {
         ILogger logger = CreateLogger(settings.Quiet, settings.Verbose);
 
-        RuntimeConfig runtimeConfig = await GetRuntimeConfig();
 
         UserInteraction userInteraction = new();
 
@@ -55,7 +54,6 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
             FileSystem = new FileSystem(),
             Git = await Git.Create(),
             Logger = logger,
-            RuntimeConfig = runtimeConfig,
             UserInteraction = userInteraction,
             WorkingDir = Directory.GetCurrentDirectory()
         };
@@ -88,18 +86,4 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
         return factory.CreateLogger("lip");
     }
 
-    private static async Task<RuntimeConfig> GetRuntimeConfig()
-    {
-        string path = Path.Join(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
-
-        if (!Path.Exists(path))
-        {
-            return new RuntimeConfig();
-        }
-
-        byte[] json = await File.ReadAllBytesAsync(path);
-
-        return RuntimeConfig.FromJsonBytes(json);
-    }
 }

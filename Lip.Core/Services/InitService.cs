@@ -15,16 +15,18 @@ public class InitService
     {
         _context = context;
 
+        var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
+
         _pathManager = new PathManager(
             context.FileSystem,
-            context.RuntimeConfig.Cache,
+            runtimeConfig.Cache,
             context.WorkingDir);
 
         var cacheManager = new CacheManager(
             context,
             _pathManager,
-            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
 
         _packageManager = new PackageManager(context, cacheManager, _pathManager);
     }

@@ -11,9 +11,11 @@ public class MigrateService
     {
         _context = context;
 
+        var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
+
         _pathManager = new PathManager(
             context.FileSystem,
-            context.RuntimeConfig.Cache,
+            runtimeConfig.Cache,
             context.WorkingDir);
     }
 

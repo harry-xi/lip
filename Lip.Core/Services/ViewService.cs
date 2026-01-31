@@ -12,23 +12,25 @@ public class ViewService
 
     public ViewService(IContext context)
     {
+        var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
+
         var pathManager = new PathManager(
             context.FileSystem,
-            context.RuntimeConfig.Cache,
+            runtimeConfig.Cache,
             context.WorkingDir);
 
         var cacheManager = new CacheManager(
             context,
             pathManager,
-            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
 
         _packageRegistry = new PackageRegistry(
             context,
             cacheManager,
             pathManager,
-            context.RuntimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            context.RuntimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
+            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
     }
 
     internal ViewService(IPackageRegistry packageRegistry)

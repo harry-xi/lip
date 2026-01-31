@@ -1,3 +1,4 @@
+using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using System.Text.Json;
 
@@ -5,6 +6,43 @@ namespace Lip.Core.Tests;
 
 public class RuntimeConfigTests
 {
+    private static readonly string s_runtimeConfigPath = Path.Join(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
+
+    [Fact]
+    public void Load_FileExists_ReturnsConfig()
+    {
+        // Arrange.
+        RuntimeConfig expectedConfig = new()
+        {
+            Cache = "/custom/cache",
+            GitHubProxies = ["https://github-proxy.com"],
+        };
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
+        {
+            { s_runtimeConfigPath, new MockFileData(expectedConfig.ToJsonBytes()) },
+        });
+
+        // Act.
+        RuntimeConfig result = RuntimeConfig.Load(fileSystem);
+
+        // Assert.
+        Assert.Equal("/custom/cache", result.Cache);
+        Assert.Equal(["https://github-proxy.com"], result.GitHubProxies);
+    }
+
+    [Fact]
+    public void Load_FileMissing_ReturnsDefault()
+    {
+        // Arrange.
+        MockFileSystem fileSystem = new();
+
+        // Act.
+        RuntimeConfig result = RuntimeConfig.Load(fileSystem);
+
+        // Assert.
+        Assert.Equal(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip", "cache"), result.Cache);
+    }
     [Fact]
     public void GitHubProxies_InitAndGet_Passes()
     {

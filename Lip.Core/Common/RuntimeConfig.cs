@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -59,5 +60,28 @@ public record RuntimeConfig
     public byte[] ToJsonBytes()
     {
         return JsonSerializer.SerializeToUtf8Bytes(this, s_jsonSerializerOptions);
+    }
+
+    public static RuntimeConfig Load(IFileSystem fileSystem)
+    {
+        string path = Path.Join(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
+
+        if (!fileSystem.File.Exists(path))
+        {
+            return new RuntimeConfig();
+        }
+
+        try
+        {
+            byte[] bytes = fileSystem.File.ReadAllBytes(path);
+            return FromJsonBytes(bytes);
+        }
+        catch (Exception)
+        {
+            // If we fail to read or parse, return default.
+            // TODO: Maybe log this? But we don't have a logger here yet.
+            return new RuntimeConfig();
+        }
     }
 }

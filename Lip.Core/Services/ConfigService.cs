@@ -13,11 +13,11 @@ public class ConfigService
     public ConfigService(IContext context)
     {
         _context = context;
-        _runtimeConfig = context.RuntimeConfig;
+        _runtimeConfig = RuntimeConfig.Load(context.FileSystem);
 
         _pathManager = new PathManager(
             context.FileSystem,
-            context.RuntimeConfig.Cache,
+            _runtimeConfig.Cache,
             context.WorkingDir);
     }
 

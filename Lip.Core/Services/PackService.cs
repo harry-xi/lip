@@ -1,3 +1,4 @@
+using Lip.Core.Context;
 using Microsoft.Extensions.Logging;
 using SharpCompress.Common;
 using SharpCompress.Writers;

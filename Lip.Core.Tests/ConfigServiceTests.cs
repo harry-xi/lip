@@ -1,3 +1,4 @@
+using Lip.Core.Context;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 

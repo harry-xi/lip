@@ -2,6 +2,11 @@ using CliWrap;
 
 namespace Lip.Core.Context;
 
+public interface ICommandRunner
+{
+    Task Run(string command, string workingDirectory);
+}
+
 public class CommandRunner : ICommandRunner
 {
     public async Task Run(string command, string workingDirectory)

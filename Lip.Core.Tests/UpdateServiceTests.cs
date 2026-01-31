@@ -1,4 +1,5 @@
 using Flurl;
+using Lip.Core.Context;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services; // Ensure Services for InstallService/UpdateService
 using Microsoft.Extensions.Logging;

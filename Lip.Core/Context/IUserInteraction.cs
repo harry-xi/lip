@@ -1,43 +1,4 @@
-using Flurl;
-using Microsoft.Extensions.Logging;
-using System.IO.Abstractions;
-
-namespace Lip.Core;
-
-public interface ICommandRunner
-{
-    Task Run(string command, string workingDirectory);
-}
-
-public interface IContext
-{
-    ICommandRunner CommandRunner { get; }
-    IDownloader Downloader { get; }
-    IFileSystem FileSystem { get; }
-    IGit? Git { get; }
-    ILogger Logger { get; }
-    RuntimeConfig RuntimeConfig { get; }
-    IUserInteraction UserInteraction { get; }
-    string? WorkingDir { get; }
-}
-
-public interface IDownloader
-{
-    Task DownloadFile(Url url, string destinationPath);
-}
-
-public interface IGit
-{
-    interface IListRemoteResultItem
-    {
-        public string Sha { get; }
-        public string Ref { get; }
-    }
-
-    Task Clone(string repository, string directory, string? branch = null, int? depth = null);
-
-    Task<List<IListRemoteResultItem>> ListRemote(string repository, bool refs = false, bool tags = false);
-}
+namespace Lip.Core.Context;
 
 /// <summary>
 /// Represents a user interaction interface.

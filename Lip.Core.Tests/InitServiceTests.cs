@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Tests;
 
+using Lip.Core.Context;
 using Lip.Core.Services;
 
 public class InitServiceTests

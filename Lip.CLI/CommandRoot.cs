@@ -53,7 +53,7 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
             CommandRunner = new CommandRunner(),
             Downloader = new Lip.Core.Context.Downloader(userInteraction),
             FileSystem = new FileSystem(),
-            Git = await StandaloneGit.Create(),
+            Git = await Git.Create(),
             Logger = logger,
             RuntimeConfig = runtimeConfig,
             UserInteraction = userInteraction,

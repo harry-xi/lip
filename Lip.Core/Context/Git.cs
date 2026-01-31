@@ -3,11 +3,24 @@ using System.Text;
 
 namespace Lip.Core.Context;
 
-public class StandaloneGit : IGit
+public interface IGit
 {
-    private StandaloneGit() { }
+    interface IListRemoteResultItem
+    {
+        public string Sha { get; }
+        public string Ref { get; }
+    }
 
-    public static async Task<StandaloneGit?> Create()
+    Task Clone(string repository, string directory, string? branch = null, int? depth = null);
+
+    Task<List<IListRemoteResultItem>> ListRemote(string repository, bool refs = false, bool tags = false);
+}
+
+public class Git : IGit
+{
+    private Git() { }
+
+    public static async Task<Git?> Create()
     {
         try
         {
@@ -70,14 +83,14 @@ public class StandaloneGit : IGit
             })];
     }
 
-    private static async Task<StandaloneGit?> CreateInternal()
+    private static async Task<Git?> CreateInternal()
     {
         var result = await Cli.Wrap("git")
             .WithArguments("--version")
             .WithValidation(CommandResultValidation.None)
             .ExecuteAsync();
 
-        return result.ExitCode == 0 ? new StandaloneGit() : null;
+        return result.ExitCode == 0 ? new Git() : null;
     }
 }
 

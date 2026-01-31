@@ -3,6 +3,11 @@ using Flurl;
 
 namespace Lip.Core.Context;
 
+public interface IDownloader
+{
+    Task DownloadFile(Url url, string destinationPath);
+}
+
 public class Downloader(IUserInteraction userInteraction) : IDownloader
 {
     private readonly IUserInteraction _userInteraction = userInteraction;

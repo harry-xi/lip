@@ -31,7 +31,7 @@ public class PackageRegistry(
             return null;
         }
 
-        return await PackageManifest.FromStream(manifestStream);
+        return await PackageManifestFactory.FromStream(manifestStream);
     }
 
     public async Task<List<SemVersion>> GetVersions(PackageIdentifier packageIdentifier)
@@ -64,6 +64,7 @@ public class PackageRegistry(
                                     ? version
                                     : null)
                             .Where(version => version is not null)
+                            .Select(version => version!)
                     ];
                 }
                 catch (Exception ex)

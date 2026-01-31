@@ -5,6 +5,7 @@ using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace Lip.Core.Tests;
 
@@ -20,6 +21,8 @@ public class PackageManagerTests
     {
         return new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = toothPath,
             Version = SemVersion.Parse(version),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -37,7 +40,7 @@ public class PackageManagerTests
             Assets = [],
             PreserveFiles = [],
             RemoveFiles = [],
-            Scripts = new() { PreInstall = [], Install = [], PostInstall = [], PrePack = [], PostPack = [], PreUninstall = [], Uninstall = [], PostUninstall = [], AdditionalScripts = [] }
+            Scripts = new() { PreInstall = [], Install = [], PostInstall = [], PrePack = [], PostPack = [], PreUninstall = [], Uninstall = [], PostUninstall = [] }
         };
     }
     private static readonly string s_cacheDir = OperatingSystem.IsWindows()
@@ -432,6 +435,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -504,10 +509,10 @@ public class PackageManagerTests
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
-                AdditionalScripts = new Dictionary<string, List<string>>
+                AdditionalProperties = new Dictionary<string, JsonElement>
                 {
-                    { "same_script", new List<string> { "echo same" } },
-                    { "custom_script1", new List<string> { "echo custom1" } }
+                    { "same_script", JsonSerializer.SerializeToElement(new List<string> { "echo same" }) },
+                    { "custom_script1", JsonSerializer.SerializeToElement(new List<string> { "echo custom1" }) }
                 }
                 }
             }
@@ -624,6 +629,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -658,10 +665,10 @@ public class PackageManagerTests
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
-                AdditionalScripts = new Dictionary<string, List<string>>
+                AdditionalProperties = new Dictionary<string, JsonElement>
                 {
-                    { "same_script", new List<string> { "echo same" } },
-                    { "custom_script1", new List<string> { "echo custom1" } }
+                    { "same_script", JsonSerializer.SerializeToElement(new List<string> { "echo same" }) },
+                    { "custom_script1", JsonSerializer.SerializeToElement(new List<string> { "echo custom1" }) }
                 }
                 }
             }
@@ -715,6 +722,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -788,10 +797,10 @@ public class PackageManagerTests
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
-                AdditionalScripts = new Dictionary<string, List<string>>
+                AdditionalProperties = new Dictionary<string, JsonElement>
                 {
-                    { "same_script", new List<string> { "echo same" } },
-                    { "custom_script1", new List<string> { "echo custom1" } }
+                    { "same_script", JsonSerializer.SerializeToElement(new List<string> { "echo same" }) },
+                    { "custom_script1", JsonSerializer.SerializeToElement(new List<string> { "echo custom1" }) }
                 }
                 }
             }

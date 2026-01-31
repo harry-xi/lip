@@ -37,7 +37,7 @@ public class MigrateService
         PackageManifest packageManifest;
         using (var inputFileStream = _context.FileSystem.File.OpenRead(realInputPath))
         {
-            packageManifest = await PackageManifest.FromStream(inputFileStream);
+            packageManifest = await PackageManifestFactory.FromStream(inputFileStream);
         }
 
         string realOutputPath = _context.FileSystem.Path.Combine(
@@ -47,7 +47,7 @@ public class MigrateService
 
         using (var outputFileStream = _context.FileSystem.File.OpenWrite(realOutputPath))
         {
-            await packageManifest.ToStream(outputFileStream);
+            await PackageManifestFactory.WriteToStreamAsync(packageManifest, outputFileStream);
         }
     }
 }

@@ -1,9 +1,12 @@
 using Golang.Org.X.Mod;
+using Lip.Core.JsonConverters;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Lip.Core;
 
+[JsonConverter(typeof(PackageIdentifierConverter))]
 public partial record PackageIdentifier(string ToothPath, string VariantLabel = "")
 {
     public string ToothPath { get; init; } = IsValidToothPath(ToothPath)

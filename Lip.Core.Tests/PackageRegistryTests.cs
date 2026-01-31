@@ -25,6 +25,8 @@ public class PackageRegistryTests
     {
         return new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = toothPath,
             Version = SemVersion.Parse(version),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },

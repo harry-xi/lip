@@ -26,7 +26,7 @@ public class PackServiceTests
         PreUninstall = [],
         Uninstall = [],
         PostUninstall = [],
-        AdditionalScripts = []
+
     };
 
     private static PackageManifest.Variant CreateDefaultVariant() => new()
@@ -122,7 +122,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -216,7 +217,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -300,7 +302,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -345,7 +348,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -398,7 +402,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -454,7 +459,8 @@ public class PackServiceTests
         // Arrange.
         PackageManifest packageManifest = new()
         {
-
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -499,7 +505,8 @@ public class PackServiceTests
         // Arrange.
         PackageManifest packageManifest = new()
         {
-
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType

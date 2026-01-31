@@ -75,7 +75,7 @@ public class ViewServiceTests
     {
         // Arrange.
         Mock<IPackageRegistry> packageRegistryMock = new();
-        PackageManifest manifest = PackageManifest.FromJsonElement(JsonDocument.Parse(s_packageManifestData).RootElement);
+        PackageManifest manifest = PackageManifestFactory.Create(JsonDocument.Parse(s_packageManifestData).RootElement);
         packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(manifest);
 
         ViewService viewService = new ViewService(packageRegistryMock.Object);
@@ -84,7 +84,8 @@ public class ViewServiceTests
         string result = await viewService.View("example.com/repo@1.0.0", null);
 
         // Assert.
-        Assert.Equal(s_packageManifestData, result);
+        // Assert.Equal(s_packageManifestData, result);
+        Assert.True(JsonElement.DeepEquals(JsonDocument.Parse(s_packageManifestData).RootElement, JsonDocument.Parse(result).RootElement));
     }
 
     [Theory]
@@ -95,7 +96,7 @@ public class ViewServiceTests
     {
         // Arrange.
         Mock<IPackageRegistry> packageRegistryMock = new();
-        PackageManifest manifest = PackageManifest.FromJsonElement(JsonDocument.Parse(s_packageManifestData).RootElement);
+        PackageManifest manifest = PackageManifestFactory.Create(JsonDocument.Parse(s_packageManifestData).RootElement);
         packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(manifest);
 
         ViewService viewService = new ViewService(packageRegistryMock.Object);
@@ -112,7 +113,7 @@ public class ViewServiceTests
     {
         // Arrange.
         Mock<IPackageRegistry> packageRegistryMock = new();
-        PackageManifest manifest = PackageManifest.FromJsonElement(JsonDocument.Parse(s_packageManifestData).RootElement);
+        PackageManifest manifest = PackageManifestFactory.Create(JsonDocument.Parse(s_packageManifestData).RootElement);
         packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(manifest);
 
         ViewService viewService = new ViewService(packageRegistryMock.Object);
@@ -129,7 +130,7 @@ public class ViewServiceTests
     {
         // Arrange.
         Mock<IPackageRegistry> packageRegistryMock = new();
-        PackageManifest manifest = PackageManifest.FromJsonElement(JsonDocument.Parse(s_packageManifestData).RootElement);
+        PackageManifest manifest = PackageManifestFactory.Create(JsonDocument.Parse(s_packageManifestData).RootElement);
         packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(manifest);
 
         ViewService viewService = new ViewService(packageRegistryMock.Object);
@@ -143,7 +144,7 @@ public class ViewServiceTests
     {
         // Arrange.
         Mock<IPackageRegistry> packageRegistryMock = new();
-        PackageManifest manifest = PackageManifest.FromJsonElement(JsonDocument.Parse(s_packageManifestData).RootElement);
+        PackageManifest manifest = PackageManifestFactory.Create(JsonDocument.Parse(s_packageManifestData).RootElement);
         packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(manifest);
 
         ViewService viewService = new ViewService(packageRegistryMock.Object);
@@ -157,7 +158,7 @@ public class ViewServiceTests
     {
         // Arrange.
         Mock<IPackageRegistry> packageRegistryMock = new();
-        PackageManifest manifest = PackageManifest.FromJsonElement(JsonDocument.Parse(s_packageManifestData).RootElement);
+        PackageManifest manifest = PackageManifestFactory.Create(JsonDocument.Parse(s_packageManifestData).RootElement);
         packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(manifest);
 
         ViewService viewService = new ViewService(packageRegistryMock.Object);
@@ -171,7 +172,7 @@ public class ViewServiceTests
     {
         // Arrange.
         Mock<IPackageRegistry> packageRegistryMock = new();
-        PackageManifest manifest = PackageManifest.FromJsonElement(JsonDocument.Parse(s_packageManifestData).RootElement);
+        PackageManifest manifest = PackageManifestFactory.Create(JsonDocument.Parse(s_packageManifestData).RootElement);
         packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(manifest);
 
         ViewService viewService = new ViewService(packageRegistryMock.Object);

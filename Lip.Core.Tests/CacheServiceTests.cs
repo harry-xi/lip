@@ -88,7 +88,7 @@ public class CacheServiceTests
             });
 
         var packageRegistryMock = new Mock<IPackageRegistry>();
-        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifestFactory.Create(JsonDocument.Parse(packageManifestData).RootElement));
 
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
@@ -142,7 +142,7 @@ public class CacheServiceTests
         var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
         var packageRegistryMock = new Mock<IPackageRegistry>();
-        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifestFactory.Create(JsonDocument.Parse(packageManifestData).RootElement));
 
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
@@ -190,7 +190,7 @@ public class CacheServiceTests
         var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
         var packageRegistryMock = new Mock<IPackageRegistry>();
-        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifestFactory.Create(JsonDocument.Parse(packageManifestData).RootElement));
 
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 
@@ -235,7 +235,7 @@ public class CacheServiceTests
         var pathManager = new PathManager(fileSystem, s_cacheDir, s_cacheDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
         var packageRegistryMock = new Mock<IPackageRegistry>();
-        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifest.FromJsonElement(JsonDocument.Parse(packageManifestData).RootElement));
+        packageRegistryMock.Setup(r => r.GetManifest(It.IsAny<PackageSpecifier>())).ReturnsAsync(PackageManifestFactory.Create(JsonDocument.Parse(packageManifestData).RootElement));
 
         var cacheService = new Services.CacheService(packageRegistryMock.Object, cacheManager);
 

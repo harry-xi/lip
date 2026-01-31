@@ -2,6 +2,7 @@ using Lip.Core.Context;
 using Microsoft.Extensions.Logging;
 using Semver;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace Lip.Core.Services;
 
@@ -56,6 +57,8 @@ public class InitService
         {
             manifest = new()
             {
+                FormatVersion = PackageManifest.DefaultFormatVersion,
+                FormatUuid = PackageManifest.DefaultFormatUuid,
                 ToothPath = initTooth ?? DefaultTooth,
                 Version = SemVersion.Parse(initVersion ?? DefaultVersion),
                 Info = new()
@@ -84,7 +87,6 @@ public class InitService
                             PreUninstall  = [],
                             Uninstall  = [],
                             PostUninstall  = [],
-                            AdditionalScripts  = [],
                         }
                     }
                 ]
@@ -100,6 +102,8 @@ public class InitService
 
             manifest = new()
             {
+                FormatVersion = PackageManifest.DefaultFormatVersion,
+                FormatUuid = PackageManifest.DefaultFormatUuid,
                 ToothPath = tooth,
                 Version = SemVersion.Parse(version),
                 Info = new()
@@ -128,7 +132,6 @@ public class InitService
                             PreUninstall  = [],
                             Uninstall  = [],
                             PostUninstall  = [],
-                            AdditionalScripts  = [],
                         }
                     }
                 ]
@@ -136,7 +139,7 @@ public class InitService
 
             if (!await _context.UserInteraction.Confirm(
                 "Do you want to create the following package manifest file?\n{0}",
-                manifest.ToJsonElement().GetRawText()))
+                JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true })))
             {
                 throw new OperationCanceledException("Operation canceled by the user.");
             }

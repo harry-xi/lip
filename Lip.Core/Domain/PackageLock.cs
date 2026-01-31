@@ -76,7 +76,7 @@ public record PackageLock
             Packages = [.. rawPackageLock.Packages
                 .Select(rawPackage =>
                 {
-                    var manifest = PackageManifest.FromJsonElement(rawPackage.Manifest);
+                    var manifest = PackageManifestFactory.Create(rawPackage.Manifest);
                     return (manifest, rawPackage.Files, rawPackage.Locked, rawPackage.Variant);
                 })
                 // Filter out packages without matching variants.
@@ -102,8 +102,10 @@ public record PackageLock
                 {
                     Files = package.Files,
                     Locked = package.Locked,
-                    Manifest = new PackageManifest()
+                    Manifest = JsonSerializer.SerializeToElement(new PackageManifest()
                     {
+                        FormatVersion = PackageManifest.DefaultFormatVersion,
+                        FormatUuid = PackageManifest.DefaultFormatUuid,
                         ToothPath = package.Specifier.ToothPath,
                         Version = package.Specifier.Version,
                         Info = new()
@@ -111,10 +113,10 @@ public record PackageLock
                             Name = string.Empty,
                             Description = string.Empty,
                             Tags = [],
-                            AvatarUrl = new(),
+                            AvatarUrl = null,
                         },
                         Variants = [package.Variant],
-                    }.ToJsonElement(),
+                    }, PackageManifestFactory.JsonSerializerOptions),
                     Variant = package.Variant.Label,
                 }),
         };

@@ -49,12 +49,14 @@ public class DependencySolverTests
                 PreUninstall = [],
                 Uninstall = [],
                 PostUninstall = [],
-                AdditionalScripts = []
+
             }
         };
 
         var manifest = new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = toothPath,
             Version = SemVersion.Parse(version),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = new() },
@@ -273,6 +275,8 @@ public class DependencySolverTests
         // Create a manifest for B that has NO variants for current runtime
         var manifestB = new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = "example.com/b",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = new() },

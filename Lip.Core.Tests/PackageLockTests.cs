@@ -28,12 +28,14 @@ public class PackageLockTests
             PreUninstall = [],
             Uninstall = [],
             PostUninstall = [],
-            AdditionalScripts = [],
+
         }
     };
 
     private static readonly PackageManifest _defaultManifest = new()
     {
+        FormatVersion = PackageManifest.DefaultFormatVersion,
+        FormatUuid = PackageManifest.DefaultFormatUuid,
         ToothPath = "example.com/pkg",
         Version = new(1, 0, 0),
         Info = new()
@@ -78,8 +80,7 @@ public class PackageLockTests
                         "info": {
                             "name": "",
                             "description": "",
-                            "tags": [],
-                            "avatar_url": ""
+                            "tags": []
                         },
                         "variants": [
                             {

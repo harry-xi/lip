@@ -45,6 +45,8 @@ public class InstallServiceTests
     {
         return new PackageManifest
         {
+            FormatVersion = PackageManifest.DefaultFormatVersion,
+            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = $"github.com/test/{name}",
             Version = SemVersion.Parse(version),
             Info = new PackageManifest.InfoType
@@ -74,7 +76,7 @@ public class InstallServiceTests
                         PreUninstall = [],
                         Uninstall = [],
                         PostUninstall = [],
-                        AdditionalScripts = []
+
                     }
                 }
             ]

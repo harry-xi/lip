@@ -3,6 +3,7 @@ using Lip.Core.PackageRegistries;
 using Scriban;
 using Scriban.Parsing;
 using System.Text;
+using System.Text.Json;
 
 namespace Lip.Core.Services;
 
@@ -59,7 +60,7 @@ public class ViewService
 
         if (path is null)
         {
-            return packageManifest.ToJsonElement().GetRawText();
+            return JsonSerializer.Serialize(packageManifest, PackageManifestFactory.JsonSerializerOptions);
         }
 
         Template template = Template.Parse(path, lexerOptions: new()
@@ -77,6 +78,6 @@ public class ViewService
             throw new FormatException($"Failed to parse template '{path}': {sb}");
         }
 
-        return template.Render(packageManifest.ToJsonElement());
+        return template.Render(JsonSerializer.SerializeToElement(packageManifest, PackageManifestFactory.JsonSerializerOptions));
     }
 }

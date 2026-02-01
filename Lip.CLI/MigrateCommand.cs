@@ -9,11 +9,11 @@ class MigrateCommand : AsyncCommand<MigrateCommand.Settings>
 {
     public class Settings : BaseCommandSettings
     {
-        [CommandArgument(0, "[path]")]
+        [CommandArgument(0, "<path>")]
         [Description("The path to the tooth.json file to migrate.")]
-        public required string Path { get; init; } = "tooth.json";
+        public required string Path { get; init; }
 
-        [CommandOption("-o|--output <PATH>")]
+        [CommandArgument(1, "[output]")]
         [Description("The output path for the migrated file.")]
         public required string? Output { get; init; }
     }

@@ -14,7 +14,7 @@ class ViewCommand : AsyncCommand<ViewCommand.Settings>
         [Description("The package specifier to view.")]
         public required string Package { get; init; }
 
-        [CommandOption("-p|--path <PATH>")]
+        [CommandArgument(1, "[path]")]
         [Description("The path to a specific field in the manifest.")]
         public required string? Path { get; init; }
     }

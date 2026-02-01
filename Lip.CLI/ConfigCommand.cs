@@ -34,7 +34,7 @@ class ConfigGetCommand : AsyncCommand<ConfigGetCommand.Settings>
 {
     public class Settings : ConfigSettings
     {
-        [CommandArgument(0, "<key ...>")]
+        [CommandArgument(0, "[key ...]")]
         [Description("The configuration keys to get.")]
         public required string[] Keys { get; init; }
     }

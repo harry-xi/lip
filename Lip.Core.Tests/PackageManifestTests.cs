@@ -308,7 +308,7 @@ public class PackageManifestTests
         JsonElement jsonElement = JsonDocument.Parse(_minimumJson).RootElement;
 
         // Act.
-        PackageManifest manifest = PackageManifestFactory.Create(jsonElement);
+        PackageManifest manifest = PackageManifest.Create(jsonElement);
 
         // Assert.
         Assert.Equal("example.com/pkg", manifest.ToothPath);
@@ -332,7 +332,7 @@ public class PackageManifestTests
 
         // Act & Assert.
         Assert.Throws<JsonException>(
-            () => PackageManifestFactory.Create(jsonElement));
+            () => PackageManifest.Create(jsonElement));
     }
 
     [Fact]
@@ -352,7 +352,7 @@ public class PackageManifestTests
 
         // Act & Assert.
         Assert.Throws<JsonException>(
-            () => PackageManifestFactory.Create(jsonElement));
+            () => PackageManifest.Create(jsonElement));
     }
 
     [Fact]
@@ -371,7 +371,7 @@ public class PackageManifestTests
 
         // Act & Assert.
         Assert.Throws<JsonException>(
-            () => PackageManifestFactory.Create(jsonElement));
+            () => PackageManifest.Create(jsonElement));
     }
 
     [Fact]
@@ -390,7 +390,7 @@ public class PackageManifestTests
 
         // Act & Assert.
         Assert.Throws<JsonException>(
-            () => PackageManifestFactory.Create(jsonElement));
+            () => PackageManifest.Create(jsonElement));
     }
 
     // FromJsonElement_InvalidAdditionalScriptFormat_ThrowsShcemaViolationException Removed due to relaxed validation for now.
@@ -402,7 +402,7 @@ public class PackageManifestTests
         using MemoryStream stream = new(Encoding.UTF8.GetBytes(_minimumJson));
 
         // Act.
-        PackageManifest manifest = await PackageManifestFactory.FromStream(stream);
+        PackageManifest manifest = await PackageManifest.FromStream(stream);
 
         // Assert.
         Assert.Equal("example.com/pkg", manifest.ToothPath);
@@ -710,7 +710,7 @@ public class PackageManifestTests
         MemoryStream stream = new();
 
         // Act.
-        await PackageManifestFactory.WriteToStreamAsync(_outputManifest, stream);
+        await PackageManifest.WriteToStreamAsync(_outputManifest, stream);
 
         // Assert.
         Assert.Equal(_outputJson.ReplaceLineEndings(), Encoding.UTF8.GetString(stream.ToArray()));

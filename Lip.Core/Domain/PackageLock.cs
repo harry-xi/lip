@@ -76,7 +76,7 @@ public record PackageLock
             Packages = [.. rawPackageLock.Packages
                 .Select(rawPackage =>
                 {
-                    var manifest = PackageManifestFactory.Create(rawPackage.Manifest);
+                    var manifest = PackageManifest.Create(rawPackage.Manifest);
                     return (manifest, rawPackage.Files, rawPackage.Locked, rawPackage.Variant);
                 })
                 // Filter out packages without matching variants.
@@ -114,7 +114,7 @@ public record PackageLock
                             AvatarUrl = null,
                         },
                         Variants = [package.Variant],
-                    }, PackageManifestFactory.JsonSerializerOptions),
+                    }, PackageManifest.JsonSerializerOptions),
                     Variant = package.Variant.Label,
                 }),
         };

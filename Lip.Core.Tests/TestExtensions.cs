@@ -5,7 +5,7 @@ public static class LipTestExtensions
     public static byte[] ToJsonBytes(this PackageManifest manifest)
     {
         using var ms = new MemoryStream();
-        PackageManifestFactory.WriteToStreamAsync(manifest, ms).Wait();
+        PackageManifest.WriteToStreamAsync(manifest, ms).Wait();
         return ms.ToArray();
     }
     public static byte[] ToJsonBytes(this PackageLock lockFile)

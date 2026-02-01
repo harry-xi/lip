@@ -31,7 +31,7 @@ public class PackageRegistry(
             return null;
         }
 
-        return await PackageManifestFactory.FromStream(manifestStream);
+        return await PackageManifest.FromStream(manifestStream);
     }
 
     public async Task<List<SemVersion>> GetVersions(PackageIdentifier packageIdentifier)

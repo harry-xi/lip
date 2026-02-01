@@ -60,7 +60,7 @@ public class ViewService
 
         if (path is null)
         {
-            return JsonSerializer.Serialize(packageManifest, PackageManifestFactory.JsonSerializerOptions);
+            return JsonSerializer.Serialize(packageManifest, PackageManifest.JsonSerializerOptions);
         }
 
         Template template = Template.Parse(path, lexerOptions: new()
@@ -78,6 +78,6 @@ public class ViewService
             throw new FormatException($"Failed to parse template '{path}': {sb}");
         }
 
-        return template.Render(JsonSerializer.SerializeToElement(packageManifest, PackageManifestFactory.JsonSerializerOptions));
+        return template.Render(JsonSerializer.SerializeToElement(packageManifest, PackageManifest.JsonSerializerOptions));
     }
 }

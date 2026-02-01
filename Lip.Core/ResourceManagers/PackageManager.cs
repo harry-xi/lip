@@ -56,7 +56,7 @@ public class PackageManager(
 
         using Stream fileStream = _context.FileSystem.File.OpenRead(packageManifestFilePath);
 
-        return await PackageManifestFactory.FromStream(fileStream);
+        return await PackageManifest.FromStream(fileStream);
     }
 
     public async Task<PackageLock.Package?> GetPackageFromLock(PackageIdentifier packageSpecifier)
@@ -78,7 +78,7 @@ public class PackageManager(
             return null;
         }
 
-        return await PackageManifestFactory.FromStream(manifestStream);
+        return await PackageManifest.FromStream(manifestStream);
     }
 
     public async Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun,
@@ -88,7 +88,7 @@ public class PackageManager(
             await packageFileSource.GetFileStream(_pathManager.PackageManifestFileName)
             ?? throw new InvalidOperationException("Package manifest not found.");
 
-        PackageManifest packageManifest = await PackageManifestFactory.FromStream(packageManifestFileStream);
+        PackageManifest packageManifest = await PackageManifest.FromStream(packageManifestFileStream);
 
         PackageSpecifier packageSpecifier = new(new PackageIdentifier(packageManifest.ToothPath, variantLabel), packageManifest.Version);
 
@@ -243,7 +243,7 @@ public class PackageManager(
     {
         using Stream stream = _context.FileSystem.File.OpenWrite(_pathManager.CurrentPackageManifestPath);
 
-        await PackageManifestFactory.WriteToStreamAsync(packageManifest, stream);
+        await PackageManifest.WriteToStreamAsync(packageManifest, stream);
     }
 
     public async Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun,

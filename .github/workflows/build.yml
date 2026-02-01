@@ -27,7 +27,6 @@ jobs:
       matrix:
         project:
           - Golang.Org.X.Mod
-          - Lip.Context
           - Lip.Core
           - Lip.Migration
         runtime:
@@ -192,7 +191,6 @@ jobs:
           - Golang.Org.X.Mod
           - Golang.Org.X.Mod.Tests
           - Lip.CLI
-          - Lip.Context
           - Lip.Core
           - Lip.Core.Tests
           - Lip.Migration

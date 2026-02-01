@@ -101,7 +101,7 @@ public class PackageRegistry(
                 {
                     return
                     [
-                        .. (await _context.Git.ListRemote(repoUrl, refs: true, tags: true))
+                        .. (await _context.Git.ListRemote(url, refs: true, tags: true))
                             .Where(item => item.Ref.StartsWith("refs/tags/v"))
                             .Select(item => item.Ref)
                             .Select(refName => refName["refs/tags/v".Length..])

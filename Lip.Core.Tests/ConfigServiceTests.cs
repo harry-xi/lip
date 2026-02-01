@@ -262,21 +262,33 @@ public class ConfigServiceTests
     }
 
     [Fact]
-    public void ConfigGet_EmptyKeys_ThrowsArgumentException()
+    public void ConfigGet_EmptyKeys_ReturnsAllConfigurations()
     {
         // Arrange.
-        RuntimeConfig initialRuntimeConfig = new();
+        RuntimeConfig initialRuntimeConfig = new()
+        {
+            Cache = "/custom/cache",
+            GitHubProxies = ["https://github-proxy.com"],
+        };
+
+        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
+        {
+            { s_runtimeConfigPath, new MockFileData(initialRuntimeConfig.ToJsonBytes()) },
+        });
 
         Mock<IContext> context = new();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        MockFileSystem fileSystem = new();
         var pathManager = new PathManager(fileSystem, "/", "/");
         var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
-        // Act & Assert.
-        ArgumentException exception = Assert.Throws<ArgumentException>(
-            () => configService.Get([]));
-        Assert.Equal("No configuration keys provided. (Parameter 'keys')", exception.Message);
+        // Act.
+        Dictionary<string, string> result = configService.Get([]);
+
+        // Assert.
+        Assert.Equal(3, result.Count);
+        Assert.Equal("/custom/cache", result["cache"]);
+        Assert.Equal("https://github-proxy.com", result["github_proxies"]);
     }
 
     [Fact]

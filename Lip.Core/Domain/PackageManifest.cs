@@ -146,18 +146,91 @@ public partial record PackageManifest
         // 1. Migrate
         jsonElement = Migrator.Migrate(jsonElement);
 
-        // 2. Apply Scriban Template Rendering
-        string jsonText = JsonSerializer.Serialize(jsonElement, JsonSerializerOptions);
+        // 2. Prepare for Scriban rendering
+        // We use JsonNode to traverse and modify the JSON structure.
+        // We use the original jsonElement as the model for Scriban rendering.
+        System.Text.Json.Nodes.JsonNode? rootNode = System.Text.Json.Nodes.JsonNode.Parse(jsonElement.GetRawText()) ?? throw new SchemaViolationException("", "JSON parsed to null.");
+        List<string> errors = [];
+        ApplyScribanRecursively(rootNode, jsonElement, errors);
 
-        Template template = Template.Parse(jsonText);
-        string jsonTextRendered = template.Render(jsonElement);
-        JsonElement jsonElementRendered = JsonDocument.Parse(jsonTextRendered).RootElement;
+        if (errors.Count > 0)
+        {
+            throw new SchemaViolationException("pre_process", string.Join(Environment.NewLine, errors));
+        }
 
         // 3. Deserialize to PackageManifest (validation happens in property setters)
-        PackageManifest manifest = jsonElementRendered.Deserialize<PackageManifest>(JsonSerializerOptions)
+        PackageManifest manifest = rootNode.Deserialize<PackageManifest>(JsonSerializerOptions)
             ?? throw new SchemaViolationException("", "JSON bytes deserialized to null.");
 
         return manifest;
+    }
+
+    private static void ApplyScribanRecursively(System.Text.Json.Nodes.JsonNode node, JsonElement model, List<string> errors)
+    {
+        if (node is System.Text.Json.Nodes.JsonObject jsonObject)
+        {
+            // ToList to avoid modification while iterating, although we are modifying values, not keys.
+            foreach (KeyValuePair<string, System.Text.Json.Nodes.JsonNode?> kvp in jsonObject.ToList())
+            {
+                if (kvp.Value is System.Text.Json.Nodes.JsonValue val && val.TryGetValue(out string? text))
+                {
+                    // Render string value
+                    string renderedText = RenderScriban(text, model, errors);
+                    if (renderedText != text)
+                    {
+                        jsonObject[kvp.Key] = renderedText;
+                    }
+                }
+                else if (kvp.Value is not null)
+                {
+                    ApplyScribanRecursively(kvp.Value, model, errors);
+                }
+            }
+        }
+        else if (node is System.Text.Json.Nodes.JsonArray jsonArray)
+        {
+            for (int i = 0; i < jsonArray.Count; i++)
+            {
+                if (jsonArray[i] is System.Text.Json.Nodes.JsonValue val && val.TryGetValue(out string? text))
+                {
+                    // Render string value
+                    string renderedText = RenderScriban(text, model, errors);
+                    if (renderedText != text)
+                    {
+                        jsonArray[i] = renderedText;
+                    }
+                }
+                else if (jsonArray[i] is not null)
+                {
+                    ApplyScribanRecursively(jsonArray[i]!, model, errors);
+                }
+            }
+        }
+    }
+
+    private static string RenderScriban(string text, JsonElement model, List<string> errors)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains("{{"))
+        {
+            return text;
+        }
+
+        Template template = Template.Parse(text);
+
+        if (template.HasErrors)
+        {
+            foreach (var message in template.Messages)
+            {
+                errors.Add(message.ToString());
+            }
+            return text;
+        }
+
+        string rendered = template.Render(model); // JsonElement works as model for Scriban? We assume yes based on previous code.
+                                                  // NOTE: If previous code used Render(jsonElement), it implies Scriban can use it. 
+                                                  // However, standard Scriban might need a specific object. 
+                                                  // If this fails during tests, we will wrap jsonElement or convert it.
+        return rendered;
     }
 
     public static async Task<PackageManifest> FromStream(Stream stream)

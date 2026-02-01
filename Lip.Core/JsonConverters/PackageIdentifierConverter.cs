@@ -23,8 +23,7 @@ public class PackageIdentifierConverter : JsonConverter<PackageIdentifier>
 
     public override PackageIdentifier ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        string? value = reader.GetString();
-        if (value == null) throw new JsonException("Null property name for PackageIdentifier");
+        string? value = reader.GetString() ?? throw new JsonException("Null property name for PackageIdentifier");
         return PackageIdentifier.Parse(value);
     }
 

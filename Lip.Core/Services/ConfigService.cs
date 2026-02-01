@@ -57,7 +57,7 @@ public class ConfigService
     {
         if (keys.Count == 0)
         {
-            throw new ArgumentException("No configuration keys provided.", nameof(keys));
+            return List();
         }
 
         Dictionary<string, string> allKeyValuePairs = List();

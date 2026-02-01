@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-[Description("Uninstall packages and unused dependencies.")]
+[Description("Uninstall packages.")]
 class UninstallCommand : AsyncCommand<UninstallCommand.Settings>
 {
     public class Settings : BaseCommandSettings
@@ -24,13 +24,14 @@ class UninstallCommand : AsyncCommand<UninstallCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        await lip.Uninstall([.. settings.Packages], new()
-        {
-            DryRun = settings.DryRun,
-            IgnoreScripts = settings.IgnoreScripts,
-        });
+        var uninstallService = new UninstallService(ctx);
+
+        await uninstallService.Uninstall(
+            [.. settings.Packages],
+            dryRun: settings.DryRun,
+            ignoreScripts: settings.IgnoreScripts);
 
         return 0;
     }

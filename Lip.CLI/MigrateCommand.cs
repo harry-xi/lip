@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-[Description("Migrate a tooth.json file to the latest schema version.")]
+[Description("Migrate a tooth.json file to the latest format.")]
 class MigrateCommand : AsyncCommand<MigrateCommand.Settings>
 {
     public class Settings : BaseCommandSettings
@@ -14,15 +14,17 @@ class MigrateCommand : AsyncCommand<MigrateCommand.Settings>
         public required string Path { get; init; }
 
         [CommandArgument(1, "[output]")]
-        [Description("The path to write the migrated tooth.json file to. Defaults to the input path.")]
-        public string? Output { get; init; }
+        [Description("The output path for the migrated file.")]
+        public required string? Output { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        await lip.Migrate(settings.Path, settings.Output, new());
+        var migrateService = new MigrateService(ctx);
+
+        await migrateService.Migrate(settings.Path, settings.Output);
 
         return 0;
     }

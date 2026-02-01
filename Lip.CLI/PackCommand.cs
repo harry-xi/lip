@@ -1,48 +1,51 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-[Description("Create a archive from the current directory, containing all files to place specified in the `tooth.json` file.")]
+[Description("Create a package from the current directory.")]
 class PackCommand : AsyncCommand<PackCommand.Settings>
 {
     public class Settings : BaseCommandSettings
     {
         [CommandArgument(0, "<path>")]
-        [Description("The path to the archive to create.")]
+        [Description("The output path for the created archive.")]
         public required string OutputPath { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Do not actually create the archive.")]
+        [Description("Do not actually create an archive.")]
         public required bool DryRun { get; init; }
 
         [CommandOption("--ignore-scripts")]
-        [Description("Do not run any scripts during packaging.")]
+        [Description("Do not run any scripts during packing.")]
         public required bool IgnoreScripts { get; init; }
 
-        [CommandOption("--archive-format <format>")]
-        [DefaultValue("zip")]
+        [CommandOption("--archive-format <FORMAT>")]
         [Description("The format of the archive to create. Valid formats are `zip`, `tar`, `tgz` and `tar.gz`. Defaults to `zip`.")]
+        [DefaultValue("zip")]
         public required string ArchiveFormat { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        await lip.Pack(settings.OutputPath, new()
+        var packService = new PackService(ctx);
+
+        PackService.ArchiveFormatType format = settings.ArchiveFormat switch
         {
-            DryRun = settings.DryRun,
-            IgnoreScripts = settings.IgnoreScripts,
-            ArchiveFormat = settings.ArchiveFormat switch
-            {
-                "zip" => Core.Lip.PackArgs.ArchiveFormatType.Zip,
-                "tar" => Core.Lip.PackArgs.ArchiveFormatType.Tar,
-                "tgz" or "tar.gz" => Core.Lip.PackArgs.ArchiveFormatType.TarGz,
-                _ => throw new ArgumentException($"Invalid archive format: {settings.ArchiveFormat}")
-            }
-        });
+            "zip" => PackService.ArchiveFormatType.Zip,
+            "tar" => PackService.ArchiveFormatType.Tar,
+            "tgz" or "tar.gz" => PackService.ArchiveFormatType.TarGz,
+            _ => throw new ArgumentException($"Invalid archive format: {settings.ArchiveFormat}"),
+        };
+
+        await packService.Pack(
+            settings.OutputPath,
+            dryRun: settings.DryRun,
+            ignoreScripts: settings.IgnoreScripts,
+            archiveFormat: format);
 
         return 0;
     }

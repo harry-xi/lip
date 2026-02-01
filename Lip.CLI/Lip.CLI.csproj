@@ -12,7 +12,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Lip.Core\Lip.Core.csproj"/>
-        <ProjectReference Include="..\Lip.Context\Lip.Context.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -15,8 +15,7 @@ nav:
       - user-guide/commands/lip-install.md
       - user-guide/commands/lip-list.md
       - user-guide/commands/lip-pack.md
-      - user-guide/commands/lip-prune.md
-      - user-guide/commands/lip-run.md
+
       - user-guide/commands/lip-uninstall.md
       - user-guide/commands/lip-update.md
       - user-guide/commands/lip-view.md

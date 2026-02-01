@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
@@ -17,10 +17,6 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         [Description("Do not actually install any packages. Be aware that files will still be downloaded and cached.")]
         public required bool DryRun { get; init; }
 
-        [CommandOption("-f|--force")]
-        [Description("Force the installation of the package. When a package is already installed but its version is different from the specified version, lip will reinstall the package.")]
-        public required bool Force { get; init; }
-
         [CommandOption("--ignore-scripts")]
         [Description("Do not run any scripts during installation.")]
         public required bool IgnoreScripts { get; init; }
@@ -29,10 +25,6 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
         [Description("Bypass dependency resolution and only install the specified packages.")]
         public required bool NoDependencies { get; init; }
 
-        [CommandOption("-U|--update")]
-        [Description("Update the package to the specified version if the installed version is older.")]
-        public required bool Update { get; init; }
-
         [CommandOption("--overwrite-files")]
         [Description("Overwrite existing files in the folder")]
         public required bool OverwriteFiles { get; init; }
@@ -40,17 +32,17 @@ class InstallCommand : AsyncCommand<InstallCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        await lip.Install(settings.Packages?.ToList(), new()
-        {
-            DryRun = settings.DryRun,
-            Force = settings.Force,
-            IgnoreScripts = settings.IgnoreScripts,
-            NoDependencies = settings.NoDependencies,
-            Update = settings.Update,
-            OverwriteFiles = settings.OverwriteFiles,
-        });
+        var installService = new InstallService(ctx);
+
+        await installService.Install(
+            settings.Packages?.ToList(),
+            dryRun: settings.DryRun,
+            ignoreScripts: settings.IgnoreScripts,
+            noDependencies: settings.NoDependencies,
+            upgradeLockedPackages: false,
+            overwriteFiles: settings.OverwriteFiles);
 
         return 0;
     }

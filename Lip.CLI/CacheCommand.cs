@@ -1,13 +1,11 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-class CacheSettings : BaseCommandSettings
-{
-}
+class CacheSettings : BaseCommandSettings { }
 
 [Description("Add a package to the cache.")]
 class CacheAddCommand : AsyncCommand<CacheAddCommand.Settings>
@@ -15,61 +13,63 @@ class CacheAddCommand : AsyncCommand<CacheAddCommand.Settings>
     public class Settings : CacheSettings
     {
         [CommandArgument(0, "<package>")]
-        [Description("The package to add.")]
+        [Description("The package specifier to add.")]
         public required string Package { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        await lip.CacheAdd(settings.Package, new());
+        var cacheService = new CacheService(ctx);
+
+        await cacheService.Add(settings.Package);
 
         return 0;
     }
 }
 
-[Description("Remove all items from the cache.")]
+[Description("Clean the cache.")]
 class CacheCleanCommand : AsyncCommand<CacheCleanCommand.Settings>
 {
-    public class Settings : CacheSettings
-    {
-    }
+    public class Settings : CacheSettings { }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        await lip.CacheClean(new());
+        var cacheService = new CacheService(ctx);
+
+        await cacheService.Clean();
 
         return 0;
     }
 }
 
-[Description("List items in the cache.")]
+[Description("List the cache contents.")]
 class CacheListCommand : AsyncCommand<CacheListCommand.Settings>
 {
-    public class Settings : CacheSettings
-    {
-    }
+    public class Settings : CacheSettings { }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        Core.Lip.CacheListResult result = await lip.CacheList(new());
+        var cacheService = new CacheService(ctx);
 
-        Tree root = new("Cache");
+        var (downloadedFiles, gitRepos) = await cacheService.List();
 
-        root
-            .AddNode("Downloaded Files")
-            .AddNode(new Rows(result.DownloadedFiles.Select(file => new Text(file))));
+        AnsiConsole.MarkupLine("[bold]Downloaded Files:[/]");
+        foreach (string file in downloadedFiles)
+        {
+            AnsiConsole.MarkupLine($"  {file}".EscapeMarkup());
+        }
 
-        root
-            .AddNode("Git Repos")
-            .AddNode(new Rows(result.GitRepos.Select(repo => new Text(repo))));
-
-        AnsiConsole.Write(root);
+        AnsiConsole.MarkupLine("[bold]Git Repos:[/]");
+        foreach (string repo in gitRepos)
+        {
+            AnsiConsole.MarkupLine($"  {repo}".EscapeMarkup());
+        }
 
         return 0;
     }

@@ -1,5 +1,4 @@
-using Lip.Context;
-using Lip.Core;
+using Lip.Core.Context;
 using Microsoft.Extensions.Logging;
 using Semver;
 using Spectre.Console;
@@ -22,7 +21,7 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await Prepare(settings);
+        var ctx = await CreateContext(settings);
 
         if (settings.Version)
         {
@@ -33,41 +32,37 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
             return 0;
         }
 
-        logger.LogCritical("No command specified. Use 'lip --help' for more information.");
+        ctx.Logger.LogCritical("No command specified. Use 'lip --help' for more information.");
 
         return 0;
     }
 
-    public static async Task<(Core.Lip lip, ILogger logger, UserInteraction userInteraction)> Prepare(
+    public static async Task<IContext> CreateContext(
         BaseCommandSettings settings,
         bool doNotRunProgressService = false)
     {
         ILogger logger = CreateLogger(settings.Quiet, settings.Verbose);
 
-        RuntimeConfig runtimeConfig = await GetRuntimeConfig();
 
         UserInteraction userInteraction = new();
 
-        Core.Lip lip = Core.Lip.Create(
-            runtimeConfig,
-            new Context.Context
-            {
-                CommandRunner = new CommandRunner(),
-                Downloader = new Context.Downloader(userInteraction),
-                FileSystem = new FileSystem(),
-                Git = await StandaloneGit.Create(),
-                Logger = logger,
-                UserInteraction = userInteraction,
-                WorkingDir = Directory.GetCurrentDirectory()
-            }
-        );
+        IContext context = new Context
+        {
+            CommandRunner = new CommandRunner(),
+            Downloader = new Lip.Core.Context.Downloader(userInteraction),
+            FileSystem = new FileSystem(),
+            Git = await Git.Create(),
+            Logger = logger,
+            UserInteraction = userInteraction,
+            WorkingDir = Directory.GetCurrentDirectory()
+        };
 
         if (!doNotRunProgressService)
         {
-            _ = userInteraction.RunProgressService(); // Run in the background.
+            _ = userInteraction.RunProgressService();
         }
 
-        return (lip, logger, userInteraction);
+        return context;
     }
 
     private static ILogger CreateLogger(bool quiet, bool verbose)
@@ -90,18 +85,4 @@ class CommandRoot : AsyncCommand<CommandRoot.Settings>
         return factory.CreateLogger("lip");
     }
 
-    private static async Task<RuntimeConfig> GetRuntimeConfig()
-    {
-        string path = Path.Join(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
-
-        if (!Path.Exists(path))
-        {
-            return new RuntimeConfig();
-        }
-
-        byte[] json = await File.ReadAllBytesAsync(path);
-
-        return RuntimeConfig.FromJsonBytes(json);
-    }
 }

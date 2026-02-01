@@ -1,29 +1,31 @@
-using Microsoft.Extensions.Logging;
+using Lip.Core.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.CLI;
 
-[Description("Show information about a package. If not cached, lip will download the package.")]
+[Description("View package information.")]
 class ViewCommand : AsyncCommand<ViewCommand.Settings>
 {
     public class Settings : BaseCommandSettings
     {
         [CommandArgument(0, "<package>")]
-        [Description("The package to view.")]
+        [Description("The package specifier to view.")]
         public required string Package { get; init; }
 
         [CommandArgument(1, "[path]")]
-        [Description("The path to the property to view. If not specified, the entire package information will be shown.")]
+        [Description("The path to a specific field in the manifest.")]
         public required string? Path { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        (Core.Lip lip, ILogger logger, UserInteraction userInteraction) = await CommandRoot.Prepare(settings);
+        var ctx = await CommandRoot.CreateContext(settings);
 
-        string result = await lip.View(settings.Package, settings.Path, new());
+        var viewService = new ViewService(ctx);
+
+        string result = await viewService.View(settings.Package, settings.Path);
 
         AnsiConsole.MarkupLine(result.EscapeMarkup());
 

@@ -3,6 +3,8 @@ using System.Text;
 
 namespace Lip.Core.Tests;
 
+using static Lip.Core.PackageLock;
+
 public class PackageLockTests
 {
     private static readonly List<string> _defaultFiles = [
@@ -28,12 +30,14 @@ public class PackageLockTests
             PreUninstall = [],
             Uninstall = [],
             PostUninstall = [],
-            AdditionalScripts = [],
+
         }
     };
 
     private static readonly PackageManifest _defaultManifest = new()
     {
+        FormatVersion = DefaultFormatVersion,
+        FormatUuid = DefaultFormatUuid,
         ToothPath = "example.com/pkg",
         Version = new(1, 0, 0),
         Info = new()
@@ -78,8 +82,7 @@ public class PackageLockTests
                         "info": {
                             "name": "",
                             "description": "",
-                            "tags": [],
-                            "avatar_url": ""
+                            "tags": []
                         },
                         "variants": [
                             {
@@ -108,12 +111,7 @@ public class PackageLockTests
         }
         """;
 
-    private static readonly PackageSpecifier _defaultSpecifier = new()
-    {
-        ToothPath = "example.com/pkg",
-        VariantLabel = _defaultVariantLabel,
-        Version = new(1, 0, 0)
-    };
+    private static readonly PackageSpecifier _defaultSpecifier = new(new PackageIdentifier("example.com/pkg", _defaultVariantLabel), new(1, 0, 0));
 
     private const string _defaultVariantLabel = "variant";
 

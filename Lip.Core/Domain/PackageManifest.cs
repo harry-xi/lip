@@ -1,5 +1,3 @@
-using DotNet.Globbing;
-using Flurl;
 using Lip.Core.JsonConverters;
 using Lip.Migration;
 using Scriban;
@@ -21,7 +19,7 @@ public partial record PackageManifest
     public static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         AllowTrailingCommas = true,
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         IndentSize = 4,
         ReadCommentHandling = JsonCommentHandling.Skip,
         WriteIndented = true,

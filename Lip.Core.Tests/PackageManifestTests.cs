@@ -102,10 +102,7 @@ public class PackageManifestTests
     public void ScriptsType_Constructor_ValidValues_ReturnsCorrectInstance()
     {
         // Arrange & Act.
-        Dictionary<string, JsonElement> additionalScripts = new()
-        {
-            ["key"] = JsonSerializer.SerializeToElement(new List<string> { string.Empty })
-        };
+
 
         PackageManifest.ScriptsType scripts = new()
         {
@@ -117,7 +114,7 @@ public class PackageManifestTests
             PreUninstall = [],
             Uninstall = [],
             PostUninstall = [],
-            AdditionalProperties = additionalScripts,
+
         };
 
         PackageManifest.ScriptsType newScripts = scripts with { };
@@ -131,24 +128,9 @@ public class PackageManifestTests
         Assert.Empty(newScripts.PreUninstall);
         Assert.Empty(newScripts.Uninstall);
         Assert.Empty(newScripts.PostUninstall);
-        Assert.Equal(additionalScripts, newScripts.AdditionalProperties);
     }
 
-    [Fact]
-    public void ScriptsType_InvalidAdditionalScriptName_ThrowsSchemaViolationException()
-    {
-        // Arrange.
-        Dictionary<string, JsonElement> additionalScripts = new()
-        {
-            ["invalid.script.name"] = JsonSerializer.SerializeToElement(new List<string> { string.Empty })
-        };
 
-        // Act & Assert.
-        SchemaViolationException exception = Assert.Throws<SchemaViolationException>(
-            () => new PackageManifest.ScriptsType { AdditionalProperties = additionalScripts });
-
-        Assert.Equal("scripts.'invalid.script.name'", exception.Key);
-    }
 
     [Fact]
     public void Variant_Constructor_ValidValues_ReturnsCorrectInstance()
@@ -436,10 +418,7 @@ public class PackageManifestTests
                 PreUninstall = [],
                 Uninstall = [],
                 PostUninstall = [],
-                AdditionalProperties = new Dictionary<string, JsonElement>
-                {
-                    ["script"] = JsonSerializer.SerializeToElement(new List<string> { string.Empty })
-                },
+
             }
         };
 
@@ -480,7 +459,7 @@ public class PackageManifestTests
         Assert.Equal(variant.Scripts.PreUninstall, variantGot.Scripts.PreUninstall);
         Assert.Equal(variant.Scripts.Uninstall, variantGot.Scripts.Uninstall);
         Assert.Equal(variant.Scripts.PostUninstall, variantGot.Scripts.PostUninstall);
-        Assert.Equal(variant.Scripts.AdditionalScripts, variantGot.Scripts.AdditionalScripts);
+
     }
 
     [Fact]
@@ -614,10 +593,7 @@ public class PackageManifestTests
                     PreUninstall = [],
                     Uninstall = [],
                     PostUninstall = [],
-                    AdditionalProperties = new Dictionary<string, JsonElement>
-                    {
-                        ["script"] = JsonSerializer.SerializeToElement(new List<string> { string.Empty })
-                    }
+
                 }
             }
         ],
@@ -667,10 +643,7 @@ public class PackageManifestTests
                         "post_pack": [],
                         "pre_uninstall": [],
                         "uninstall": [],
-                        "post_uninstall": [],
-                        "script": [
-                            ""
-                        ]
+                        "post_uninstall": []
                     }
                 }
             ]
@@ -717,22 +690,7 @@ public class PackageManifestTests
     }
 
 
-    [Theory]
-    [InlineData("script")]
-    [InlineData("script_name")]
-    public void IsValidScriptName_CommonInput_ReturnsTrue(string scriptName)
-    {
-        Assert.True(PackageManifest.IsValidScriptName(scriptName));
-    }
 
-    [Theory]
-    [InlineData("script-name")]
-    [InlineData("script name")]
-    [InlineData("script_name!")]
-    public void IsValidScriptName_InvalidInput_ReturnsFalse(string scriptName)
-    {
-        Assert.False(PackageManifest.IsValidScriptName(scriptName));
-    }
 
     [Theory]
     [InlineData("tag")]

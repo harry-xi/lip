@@ -34,7 +34,7 @@ commandApp.Configure(config =>
     config.AddCommand<ListCommand>("list");
     config.AddCommand<MigrateCommand>("migrate");
     config.AddCommand<PackCommand>("pack");
-    config.AddCommand<RunCommand>("run");
+
     config.AddCommand<UninstallCommand>("uninstall");
     config.AddCommand<UpdateCommand>("update");
     config.AddCommand<ViewCommand>("view");

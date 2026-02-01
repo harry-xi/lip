@@ -12,8 +12,7 @@ For example, while `variants` is optional, if you include it, each variant must 
 Scriban expressions allow you to dynamically reference other fields within any string value, making package maintenance
 easier. For example, use `{{tooth}}` to reference the package's tooth path or `{{version}}` to access the package's
 version number. This dynamic referencing helps keep your package configurations DRY (Don't Repeat Yourself) and more
-maintainable. However, some package manifest manipulation commands (e.g. commands with `--save` option) may not support
-Scriban expressions.
+maintainable.
 
 ## Fields
 
@@ -215,6 +214,3 @@ Built-in script hooks (all values are string arrays):
 - `pre_uninstall`: Before uninstallation
 - `uninstall`: After file removal
 - `post_uninstall`: After uninstallation
-
-Custom scripts can be run using `lip run <script>`. Custom script names should match `^[a-z0-9]+(_[a-z0-9]+)*$` and also
-expect arrays of commands as values.

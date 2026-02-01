@@ -116,11 +116,6 @@ public partial record PackageManifest
                 PreUninstall = matchedVariants.LastOrDefault(v => v.Scripts.PreUninstall.Count > 0)?.Scripts.PreUninstall ?? [],
                 Uninstall = matchedVariants.LastOrDefault(v => v.Scripts.Uninstall.Count > 0)?.Scripts.Uninstall ?? [],
                 PostUninstall = matchedVariants.LastOrDefault(v => v.Scripts.PostUninstall.Count > 0)?.Scripts.PostUninstall ?? [],
-                AdditionalProperties = matchedVariants
-                     .Where(v => v.Scripts.AdditionalProperties != null)
-                     .SelectMany(variant => variant.Scripts.AdditionalProperties!)
-                     .GroupBy(kvp => kvp.Key)
-                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Last().Value)
             }
         };
 
@@ -135,7 +130,7 @@ public partial record PackageManifest
     [GeneratedRegex("^[a-z0-9]+(_[a-z0-9]+)*$")]
     private static partial Regex ScriptNameRegex();
 
-    public static bool IsValidScriptName(string scriptName) => ScriptNameRegex().IsMatch(scriptName);
+
 
     public static bool IsValidPlacementDest(string path)
     {

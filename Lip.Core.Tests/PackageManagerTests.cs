@@ -512,11 +512,7 @@ public class PackageManagerTests
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
-                AdditionalProperties = new Dictionary<string, JsonElement>
-                {
-                    { "same_script", JsonSerializer.SerializeToElement(new List<string> { "echo same" }) },
-                    { "custom_script1", JsonSerializer.SerializeToElement(new List<string> { "echo custom1" }) }
-                }
+
                 }
             }
             ]
@@ -668,11 +664,7 @@ public class PackageManagerTests
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
-                AdditionalProperties = new Dictionary<string, JsonElement>
-                {
-                    { "same_script", JsonSerializer.SerializeToElement(new List<string> { "echo same" }) },
-                    { "custom_script1", JsonSerializer.SerializeToElement(new List<string> { "echo custom1" }) }
-                }
+
                 }
             }
             ]
@@ -800,11 +792,7 @@ public class PackageManagerTests
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
-                AdditionalProperties = new Dictionary<string, JsonElement>
-                {
-                    { "same_script", JsonSerializer.SerializeToElement(new List<string> { "echo same" }) },
-                    { "custom_script1", JsonSerializer.SerializeToElement(new List<string> { "echo custom1" }) }
-                }
+
                 }
             }
             ]

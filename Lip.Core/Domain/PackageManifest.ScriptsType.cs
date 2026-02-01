@@ -31,37 +31,6 @@ public partial record PackageManifest
         [JsonPropertyName("post_uninstall")]
         public List<string> PostUninstall { get; init; } = [];
 
-        [JsonExtensionData]
-        public Dictionary<string, JsonElement>? AdditionalProperties
-        {
-            get;
-            init
-            {
-                if (value != null)
-                {
-                    foreach (var key in value.Keys)
-                    {
-                        if (!IsValidScriptName(key))
-                            throw new SchemaViolationException($"scripts.'{key}'", $"Invalid script name '{key}'.");
-                    }
-                }
-                field = value;
-            }
-        }
 
-        [JsonIgnore]
-        public Dictionary<string, List<string>> AdditionalScripts
-        {
-            get
-            {
-                if (AdditionalProperties == null) return [];
-                return AdditionalProperties
-                   .Where(kvp => kvp.Value.ValueKind == JsonValueKind.Array && kvp.Value.EnumerateArray().All(e => e.ValueKind == JsonValueKind.String))
-                   .ToDictionary(
-                       kvp => kvp.Key,
-                       kvp => kvp.Value.Deserialize<List<string>>() ?? []
-                   );
-            }
-        }
     }
 }

@@ -57,8 +57,6 @@ public class InitService
         {
             manifest = new()
             {
-                FormatVersion = PackageManifest.DefaultFormatVersion,
-                FormatUuid = PackageManifest.DefaultFormatUuid,
                 ToothPath = initTooth ?? DefaultTooth,
                 Version = SemVersion.Parse(initVersion ?? DefaultVersion),
                 Info = new()
@@ -102,8 +100,6 @@ public class InitService
 
             manifest = new()
             {
-                FormatVersion = PackageManifest.DefaultFormatVersion,
-                FormatUuid = PackageManifest.DefaultFormatUuid,
                 ToothPath = tooth,
                 Version = SemVersion.Parse(version),
                 Info = new()

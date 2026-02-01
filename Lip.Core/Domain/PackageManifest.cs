@@ -8,36 +8,44 @@ using System.Text.RegularExpressions;
 
 namespace Lip.Core;
 
-/// <summary>
-/// Represents the package manifest.
-/// </summary>
 public partial record PackageManifest
 {
-    public const int DefaultFormatVersion = 3;
-    public const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
+    private const int DefaultFormatVersion = 3;
+    private const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
+
+    [JsonConstructor]
+    public PackageManifest(int FormatVersion, string? FormatUuid)
+    {
+        this.FormatVersion = FormatVersion;
+        this.FormatUuid = FormatUuid ?? "";
+    }
+
+    public PackageManifest()
+    {
+    }
 
     [JsonPropertyName("format_version")]
-    public required int FormatVersion
+    public int FormatVersion
     {
-        get => field;
+        get;
         init => field = value == DefaultFormatVersion
             ? value
             : throw new SchemaViolationException("format_version", $"Expected {DefaultFormatVersion}, got {value}.");
-    }
+    } = DefaultFormatVersion;
 
     [JsonPropertyName("format_uuid")]
-    public required string FormatUuid
+    public string FormatUuid
     {
-        get => field;
+        get;
         init => field = value == DefaultFormatUuid
             ? value
             : throw new SchemaViolationException("format_uuid", $"Expected '{DefaultFormatUuid}', got '{value}'.");
-    }
+    } = DefaultFormatUuid;
 
     [JsonPropertyName("tooth")]
     public required string ToothPath
     {
-        get => field;
+        get;
         init => field = PackageIdentifier.IsValidToothPath(value)
             ? value
             : throw new SchemaViolationException("tooth", $"Invalid tooth path '{value}'.");
@@ -91,7 +99,7 @@ public partial record PackageManifest
         [JsonPropertyName("tags")]
         public List<string> Tags
         {
-            get => field;
+            get;
             init
             {
                 foreach (var tag in value)
@@ -128,7 +136,7 @@ public partial record PackageManifest
         [JsonPropertyName("dest")]
         public required string Dest
         {
-            get => field;
+            get;
             init => field = IsValidPlacementDest(value)
                 ? value
                 : throw new SchemaViolationException("placements[].dest", $"Invalid destination path '{value}'.");
@@ -164,7 +172,7 @@ public partial record PackageManifest
         [JsonExtensionData]
         public Dictionary<string, JsonElement>? AdditionalProperties
         {
-            get => field;
+            get;
             init
             {
                 if (value != null)
@@ -212,7 +220,7 @@ public partial record PackageManifest
         [JsonPropertyName("preserve_files")]
         public List<string> PreserveFiles
         {
-            get => field;
+            get;
             init
             {
                 foreach (var file in value)
@@ -227,7 +235,7 @@ public partial record PackageManifest
         [JsonPropertyName("remove_files")]
         public List<string> RemoveFiles
         {
-            get => field;
+            get;
             init
             {
                 foreach (var file in value)

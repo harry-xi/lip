@@ -10,6 +10,8 @@ using System.Text;
 
 namespace Lip.Core.Tests;
 
+using static Lip.Core.PackageLock;
+
 public class PackServiceTests
 {
     private static readonly string s_workspacePath = OperatingSystem.IsWindows()
@@ -122,8 +124,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -217,8 +219,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -302,8 +304,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -348,8 +350,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -402,8 +404,8 @@ public class PackServiceTests
 
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -459,8 +461,8 @@ public class PackServiceTests
         // Arrange.
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType
@@ -505,8 +507,8 @@ public class PackServiceTests
         // Arrange.
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new PackageManifest.InfoType

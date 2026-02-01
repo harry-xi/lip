@@ -13,6 +13,9 @@ using global::Lip.Core;
 
 
 
+
+using static Lip.Core.PackageLock;
+
 public class PackageManagerTests
 {
     private record ListRemoteResultItem(string Sha, string Ref) : IGit.IListRemoteResultItem;
@@ -21,8 +24,8 @@ public class PackageManagerTests
     {
         return new PackageManifest
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = toothPath,
             Version = SemVersion.Parse(version),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -435,8 +438,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -629,8 +632,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -722,8 +725,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },

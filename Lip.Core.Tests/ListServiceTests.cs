@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Tests;
 
+using static Lip.Core.PackageLock;
+
 public class ListServiceTests
 {
 
@@ -23,8 +25,8 @@ public class ListServiceTests
                     {
                         "locked": true,
                         "manifest": {
-                            "format_version": {{PackageManifest.DefaultFormatVersion}},
-                            "format_uuid": "{{PackageManifest.DefaultFormatUuid}}",
+                            "format_version": {{DefaultFormatVersion}},
+                            "format_uuid": "{{DefaultFormatUuid}}",
                             "tooth": "example.com/pkg1",
                             "version": "1.0.0",
                             "variants": [
@@ -40,8 +42,8 @@ public class ListServiceTests
                     {
                         "locked": false,
                         "manifest": {
-                            "format_version": {{PackageManifest.DefaultFormatVersion}},
-                            "format_uuid": "{{PackageManifest.DefaultFormatUuid}}",
+                            "format_version": {{DefaultFormatVersion}},
+                            "format_uuid": "{{DefaultFormatUuid}}",
                             "tooth": "example.com/pkg2",
                             "version": "1.0.1",
                             "variants": [

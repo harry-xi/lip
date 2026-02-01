@@ -1,12 +1,11 @@
 using Golang.Org.X.Mod;
-using Lip.Core.JsonConverters;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Lip.Core;
 
-[JsonConverter(typeof(PackageIdentifierConverter))]
+[JsonConverter(typeof(JsonConverters.PackageIdentifierConverter))]
 public partial record PackageIdentifier(string ToothPath, string VariantLabel = "")
 {
     public string ToothPath { get; init; } = IsValidToothPath(ToothPath)
@@ -17,10 +16,7 @@ public partial record PackageIdentifier(string ToothPath, string VariantLabel = 
         ? VariantLabel
         : throw new ArgumentException($"Invalid variant label {VariantLabel}.", nameof(VariantLabel));
 
-    public override string ToString()
-    {
-        return $"{ToothPath}{(VariantLabel != string.Empty ? "#" : string.Empty)}{VariantLabel}";
-    }
+    public override string ToString() => $"{ToothPath}{(VariantLabel != string.Empty ? "#" : string.Empty)}{VariantLabel}";
 
     public static PackageIdentifier Parse(string text)
     {
@@ -52,9 +48,6 @@ public partial record PackageIdentifier(string ToothPath, string VariantLabel = 
         return true;
     }
 
-    [GeneratedRegex(@"^(?<path>[^#]+)(?:#(?<label>[^#]*))?$")]
-    private static partial Regex IdentifierRegex();
-
     public static bool IsValidToothPath(string toothPath)
     {
         return Module.CheckPath(toothPath) is null;
@@ -64,6 +57,9 @@ public partial record PackageIdentifier(string ToothPath, string VariantLabel = 
     {
         return VariantLabelRegex().IsMatch(variantLabel);
     }
+
+    [GeneratedRegex(@"^(?<path>[^#]+)(?:#(?<label>[^#]*))?$")]
+    private static partial Regex IdentifierRegex();
 
     [GeneratedRegex("^([a-z0-9]+(_[a-z0-9]+)*)?$")]
     private static partial Regex VariantLabelRegex();

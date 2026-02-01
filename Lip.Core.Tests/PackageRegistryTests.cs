@@ -9,6 +9,8 @@ using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Core.Tests;
 
+using static Lip.Core.PackageLock;
+
 public class PackageRegistryTests
 {
     private record ListRemoteResultItem(string Sha, string Ref) : IGit.IListRemoteResultItem;
@@ -25,8 +27,8 @@ public class PackageRegistryTests
     {
         return new PackageManifest
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = toothPath,
             Version = SemVersion.Parse(version),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },

@@ -11,6 +11,8 @@ namespace Lip.Core.Tests;
 
 using global::Lip.Core.Services;
 
+using static Lip.Core.PackageLock;
+
 public class InstallServiceTests
 {
     private readonly Mock<ICacheManager> _cacheManagerMock = new();
@@ -45,8 +47,8 @@ public class InstallServiceTests
     {
         return new PackageManifest
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = $"github.com/test/{name}",
             Version = SemVersion.Parse(version),
             Info = new PackageManifest.InfoType

@@ -3,6 +3,8 @@ using System.Text;
 
 namespace Lip.Core.Tests;
 
+using static Lip.Core.PackageLock;
+
 public class PackageLockTests
 {
     private static readonly List<string> _defaultFiles = [
@@ -34,8 +36,8 @@ public class PackageLockTests
 
     private static readonly PackageManifest _defaultManifest = new()
     {
-        FormatVersion = PackageManifest.DefaultFormatVersion,
-        FormatUuid = PackageManifest.DefaultFormatUuid,
+        FormatVersion = DefaultFormatVersion,
+        FormatUuid = DefaultFormatUuid,
         ToothPath = "example.com/pkg",
         Version = new(1, 0, 0),
         Info = new()

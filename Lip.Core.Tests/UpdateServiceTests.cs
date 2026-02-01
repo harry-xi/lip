@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core.Tests;
 
+using static Lip.Core.PackageLock;
+
 public class UpdateServiceTests
 {
     private readonly Mock<ICacheManager> _cacheManagerMock = new();
@@ -49,8 +51,8 @@ public class UpdateServiceTests
     {
         return new PackageManifest
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = $"github.com/test/{name}",
             Version = SemVersion.Parse(version),
             Info = new PackageManifest.InfoType

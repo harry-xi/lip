@@ -3,6 +3,7 @@ using Lip.Core.JsonConverters;
 using Semver;
 using System.Text;
 using System.Text.Json;
+using static Lip.Core.PackageLock;
 
 namespace Lip.Core.Tests;
 
@@ -272,8 +273,6 @@ public class PackageManifestTests
 
         PackageManifest manifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
             ToothPath = toothPath,
             Version = version,
             Info = info,
@@ -283,6 +282,8 @@ public class PackageManifestTests
         PackageManifest newManifest = manifest with { };
 
         // Assert.
+        Assert.Equal(DefaultFormatVersion, newManifest.FormatVersion);
+        Assert.Equal(DefaultFormatUuid, newManifest.FormatUuid);
         Assert.Equal(toothPath, newManifest.ToothPath);
         Assert.Equal(version, newManifest.Version);
         Assert.Equal(info, newManifest.Info);
@@ -354,6 +355,44 @@ public class PackageManifestTests
             () => PackageManifestFactory.Create(jsonElement));
     }
 
+    [Fact]
+    public void FromJsonElement_MissingFormatVersion_ThrowsJsonException()
+    {
+        // Arrange.
+        string manifestJson = """
+            {
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "example.com/pkg",
+                "version": "0.0.0"
+            }
+            """;
+
+        JsonElement jsonElement = JsonDocument.Parse(manifestJson).RootElement;
+
+        // Act & Assert.
+        Assert.Throws<JsonException>(
+            () => PackageManifestFactory.Create(jsonElement));
+    }
+
+    [Fact]
+    public void FromJsonElement_MissingFormatUuid_ThrowsJsonException()
+    {
+        // Arrange.
+        string manifestJson = """
+            {
+                "format_version": 3,
+                "tooth": "example.com/pkg",
+                "version": "0.0.0"
+            }
+            """;
+
+        JsonElement jsonElement = JsonDocument.Parse(manifestJson).RootElement;
+
+        // Act & Assert.
+        Assert.Throws<JsonException>(
+            () => PackageManifestFactory.Create(jsonElement));
+    }
+
     // FromJsonElement_InvalidAdditionalScriptFormat_ThrowsShcemaViolationException Removed due to relaxed validation for now.
 
     [Fact]
@@ -406,8 +445,8 @@ public class PackageManifestTests
 
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = new(0),
             Info = new()
@@ -450,8 +489,8 @@ public class PackageManifestTests
         // Assert.
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = new(0),
             Info = new()
@@ -499,8 +538,8 @@ public class PackageManifestTests
 
         PackageManifest packageManifest = new()
         {
-            FormatVersion = PackageManifest.DefaultFormatVersion,
-            FormatUuid = PackageManifest.DefaultFormatUuid,
+            FormatVersion = DefaultFormatVersion,
+            FormatUuid = DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = new(0),
             Info = new()
@@ -524,8 +563,8 @@ public class PackageManifestTests
 
     private readonly PackageManifest _outputManifest = new()
     {
-        FormatVersion = PackageManifest.DefaultFormatVersion,
-        FormatUuid = PackageManifest.DefaultFormatUuid,
+        FormatVersion = DefaultFormatVersion,
+        FormatUuid = DefaultFormatUuid,
         ToothPath = "example.com/pkg",
         Version = new(0),
         Info = new()

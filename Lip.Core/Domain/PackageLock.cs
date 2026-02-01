@@ -104,8 +104,6 @@ public record PackageLock
                     Locked = package.Locked,
                     Manifest = JsonSerializer.SerializeToElement(new PackageManifest()
                     {
-                        FormatVersion = PackageManifest.DefaultFormatVersion,
-                        FormatUuid = PackageManifest.DefaultFormatUuid,
                         ToothPath = package.Specifier.ToothPath,
                         Version = package.Specifier.Version,
                         Info = new()

@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+trigger: model_decision
+description: when writing tests
 ---
 
 # Test Rules for Antigravity

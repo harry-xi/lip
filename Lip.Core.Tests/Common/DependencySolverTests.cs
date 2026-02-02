@@ -23,7 +23,7 @@ public class DependencySolverTests
         // Mock logger
         _mockContext.Setup(c => c.Logger).Returns(new Mock<ILogger>().Object);
 
-        _solver = new DependencySolver(_mockContext.Object, _mockPackageRegistry.Object);
+        _solver = new DependencySolver(_mockContext.Object.Logger, _mockPackageRegistry.Object);
     }
 
     private static (PackageManifest Manifest, PackageLock.Package Package) CreatePackage(string toothPath, string version, string variantLabel = "", Dictionary<string, string>? dependencies = null)

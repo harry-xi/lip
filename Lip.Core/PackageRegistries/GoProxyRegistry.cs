@@ -8,13 +8,13 @@ using Semver;
 namespace Lip.Core.PackageRegistries;
 
 public class GoProxyRegistry(
-    IContext context,
+    ILogger logger,
     ICacheManager cacheManager,
     IPathManager pathManager,
     List<Url> goModuleProxies) : IPackageRegistry
 {
     private readonly ICacheManager _cacheManager = cacheManager;
-    private readonly IContext _context = context;
+    private readonly ILogger _logger = logger;
     private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly IPathManager _pathManager = pathManager;
 
@@ -68,9 +68,9 @@ public class GoProxyRegistry(
             }
             catch (Exception ex)
             {
-                _context.Logger.LogWarning("Failed to download {Url}. Attempting next URL.",
+                _logger.LogWarning("Failed to download {Url}. Attempting next URL.",
                     goModuleVersionListUrl);
-                _context.Logger.LogDebug(ex, "");
+                _logger.LogDebug(ex, "");
             }
         }
 

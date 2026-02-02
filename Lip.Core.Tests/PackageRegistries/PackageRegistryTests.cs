@@ -60,7 +60,7 @@ public class PackageRegistryTests
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
         // We can test any registry here since GetManifest is identical.
-        var packageRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, []);
+        var packageRegistry = new GoProxyRegistry(context.Object.Logger, cacheManager, pathManager, []);
 
         // Act.
         var pkg = await packageRegistry.GetManifest(new PackageSpecifier(
@@ -84,7 +84,7 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, []);
+        var packageRegistry = new GoProxyRegistry(context.Object.Logger, cacheManager, pathManager, []);
 
         // Act.
         // Assert.
@@ -111,7 +111,7 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
+        var packageRegistry = new GoProxyRegistry(context.Object.Logger, cacheManager, pathManager, [Url.Parse("https://example.com")]);
 
         // Act.
         using var httpTest = new HttpTest();
@@ -149,7 +149,7 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new GitRegistry(context.Object, []);
+        var packageRegistry = new GitRegistry(context.Object.Git!, context.Object.Logger, []);
 
         // Act.
         var result = await packageRegistry.GetVersions(new PackageIdentifier("example.com/user/repo", ""));
@@ -185,9 +185,9 @@ public class PackageRegistryTests
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
         // GoProxy (Fail)
-        var goProxyRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
+        var goProxyRegistry = new GoProxyRegistry(context.Object.Logger, cacheManager, pathManager, [Url.Parse("https://example.com")]);
         // Git (Success)
-        var gitRegistry = new GitRegistry(context.Object, []);
+        var gitRegistry = new GitRegistry(context.Object.Git!, context.Object.Logger, []);
 
         var compositeRegistry = new CompositeRegistry([goProxyRegistry, gitRegistry]);
 
@@ -224,9 +224,9 @@ public class PackageRegistryTests
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
         // GoProxy (Fail)
-        var goProxyRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
+        var goProxyRegistry = new GoProxyRegistry(context.Object.Logger, cacheManager, pathManager, [Url.Parse("https://example.com")]);
         // Git (Fail)
-        var gitRegistry = new GitRegistry(context.Object, []);
+        var gitRegistry = new GitRegistry(context.Object.Git!, context.Object.Logger, []);
 
         var compositeRegistry = new CompositeRegistry([goProxyRegistry, gitRegistry]);
 

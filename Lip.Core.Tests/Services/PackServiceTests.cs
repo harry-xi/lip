@@ -55,7 +55,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>(); // Not used directly in this test but required for PackageManager
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act & assert.
@@ -170,7 +176,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
@@ -265,7 +277,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
@@ -334,7 +352,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act & assert.
@@ -384,7 +408,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
@@ -438,7 +468,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
@@ -488,7 +524,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act.
@@ -534,7 +576,13 @@ public class PackServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var packService = new PackService(context.Object, packageManager, pathManager);
 
         // Act & assert.

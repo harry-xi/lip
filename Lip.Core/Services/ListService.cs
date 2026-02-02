@@ -21,7 +21,13 @@ public class ListService
             runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
             runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
 
-        _packageManager = new PackageManager(context, cacheManager, pathManager);
+        _packageManager = new PackageManager(
+            context.FileSystem,
+            context.CommandRunner,
+            context.Logger,
+            context.UserInteraction,
+            cacheManager,
+            pathManager);
     }
 
     internal ListService(IPackageManager packageManager)

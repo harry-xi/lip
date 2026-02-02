@@ -66,7 +66,13 @@ public class ListServiceTests
 
         var pathManager = new PathManager(fileSystem, "/", "/");
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var listService = new Services.ListService(packageManager);
 
         // Act.

@@ -35,22 +35,29 @@ public class InstallService
             runtimeConfig.GitHubProxies.ConvertAll(Url.Parse),
             runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
 
-        _packageManager = new PackageManager(context, _cacheManager, _pathManager);
+        _packageManager = new PackageManager(
+            context.FileSystem,
+            context.CommandRunner,
+            context.Logger,
+            context.UserInteraction,
+            _cacheManager,
+            _pathManager);
 
         _packageRegistry = new CompositeRegistry(
         [
             new LiprRegistry(),
             new GitRegistry(
-                context,
+                context.Git!,
+                context.Logger,
                 runtimeConfig.GitHubProxies.ConvertAll(Url.Parse)),
             new GoProxyRegistry(
-                context,
+                context.Logger,
                 _cacheManager,
                 _pathManager,
                 runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse))
         ]);
 
-        _dependencySolver = new DependencySolver(context, _packageRegistry);
+        _dependencySolver = new DependencySolver(context.Logger, _packageRegistry);
     }
 
     internal InstallService(

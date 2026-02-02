@@ -6,10 +6,12 @@ using Semver;
 namespace Lip.Core.PackageRegistries;
 
 public class GitRegistry(
-    IContext context,
+    IGit git,
+    ILogger logger,
     List<Url> gitHubProxies) : IPackageRegistry
 {
-    private readonly IContext _context = context;
+    private readonly IGit _git = git;
+    private readonly ILogger _logger = logger;
     private readonly List<Url> _gitHubProxies = gitHubProxies;
 
     public async Task<PackageManifest> GetManifest(PackageSpecifier packageSpecifier)
@@ -19,7 +21,7 @@ public class GitRegistry(
 
     public async Task<List<SemVersion>> GetVersions(PackageIdentifier packageIdentifier)
     {
-        if (_context.Git is null)
+        if (_git is null)
         {
             throw new InvalidOperationException("Git is not available.");
         }
@@ -41,7 +43,7 @@ public class GitRegistry(
             {
                 return
                 [
-                    .. (await _context.Git.ListRemote(url, refs: true, tags: true))
+                    .. (await _git.ListRemote(url, refs: true, tags: true))
                         .Where(item => item.Ref.StartsWith("refs/tags/v"))
                         .Select(item => item.Ref)
                         .Select(refName => refName["refs/tags/v".Length..])
@@ -51,10 +53,10 @@ public class GitRegistry(
             }
             catch (Exception ex)
             {
-                _context.Logger.LogWarning(
+                _logger.LogWarning(
                     "Failed to clone {Url}. Attempting next URL.",
                     url);
-                _context.Logger.LogDebug(ex, "");
+                _logger.LogDebug(ex, "");
             }
         }
 

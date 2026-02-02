@@ -102,7 +102,13 @@ public class InitServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
 
@@ -162,7 +168,13 @@ public class InitServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
 
@@ -233,7 +245,13 @@ public class InitServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
 
@@ -266,7 +284,13 @@ public class InitServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
 
@@ -300,7 +324,13 @@ public class InitServiceTests
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(context.Object, cacheManager.Object, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager.Object,
+            pathManager);
         var initService = new InitService(context.Object, packageManager, pathManager);
 
 

@@ -28,10 +28,11 @@ public class CacheService
         [
             new LiprRegistry(),
             new GitRegistry(
-                context,
+                context.Git!,
+                context.Logger,
                 runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse)),
             new GoProxyRegistry(
-                context,
+                context.Logger,
                 _cacheManager,
                 pathManager,
                 runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse)),

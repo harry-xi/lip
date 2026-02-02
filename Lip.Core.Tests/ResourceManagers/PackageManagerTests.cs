@@ -84,7 +84,13 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        return new PackageManager(context.Object, cacheManager, pathManager);
+        return new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager,
+            pathManager);
     }
 
     [Fact]
@@ -559,7 +565,13 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager,
+            pathManager);
 
         // Act.
         await packageManager.InstallPackage(fileSource, "", dryRun, ignoreScripts, false, false);
@@ -696,7 +708,13 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager,
+            pathManager);
 
         // Act.
         // It should NOT throw, but skip overwrite because User selected "No"
@@ -840,7 +858,13 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(context.Object, cacheManager, pathManager);
+        var packageManager = new PackageManager(
+            context.Object.FileSystem,
+            context.Object.CommandRunner,
+            context.Object.Logger,
+            context.Object.UserInteraction,
+            cacheManager,
+            pathManager);
 
         await packageManager.InstallPackage(fileSource, "", false, true, false, false);
 

@@ -13,16 +13,16 @@ public interface IDependencySolver
         IEnumerable<PackageLock.Package> knownPackages);
 }
 
-public class DependencySolver(IContext context, IPackageRegistry packageRegistry) : IDependencySolver
+public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) : IDependencySolver
 {
-    private readonly IContext _context = context;
+    private readonly ILogger _logger = logger;
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
 
     public async Task<List<PackageSpecifier>?> ResolveDependencies(
         IEnumerable<(PackageIdentifier Identifier, SemVersionRange VersionRange)> primaryPackageRequirements,
         IEnumerable<PackageLock.Package> knownPackages)
     {
-        _context.Logger.LogDebug("Resolving dependencies...");
+        _logger.LogDebug("Resolving dependencies...");
 
         Dictionary<PackageIdentifier, HashSet<SemVersion>> candidates = [];
 
@@ -38,7 +38,7 @@ public class DependencySolver(IContext context, IPackageRegistry packageRegistry
 
             if (compatibleVersions.Count == 0)
             {
-                _context.Logger.LogError("No compatible versions found for primary package '{identifier}' within range '{versionRange}'.", identifier, versionRange);
+                _logger.LogError("No compatible versions found for primary package '{identifier}' within range '{versionRange}'.", identifier, versionRange);
                 return null;
             }
 

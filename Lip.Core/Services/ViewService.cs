@@ -30,10 +30,11 @@ public class ViewService
         [
             new LiprRegistry(),
             new GitRegistry(
-                context,
+                context.Git!,
+                context.Logger,
                 runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse)),
             new GoProxyRegistry(
-                context,
+                context.Logger,
                 cacheManager,
                 pathManager,
                 runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse))

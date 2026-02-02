@@ -29,7 +29,13 @@ public class InitService
             runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
             runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
 
-        _packageManager = new PackageManager(context, cacheManager, _pathManager);
+        _packageManager = new PackageManager(
+            context.FileSystem,
+            context.CommandRunner,
+            context.Logger,
+            context.UserInteraction,
+            cacheManager,
+            _pathManager);
     }
 
     internal InitService(IContext context, IPackageManager packageManager, IPathManager pathManager)

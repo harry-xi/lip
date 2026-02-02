@@ -22,12 +22,18 @@ public interface IPackageManager
 }
 
 public class PackageManager(
-    IContext context,
+    IFileSystem fileSystem,
+    ICommandRunner commandRunner,
+    ILogger logger,
+    IUserInteraction userInteraction,
     ICacheManager cacheManager,
     IPathManager pathManager) : IPackageManager
 {
     private readonly ICacheManager _cacheManager = cacheManager;
-    private readonly IContext _context = context;
+    private readonly IFileSystem _fileSystem = fileSystem;
+    private readonly ICommandRunner _commandRunner = commandRunner;
+    private readonly ILogger _logger = logger;
+    private readonly IUserInteraction _userInteraction = userInteraction;
     private readonly IPathManager _pathManager = pathManager;
 
     public async Task<PackageLock> GetCurrentPackageLock()
@@ -35,12 +41,12 @@ public class PackageManager(
         string packageLockFilePath = _pathManager.CurrentPackageLockPath;
 
         // If the package lock file does not exist, return an empty package lock.
-        if (!_context.FileSystem.File.Exists(packageLockFilePath))
+        if (!_fileSystem.File.Exists(packageLockFilePath))
         {
             return new() { Packages = [] };
         }
 
-        using Stream packageLockFileStream = _context.FileSystem.File.OpenRead(packageLockFilePath);
+        using Stream packageLockFileStream = _fileSystem.File.OpenRead(packageLockFilePath);
 
         return await PackageLock.FromStream(packageLockFileStream);
     }
@@ -49,12 +55,12 @@ public class PackageManager(
     {
         string packageManifestFilePath = _pathManager.CurrentPackageManifestPath;
 
-        if (!_context.FileSystem.File.Exists(packageManifestFilePath))
+        if (!_fileSystem.File.Exists(packageManifestFilePath))
         {
             return null;
         }
 
-        using Stream fileStream = _context.FileSystem.File.OpenRead(packageManifestFilePath);
+        using Stream fileStream = _fileSystem.File.OpenRead(packageManifestFilePath);
 
         return await PackageManifest.FromStream(fileStream);
     }
@@ -92,7 +98,7 @@ public class PackageManager(
 
         PackageSpecifier packageSpecifier = new(new PackageIdentifier(packageManifest.ToothPath, variantLabel), packageManifest.Version);
 
-        _context.Logger.LogDebug("Installing package {packageSpecifier}...", packageSpecifier);
+        _logger.LogDebug("Installing package {packageSpecifier}...", packageSpecifier);
 
         // If the package has already been installed, skip installing. Or if the package has been
         // installed with a different version, throw exception.
@@ -101,7 +107,7 @@ public class PackageManager(
 
         if (installedVersion == packageSpecifier.Version)
         {
-            _context.Logger.LogInformation(
+            _logger.LogInformation(
                 "Package {packageSpecifier} is already installed with version {installedVersion}", packageSpecifier,
                 installedVersion);
             return;
@@ -127,10 +133,10 @@ public class PackageManager(
         {
             foreach (var script in packageVariant.Scripts.PreInstall)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
                 {
-                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    await _commandRunner.Run(script, _pathManager.WorkingDir);
                 }
             }
         }
@@ -155,14 +161,13 @@ public class PackageManager(
                         continue;
                     }
 
-                    string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, place.Dest, destRelative);
+                    string destPath = _fileSystem.Path.Join(_pathManager.WorkingDir, place.Dest, destRelative);
 
-                    if (!overwriteFile && _context.FileSystem.Path.Exists(destPath))
+                    if (!overwriteFile && _fileSystem.Path.Exists(destPath))
                     {
-                        var select = await _context.UserInteraction.PromptForSelection(["Yes", "No", "All"], $"File {destPath} already exists. Overwrite It?");
+                        var select = await _userInteraction.PromptForSelection(["Yes", "No", "All"], $"File {destPath} already exists. Overwrite It?");
                         if (select == "No")
                         {
-                            // throw new InvalidOperationException($"File {destPath} already exists.");
                             continue;
                         }
                         if (select == "All")
@@ -171,19 +176,19 @@ public class PackageManager(
                         }
                     }
 
-                    _context.Logger.LogDebug("Placing file: {entryKey} -> {destPath}", fileSourceEntry.Key, destPath);
+                    _logger.LogDebug("Placing file: {entryKey} -> {destPath}", fileSourceEntry.Key, destPath);
 
                     if (!dryRun)
                     {
                         using Stream fileSourceEntryStream = await fileSourceEntry.OpenRead();
 
-                        _context.FileSystem.CreateParentDirectory(destPath);
+                        _fileSystem.CreateParentDirectory(destPath);
 
-                        using Stream fileStream = _context.FileSystem.File.OpenWrite(destPath);
+                        using Stream fileStream = _fileSystem.File.OpenWrite(destPath);
 
                         await fileSourceEntryStream.CopyToAsync(fileStream);
 
-                        placedFiles.Add(_context.FileSystem.Path.Join(place.Dest, destRelative));
+                        placedFiles.Add(_fileSystem.Path.Join(place.Dest, destRelative));
                     }
                 }
 
@@ -197,10 +202,10 @@ public class PackageManager(
         {
             foreach (var script in packageVariant.Scripts.Install)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
                 {
-                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    await _commandRunner.Run(script, _pathManager.WorkingDir);
                 }
             }
         }
@@ -228,20 +233,20 @@ public class PackageManager(
         {
             foreach (var script in packageVariant.Scripts.PostInstall)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
                 {
-                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    await _commandRunner.Run(script, _pathManager.WorkingDir);
                 }
             }
         }
 
-        _context.Logger.LogInformation("Package {packageSpecifier} installed.", packageSpecifier);
+        _logger.LogInformation("Package {packageSpecifier} installed.", packageSpecifier);
     }
 
     public async Task SaveCurrentPackageManifest(PackageManifest packageManifest)
     {
-        using Stream stream = _context.FileSystem.File.OpenWrite(_pathManager.CurrentPackageManifestPath);
+        using Stream stream = _fileSystem.File.OpenWrite(_pathManager.CurrentPackageManifestPath);
 
         await PackageManifest.WriteToStreamAsync(packageManifest, stream);
     }
@@ -255,11 +260,11 @@ public class PackageManager(
 
         if (packageToUninstall is null)
         {
-            _context.Logger.LogWarning("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
+            _logger.LogWarning("Package {packageSpecifier} is not installed.", packageSpecifierWithoutVersion);
             return;
         }
 
-        _context.Logger.LogDebug("Uninstalling package {packageSpecifier}...", packageToUninstall.Specifier);
+        _logger.LogDebug("Uninstalling package {packageSpecifier}...", packageToUninstall.Specifier);
 
         // Run pre-uninstall scripts.
 
@@ -267,10 +272,10 @@ public class PackageManager(
         {
             foreach (var script in packageToUninstall.Variant.Scripts.PreUninstall)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
                 {
-                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    await _commandRunner.Run(script, _pathManager.WorkingDir);
                 }
             }
         }
@@ -281,10 +286,10 @@ public class PackageManager(
         {
             foreach (var script in packageToUninstall.Variant.Scripts.Uninstall)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
                 {
-                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    await _commandRunner.Run(script, _pathManager.WorkingDir);
                 }
             }
         }
@@ -300,19 +305,19 @@ public class PackageManager(
                 continue;
             }
 
-            string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, file);
+            string destPath = _fileSystem.Path.Join(_pathManager.WorkingDir, file);
 
-            _context.Logger.LogDebug("Removing file: {destPath}", destPath);
+            _logger.LogDebug("Removing file: {destPath}", destPath);
 
             if (!dryRun)
             {
-                if (_context.FileSystem.File.Exists(destPath))
+                if (_fileSystem.File.Exists(destPath))
                 {
-                    _context.FileSystem.File.Delete(destPath);
+                    _fileSystem.File.Delete(destPath);
                 }
-                else if (_context.FileSystem.Directory.Exists(destPath))
+                else if (_fileSystem.Directory.Exists(destPath))
                 {
-                    _context.FileSystem.Directory.Delete(destPath, true);
+                    _fileSystem.Directory.Delete(destPath, true);
                 }
 
                 RemoveParentDirectoriesUntilWorkingDir(destPath);
@@ -323,29 +328,29 @@ public class PackageManager(
 
         IEnumerable<Glob> removeFileGlobs = packageToUninstall.Variant.RemoveFiles.Select(p => Glob.Parse(p));
 
-        foreach (string fullPath in _context.FileSystem.Directory.EnumerateFileSystemEntries(_pathManager.WorkingDir,
+        foreach (string fullPath in _fileSystem.Directory.EnumerateFileSystemEntries(_pathManager.WorkingDir,
                      "*", SearchOption.AllDirectories))
         {
-            string relativePath = _context.FileSystem.Path.GetRelativePath(_pathManager.WorkingDir, fullPath);
+            string relativePath = _fileSystem.Path.GetRelativePath(_pathManager.WorkingDir, fullPath);
 
             if (!removeFileGlobs.Any(p => p.IsMatch(relativePath)))
             {
                 continue;
             }
 
-            string destPath = _context.FileSystem.Path.Join(_pathManager.WorkingDir, relativePath);
+            string destPath = _fileSystem.Path.Join(_pathManager.WorkingDir, relativePath);
 
-            _context.Logger.LogDebug("Removing file: {destPath}", destPath);
+            _logger.LogDebug("Removing file: {destPath}", destPath);
 
             if (!dryRun)
             {
-                if (_context.FileSystem.File.Exists(destPath))
+                if (_fileSystem.File.Exists(destPath))
                 {
-                    _context.FileSystem.File.Delete(destPath);
+                    _fileSystem.File.Delete(destPath);
                 }
-                else if (_context.FileSystem.Directory.Exists(destPath))
+                else if (_fileSystem.Directory.Exists(destPath))
                 {
-                    _context.FileSystem.Directory.Delete(destPath, true);
+                    _fileSystem.Directory.Delete(destPath, true);
                 }
 
                 RemoveParentDirectoriesUntilWorkingDir(destPath);
@@ -369,15 +374,15 @@ public class PackageManager(
         {
             foreach (var script in packageToUninstall.Variant.Scripts.PostUninstall)
             {
-                _context.Logger.LogDebug("Running script: {script}", script);
+                _logger.LogDebug("Running script: {script}", script);
                 if (!dryRun)
                 {
-                    await _context.CommandRunner.Run(script, _pathManager.WorkingDir);
+                    await _commandRunner.Run(script, _pathManager.WorkingDir);
                 }
             }
         }
 
-        _context.Logger.LogInformation("Package {packageSpecifier} uninstalled.", packageToUninstall.Specifier);
+        _logger.LogInformation("Package {packageSpecifier} uninstalled.", packageToUninstall.Specifier);
     }
 
     private async Task<IFileSource> GetAssetFileSource(PackageManifest.Asset asset, IFileSource packageFileScore)
@@ -391,37 +396,37 @@ public class PackageManager(
 
         if (asset.Type == PackageManifest.Asset.TypeEnum.Uncompressed)
         {
-            return new StandaloneFileSource(_context.FileSystem, assetFile.FullName);
+            return new StandaloneFileSource(_fileSystem, assetFile.FullName);
         }
         else
         {
-            return new ArchiveFileSource(_context.FileSystem, assetFile.FullName);
+            return new ArchiveFileSource(_fileSystem, assetFile.FullName);
         }
     }
 
     private void RemoveParentDirectoriesUntilWorkingDir(string path)
     {
-        path = _context.FileSystem.Path.Join(_pathManager.WorkingDir, path);
+        path = _fileSystem.Path.Join(_pathManager.WorkingDir, path);
 
-        string? parentDir = _context.FileSystem.Path.GetDirectoryName(path);
+        string? parentDir = _fileSystem.Path.GetDirectoryName(path);
 
         while (parentDir != null
                && parentDir.StartsWith(_pathManager.WorkingDir)
                && parentDir != _pathManager.WorkingDir)
         {
-            if (_context.FileSystem.Directory.Exists(parentDir)
-                && !_context.FileSystem.Directory.EnumerateFileSystemEntries(parentDir).Any())
+            if (_fileSystem.Directory.Exists(parentDir)
+                && !_fileSystem.Directory.EnumerateFileSystemEntries(parentDir).Any())
             {
-                _context.FileSystem.Directory.Delete(parentDir);
+                _fileSystem.Directory.Delete(parentDir);
             }
 
-            parentDir = _context.FileSystem.Path.GetDirectoryName(parentDir);
+            parentDir = _fileSystem.Path.GetDirectoryName(parentDir);
         }
     }
 
     private async Task SaveCurrentPackageLock(PackageLock packageLock)
     {
-        using Stream packageLockFileStream = _context.FileSystem.File.Create(_pathManager.CurrentPackageLockPath);
+        using Stream packageLockFileStream = _fileSystem.File.Create(_pathManager.CurrentPackageLockPath);
 
         await packageLock.ToStream(packageLockFileStream);
     }

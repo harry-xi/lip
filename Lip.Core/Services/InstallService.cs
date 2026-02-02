@@ -37,12 +37,19 @@ public class InstallService
 
         _packageManager = new PackageManager(context, _cacheManager, _pathManager);
 
-        _packageRegistry = new PackageRegistries.PackageRegistry(
-            context,
-            _cacheManager,
-            _pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
+        _packageRegistry = new CompositeRegistry(
+        [
+            new GoProxyRegistry(
+                context,
+                _cacheManager,
+                _pathManager,
+                runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse)),
+            new GitRegistry(
+                context,
+                _cacheManager,
+                _pathManager,
+                runtimeConfig.GitHubProxies.ConvertAll(Url.Parse))
+        ]);
 
         _dependencySolver = new DependencySolver(context, _packageRegistry);
     }

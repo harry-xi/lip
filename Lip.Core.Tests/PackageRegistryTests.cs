@@ -58,7 +58,9 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new PackageRegistry(context.Object, cacheManager, pathManager, [], []);
+
+        // We can test any registry here since GetManifest is identical.
+        var packageRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, []);
 
         // Act.
         var pkg = await packageRegistry.GetManifest(new PackageSpecifier(
@@ -82,7 +84,7 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new PackageRegistry(context.Object, cacheManager, pathManager, [], []);
+        var packageRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, []);
 
         // Act.
         var pkg = await packageRegistry.GetManifest(new PackageSpecifier(
@@ -94,7 +96,7 @@ public class PackageRegistryTests
     }
 
     [Fact]
-    public async Task GetVersions_WithGoModuleProxy()
+    public async Task GoProxyRegistry_GetVersions_Success()
     {
         // Arrange.
         var expectedVersions = new List<SemVersion> { new(0, 1, 0), new(0, 2, 0), new(0, 3, 0) };
@@ -108,7 +110,7 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new PackageRegistry(context.Object, cacheManager, pathManager, [], [Url.Parse("https://example.com")]);
+        var packageRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
 
         // Act.
         using var httpTest = new HttpTest();
@@ -121,7 +123,7 @@ public class PackageRegistryTests
     }
 
     [Fact]
-    public async Task GetVersions_WithGit()
+    public async Task GitRegistry_GetVersions_Success()
     {
         // Arrange.
         var expectedVersions = new List<SemVersion> { new(0, 1, 0), new(0, 2, 0), new(0, 3, 0) };
@@ -146,7 +148,7 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new PackageRegistry(context.Object, cacheManager, pathManager, [], []);
+        var packageRegistry = new GitRegistry(context.Object, cacheManager, pathManager, []);
 
         // Act.
         var result = await packageRegistry.GetVersions(new PackageIdentifier("example.com/user/repo", ""));
@@ -156,35 +158,84 @@ public class PackageRegistryTests
     }
 
     [Fact]
-    public async Task GetVersions_WithGoModuleProxyFailed_And_NoGit()
+    public async Task CompositeRegistry_FallsBack_ToGit()
     {
         // Arrange.
         var packageIdentifier = new PackageIdentifier("example.com/user/repo", "");
 
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
 
-        var downloader = new Mock<IDownloader>();
-        downloader.Setup(d => d.DownloadFile(Url.Parse("https://example.com/example.com/user/repo/@v/list"), It.IsAny<string>()))
-        .Callback<Url, string>((_, _) =>
-        {
-            throw new Exception("DownLoad FAIL");
-        });
+        // Git Mock (Success)
+        var git = new Mock<IGit>();
+        git.Setup(g => g.ListRemote("https://example.com/user/repo", true, true))
+        .Returns(
+            Task<List<IGit.IListRemoteResultItem>>.Factory.StartNew(() => [
+                new ListRemoteResultItem("123", "refs/tags/v0.1.0")
+            ])
+        );
 
-        var logger = new Mock<ILogger>();
-
+        // Context Mock
         var context = new Mock<IContext>();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.Downloader).Returns(downloader.Object);
-        context.SetupGet(c => c.Logger).Returns(logger.Object);
+        context.SetupGet(c => c.Git).Returns(git.Object);
+        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new PackageRegistry(context.Object, cacheManager, pathManager, [], [Url.Parse("https://example.com")]);
 
-        // Act. & Assert.
-        await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
+        // GoProxy (Fail)
+        var goProxyRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
+        // Git (Success)
+        var gitRegistry = new GitRegistry(context.Object, cacheManager, pathManager, []);
+
+        var compositeRegistry = new CompositeRegistry([goProxyRegistry, gitRegistry]);
+
+        // Act.
+        using var httpTest = new HttpTest();
+        httpTest.RespondWith("Not Found", 404); // GoProxy fails
+
+        var result = await compositeRegistry.GetVersions(packageIdentifier);
+
+        // Assert.
+        Assert.Single(result);
+        Assert.Equal(new SemVersion(0, 1, 0), result[0]);
+    }
+
+    [Fact]
+    public async Task CompositeRegistry_AllFail_ThrowsAggregateException()
+    {
+        // Arrange.
+        var packageIdentifier = new PackageIdentifier("example.com/user/repo", "");
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), s_workingDir);
+
+        // Git Mock (Fail)
+        var git = new Mock<IGit>();
+        git.Setup(g => g.ListRemote(It.IsAny<string>(), true, true))
+            .ThrowsAsync(new Exception("Git Failed"));
+
+        // Context Mock
+        var context = new Mock<IContext>();
+        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
+        context.SetupGet(c => c.Git).Returns(git.Object);
+        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
+
+        var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
+        var cacheManager = new CacheManager(context.Object, pathManager, [], []);
+
+        // GoProxy (Fail)
+        var goProxyRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
+        // Git (Fail)
+        var gitRegistry = new GitRegistry(context.Object, cacheManager, pathManager, []);
+
+        var compositeRegistry = new CompositeRegistry([goProxyRegistry, gitRegistry]);
+
+        // Act & Assert.
+        using var httpTest = new HttpTest();
+        httpTest.RespondWith("Not Found", 404); // GoProxy fails
+
+        await Assert.ThrowsAsync<AggregateException>(async () =>
         {
-            var result = await packageRegistry.GetVersions(packageIdentifier);
+            await compositeRegistry.GetVersions(packageIdentifier);
         });
     }
 }

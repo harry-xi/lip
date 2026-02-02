@@ -24,12 +24,19 @@ public class CacheService
             runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
             runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
 
-        _packageRegistry = new PackageRegistry(
-            context,
-            _cacheManager,
-            pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+        _packageRegistry = new CompositeRegistry(
+        [
+            new GoProxyRegistry(
+                context,
+                _cacheManager,
+                pathManager,
+                runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse)),
+            new GitRegistry(
+                context,
+                _cacheManager,
+                pathManager,
+                runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse))
+        ]);
     }
 
     internal CacheService(IPackageRegistry packageRegistry, ICacheManager cacheManager)

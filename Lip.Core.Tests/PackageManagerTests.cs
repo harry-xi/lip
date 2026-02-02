@@ -5,7 +5,6 @@ using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 
 namespace Lip.Core.Tests;
 

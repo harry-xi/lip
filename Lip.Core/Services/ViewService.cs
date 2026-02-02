@@ -26,12 +26,19 @@ public class ViewService
             runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
             runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
 
-        _packageRegistry = new PackageRegistry(
-            context,
-            cacheManager,
-            pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
+        _packageRegistry = new CompositeRegistry(
+        [
+            new GoProxyRegistry(
+                context,
+                cacheManager,
+                pathManager,
+                runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse)),
+            new GitRegistry(
+                context,
+                cacheManager,
+                pathManager,
+                runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse))
+        ]);
     }
 
     internal ViewService(IPackageRegistry packageRegistry)

@@ -33,7 +33,6 @@ commandApp.Configure(config =>
     config.AddCommand<InstallCommand>("install");
     config.AddCommand<ListCommand>("list");
     config.AddCommand<MigrateCommand>("migrate");
-    config.AddCommand<PackCommand>("pack");
 
     config.AddCommand<UninstallCommand>("uninstall");
     config.AddCommand<UpdateCommand>("update");

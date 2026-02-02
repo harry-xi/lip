@@ -187,8 +187,6 @@ public class MigratorFromV2Tests
                             "post_install": [
                                 ".\\PeEditor.exe -mb"
                             ],
-                            "pre_pack": null,
-                            "post_pack": null,
                             "pre_uninstall": null,
                             "uninstall": null,
                             "post_uninstall": [

@@ -145,18 +145,6 @@
                                     "type": "string"
                                 }
                             },
-                            "pre_pack": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
-                            "post_pack": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
                             "pre_uninstall": {
                                 "type": "array",
                                 "items": {

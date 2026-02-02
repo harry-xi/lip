@@ -14,8 +14,6 @@ nav:
       - user-guide/commands/lip-init.md
       - user-guide/commands/lip-install.md
       - user-guide/commands/lip-list.md
-      - user-guide/commands/lip-pack.md
-
       - user-guide/commands/lip-uninstall.md
       - user-guide/commands/lip-update.md
       - user-guide/commands/lip-view.md

@@ -77,8 +77,6 @@ public class UpdateServiceTests
                         PreInstall = [],
                         Install = [],
                         PostInstall = [],
-                        PrePack = [],
-                        PostPack = [],
                         PreUninstall = [],
                         Uninstall = [],
                         PostUninstall = [],

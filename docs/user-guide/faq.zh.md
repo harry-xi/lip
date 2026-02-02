@@ -27,9 +27,3 @@ $ lip init
 ```bash
 $ lip install
 ```
-
-要打包该tooth包，运行：
-
-```bash
-$ lip pack my-package.zip
-```

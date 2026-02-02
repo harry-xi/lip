@@ -46,8 +46,6 @@ public class DependencySolverTests
                 PreInstall = [],
                 Install = [],
                 PostInstall = [],
-                PrePack = [],
-                PostPack = [],
                 PreUninstall = [],
                 Uninstall = [],
                 PostUninstall = [],

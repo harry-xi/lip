@@ -42,7 +42,7 @@ public class PackageManagerTests
             Assets = [],
             PreserveFiles = [],
             RemoveFiles = [],
-            Scripts = new() { PreInstall = [], Install = [], PostInstall = [], PrePack = [], PostPack = [], PreUninstall = [], Uninstall = [], PostUninstall = [] }
+            Scripts = new() { PreInstall = [], Install = [], PostInstall = [], PreUninstall = [], Uninstall = [], PostUninstall = [] }
         };
     }
     private static readonly string s_cacheDir = OperatingSystem.IsWindows()
@@ -127,38 +127,6 @@ public class PackageManagerTests
 
         // Assert.
         Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackageLock), LipTestExtensions.ToJsonBytes(result));
-    }
-
-    [Fact]
-    public async Task GetCurrentPackageManifestParsed_NotExits()
-    {
-        // Arrange.
-        var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData>());
-
-        // Act.
-        var result = await packageManager.GetCurrentPackageManifest();
-
-        // Assert.
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task GetCurrentPackageManifestParsed_Exits()
-    {
-        // Arrange.
-        var expectedPackage = s_examplePackage_1;
-
-        var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData>() {
-            { Path.Join(s_workingDir, "tooth.json"), new MockFileData(LipTestExtensions.ToJsonBytes(expectedPackage)) }
-        });
-
-        // Act.
-        // Act.
-        var result = await packageManager.GetCurrentPackageManifest();
-
-        // Assert.
-        // Assert.
-        Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackage), LipTestExtensions.ToJsonBytes(result!));
     }
 
     [Fact]
@@ -512,8 +480,6 @@ public class PackageManagerTests
                 PreInstall = ["echo pre-install"],
                 Install = ["echo install"],
                 PostInstall = ["echo post-install"],
-                PrePack = ["echo pre-pack"],
-                PostPack = ["echo post-pack"],
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
@@ -670,8 +636,6 @@ public class PackageManagerTests
                 PreInstall = ["echo pre-install"],
                 Install = ["echo install"],
                 PostInstall = ["echo post-install"],
-                PrePack = ["echo pre-pack"],
-                PostPack = ["echo post-pack"],
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],
@@ -804,8 +768,6 @@ public class PackageManagerTests
                 PreInstall = ["echo pre-install"],
                 Install = ["echo install"],
                 PostInstall = ["echo post-install"],
-                PrePack = ["echo pre-pack"],
-                PostPack = ["echo post-pack"],
                 PreUninstall = ["echo pre-uninstall"],
                 Uninstall = ["echo uninstall"],
                 PostUninstall = ["echo post-uninstall"],

@@ -209,8 +209,6 @@ Built-in script hooks (all values are string arrays):
 - `pre_install`: Before installation
 - `install`: After file placement
 - `post_install`: After installation
-- `pre_pack`: Before packaging (only applies to default variant)
-- `post_pack`: After packaging (only applies to default variant)
 - `pre_uninstall`: Before uninstallation
 - `uninstall`: After file removal
 - `post_uninstall`: After uninstallation

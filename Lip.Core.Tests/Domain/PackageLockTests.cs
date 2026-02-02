@@ -25,8 +25,6 @@ public class PackageLockTests
             PreInstall = [],
             Install = [],
             PostInstall = [],
-            PrePack = [],
-            PostPack = [],
             PreUninstall = [],
             Uninstall = [],
             PostUninstall = [],
@@ -96,8 +94,6 @@ public class PackageLockTests
                                     "pre_install": [],
                                     "install": [],
                                     "post_install": [],
-                                    "pre_pack": [],
-                                    "post_pack": [],
                                     "pre_uninstall": [],
                                     "uninstall": [],
                                     "post_uninstall": []

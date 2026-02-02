@@ -109,8 +109,6 @@ public class PackageManifestTests
             PreInstall = [],
             Install = [],
             PostInstall = [],
-            PrePack = [],
-            PostPack = [],
             PreUninstall = [],
             Uninstall = [],
             PostUninstall = [],
@@ -123,8 +121,6 @@ public class PackageManifestTests
         Assert.Empty(newScripts.PreInstall);
         Assert.Empty(newScripts.Install);
         Assert.Empty(newScripts.PostInstall);
-        Assert.Empty(newScripts.PrePack);
-        Assert.Empty(newScripts.PostPack);
         Assert.Empty(newScripts.PreUninstall);
         Assert.Empty(newScripts.Uninstall);
         Assert.Empty(newScripts.PostUninstall);
@@ -143,8 +139,6 @@ public class PackageManifestTests
             PreInstall = [],
             Install = [],
             PostInstall = [],
-            PrePack = [],
-            PostPack = [],
             PreUninstall = [],
             Uninstall = [],
             PostUninstall = [],
@@ -223,8 +217,6 @@ public class PackageManifestTests
                 PreInstall = [],
                 Install = [],
                 PostInstall = [],
-                PrePack = [],
-                PostPack = [],
                 PreUninstall = [],
                 Uninstall = [],
                 PostUninstall = [],
@@ -413,8 +405,6 @@ public class PackageManifestTests
                 PreInstall = [],
                 Install = [],
                 PostInstall = [],
-                PrePack = [],
-                PostPack = [],
                 PreUninstall = [],
                 Uninstall = [],
                 PostUninstall = [],
@@ -454,8 +444,6 @@ public class PackageManifestTests
         Assert.Equal(variant.Scripts.PreInstall, variantGot.Scripts.PreInstall);
         Assert.Equal(variant.Scripts.Install, variantGot.Scripts.Install);
         Assert.Equal(variant.Scripts.PostInstall, variantGot.Scripts.PostInstall);
-        Assert.Equal(variant.Scripts.PrePack, variantGot.Scripts.PrePack);
-        Assert.Equal(variant.Scripts.PostPack, variantGot.Scripts.PostPack);
         Assert.Equal(variant.Scripts.PreUninstall, variantGot.Scripts.PreUninstall);
         Assert.Equal(variant.Scripts.Uninstall, variantGot.Scripts.Uninstall);
         Assert.Equal(variant.Scripts.PostUninstall, variantGot.Scripts.PostUninstall);
@@ -506,8 +494,6 @@ public class PackageManifestTests
                 PreInstall = [],
                 Install = [],
                 PostInstall = [],
-                PrePack = [],
-                PostPack = [],
                 PreUninstall = [],
                 Uninstall = [],
                 PostUninstall = [],
@@ -588,8 +574,6 @@ public class PackageManifestTests
                     PreInstall = [],
                     Install = [],
                     PostInstall = [],
-                    PrePack = [],
-                    PostPack = [],
                     PreUninstall = [],
                     Uninstall = [],
                     PostUninstall = [],
@@ -639,8 +623,6 @@ public class PackageManifestTests
                         "pre_install": [],
                         "install": [],
                         "post_install": [],
-                        "pre_pack": [],
-                        "post_pack": [],
                         "pre_uninstall": [],
                         "uninstall": [],
                         "post_uninstall": []

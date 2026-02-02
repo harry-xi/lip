@@ -25,9 +25,3 @@ To test the installation of the package (be aware of the interference with the e
 ```bash
 $ lip install
 ```
-
-To pack the package, run:
-
-```bash
-$ lip pack my-package.zip
-```

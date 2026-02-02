@@ -56,8 +56,6 @@ public class ViewServiceTests
                         "pre_install": [],
                         "install": [],
                         "post_install": [],
-                        "pre_pack": [],
-                        "post_pack": [],
                         "pre_uninstall": [],
                         "uninstall": [],
                         "post_uninstall": []

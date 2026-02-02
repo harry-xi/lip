@@ -15,12 +15,6 @@ public partial record PackageManifest
         [JsonPropertyName("post_install")]
         public List<string> PostInstall { get; init; } = [];
 
-        [JsonPropertyName("pre_pack")]
-        public List<string> PrePack { get; init; } = [];
-
-        [JsonPropertyName("post_pack")]
-        public List<string> PostPack { get; init; } = [];
-
         [JsonPropertyName("pre_uninstall")]
         public List<string> PreUninstall { get; init; } = [];
 

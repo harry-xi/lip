@@ -73,8 +73,6 @@ public class InstallServiceTests
                         PreInstall = [],
                         Install = [],
                         PostInstall = [],
-                        PrePack = [],
-                        PostPack = [],
                         PreUninstall = [],
                         Uninstall = [],
                         PostUninstall = [],

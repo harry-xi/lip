@@ -111,8 +111,6 @@ public partial record PackageManifest
                 PreInstall = matchedVariants.LastOrDefault(v => v.Scripts.PreInstall.Count > 0)?.Scripts.PreInstall ?? [],
                 Install = matchedVariants.LastOrDefault(v => v.Scripts.Install.Count > 0)?.Scripts.Install ?? [],
                 PostInstall = matchedVariants.LastOrDefault(v => v.Scripts.PostInstall.Count > 0)?.Scripts.PostInstall ?? [],
-                PrePack = matchedVariants.LastOrDefault(v => v.Scripts.PrePack.Count > 0)?.Scripts.PrePack ?? [],
-                PostPack = matchedVariants.LastOrDefault(v => v.Scripts.PostPack.Count > 0)?.Scripts.PostPack ?? [],
                 PreUninstall = matchedVariants.LastOrDefault(v => v.Scripts.PreUninstall.Count > 0)?.Scripts.PreUninstall ?? [],
                 Uninstall = matchedVariants.LastOrDefault(v => v.Scripts.Uninstall.Count > 0)?.Scripts.Uninstall ?? [],
                 PostUninstall = matchedVariants.LastOrDefault(v => v.Scripts.PostUninstall.Count > 0)?.Scripts.PostUninstall ?? [],

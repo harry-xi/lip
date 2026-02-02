@@ -10,7 +10,6 @@ namespace Lip.Core;
 public interface IPackageManager
 {
     Task<PackageLock> GetCurrentPackageLock();
-    Task<PackageManifest?> GetCurrentPackageManifest();
     Task<PackageLock.Package?> GetPackageFromLock(PackageIdentifier packageSpecifier);
     Task<PackageManifest?> GetPackageManifestFromFileSource(IFileSource fileSource);
 
@@ -49,20 +48,6 @@ public class PackageManager(
         using Stream packageLockFileStream = _fileSystem.File.OpenRead(packageLockFilePath);
 
         return await PackageLock.FromStream(packageLockFileStream);
-    }
-
-    public async Task<PackageManifest?> GetCurrentPackageManifest()
-    {
-        string packageManifestFilePath = _pathManager.CurrentPackageManifestPath;
-
-        if (!_fileSystem.File.Exists(packageManifestFilePath))
-        {
-            return null;
-        }
-
-        using Stream fileStream = _fileSystem.File.OpenRead(packageManifestFilePath);
-
-        return await PackageManifest.FromStream(fileStream);
     }
 
     public async Task<PackageLock.Package?> GetPackageFromLock(PackageIdentifier packageSpecifier)

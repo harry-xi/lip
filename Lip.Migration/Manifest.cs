@@ -99,12 +99,6 @@ public record Manifest
         [JsonPropertyName("post_install")]
         public List<string>? PostInstall { get; set; }
 
-        [JsonPropertyName("pre_pack")]
-        public List<string>? PrePack { get; set; }
-
-        [JsonPropertyName("post_pack")]
-        public List<string>? PostPack { get; set; }
-
         [JsonPropertyName("pre_uninstall")]
         public List<string>? PreUninstall { get; set; }
 

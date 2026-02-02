@@ -440,11 +440,11 @@ public class PathManagerTests
         string gitRepoDirCachePath = Path.Join(s_cacheDir, "git_repos", repoDir, tagDir);
 
         // Act.
-        IPathManager.IGitRepoInfo repoInfo = pathManager.ParseGitRepoDirCachePath(gitRepoDirCachePath);
+        var (url, tag) = pathManager.ParseGitRepoDirCachePath(gitRepoDirCachePath);
 
         // Assert.
-        Assert.Equal(expectedUrl, repoInfo.Url);
-        Assert.Equal(expectedTag, repoInfo.Tag);
+        Assert.Equal(expectedUrl, url);
+        Assert.Equal(expectedTag, tag);
     }
 
     [Fact]

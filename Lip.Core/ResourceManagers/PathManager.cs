@@ -1,6 +1,5 @@
 using DotNet.Globbing;
 using Flurl;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 
@@ -8,12 +7,6 @@ namespace Lip.Core;
 
 public interface IPathManager
 {
-    public interface IGitRepoInfo
-    {
-        string Url { get; init; }
-        string Tag { get; init; }
-    }
-
     string BaseCacheDir { get; }
     string BaseDownloadedFileCacheDir { get; }
     string BaseGitRepoCacheDir { get; }
@@ -28,7 +21,7 @@ public interface IPathManager
     string GetPackageManifestPath(string baseDir);
     string? GetPlacementRelativePath(PackageManifest.Placement placement, string fileSourceEntryKey);
     Url ParseDownloadedFileCachePath(string downloadedFileCachePath);
-    IGitRepoInfo ParseGitRepoDirCachePath(string repoDirCachePath);
+    (string Url, string Tag) ParseGitRepoDirCachePath(string repoDirCachePath);
 }
 
 public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, string? workingDir = null) : IPathManager
@@ -135,7 +128,7 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         return Url.Parse(Url.Decode(match.Groups[1].Value, true));
     }
 
-    public IPathManager.IGitRepoInfo ParseGitRepoDirCachePath(string repoDirCachePath)
+    public (string Url, string Tag) ParseGitRepoDirCachePath(string repoDirCachePath)
     {
         Regex pattern = new($"{Regex.Escape(BaseGitRepoCacheDir)}{Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*){Regex.Escape(_fileSystem.Path.DirectorySeparatorChar.ToString())}(.*)");
         Match match = pattern.Match(repoDirCachePath);
@@ -143,12 +136,9 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         {
             throw new InvalidOperationException($"Invalid Git repo directory cache path: {repoDirCachePath}");
         }
-        return new GitRepoInfo(
+        return (
             Url: Url.Decode(match.Groups[1].Value, true),
             Tag: Url.Decode(match.Groups[2].Value, true)
         );
     }
 }
-
-[ExcludeFromCodeCoverage]
-file record GitRepoInfo(string Url, string Tag) : IPathManager.IGitRepoInfo;

@@ -10,17 +10,11 @@ namespace Lip.Core;
 
 public interface ICacheManager
 {
-    public interface ICacheSummary
-    {
-        Dictionary<Url, IFileInfo> DownloadedFiles { get; init; }
-        Dictionary<IPathManager.IGitRepoInfo, IDirectoryInfo> GitRepos { get; init; }
-    }
-
     Task Clean();
     Task<IFileInfo> GetFileFromUrl(Url url);
     Task<IFileInfo> GetFileFromUrls(List<Url> originalUrls);
     Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier);
-    Task<ICacheSummary> List();
+    Task<(Dictionary<Url, IFileInfo> DownloadedFiles, Dictionary<(string Url, string Tag), IDirectoryInfo> GitRepos)> List();
 }
 
 public class CacheManager(
@@ -134,7 +128,7 @@ public class CacheManager(
         throw new InvalidOperationException("Failed to get package file source from any source.");
     }
 
-    public async Task<ICacheManager.ICacheSummary> List()
+    public async Task<(Dictionary<Url, IFileInfo> DownloadedFiles, Dictionary<(string Url, string Tag), IDirectoryInfo> GitRepos)> List()
     {
         await Task.CompletedTask; // Suppress warning.
 
@@ -167,7 +161,7 @@ public class CacheManager(
             }
         }
 
-        return new CacheSummary(
+        return (
             DownloadedFiles: downloadedFiles.ToDictionary(file =>
                 _pathManager.ParseDownloadedFileCachePath(file.FullName)),
             GitRepos: gitRepos.ToDictionary(dir => _pathManager.ParseGitRepoDirCachePath(dir.FullName))
@@ -291,9 +285,3 @@ public class CacheManager(
         return await GetFileFromUrls(archiveFileUrls);
     }
 }
-
-[ExcludeFromCodeCoverage]
-file record CacheSummary(
-    Dictionary<Url, IFileInfo> DownloadedFiles,
-    Dictionary<IPathManager.IGitRepoInfo, IDirectoryInfo> GitRepos
-) : ICacheManager.ICacheSummary;

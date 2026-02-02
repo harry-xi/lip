@@ -93,10 +93,10 @@ public class CacheService
 
     public async Task<(List<string> DownloadedFiles, List<string> GitRepos)> List()
     {
-        ICacheManager.ICacheSummary cacheSummary = await _cacheManager.List();
+        var (downloadedFiles, gitRepos) = await _cacheManager.List();
         return (
-            [.. cacheSummary.DownloadedFiles.Keys],
-            [.. cacheSummary.GitRepos.Keys.Select(repo => $"{repo.Url} {repo.Tag}")]
+            [.. downloadedFiles.Keys],
+            [.. gitRepos.Keys.Select(repo => $"{repo.Url} {repo.Tag}")]
         );
     }
 }

@@ -439,11 +439,11 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        ICacheManager.ICacheSummary listResult = await cacheManager.List();
+        var (downloadedFiles, gitRepos) = await cacheManager.List();
 
         // Assert.
-        Assert.Empty(listResult.DownloadedFiles);
-        Assert.Empty(listResult.GitRepos);
+        Assert.Empty(downloadedFiles);
+        Assert.Empty(gitRepos);
     }
 
     [Fact]
@@ -463,13 +463,13 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        ICacheManager.ICacheSummary listResult = await cacheManager.List();
+        var (downloadedFiles, gitRepos) = await cacheManager.List();
 
         // Assert.
-        Assert.Single(listResult.DownloadedFiles);
-        Assert.Equal("https://example.com/test.file", listResult.DownloadedFiles.Keys.Single());
-        Assert.Equal("test", new StreamReader(listResult.DownloadedFiles.Values.Single().OpenRead()).ReadToEnd());
-        Assert.Empty(listResult.GitRepos);
+        Assert.Single(downloadedFiles);
+        Assert.Equal("https://example.com/test.file", downloadedFiles.Keys.Single());
+        Assert.Equal("test", new StreamReader(downloadedFiles.Values.Single().OpenRead()).ReadToEnd());
+        Assert.Empty(gitRepos);
     }
 
     [Fact]
@@ -489,14 +489,14 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        ICacheManager.ICacheSummary listResult = await cacheManager.List();
+        var (downloadedFiles, gitRepos) = await cacheManager.List();
 
         // Assert.
-        Assert.Empty(listResult.DownloadedFiles);
-        Assert.Single(listResult.GitRepos);
-        Assert.Equal("https://example.com/repo", listResult.GitRepos.Keys.Single().Url);
-        Assert.Equal("v1.0.0", listResult.GitRepos.Keys.Single().Tag);
-        Assert.Equal(Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0"), listResult.GitRepos.Values.Single().FullName);
+        Assert.Empty(downloadedFiles);
+        Assert.Single(gitRepos);
+        Assert.Equal("https://example.com/repo", gitRepos.Keys.Single().Url);
+        Assert.Equal("v1.0.0", gitRepos.Keys.Single().Tag);
+        Assert.Equal(Path.Join(s_cacheDir, "git_repos", "https%3A%2F%2Fexample.com%2Frepo", "v1.0.0"), gitRepos.Values.Single().FullName);
     }
 
     [Fact]
@@ -516,11 +516,11 @@ public class CacheManagerTests
         CacheManager cacheManager = new(context.Object, pathManager, [], []);
 
         // Act.
-        ICacheManager.ICacheSummary listResult = await cacheManager.List();
+        var (downloadedFiles, gitRepos) = await cacheManager.List();
 
         // Assert.
-        Assert.Empty(listResult.DownloadedFiles);
-        Assert.Empty(listResult.GitRepos);
+        Assert.Empty(downloadedFiles);
+        Assert.Empty(gitRepos);
     }
 
     private static void CreateGoModuleArchive(

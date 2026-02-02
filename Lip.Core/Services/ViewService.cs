@@ -35,8 +35,6 @@ public class ViewService
                 runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse)),
             new GitRegistry(
                 context,
-                cacheManager,
-                pathManager,
                 runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse))
         ]);
     }

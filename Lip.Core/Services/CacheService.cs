@@ -33,8 +33,6 @@ public class CacheService
                 runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse)),
             new GitRegistry(
                 context,
-                _cacheManager,
-                pathManager,
                 runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse))
         ]);
     }

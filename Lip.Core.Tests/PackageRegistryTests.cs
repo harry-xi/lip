@@ -87,12 +87,13 @@ public class PackageRegistryTests
         var packageRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, []);
 
         // Act.
-        var pkg = await packageRegistry.GetManifest(new PackageSpecifier(
-            new PackageIdentifier(s_examplePackage_1.ToothPath, ""),
-            s_examplePackage_1.Version));
-
         // Assert.
-        Assert.Null(pkg);
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await packageRegistry.GetManifest(new PackageSpecifier(
+                new PackageIdentifier(s_examplePackage_1.ToothPath, ""),
+                s_examplePackage_1.Version));
+        });
     }
 
     [Fact]
@@ -148,7 +149,7 @@ public class PackageRegistryTests
 
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
-        var packageRegistry = new GitRegistry(context.Object, cacheManager, pathManager, []);
+        var packageRegistry = new GitRegistry(context.Object, []);
 
         // Act.
         var result = await packageRegistry.GetVersions(new PackageIdentifier("example.com/user/repo", ""));
@@ -186,7 +187,7 @@ public class PackageRegistryTests
         // GoProxy (Fail)
         var goProxyRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
         // Git (Success)
-        var gitRegistry = new GitRegistry(context.Object, cacheManager, pathManager, []);
+        var gitRegistry = new GitRegistry(context.Object, []);
 
         var compositeRegistry = new CompositeRegistry([goProxyRegistry, gitRegistry]);
 
@@ -225,7 +226,7 @@ public class PackageRegistryTests
         // GoProxy (Fail)
         var goProxyRegistry = new GoProxyRegistry(context.Object, cacheManager, pathManager, [Url.Parse("https://example.com")]);
         // Git (Fail)
-        var gitRegistry = new GitRegistry(context.Object, cacheManager, pathManager, []);
+        var gitRegistry = new GitRegistry(context.Object, []);
 
         var compositeRegistry = new CompositeRegistry([goProxyRegistry, gitRegistry]);
 

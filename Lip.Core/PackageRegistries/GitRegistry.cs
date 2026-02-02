@@ -7,27 +7,14 @@ namespace Lip.Core.PackageRegistries;
 
 public class GitRegistry(
     IContext context,
-    ICacheManager cacheManager,
-    IPathManager pathManager,
     List<Url> gitHubProxies) : IPackageRegistry
 {
-    private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IContext _context = context;
     private readonly List<Url> _gitHubProxies = gitHubProxies;
-    private readonly IPathManager _pathManager = pathManager;
 
-    public async Task<PackageManifest?> GetManifest(PackageSpecifier packageSpecifier)
+    public async Task<PackageManifest> GetManifest(PackageSpecifier packageSpecifier)
     {
-        IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
-
-        using Stream? manifestStream = await fileSource.GetFileStream(_pathManager.PackageManifestFileName);
-
-        if (manifestStream == null)
-        {
-            return null;
-        }
-
-        return await PackageManifest.FromStream(manifestStream);
+        throw new NotImplementedException();
     }
 
     public async Task<List<SemVersion>> GetVersions(PackageIdentifier packageIdentifier)

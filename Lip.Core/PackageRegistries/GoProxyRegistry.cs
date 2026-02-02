@@ -18,7 +18,7 @@ public class GoProxyRegistry(
     private readonly List<Url> _goModuleProxies = goModuleProxies;
     private readonly IPathManager _pathManager = pathManager;
 
-    public async Task<PackageManifest?> GetManifest(PackageSpecifier packageSpecifier)
+    public async Task<PackageManifest> GetManifest(PackageSpecifier packageSpecifier)
     {
         IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 
@@ -26,7 +26,7 @@ public class GoProxyRegistry(
 
         if (manifestStream == null)
         {
-            return null;
+            throw new InvalidOperationException("Package manifest not found in package.");
         }
 
         return await PackageManifest.FromStream(manifestStream);

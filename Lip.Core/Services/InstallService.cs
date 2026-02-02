@@ -46,8 +46,6 @@ public class InstallService
                 runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse)),
             new GitRegistry(
                 context,
-                _cacheManager,
-                _pathManager,
                 runtimeConfig.GitHubProxies.ConvertAll(Url.Parse))
         ]);
 

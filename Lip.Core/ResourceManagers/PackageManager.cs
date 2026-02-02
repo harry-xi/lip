@@ -54,8 +54,8 @@ public class PackageManager(
     {
         PackageLock packageLock = await GetCurrentPackageLock();
 
-        PackageLock.Package? package = packageLock.Packages.Where(
-            @lock => @lock.Specifier.Identifier == packageSpecifier).FirstOrDefault();
+        PackageLock.Package? package = packageLock.Packages.FirstOrDefault(
+            @lock => @lock.Specifier.Identifier == packageSpecifier);
 
         return package;
     }

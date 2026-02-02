@@ -5,46 +5,8 @@ using System.Text.Json.Serialization;
 
 namespace Lip.Core;
 
-public record PackageLock
+public partial record PackageLock
 {
-    public record Package
-    {
-        public required List<string> Files { get; init; }
-
-        public required bool Locked { get; init; }
-
-        public required PackageManifest Manifest { private get; init; }
-
-        public PackageSpecifier Specifier => new(new PackageIdentifier(Manifest.ToothPath, VariantLabel), Manifest.Version);
-
-        public PackageManifest.Variant Variant => Manifest.GetVariant(
-            VariantLabel,
-            RuntimeInformation.RuntimeIdentifier)!;
-
-        public required string VariantLabel
-        {
-            private get => _variantLabel;
-            init
-            {
-                if (!PackageIdentifier.IsValidVariantLabel(value))
-                {
-                    throw new SchemaViolationException(
-                        "packages[].variant_format",
-                        $"Variant label '{value}' does not meet the required format."
-                    );
-                }
-                if (Manifest.GetVariant(value, RuntimeInformation.RuntimeIdentifier) is null)
-                {
-                    throw new SchemaViolationException(
-                        "packages[].variant",
-                        $"No matching variant found for label '{value}' with runtime identifier '{RuntimeInformation.RuntimeIdentifier}'."
-                    );
-                }
-                _variantLabel = value;
-            }
-        }
-        private readonly string _variantLabel = string.Empty;
-    }
 
     public const int DefaultFormatVersion = 3;
     public const string DefaultFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";

@@ -16,7 +16,6 @@ public interface IPackageManager
     Task InstallPackage(IFileSource packageFileSource, string variantLabel, bool dryRun, bool ignoreScripts,
         bool locked, bool overwriteFile);
 
-    Task SaveCurrentPackageManifest(PackageManifest packageManifest);
     Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts);
 }
 
@@ -227,13 +226,6 @@ public class PackageManager(
         }
 
         _logger.LogInformation("Package {packageSpecifier} installed.", packageSpecifier);
-    }
-
-    public async Task SaveCurrentPackageManifest(PackageManifest packageManifest)
-    {
-        using Stream stream = _fileSystem.File.OpenWrite(_pathManager.CurrentPackageManifestPath);
-
-        await PackageManifest.WriteToStreamAsync(packageManifest, stream);
     }
 
     public async Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun,

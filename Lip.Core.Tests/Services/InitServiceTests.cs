@@ -33,7 +33,7 @@ public class InitServiceTests
             context.Object.UserInteraction,
             cacheManager.Object,
             pathManager);
-        var initService = new InitService(context.Object, packageManager, pathManager);
+        var initService = new InitService(context.Object, pathManager);
 
 
         // Act.
@@ -97,7 +97,7 @@ public class InitServiceTests
             context.Object.UserInteraction,
             cacheManager.Object,
             pathManager);
-        var initService = new InitService(context.Object, packageManager, pathManager);
+        var initService = new InitService(context.Object, pathManager);
 
 
         // Act.
@@ -172,7 +172,7 @@ public class InitServiceTests
             context.Object.UserInteraction,
             cacheManager.Object,
             pathManager);
-        var initService = new InitService(context.Object, packageManager, pathManager);
+        var initService = new InitService(context.Object, pathManager);
 
 
         // Act and assert.
@@ -211,7 +211,7 @@ public class InitServiceTests
             context.Object.UserInteraction,
             cacheManager.Object,
             pathManager);
-        var initService = new InitService(context.Object, packageManager, pathManager);
+        var initService = new InitService(context.Object, pathManager);
 
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => initService.Init(
@@ -251,7 +251,7 @@ public class InitServiceTests
             context.Object.UserInteraction,
             cacheManager.Object,
             pathManager);
-        var initService = new InitService(context.Object, packageManager, pathManager);
+        var initService = new InitService(context.Object, pathManager);
 
 
         // Act.

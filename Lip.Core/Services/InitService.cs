@@ -9,7 +9,6 @@ namespace Lip.Core.Services;
 public class InitService
 {
     private readonly IContext _context;
-    private readonly IPackageManager _packageManager;
     private readonly IPathManager _pathManager;
 
     public InitService(IContext context)
@@ -22,26 +21,11 @@ public class InitService
             context.FileSystem,
             runtimeConfig.Cache,
             context.WorkingDir);
-
-        var cacheManager = new CacheManager(
-            context,
-            _pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        _packageManager = new PackageManager(
-            context.FileSystem,
-            context.CommandRunner,
-            context.Logger,
-            context.UserInteraction,
-            cacheManager,
-            _pathManager);
     }
 
-    internal InitService(IContext context, IPackageManager packageManager, IPathManager pathManager)
+    internal InitService(IContext context, IPathManager pathManager)
     {
         _context = context;
-        _packageManager = packageManager;
         _pathManager = pathManager;
     }
 
@@ -157,6 +141,7 @@ public class InitService
             _context.Logger.LogWarning("The file '{ManifestPath}' already exists. Overwriting it.", manifestPath);
         }
 
-        await _packageManager.SaveCurrentPackageManifest(manifest);
+        using Stream stream = _context.FileSystem.File.OpenWrite(manifestPath);
+        await PackageManifest.WriteToStreamAsync(manifest, stream);
     }
 }

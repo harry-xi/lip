@@ -26,14 +26,15 @@ public class CacheService
 
         _packageRegistry = new CompositeRegistry(
         [
+            new LiprRegistry(),
+            new GitRegistry(
+                context,
+                runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse)),
             new GoProxyRegistry(
                 context,
                 _cacheManager,
                 pathManager,
                 runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse)),
-            new GitRegistry(
-                context,
-                runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse))
         ]);
     }
 

@@ -29,15 +29,14 @@ public class ViewService
         _packageRegistry = new CompositeRegistry(
         [
             new LiprRegistry(),
-            new GitRegistry(
+            .. runtimeConfig.GitHubProxies.Select(proxy => new GitRegistry(
                 context.Git!,
-                context.Logger,
-                runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse)),
-            new GoProxyRegistry(
-                context.Logger,
+                Flurl.Url.Parse(proxy))),
+            new GitRegistry(context.Git!),
+            .. runtimeConfig.GoModuleProxies.Select(proxy => new GoProxyRegistry(
                 cacheManager,
                 pathManager,
-                runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse))
+                Flurl.Url.Parse(proxy)))
         ]);
     }
 

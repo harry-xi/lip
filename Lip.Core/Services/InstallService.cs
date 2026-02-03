@@ -46,15 +46,14 @@ public class InstallService
         _packageRegistry = new CompositeRegistry(
         [
             new LiprRegistry(),
-            new GitRegistry(
+            .. runtimeConfig.GitHubProxies.Select(proxy => new GitRegistry(
                 context.Git!,
-                context.Logger,
-                runtimeConfig.GitHubProxies.ConvertAll(Url.Parse)),
-            new GoProxyRegistry(
-                context.Logger,
+                Url.Parse(proxy))),
+            new GitRegistry(context.Git!),
+            .. runtimeConfig.GoModuleProxies.Select(proxy => new GoProxyRegistry(
                 _cacheManager,
                 _pathManager,
-                runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse))
+                Url.Parse(proxy)))
         ]);
 
         _dependencySolver = new DependencySolver(context.Logger, _packageRegistry);

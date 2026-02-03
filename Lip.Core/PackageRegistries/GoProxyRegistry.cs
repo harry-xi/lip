@@ -1,20 +1,17 @@
 using Flurl;
 using Flurl.Http;
 using Golang.Org.X.Mod;
-using Microsoft.Extensions.Logging;
 using Semver;
 
 namespace Lip.Core.PackageRegistries;
 
 public class GoProxyRegistry(
-    ILogger logger,
     ICacheManager cacheManager,
     IPathManager pathManager,
-    List<Url> goModuleProxies) : IPackageRegistry
+    Url goModuleProxy) : IPackageRegistry
 {
     private readonly ICacheManager _cacheManager = cacheManager;
-    private readonly ILogger _logger = logger;
-    private readonly List<Url> _goModuleProxies = goModuleProxies;
+    private readonly Url _goModuleProxy = goModuleProxy;
     private readonly IPathManager _pathManager = pathManager;
 
     public async Task<PackageManifest> GetManifest(PackageSpecifier packageSpecifier)
@@ -33,46 +30,28 @@ public class GoProxyRegistry(
 
     public async Task<List<SemVersion>> GetVersions(PackageIdentifier packageIdentifier)
     {
-        if (_goModuleProxies.Count == 0)
-        {
-            throw new InvalidOperationException("No Go module proxies configured.");
-        }
+        Url goModuleVersionListUrl = _goModuleProxy
+            .Clone()
+            .AppendPathSegments(
+                Module.EscapePath(packageIdentifier.ToothPath).Item1,
+                "@v",
+                "list");
 
-        foreach (Url goModuleProxyUrl in _goModuleProxies)
-        {
-            Url goModuleVersionListUrl = goModuleProxyUrl
-                .Clone()
-                .AppendPathSegments(
-                    Module.EscapePath(packageIdentifier.ToothPath).Item1,
-                    "@v",
-                    "list");
 
-            try
-            {
-                string goModuleVersionListText = await goModuleVersionListUrl.GetStringAsync();
+        string goModuleVersionListText = await goModuleVersionListUrl.GetStringAsync();
 
-                return
-                [
-                    .. goModuleVersionListText
-                        .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                        .Where(s => s.StartsWith('v'))
-                        .Select(versionText =>
-                            SemVersion.TryParse(Golang.Org.X.Mod.Semver.Canonical(versionText).Trim('v'),
-                                out SemVersion? version)
-                                ? version
-                                : null)
-                        .Where(version => version is not null)
-                        .Select(version => version!)
-                ];
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("Failed to download {Url}. Attempting next URL.",
-                    goModuleVersionListUrl);
-                _logger.LogDebug(ex, "");
-            }
-        }
-
-        throw new InvalidOperationException($"Failed to download version list for {packageIdentifier} from all Go module proxies.");
+        return
+        [
+            .. goModuleVersionListText
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(s => s.StartsWith('v'))
+                .Select(versionText =>
+                    SemVersion.TryParse(Golang.Org.X.Mod.Semver.Canonical(versionText).Trim('v'),
+                        out SemVersion? version)
+                        ? version
+                        : null)
+                .Where(version => version is not null)
+                .Select(version => version!)
+        ];
     }
 }

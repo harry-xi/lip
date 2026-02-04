@@ -10,11 +10,11 @@ public interface IPathManager
     string BaseCacheDir { get; }
     string BaseDownloadedFileCacheDir { get; }
     string BaseGitRepoCacheDir { get; }
-    string CurrentPackageManifestPath { get; }
     string CurrentPackageLockPath { get; }
     string PackageManifestFileName { get; }
     string RuntimeConfigPath { get; }
     string WorkingDir { get; }
+    string WorkspacePackageManifestPath { get; }
 
     string GetDownloadedFileCachePath(Url url);
     string GetGitRepoDirCachePath(Url url, string tag);
@@ -40,8 +40,6 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
 
     public string BaseGitRepoCacheDir => _fileSystem.Path.Join(BaseCacheDir, GitRepoCacheDirName);
 
-    public string CurrentPackageManifestPath => _fileSystem.Path.Join(WorkingDir, PackageManifestFileName);
-
     public string CurrentPackageLockPath => _fileSystem.Path.Join(WorkingDir, PackageLockFileName);
 
     public string PackageManifestFileName => "tooth.json";
@@ -50,6 +48,8 @@ public class PathManager(IFileSystem fileSystem, string? baseCacheDir = null, st
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
     public string WorkingDir => _fileSystem.Path.GetFullPath(_workingDir ?? _fileSystem.Directory.GetCurrentDirectory());
+
+    public string WorkspacePackageManifestPath => _fileSystem.Path.Join(WorkingDir, PackageManifestFileName);
 
     public string GetDownloadedFileCachePath(Url url)
     {

@@ -1,6 +1,4 @@
 using Flurl;
-using Lip.Core.Tests;
-using Semver;
 
 namespace Lip.Core.Tests;
 

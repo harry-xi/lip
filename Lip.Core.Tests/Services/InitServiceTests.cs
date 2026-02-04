@@ -1,7 +1,5 @@
-using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
-using System.Runtime.InteropServices;
 
 namespace Lip.Core.Tests;
 
@@ -13,7 +11,7 @@ public class InitServiceTests
     private static readonly string s_workspacePath = OperatingSystem.IsWindows() ? Path.Join("C:", "path", "to", "workspace") : Path.Join("/", "path", "to", "workspace");
 
     [Fact]
-    public async Task Init_WithDefaultValues_Passes()
+    public async Task Init_Passes()
     {
         // Arrange.
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
@@ -37,7 +35,7 @@ public class InitServiceTests
 
 
         // Act.
-        await initService.Init(yes: true);
+        await initService.Init();
 
         // Assert.
         Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
@@ -50,118 +48,30 @@ public class InitServiceTests
                 "info": {
                     "name": "",
                     "description": "",
-                    "tags": [],
-                    "avatar_url": ""
+                    "tags": []
                 },
-                "variants": [
-                    {
-                        "label": "",
-                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
-                        "dependencies": {},
-                        "assets": [],
-                        "preserve_files": [],
-                        "remove_files": [],
-                        "scripts": {
-                            "pre_install": [],
-                            "install": [],
-                            "post_install": [],
-                            "pre_uninstall": [],
-                            "uninstall": [],
-                            "post_uninstall": []
-                        }
-                    }
-                ]
+                "variants": []
             }
             """.ReplaceLineEndings(),
             fileSystem.File.ReadAllText(Path.Join(s_workspacePath, "tooth.json")).ReplaceLineEndings());
     }
 
+
+
+
+
     [Fact]
-    public async Task Init_WithInitialValues_Passes()
+    public async Task Init_ManifestFileExists_ThrowsInvalidOperationException()
     {
         // Arrange.
         MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
         {
             { s_workspacePath, new MockDirectoryData() },
+            { Path.Join(s_workspacePath, "tooth.json"), new MockFileData("content") },
         }, currentDirectory: s_workspacePath);
 
         Mock<IContext> context = new();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-
-        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
-        var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(
-            context.Object.FileSystem,
-            context.Object.CommandRunner,
-            context.Object.Logger,
-            context.Object.UserInteraction,
-            cacheManager.Object,
-            pathManager);
-        var initService = new InitService(context.Object, pathManager);
-
-
-        // Act.
-        await initService.Init(
-            yes: true,
-            initAvatarUrl: "https://example.com/avatar.png",
-            initDescription: "An example package.",
-            initName: "Example Package",
-            initTooth: "example.com/org/package",
-            initVersion: "0.1.0");
-
-        // Assert.
-        Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
-        Assert.Equal($$"""
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "example.com/org/package",
-                "version": "0.1.0",
-                "info": {
-                    "name": "Example Package",
-                    "description": "An example package.",
-                    "tags": [],
-                    "avatar_url": "https://example.com/avatar.png"
-                },
-                "variants": [
-                    {
-                        "label": "",
-                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
-                        "dependencies": {},
-                        "assets": [],
-                        "preserve_files": [],
-                        "remove_files": [],
-                        "scripts": {
-                            "pre_install": [],
-                            "install": [],
-                            "post_install": [],
-                            "pre_uninstall": [],
-                            "uninstall": [],
-                            "post_uninstall": []
-                        }
-                    }
-                ]
-            }
-            """.ReplaceLineEndings(),
-            fileSystem.File.ReadAllText(Path.Join(s_workspacePath, "tooth.json")).ReplaceLineEndings());
-    }
-
-    [Fact]
-    public async Task Init_OperationCanceled_ThrowsOperationCanceledException()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
-        {
-            { s_workspacePath, new MockDirectoryData() },
-        }, currentDirectory: s_workspacePath);
-
-        Mock<IUserInteraction> userInteraction = new();
-        userInteraction.Setup(u => u.Confirm("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
-            .Returns(false);
-
-        Mock<IContext> context = new();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
 
         var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
         var cacheManager = new Mock<ICacheManager>();
@@ -176,128 +86,8 @@ public class InitServiceTests
 
 
         // Act and assert.
-        await Assert.ThrowsAsync<OperationCanceledException>(() => initService.Init(
-            initAvatarUrl: "https://example.com/avatar.png",
-            initDescription: "An example package.",
-            initName: "Example Package",
-            initTooth: "example.com/org/package",
-            initVersion: "0.1.0"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => initService.Init());
     }
 
-    [Fact]
-    public async Task Init_ManifestFileExists_ThrowsInvalidOperationException()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
-        {
-            { s_workspacePath, new MockDirectoryData() },
-            { Path.Join(s_workspacePath, "tooth.json"), new MockFileData("content") },
-        }, currentDirectory: s_workspacePath);
 
-        Mock<IUserInteraction> userInteraction = new();
-        userInteraction.Setup(u => u.Confirm("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
-            .Returns(false);
-
-        Mock<IContext> context = new();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
-
-        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
-        var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(
-            context.Object.FileSystem,
-            context.Object.CommandRunner,
-            context.Object.Logger,
-            context.Object.UserInteraction,
-            cacheManager.Object,
-            pathManager);
-        var initService = new InitService(context.Object, pathManager);
-
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => initService.Init(
-            yes: true,
-            initAvatarUrl: "https://example.com/avatar.png",
-            initDescription: "An example package.",
-            initName: "Example Package",
-            initTooth: "example.com/org/package",
-            initVersion: "0.1.0"));
-    }
-
-    [Fact]
-    public async Task Init_OverwritesManifestFile_Passes()
-    {
-        // Arrange.
-        MockFileSystem fileSystem = new(new Dictionary<string, MockFileData>
-        {
-            { s_workspacePath, new MockDirectoryData() },
-            { Path.Join(s_workspacePath, "tooth.json"), new MockFileData("content") },
-        }, currentDirectory: s_workspacePath);
-
-        Mock<IUserInteraction> userInteraction = new();
-        userInteraction.Setup(u => u.Confirm("Do you want to create the following package manifest file?\n{jsonString}", It.IsAny<string>()).Result)
-            .Returns(false);
-
-        Mock<IContext> context = new();
-        context.SetupGet(c => c.FileSystem).Returns(fileSystem);
-        context.SetupGet(c => c.Logger).Returns(new Mock<ILogger>().Object);
-        context.SetupGet(c => c.UserInteraction).Returns(userInteraction.Object);
-
-        var pathManager = new PathManager(fileSystem, s_workspacePath, s_workspacePath);
-        var cacheManager = new Mock<ICacheManager>();
-        var packageManager = new PackageManager(
-            context.Object.FileSystem,
-            context.Object.CommandRunner,
-            context.Object.Logger,
-            context.Object.UserInteraction,
-            cacheManager.Object,
-            pathManager);
-        var initService = new InitService(context.Object, pathManager);
-
-
-        // Act.
-        await initService.Init(
-            force: true,
-            yes: true,
-            initAvatarUrl: "https://example.com/avatar.png",
-            initDescription: "An example package.",
-            initName: "Example Package",
-            initTooth: "example.com/org/package",
-            initVersion: "0.1.0");
-
-        // Assert.
-        Assert.True(fileSystem.File.Exists(Path.Join(s_workspacePath, "tooth.json")));
-        Assert.Equal($$"""
-            {
-                "format_version": 3,
-                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-                "tooth": "example.com/org/package",
-                "version": "0.1.0",
-                "info": {
-                    "name": "Example Package",
-                    "description": "An example package.",
-                    "tags": [],
-                    "avatar_url": "https://example.com/avatar.png"
-                },
-                "variants": [
-                    {
-                        "label": "",
-                        "platform": "{{RuntimeInformation.RuntimeIdentifier}}",
-                        "dependencies": {},
-                        "assets": [],
-                        "preserve_files": [],
-                        "remove_files": [],
-                        "scripts": {
-                            "pre_install": [],
-                            "install": [],
-                            "post_install": [],
-                            "pre_uninstall": [],
-                            "uninstall": [],
-                            "post_uninstall": []
-                        }
-                    }
-                ]
-            }
-            """.ReplaceLineEndings(),
-            fileSystem.File.ReadAllText(Path.Join(s_workspacePath, "tooth.json")).ReplaceLineEndings());
-    }
 }

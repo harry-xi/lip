@@ -1,5 +1,3 @@
-using Lip.Core.Tests;
-
 namespace Lip.Core.Tests;
 
 public partial class PackageManifestTests

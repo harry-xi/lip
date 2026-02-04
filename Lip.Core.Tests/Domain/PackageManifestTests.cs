@@ -1,4 +1,3 @@
-using Flurl;
 using Lip.Core.JsonConverters;
 using Semver;
 using System.Text;

@@ -107,7 +107,7 @@ public class PathManagerTests
         PathManager pathManager = new(fileSystem);
 
         // Act.
-        string manifestPath = pathManager.CurrentPackageManifestPath;
+        string manifestPath = pathManager.WorkspacePackageManifestPath;
 
         // Assert.
         Assert.Equal(Path.Join(s_workingDir, "tooth.json"), manifestPath);

@@ -1,5 +1,6 @@
 using Flurl;
 using Lip.Core.Context;
+
 using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Semver;
@@ -24,37 +25,13 @@ public class InstallService
 
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
 
-        _pathManager = new PathManager(
-            context.FileSystem,
-            runtimeConfig.Cache,
-            context.WorkingDir);
+        _pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
 
-        _cacheManager = new CacheManager(
-            context,
-            _pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Url.Parse));
+        _cacheManager = ServiceFactory.CreateCacheManager(context, _pathManager, runtimeConfig);
 
-        _packageManager = new PackageManager(
-            context.FileSystem,
-            context.CommandRunner,
-            context.Logger,
-            context.UserInteraction,
-            _cacheManager,
-            _pathManager);
+        _packageManager = ServiceFactory.CreatePackageManager(context, _pathManager, _cacheManager);
 
-        _packageRegistry = new CompositeRegistry(
-        [
-            new LiprRegistry(),
-            .. runtimeConfig.GitHubProxies.Select(proxy => new GitRegistry(
-                context.Git!,
-                Url.Parse(proxy))),
-            new GitRegistry(context.Git!),
-            .. runtimeConfig.GoModuleProxies.Select(proxy => new GoProxyRegistry(
-                _cacheManager,
-                _pathManager,
-                Url.Parse(proxy)))
-        ]);
+        _packageRegistry = ServiceFactory.CreatePackageRegistry(context, _pathManager, _cacheManager, runtimeConfig);
 
         _dependencySolver = new DependencySolver(context.Logger, _packageRegistry);
     }

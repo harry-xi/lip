@@ -1,4 +1,5 @@
 using Lip.Core.Context;
+
 using Microsoft.Extensions.Logging;
 
 namespace Lip.Core.Services;
@@ -13,25 +14,9 @@ public class UninstallService
         _context = context;
 
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
-
-        var pathManager = new PathManager(
-            context.FileSystem,
-            runtimeConfig.Cache,
-            context.WorkingDir);
-
-        var cacheManager = new CacheManager(
-            context,
-            pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        _packageManager = new PackageManager(
-            context.FileSystem,
-            context.CommandRunner,
-            context.Logger,
-            context.UserInteraction,
-            cacheManager,
-            pathManager);
+        var pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
+        var cacheManager = ServiceFactory.CreateCacheManager(context, pathManager, runtimeConfig);
+        _packageManager = ServiceFactory.CreatePackageManager(context, pathManager, cacheManager);
     }
 
     internal UninstallService(IContext context, IPackageManager packageManager)

@@ -1,5 +1,6 @@
 using Lip.Core.Context;
 
+
 namespace Lip.Core.Services;
 
 public class MigrateService
@@ -10,13 +11,8 @@ public class MigrateService
     public MigrateService(IContext context)
     {
         _context = context;
-
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
-
-        _pathManager = new PathManager(
-            context.FileSystem,
-            runtimeConfig.Cache,
-            context.WorkingDir);
+        _pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
     }
 
     internal MigrateService(IContext context, IPathManager pathManager)

@@ -1,4 +1,5 @@
 using Lip.Core.Context;
+
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -14,11 +15,7 @@ public class ConfigService
     {
         _context = context;
         _runtimeConfig = RuntimeConfig.Load(context.FileSystem);
-
-        _pathManager = new PathManager(
-            context.FileSystem,
-            _runtimeConfig.Cache,
-            context.WorkingDir);
+        _pathManager = ServiceFactory.CreatePathManager(context, _runtimeConfig);
     }
 
     internal ConfigService(RuntimeConfig runtimeConfig, IContext context, IPathManager pathManager)

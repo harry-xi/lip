@@ -1,4 +1,5 @@
 using Lip.Core.Context;
+
 using Semver;
 
 namespace Lip.Core.Services;
@@ -14,10 +15,7 @@ public class InitService
 
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
 
-        _pathManager = new PathManager(
-            context.FileSystem,
-            runtimeConfig.Cache,
-            context.WorkingDir);
+        _pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
     }
 
     internal InitService(IContext context, IPathManager pathManager)

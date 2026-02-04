@@ -1,4 +1,5 @@
 using Lip.Core.Context;
+
 using Microsoft.Extensions.Logging;
 
 namespace Lip.Core.Services;
@@ -12,27 +13,21 @@ public class UpdateService
     public UpdateService(IContext context)
     {
         _context = context;
-        _installService = new InstallService(context);
 
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
+        var pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
+        var cacheManager = ServiceFactory.CreateCacheManager(context, pathManager, runtimeConfig);
+        var registry = ServiceFactory.CreatePackageRegistry(context, pathManager, cacheManager, runtimeConfig);
+        var solver = new DependencySolver(context.Logger, registry);
 
-        var pathManager = new PathManager(
-            context.FileSystem,
-            runtimeConfig.Cache,
-            context.WorkingDir);
+        _packageManager = ServiceFactory.CreatePackageManager(context, pathManager, cacheManager);
 
-        var cacheManager = new CacheManager(
+        _installService = new InstallService(
             context,
-            pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        _packageManager = new PackageManager(
-            context.FileSystem,
-            context.CommandRunner,
-            context.Logger,
-            context.UserInteraction,
+            _packageManager,
+            solver,
             cacheManager,
+            registry,
             pathManager);
     }
 

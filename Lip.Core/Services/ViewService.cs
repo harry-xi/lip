@@ -1,4 +1,5 @@
 using Lip.Core.Context;
+
 using Lip.Core.PackageRegistries;
 using Scriban;
 using Scriban.Parsing;
@@ -14,30 +15,9 @@ public class ViewService
     public ViewService(IContext context)
     {
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
-
-        var pathManager = new PathManager(
-            context.FileSystem,
-            runtimeConfig.Cache,
-            context.WorkingDir);
-
-        var cacheManager = new CacheManager(
-            context,
-            pathManager,
-            runtimeConfig.GitHubProxies.ConvertAll(Flurl.Url.Parse),
-            runtimeConfig.GoModuleProxies.ConvertAll(Flurl.Url.Parse));
-
-        _packageRegistry = new CompositeRegistry(
-        [
-            new LiprRegistry(),
-            .. runtimeConfig.GitHubProxies.Select(proxy => new GitRegistry(
-                context.Git!,
-                Flurl.Url.Parse(proxy))),
-            new GitRegistry(context.Git!),
-            .. runtimeConfig.GoModuleProxies.Select(proxy => new GoProxyRegistry(
-                cacheManager,
-                pathManager,
-                Flurl.Url.Parse(proxy)))
-        ]);
+        var pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
+        var cacheManager = ServiceFactory.CreateCacheManager(context, pathManager, runtimeConfig);
+        _packageRegistry = ServiceFactory.CreatePackageRegistry(context, pathManager, cacheManager, runtimeConfig);
     }
 
     internal ViewService(IPackageRegistry packageRegistry)

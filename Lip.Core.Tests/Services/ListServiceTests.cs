@@ -1,4 +1,5 @@
 using Lip.Core.Context;
+using Lip.Core.Services;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
@@ -19,8 +20,8 @@ public class ListServiceTests
         {
             { "tooth_lock.json", new MockFileData($$"""
             {
-                "format_version": {{PackageLock.DefaultFormatVersion}},
-                "format_uuid": "{{PackageLock.DefaultFormatUuid}}",
+                "format_version": {{DefaultFormatVersion}},
+                "format_uuid": "{{DefaultFormatUuid}}",
                 "packages": [
                     {
                         "locked": true,
@@ -73,7 +74,7 @@ public class ListServiceTests
             context.Object.UserInteraction,
             cacheManager.Object,
             pathManager);
-        var listService = new Services.ListService(packageManager);
+        var listService = new ListService(packageManager);
 
         // Act.
         var listItems = await listService.List();

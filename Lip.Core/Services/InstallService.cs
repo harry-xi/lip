@@ -1,4 +1,3 @@
-using Flurl;
 using Lip.Core.Context;
 
 using Lip.Core.PackageRegistries;

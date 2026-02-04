@@ -207,7 +207,7 @@ public class PackageLockTests
         using MemoryStream stream = new(Encoding.UTF8.GetBytes(_defaultJson));
 
         // Act.
-        PackageLock packageLock = await PackageLock.FromStream(stream);
+        PackageLock packageLock = await FromStream(stream);
 
         // Assert.
         Assert.Single(packageLock.Packages);
@@ -225,7 +225,7 @@ public class PackageLockTests
 
         // Act & Assert
         await Assert.ThrowsAsync<SchemaViolationException>(
-            async () => await PackageLock.FromStream(stream));
+            async () => await FromStream(stream));
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class PackageLockTests
 
         // Act & Assert
         await Assert.ThrowsAsync<SchemaViolationException>(
-            async () => await PackageLock.FromStream(stream));
+            async () => await FromStream(stream));
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class PackageLockTests
 
         // Act & Assert
         await Assert.ThrowsAsync<SchemaViolationException>(
-            async () => await PackageLock.FromStream(stream));
+            async () => await FromStream(stream));
     }
 
     [Fact]

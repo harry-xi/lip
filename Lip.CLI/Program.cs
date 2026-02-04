@@ -16,9 +16,7 @@ commandApp.Configure(config =>
     {
         config.SetDescription("Inspect and manage lip's cache.");
 
-        config.AddCommand<CacheAddCommand>("add");
         config.AddCommand<CacheCleanCommand>("clean");
-        config.AddCommand<CacheListCommand>("list");
     });
     config.AddBranch<ConfigSettings>("config", config =>
     {

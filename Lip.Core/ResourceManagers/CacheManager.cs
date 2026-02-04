@@ -13,7 +13,6 @@ public interface ICacheManager
     Task<IFileInfo> GetFileFromUrl(Url url);
     Task<IFileInfo> GetFileFromUrls(List<Url> originalUrls);
     Task<IFileSource> GetPackageFileSource(PackageSpecifier packageSpecifier);
-    Task<(Dictionary<Url, IFileInfo> DownloadedFiles, Dictionary<(string Url, string Tag), IDirectoryInfo> GitRepos)> List();
 }
 
 public class CacheManager(
@@ -125,46 +124,6 @@ public class CacheManager(
         }
 
         throw new InvalidOperationException("Failed to get package file source from any source.");
-    }
-
-    public async Task<(Dictionary<Url, IFileInfo> DownloadedFiles, Dictionary<(string Url, string Tag), IDirectoryInfo> GitRepos)> List()
-    {
-        await Task.CompletedTask; // Suppress warning.
-
-        List<IFileInfo> downloadedFiles = [];
-
-        string baseDownloadedFileCacheDir = _pathManager.BaseDownloadedFileCacheDir;
-
-        if (_context.FileSystem.Directory.Exists(baseDownloadedFileCacheDir))
-        {
-            foreach (IFileInfo fileInfo in _context.FileSystem.DirectoryInfo.New(baseDownloadedFileCacheDir)
-                         .EnumerateFiles())
-            {
-                downloadedFiles.Add(fileInfo);
-            }
-        }
-
-        List<IDirectoryInfo> gitRepos = [];
-
-        string baseGitRepoCacheDir = _pathManager.BaseGitRepoCacheDir;
-
-        if (_context.FileSystem.Directory.Exists(baseGitRepoCacheDir))
-        {
-            foreach (IDirectoryInfo dirInfo in _context.FileSystem.DirectoryInfo.New(baseGitRepoCacheDir)
-                         .EnumerateDirectories())
-            {
-                foreach (IDirectoryInfo subdirInfo in dirInfo.EnumerateDirectories())
-                {
-                    gitRepos.Add(subdirInfo);
-                }
-            }
-        }
-
-        return (
-            DownloadedFiles: downloadedFiles.ToDictionary(file =>
-                _pathManager.ParseDownloadedFileCachePath(file.FullName)),
-            GitRepos: gitRepos.ToDictionary(dir => _pathManager.ParseGitRepoDirCachePath(dir.FullName))
-        );
     }
 
     private async Task<IFileInfo> GetFileDirectlyFromUrls(List<Url> actualUrls)

@@ -1,4 +1,5 @@
 using Lip.Core.Context;
+using Lip.Core.Services;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 
@@ -28,7 +29,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
         await configService.Delete(["github_proxies"]);
@@ -65,7 +66,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
         await configService.Delete(["github_proxies", "go_module_proxies"]);
@@ -99,7 +100,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
         await configService.Delete(["github_proxies"]);
@@ -126,7 +127,7 @@ public class ConfigServiceTests
 
         MockFileSystem fileSystem = new();
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
@@ -144,7 +145,7 @@ public class ConfigServiceTests
 
         MockFileSystem fileSystem = new();
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
@@ -162,7 +163,7 @@ public class ConfigServiceTests
 
         MockFileSystem fileSystem = new();
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException argumentException = await Assert.ThrowsAsync<ArgumentException>(
@@ -185,7 +186,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
         Dictionary<string, string> result = configService.Get(["cache"]);
@@ -213,7 +214,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
         Dictionary<string, string> result = configService.Get(
@@ -235,7 +236,7 @@ public class ConfigServiceTests
 
         MockFileSystem fileSystem = new();
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
@@ -253,7 +254,7 @@ public class ConfigServiceTests
 
         MockFileSystem fileSystem = new();
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act & Assert.
         ArgumentException exception = Assert.Throws<ArgumentException>(
@@ -280,7 +281,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
         Dictionary<string, string> result = configService.Get([]);
@@ -306,7 +307,7 @@ public class ConfigServiceTests
 
         MockFileSystem fileSystem = new();
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         // Act.
         Dictionary<string, string> result = configService.List();
@@ -333,7 +334,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -370,7 +371,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -406,7 +407,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -443,7 +444,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = [];
 
@@ -469,7 +470,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {
@@ -499,7 +500,7 @@ public class ConfigServiceTests
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
         var pathManager = new PathManager(fileSystem, "/", "/");
-        var configService = new Services.ConfigService(initialRuntimeConfig, context.Object, pathManager);
+        var configService = new ConfigService(initialRuntimeConfig, context.Object, pathManager);
 
         Dictionary<string, string> keyValuePairs = new()
         {

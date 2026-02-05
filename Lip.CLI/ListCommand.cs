@@ -18,7 +18,7 @@ class ListCommand : AsyncCommand<ListCommand.Settings>
 
         var result = await listService.List();
 
-        foreach (var (_, specifier, _) in result)
+        foreach (var specifier in result)
         {
             AnsiConsole.MarkupLine($"{specifier}".EscapeMarkup());
         }

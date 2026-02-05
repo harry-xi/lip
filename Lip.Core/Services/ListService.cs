@@ -22,11 +22,10 @@ public class ListService
 
 
 
-    public async Task<List<(bool Locked, PackageSpecifier Specifier, PackageManifest.Variant Variant)>> List()
+    public async Task<List<PackageSpecifier>> List()
     {
         PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
 
-        return packageLock.Packages
-            .ConvertAll(@lock => (@lock.Locked, @lock.Specifier, @lock.Variant));
+        return packageLock.Packages.ConvertAll(@lock => @lock.Specifier);
     }
 }

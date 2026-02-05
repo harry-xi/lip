@@ -82,14 +82,10 @@ public class ListServiceTests
         // Assert.
         Assert.Equal(2, listItems.Count);
 
-        Assert.Equal("example.com/pkg1", listItems[0].Specifier.ToothPath);
-        Assert.Equal("1.0.0", listItems[0].Specifier.Version.ToString());
-        Assert.Equal("variant1", listItems[0].Variant.Label);
-        Assert.True(listItems[0].Locked);
+        Assert.Equal("example.com/pkg1", listItems[0].ToothPath);
+        Assert.Equal("1.0.0", listItems[0].Version.ToString());
 
-        Assert.Equal("example.com/pkg2", listItems[1].Specifier.ToothPath);
-        Assert.Equal("1.0.1", listItems[1].Specifier.Version.ToString());
-        Assert.Equal("variant2", listItems[1].Variant.Label);
-        Assert.False(listItems[1].Locked);
+        Assert.Equal("example.com/pkg2", listItems[1].ToothPath);
+        Assert.Equal("1.0.1", listItems[1].Version.ToString());
     }
 }

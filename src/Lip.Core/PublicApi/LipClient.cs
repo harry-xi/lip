@@ -32,33 +32,34 @@ public interface ILipClient
     Task<string> View(string package);
 }
 
-public class LipClient(ICacheService cacheService) : ILipClient
+public class LipClient(ICacheService cacheService, IConfigService configService) : ILipClient
 {
     private readonly ICacheService _cacheService = cacheService;
+    private readonly IConfigService _configService = configService;
 
     public async Task CacheClean()
     {
         await _cacheService.Clean();
     }
 
-    public Task ConfigDelete(string key)
+    public async Task ConfigDelete(string key)
     {
-        throw new NotImplementedException();
+        await _configService.Delete(key);
     }
 
-    public Task<string> ConfigGet(string key)
+    public async Task<string> ConfigGet(string key)
     {
-        throw new NotImplementedException();
+        return await _configService.Get(key);
     }
 
-    public Task<IDictionary<string, string>> ConfigList()
+    public async Task<IDictionary<string, string>> ConfigList()
     {
-        throw new NotImplementedException();
+        return await _configService.List();
     }
 
-    public Task ConfigSet(string key, string value)
+    public async Task ConfigSet(string key, string value)
     {
-        throw new NotImplementedException();
+        await _configService.Set(key, value);
     }
 
     public Task Init()

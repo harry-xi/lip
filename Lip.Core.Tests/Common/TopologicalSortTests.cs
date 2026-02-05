@@ -1,4 +1,6 @@
+using Lip.Core;
 using Semver;
+using System.Linq;
 
 namespace Lip.Core.Tests;
 
@@ -23,18 +25,18 @@ public class TopologicalSortTest
             new Dictionary<PackageIdentifier, SemVersionRange>
             {
                 [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
-            });
+            }.Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         var pkg2 = new PackageDependencyDescriptor(
             PackageSpecifier.Parse("example.com/pkg2@2.0.0"),
             new Dictionary<PackageIdentifier, SemVersionRange>
             {
                 [PackageIdentifier.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
-            });
+            }.Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         var pkg3 = new PackageDependencyDescriptor(
             PackageSpecifier.Parse("example.com/pkg3@3.0.0"),
-            new Dictionary<PackageIdentifier, SemVersionRange>());
+            new Dictionary<PackageIdentifier, SemVersionRange>().Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         // Act.
         var result = TopologicalSort.Sort([pkg1, pkg2, pkg3]);
@@ -52,21 +54,21 @@ public class TopologicalSortTest
             new Dictionary<PackageIdentifier, SemVersionRange>
             {
                 [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
-            });
+            }.Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         var pkg2 = new PackageDependencyDescriptor(
             PackageSpecifier.Parse("example.com/pkg2@2.0.0"),
             new Dictionary<PackageIdentifier, SemVersionRange>
             {
                 [PackageIdentifier.Parse("example.com/pkg3")] = SemVersionRange.Parse("3.0.0"),
-            });
+            }.Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         var pkg3 = new PackageDependencyDescriptor(
             PackageSpecifier.Parse("example.com/pkg3@3.0.0"),
             new Dictionary<PackageIdentifier, SemVersionRange>
             {
                 [PackageIdentifier.Parse("example.com/pkg1")] = SemVersionRange.Parse("1.0.0"),
-            });
+            }.Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         // Act: Should not throw, handles cycle gracefully.
         var result = TopologicalSort.Sort([pkg1, pkg2, pkg3]);
@@ -81,11 +83,11 @@ public class TopologicalSortTest
         // Arrange.
         var pkg1 = new PackageDependencyDescriptor(
             PackageSpecifier.Parse("example.com/pkg1@1.0.0"),
-            new Dictionary<PackageIdentifier, SemVersionRange>());
+            new Dictionary<PackageIdentifier, SemVersionRange>().Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         var pkg1Dupe = new PackageDependencyDescriptor(
             PackageSpecifier.Parse("example.com/pkg1@2.0.0"),
-            new Dictionary<PackageIdentifier, SemVersionRange>());
+            new Dictionary<PackageIdentifier, SemVersionRange>().Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         // Act & Assert.
         var ex = Assert.Throws<InvalidOperationException>(() =>
@@ -102,7 +104,7 @@ public class TopologicalSortTest
             new Dictionary<PackageIdentifier, SemVersionRange>
             {
                 [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
-            });
+            }.Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         // Act.
         var result = TopologicalSort.Sort([pkg1]);
@@ -121,11 +123,11 @@ public class TopologicalSortTest
             new Dictionary<PackageIdentifier, SemVersionRange>
             {
                 [PackageIdentifier.Parse("example.com/pkg2")] = SemVersionRange.Parse("2.0.0"),
-            });
+            }.Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         var pkg2 = new PackageDependencyDescriptor(
             PackageSpecifier.Parse("example.com/pkg2@3.0.0"),
-            new Dictionary<PackageIdentifier, SemVersionRange>());
+            new Dictionary<PackageIdentifier, SemVersionRange>().Select(kv => new PackageRequirement(kv.Key, kv.Value)));
 
         // Act.
         var result = TopologicalSort.Sort([pkg1, pkg2]);

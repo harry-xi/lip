@@ -89,9 +89,9 @@ public class DependencySolverTests
             .ReturnsAsync(versions.Select(v => SemVersion.Parse(v)).ToList());
     }
 
-    private IEnumerable<(PackageIdentifier Identifier, SemVersionRange VersionRange)> ToRequirements(params PackageSpecifier[] specs)
+    private IEnumerable<PackageRequirement> ToRequirements(params PackageSpecifier[] specs)
     {
-        return specs.Select(s => (s.Identifier, SemVersionRange.Parse(s.Version.ToString())));
+        return specs.Select(s => new PackageRequirement(s.Identifier, SemVersionRange.Parse(s.Version.ToString())));
     }
 
     [Fact]
@@ -342,7 +342,7 @@ public class DependencySolverTests
 
         // Act
         var result = await _solver.ResolveDependencies(
-            [(idA, SemVersionRange.Parse(">=1.0.0"))],
+            [new PackageRequirement(idA, SemVersionRange.Parse(">=1.0.0"))],
             []);
 
         // Assert
@@ -370,7 +370,7 @@ public class DependencySolverTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => _solver.ResolveDependencies(
-            [(idA, range1), (idA, range2)],
+            [new PackageRequirement(idA, range1), new PackageRequirement(idA, range2)],
             []));
     }
 
@@ -386,7 +386,7 @@ public class DependencySolverTests
         SetupManifest("example.com/a", "1.0.0");
 
         // Act
-        var result = await _solver.ResolveDependencies([(idA, range)], []);
+        var result = await _solver.ResolveDependencies([new PackageRequirement(idA, range)], []);
 
         // Assert
         Assert.Null(result);

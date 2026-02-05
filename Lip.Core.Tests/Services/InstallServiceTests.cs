@@ -10,7 +10,8 @@ using System.Runtime.InteropServices;
 namespace Lip.Core.Tests;
 
 using global::Lip.Core.Services;
-
+using Lip.Core;
+using System.Linq;
 using static Lip.Core.PackageLock;
 
 public class InstallServiceTests
@@ -116,7 +117,7 @@ public class InstallServiceTests
         _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("new-pkg", "2.0.0"));
 
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
@@ -124,8 +125,8 @@ public class InstallServiceTests
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
-            It.Is<IEnumerable<(PackageIdentifier, SemVersionRange)>>(reqs =>
-                reqs.Any(r => r.Item1.ToString() == "github.com/test/locked-pkg" && r.Item2.ToString() == ">=1.0.0")
+            It.Is<IEnumerable<PackageRequirement>>(reqs =>
+                reqs.Any(r => r.Identifier.ToString() == "github.com/test/locked-pkg" && r.VersionRange.ToString() == ">=1.0.0")
             ),
             It.IsAny<IEnumerable<PackageLock.Package>>()
         ), Times.Once);
@@ -152,7 +153,7 @@ public class InstallServiceTests
         _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("new-pkg", "2.0.0"));
 
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
@@ -160,8 +161,8 @@ public class InstallServiceTests
 
         // Assert
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
-            It.Is<IEnumerable<(PackageIdentifier, SemVersionRange)>>(reqs =>
-                reqs.Any(r => r.Item1.ToString() == "github.com/test/locked-pkg" && r.Item2.ToString() == "1.0.0")
+            It.Is<IEnumerable<PackageRequirement>>(reqs =>
+                reqs.Any(r => r.Identifier.ToString() == "github.com/test/locked-pkg" && r.VersionRange.ToString() == "1.0.0")
             ),
             It.IsAny<IEnumerable<PackageLock.Package>>()
         ), Times.Once);
@@ -191,7 +192,7 @@ public class InstallServiceTests
         _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("existing-pkg", "1.0.0"));
 
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act & Assert
@@ -229,7 +230,7 @@ public class InstallServiceTests
         var pkgB = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-b", ""), SemVersion.Parse("1.0.0"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(
-            It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(),
+            It.IsAny<IEnumerable<PackageRequirement>>(),
             It.IsAny<IEnumerable<PackageLock.Package>>()))
             .ReturnsAsync(new List<PackageSpecifier> { pkgA, pkgB });
 
@@ -309,7 +310,7 @@ public class InstallServiceTests
              .ReturnsAsync(CreateManifest("local-pkg", "1.0.0"));
 
         // Identify dependency solver call
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/local-pkg", ""), SemVersion.Parse("1.0.0")) });
 
         // Mock caching (GetPackageFileSource needs to return something for the result of dependency resolution)
@@ -342,7 +343,7 @@ public class InstallServiceTests
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
         var pkgA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { pkgA });
 
         // Act
@@ -372,7 +373,7 @@ public class InstallServiceTests
 
         // Assert
         // ResolveDependencies should NOT be called
-        _dependencySolverMock.Verify(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()), Times.Never);
+        _dependencySolverMock.Verify(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()), Times.Never);
 
         // But install should still happen for the primary package
         _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
@@ -396,7 +397,7 @@ public class InstallServiceTests
         _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-spec", "1.2.3"));
 
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-spec", ""), SemVersion.Parse("1.2.3")) });
 
         // Act
@@ -455,7 +456,7 @@ public class InstallServiceTests
              .ReturnsAsync(CreateManifest("archive-pkg", "1.0.0"));
 
         // Expect default variant label.
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { new PackageSpecifier(new PackageIdentifier("github.com/test/archive-pkg", ""), SemVersion.Parse("1.0.0")) });
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
@@ -544,7 +545,7 @@ public class InstallServiceTests
         var specA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
         var specB = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-b", ""), SemVersion.Parse("1.0.0"));
 
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });
         // Act
         await _installService.Install(userInput);
@@ -590,7 +591,7 @@ public class InstallServiceTests
         var specA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
         var specB = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-b", ""), SemVersion.Parse("1.0.0"));
 
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
              .ReturnsAsync(new List<PackageSpecifier> { specA, specB });
 
         // Act

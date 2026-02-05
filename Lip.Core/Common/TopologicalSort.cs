@@ -35,8 +35,8 @@ public static class TopologicalSort
 
             foreach (var dep in item.Dependencies)
             {
-                if (itemMap.TryGetValue(dep.Key, out var depItem) &&
-                    dep.Value.Contains(depItem.Specifier.Version))
+                if (itemMap.TryGetValue(dep.Identifier, out var depItem) &&
+                    dep.VersionRange.Contains(depItem.Specifier.Version))
                 {
                     Visit(depItem);
                 }

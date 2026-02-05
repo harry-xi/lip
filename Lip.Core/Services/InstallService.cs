@@ -1,5 +1,5 @@
+using Lip.Core;
 using Lip.Core.Context;
-
 using Lip.Core.PackageRegistries;
 using Microsoft.Extensions.Logging;
 using Semver;
@@ -60,9 +60,10 @@ public class InstallService
 
         public PackageSpecifier Specifier => new(new PackageIdentifier(Manifest.ToothPath, VariantLabel), Manifest.Version);
 
-        public IDictionary<PackageIdentifier, SemVersionRange> Dependencies =>
+        public IEnumerable<PackageRequirement> Dependencies =>
             Manifest.GetVariant(VariantLabel, RuntimeInformation.RuntimeIdentifier)?.Dependencies
-            ?? new Dictionary<PackageIdentifier, SemVersionRange>();
+                .Select(kv => new PackageRequirement(kv.Key, kv.Value))
+            ?? new List<PackageRequirement>();
     }
 
     public async Task Install(
@@ -182,13 +183,15 @@ public class InstallService
             ]
             : await _dependencySolver.ResolveDependencies(
                 primaryPackageRequirements: [
-                    ..userInputDetails.Select(detail => (detail.Specifier.Identifier, SemVersionRange.Parse(detail.Specifier.Version.ToString()))),
+                    ..userInputDetails.Select(detail => new PackageRequirement(
+                        detail.Specifier.Identifier,
+                        SemVersionRange.Parse(detail.Specifier.Version.ToString()))),
                     ..lockedSpecifiers
                         // User input packages take precedence over other packages.
                         .Where(lockedSpecifier => !userInputSpecifiers
                             .Any(userInputSpecifier => userInputSpecifier.Identifier == lockedSpecifier.Identifier)
                         )
-                        .Select(lockedSpecifier => (
+                        .Select(lockedSpecifier => new PackageRequirement(
                              lockedSpecifier.Identifier,
                              upgradeLockedPackages
                                  ? SemVersionRange.AtLeast(lockedSpecifier.Version)
@@ -234,7 +237,7 @@ public class InstallService
             {
                 uninstallDescriptors.Add(new PackageDependencyDescriptor(
                     installedPackage.Specifier,
-                    installedPackage.Variant.Dependencies));
+                    installedPackage.Variant.Dependencies.Select(kv => new PackageRequirement(kv.Key, kv.Value))));
             }
         }
 

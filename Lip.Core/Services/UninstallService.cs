@@ -1,5 +1,5 @@
+using Lip.Core;
 using Lip.Core.Context;
-
 using Microsoft.Extensions.Logging;
 
 namespace Lip.Core.Services;
@@ -52,7 +52,7 @@ public class UninstallService
 
             packageDescriptors.Add(new PackageDependencyDescriptor(
                 package.Specifier,
-                package.Variant.Dependencies));
+                package.Variant.Dependencies.Select(kv => new PackageRequirement(kv.Key, kv.Value))));
         }
 
         var sortedPackages = TopologicalSort.Sort(packageDescriptors);

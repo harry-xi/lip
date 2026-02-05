@@ -1,4 +1,5 @@
 using Flurl;
+using Lip.Core; // Added for PackageRequirement
 using Lip.Core.Context;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services; // Ensure Services for InstallService/UpdateService
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
+using System.Linq; // Added for Linq
 using System.Runtime.InteropServices;
 
 namespace Lip.Core.Tests;
@@ -125,7 +127,7 @@ public class UpdateServiceTests
             .ReturnsAsync(CreateManifest("pkg-update", "2.0.0"));
 
         // Mock dependency resolution success (return empty list)
-        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
+        _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<PackageRequirement>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
             .ReturnsAsync(new List<PackageSpecifier>());
 
         // Act
@@ -135,8 +137,8 @@ public class UpdateServiceTests
         // Verify dependency solver was called with AtLeast range for the locked package
         // This confirms that UpgradeLockedPackages was true inside Install
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
-            It.Is<IEnumerable<(PackageIdentifier, SemVersionRange)>>(reqs =>
-                reqs.Any(r => r.Item1.ToString() == "github.com/test/locked-pkg" && r.Item2.ToString() == ">=1.0.0")
+            It.Is<IEnumerable<PackageRequirement>>(reqs =>
+                reqs.Any(r => r.Identifier.ToString() == "github.com/test/locked-pkg" && r.VersionRange.ToString() == ">=1.0.0")
             ),
             It.IsAny<IEnumerable<PackageLock.Package>>()
         ), Times.Once);
@@ -152,7 +154,7 @@ public class UpdateServiceTests
         // Assert
         // Verify ResolveDependencies was NEVER called (since Install should be skipped)
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(
-            It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(),
+            It.IsAny<IEnumerable<PackageRequirement>>(),
             It.IsAny<IEnumerable<PackageLock.Package>>()
         ), Times.Never);
 

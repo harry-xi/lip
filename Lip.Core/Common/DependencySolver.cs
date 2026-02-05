@@ -5,12 +5,14 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core;
 
+
 public interface IDependencySolver
 {
     Task<List<PackageSpecifier>?> ResolveDependencies(
-        IEnumerable<(PackageIdentifier Identifier, SemVersionRange VersionRange)> primaryPackageRequirements,
+        IEnumerable<PackageRequirement> primaryPackageRequirements,
         IEnumerable<PackageLock.Package> knownPackages);
 }
+
 
 public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) : IDependencySolver
 {
@@ -18,22 +20,25 @@ public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) 
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
 
     public async Task<List<PackageSpecifier>?> ResolveDependencies(
-        IEnumerable<(PackageIdentifier Identifier, SemVersionRange VersionRange)> primaryPackageRequirements,
+        IEnumerable<PackageRequirement> primaryPackageRequirements,
         IEnumerable<PackageLock.Package> knownPackages)
     {
         _logger.LogDebug("Resolving dependencies...");
 
         Dictionary<PackageIdentifier, HashSet<SemVersion>> candidates = [];
 
-        foreach ((PackageIdentifier identifier, SemVersionRange versionRange) in primaryPackageRequirements)
+        foreach (var req in primaryPackageRequirements)
         {
+            var identifier = req.Identifier;
+            var versionRange = req.VersionRange;
+
             if (candidates.ContainsKey(identifier))
             {
                 throw new ArgumentException($"Duplicate primary package requirement for '{identifier}'.", nameof(primaryPackageRequirements));
             }
 
             HashSet<SemVersion> availableVersions = await FetchAvailableVersions(identifier, knownPackages);
-            HashSet<SemVersion> compatibleVersions = [.. availableVersions.Where(versionRange.Contains)];
+            HashSet<SemVersion> compatibleVersions = [.. availableVersions.Where(v => versionRange.Contains(v))];
 
             if (compatibleVersions.Count == 0)
             {
@@ -94,10 +99,12 @@ public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) 
 
             try
             {
-                Dictionary<PackageIdentifier, SemVersionRange> dependencies = await GetDependencies(new PackageSpecifier(nextId, version), _packageRegistry, knownPackages);
+                IEnumerable<PackageRequirement> dependencies = await GetDependencies(new PackageSpecifier(nextId, version), _packageRegistry, knownPackages);
 
-                foreach ((PackageIdentifier depId, SemVersionRange range) in dependencies)
+                foreach (var req in dependencies)
                 {
+                    var depId = req.Identifier;
+                    var range = req.VersionRange;
                     // Check against already selected packages
                     if (nextSelected.TryGetValue(depId, out SemVersion? existingVer))
                     {
@@ -112,7 +119,7 @@ public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) 
                         // Propagate constraints to candidates
                         if (nextCandidates.TryGetValue(depId, out HashSet<SemVersion>? currentOptions))
                         {
-                            HashSet<SemVersion> intersection = [.. currentOptions.Where(range.Contains)];
+                            HashSet<SemVersion> intersection = [.. currentOptions.Where(v => range.Contains(v))];
                             if (intersection.Count == 0)
                             {
                                 isValidBranch = false;
@@ -124,7 +131,7 @@ public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) 
                         {
                             // New dependency discovered
                             HashSet<SemVersion> availableVersions = await FetchAvailableVersions(depId, knownPackages);
-                            HashSet<SemVersion> compatibleVersions = [.. availableVersions.Where(range.Contains)];
+                            HashSet<SemVersion> compatibleVersions = [.. availableVersions.Where(v => range.Contains(v))];
 
                             if (compatibleVersions.Count == 0)
                             {
@@ -195,21 +202,22 @@ public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) 
         return result;
     }
 
-    private static async Task<Dictionary<PackageIdentifier, SemVersionRange>> GetDependencies(
+    private static async Task<IEnumerable<PackageRequirement>> GetDependencies(
         PackageSpecifier packageSpecifier,
         IPackageRegistry packageRegistry,
         IEnumerable<PackageLock.Package> knownPackages
     )
+
     {
         if (knownPackages.FirstOrDefault(p => p.Specifier == packageSpecifier) is { } knownPkg)
         {
-            return knownPkg.Variant.Dependencies;
+            return knownPkg.Variant.Dependencies.Select(kv => new PackageRequirement(kv.Key, kv.Value));
         }
 
         PackageManifest? manifest = await packageRegistry.GetManifest(packageSpecifier) ?? throw new InvalidOperationException($"Failed to get package manifest for {packageSpecifier}.");
         PackageManifest.Variant? variant = manifest.GetVariant(packageSpecifier.VariantLabel, RuntimeInformation.RuntimeIdentifier);
         return variant == null
             ? throw new InvalidOperationException($"Variant {packageSpecifier.VariantLabel} not found for {packageSpecifier}.")
-            : variant.Dependencies;
+            : variant.Dependencies.Select(kv => new PackageRequirement(kv.Key, kv.Value));
     }
 }

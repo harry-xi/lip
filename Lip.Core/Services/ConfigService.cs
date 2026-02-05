@@ -27,13 +27,8 @@ public class ConfigService
 
 
 
-    public async Task Delete(List<string> keys)
+    public async Task Delete(string key)
     {
-        if (keys.Count == 0)
-        {
-            throw new ArgumentException("No configuration keys provided.", nameof(keys));
-        }
-
         Dictionary<string, string> allKeyValuePairs = typeof(RuntimeConfig).GetProperties()
             .Where(prop => prop.GetCustomAttribute<JsonPropertyNameAttribute>() != null)
             .ToDictionary(
@@ -41,30 +36,18 @@ public class ConfigService
                 prop => prop.GetValue(new RuntimeConfig())!.ToString()!
             );
 
-        // Set the configuration keys to their default values.
-        Dictionary<string, string> keyValuePairs = keys.ToDictionary(
-            key => key,
-            key => allKeyValuePairs.GetValueOrDefault(key) ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(keys))
-        );
+        string defaultValue = allKeyValuePairs.GetValueOrDefault(key)
+            ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(key));
 
-        await Set(keyValuePairs);
+        await Set(key, defaultValue);
     }
 
-    public Dictionary<string, string> Get(List<string> keys)
+    public string Get(string key)
     {
-        if (keys.Count == 0)
-        {
-            return List();
-        }
-
         Dictionary<string, string> allKeyValuePairs = List();
 
-        Dictionary<string, string> keyValuePairs = keys.ToDictionary(
-            key => key,
-            key => allKeyValuePairs.GetValueOrDefault(key) ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(keys))
-        );
-
-        return keyValuePairs;
+        return allKeyValuePairs.GetValueOrDefault(key)
+            ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(key));
     }
 
     public Dictionary<string, string> List()
@@ -79,27 +62,18 @@ public class ConfigService
         return allKeyValuePairs;
     }
 
-    public async Task Set(Dictionary<string, string> keyValuePairs)
+    public async Task Set(string key, string value)
     {
-        if (keyValuePairs.Count == 0)
-        {
-            throw new ArgumentException("No configuration items provided.", nameof(keyValuePairs));
-        }
-
         // Clone the current runtime configuration to avoid modifying the original one.
         RuntimeConfig newRuntimeConfig = _runtimeConfig with { };
 
-        // Update the configuration with the new values.
-        foreach ((string key, string value) in keyValuePairs)
-        {
-            PropertyInfo matchedProperty = typeof(RuntimeConfig).GetProperties()
-                .Where(prop => prop.GetCustomAttribute<JsonPropertyNameAttribute>() != null)
-                .FirstOrDefault(prop => prop.GetCustomAttribute<JsonPropertyNameAttribute>()!.Name == key)
-                ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(keyValuePairs));
+        PropertyInfo matchedProperty = typeof(RuntimeConfig).GetProperties()
+            .Where(prop => prop.GetCustomAttribute<JsonPropertyNameAttribute>() != null)
+            .FirstOrDefault(prop => prop.GetCustomAttribute<JsonPropertyNameAttribute>()!.Name == key)
+            ?? throw new ArgumentException($"Unknown configuration key: '{key}'.", nameof(key));
 
-            object convertedValue = Convert.ChangeType(value, matchedProperty.PropertyType);
-            matchedProperty.SetValue(newRuntimeConfig, convertedValue);
-        }
+        object convertedValue = Convert.ChangeType(value, matchedProperty.PropertyType);
+        matchedProperty.SetValue(newRuntimeConfig, convertedValue);
 
         _context.FileSystem.CreateParentDirectory(_pathManager.RuntimeConfigPath);
 

@@ -1,16 +1,17 @@
 # lip config set
 
-Set configuration value(s)
+Set a configuration value
 
 ## Usage
 
 ```
-lip config set <key=value ...> [OPTIONS]
+lip config set <key> <value> [OPTIONS]
 ```
 
 ## Arguments
 
-- `<key=value ...>`: The configuration key-value pairs to set
+- `<key>`: The configuration key to set
+- `<value>`: The configuration value to set
 
 ## Options
 

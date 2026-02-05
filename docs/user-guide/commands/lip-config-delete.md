@@ -1,16 +1,16 @@
 # lip config delete
 
-Delete configuration key(s)
+Delete a configuration key
 
 ## Usage
 
 ```
-lip config delete <key ...> [OPTIONS]
+lip config delete <key> [OPTIONS]
 ```
 
 ## Arguments
 
-- `<key ...>`: The configuration keys to delete
+- `<key>`: The configuration key to delete
 
 ## Options
 

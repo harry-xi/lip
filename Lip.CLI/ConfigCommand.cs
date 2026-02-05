@@ -7,14 +7,14 @@ namespace Lip.CLI;
 
 class ConfigSettings : BaseCommandSettings { }
 
-[Description("Delete configuration key(s).")]
+[Description("Delete a configuration key.")]
 class ConfigDeleteCommand : AsyncCommand<ConfigDeleteCommand.Settings>
 {
     public class Settings : ConfigSettings
     {
-        [CommandArgument(0, "<key ...>")]
-        [Description("The configuration keys to delete.")]
-        public required string[] Keys { get; init; }
+        [CommandArgument(0, "<key>")]
+        [Description("The configuration key to delete.")]
+        public required string Key { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -23,20 +23,20 @@ class ConfigDeleteCommand : AsyncCommand<ConfigDeleteCommand.Settings>
 
         var configService = new ConfigService(ctx);
 
-        await configService.Delete([.. settings.Keys]);
+        await configService.Delete(settings.Key);
 
         return 0;
     }
 }
 
-[Description("Get configuration value(s).")]
+[Description("Get a configuration value.")]
 class ConfigGetCommand : AsyncCommand<ConfigGetCommand.Settings>
 {
     public class Settings : ConfigSettings
     {
-        [CommandArgument(0, "[key ...]")]
-        [Description("The configuration keys to get.")]
-        public required string[] Keys { get; init; }
+        [CommandArgument(0, "<key>")]
+        [Description("The configuration key to get.")]
+        public required string Key { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -45,12 +45,9 @@ class ConfigGetCommand : AsyncCommand<ConfigGetCommand.Settings>
 
         var configService = new ConfigService(ctx);
 
-        Dictionary<string, string> value = configService.Get([.. settings.Keys]);
+        string value = configService.Get(settings.Key);
 
-        foreach ((string key, string val) in value)
-        {
-            AnsiConsole.MarkupLine($"{key}={val}".EscapeMarkup());
-        }
+        AnsiConsole.MarkupLine(value.EscapeMarkup());
 
         return 0;
     }
@@ -78,14 +75,18 @@ class ConfigListCommand : AsyncCommand<ConfigListCommand.Settings>
     }
 }
 
-[Description("Set configuration value(s).")]
+[Description("Set a configuration value.")]
 class ConfigSetCommand : AsyncCommand<ConfigSetCommand.Settings>
 {
     public class Settings : ConfigSettings
     {
-        [CommandArgument(0, "<key=value ...>")]
-        [Description("The configuration key-value pairs to set.")]
-        public required string[] KeyValuePairs { get; init; }
+        [CommandArgument(0, "<key>")]
+        [Description("The configuration key to set.")]
+        public required string Key { get; init; }
+
+        [CommandArgument(1, "<value>")]
+        [Description("The configuration value to set.")]
+        public required string Value { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -94,18 +95,7 @@ class ConfigSetCommand : AsyncCommand<ConfigSetCommand.Settings>
 
         var configService = new ConfigService(ctx);
 
-        Dictionary<string, string> entries = [];
-        foreach (string pair in settings.KeyValuePairs)
-        {
-            string[] parts = pair.Split('=', 2);
-            if (parts.Length != 2)
-            {
-                throw new ArgumentException($"Invalid key-value pair format: '{pair}'. Expected format: 'key=value'.");
-            }
-            entries[parts[0]] = parts[1];
-        }
-
-        await configService.Set(entries);
+        await configService.Set(settings.Key, settings.Value);
 
         return 0;
     }

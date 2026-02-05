@@ -1,33 +1,13 @@
 # lip update
 
-## Usage
+Update installed packages to new versions.
 
-```shell
-lip update <package ...>
-```
+`lip update <package>... [options]`
 
-## Description
-
-Update packages and their dependencies from various sources.
-
-## Arguments
-
-- `package`
-
-  The packages to update.
+- `<package>`: The packages to update.
 
 ## Options
 
-- `--dry-run`
-
-  Do not actually update any packages. Be aware that files will still be downloaded and cached.
-
-
-
-- `--ignore-scripts`
-
-  Do not run any scripts during updating.
-
-- `--no-dependencies`
-
-  Bypass dependency resolution and only install the specified packages.
+- `--dry-run`: Do not actually update any packages.
+- `--ignore-scripts`: Do not run any scripts during update.
+- `--no-dependencies`: Bypass dependency resolution and only update the specified packages.

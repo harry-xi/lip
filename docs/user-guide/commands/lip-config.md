@@ -1,48 +1,35 @@
 # lip config
 
-## Usage
-
-```shell
-lip config set <key=value ...>
-lip config get [key ...]
-lip config delete <key ...>
-lip config list
-```
-
-## Description
-
 Manage the lip configuration files.
 
-## Sub-commands
+`lip config [command] [options]`
 
-### set
+## delete
 
-```shell
-lip config set <key=value ...>
-```
+Delete configuration key(s).
 
-Set a configuration value.
+`lip config delete <key>... [options]`
 
-### get
+- `<key>`: The configuration keys to delete.
 
-```shell
-lip config get [key ...]
-```
+## get
 
-Get a configuration value.
+Get configuration value(s).
 
-### delete
+`lip config get [key]... [options]`
 
-```shell
-lip config delete <key ...>
-```
+- `[key]`: The configuration keys to get.
 
-Delete a configuration value.
-
-### list
-
-```shell
-lip config list
-```
+## list
 
 List all configuration values.
+
+`lip config list [options]`
+
+## set
+
+Set configuration value(s).
+
+`lip config set <key=value>... [options]`
+
+- `<key=value>`: The configuration key-value pairs to set.

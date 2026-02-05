@@ -1,21 +1,8 @@
 # lip migrate
 
-## Usage
+Migrate a tooth.json file to the latest format.
 
-```shell
-lip migrate <path> [output]
-```
+`lip migrate <path> [output] [options]`
 
-## Description
-
-Migrate a tooth.json file to the latest schema version.
-
-## Arguments
-
-- `path`
-
-  The path to the tooth.json file to migrate.
-
-- `output`
-
-  The path to write the migrated tooth.json file to. Defaults to the input path.
+- `<path>`: The path to the `tooth.json` file to migrate.
+- `[output]`: The output path for the migrated file.

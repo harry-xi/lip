@@ -1,21 +1,11 @@
 # lip cache
 
-## Usage
-
-```shell
-lip cache clean
-```
-
-## Description
-
 Inspect and manage lip's cache.
 
-## Sub-commands
+`lip cache [command] [options]`
 
-### clean
+## clean
 
-```shell
-lip cache clean
-```
+Clean the cache.
 
-Remove all items from the cache.
+`lip cache clean [options]`

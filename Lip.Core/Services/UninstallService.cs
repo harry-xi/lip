@@ -7,7 +7,7 @@ namespace Lip.Core.Services;
 public class UninstallService
 {
     private readonly IContext _context;
-    private readonly IPackageManager _packageManager;
+    private readonly IWorkspaceManager _workspaceManager;
 
     public UninstallService(IContext context)
     {
@@ -16,13 +16,13 @@ public class UninstallService
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
         var pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
         var cacheManager = ServiceFactory.CreateCacheManager(context, pathManager, runtimeConfig);
-        _packageManager = ServiceFactory.CreatePackageManager(context, pathManager, cacheManager);
+        _workspaceManager = ServiceFactory.CreateWorkspaceManager(context, pathManager, cacheManager);
     }
 
-    internal UninstallService(IContext context, IPackageManager packageManager)
+    internal UninstallService(IContext context, IWorkspaceManager workspaceManager)
     {
         _context = context;
-        _packageManager = packageManager;
+        _workspaceManager = workspaceManager;
     }
 
     public async Task Uninstall(
@@ -39,7 +39,7 @@ public class UninstallService
 
         foreach (PackageIdentifier identifier in packageSpecifiersToUninstallSpecified)
         {
-            PackageLock.Package? package = await _packageManager.GetPackageFromLock(
+            PackageLock.Package? package = await _workspaceManager.GetPackageFromLock(
                 identifier);
 
             if (package is null)
@@ -60,7 +60,7 @@ public class UninstallService
 
         foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
         {
-            await _packageManager.UninstallPackage(
+            await _workspaceManager.UninstallPackage(
                 packageUninstallDetail.Specifier.Identifier,
                 dryRun,
                 ignoreScripts);

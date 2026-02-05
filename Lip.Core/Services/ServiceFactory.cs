@@ -23,9 +23,9 @@ public static class ServiceFactory
             config.GoModuleProxies.ConvertAll(Url.Parse));
     }
 
-    public static IPackageManager CreatePackageManager(IContext context, IPathManager pathManager, ICacheManager cacheManager)
+    public static IWorkspaceManager CreateWorkspaceManager(IContext context, IPathManager pathManager, ICacheManager cacheManager)
     {
-        return new PackageManager(
+        return new WorkspaceManager(
             context.FileSystem,
             context.CommandRunner,
             context.Logger,

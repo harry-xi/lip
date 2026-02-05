@@ -6,16 +6,9 @@ using Semver;
 using System.IO.Abstractions.TestingHelpers;
 using System.Runtime.InteropServices;
 
-namespace Lip.Core.Tests;
+namespace Lip.Core.Tests.ResourceManagers;
 
-using global::Lip.Core;
-
-
-
-
-using static Lip.Core.PackageLock;
-
-public class PackageManagerTests
+public class WorkspaceManagerTests
 {
     private record ListRemoteResultItem(string Sha, string Ref) : IGit.IListRemoteResultItem;
 
@@ -23,8 +16,8 @@ public class PackageManagerTests
     {
         return new PackageManifest
         {
-            FormatVersion = DefaultFormatVersion,
-            FormatUuid = DefaultFormatUuid,
+            FormatVersion = PackageLock.DefaultFormatVersion,
+            FormatUuid = PackageLock.DefaultFormatUuid,
             ToothPath = toothPath,
             Version = SemVersion.Parse(version),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -68,23 +61,23 @@ public class PackageManagerTests
             ]
     };
 
-    private static PackageManager PackageManagerFromFiles(IDictionary<string, MockFileData> files)
+    private static WorkspaceManager WorkspaceManagerFromFiles(IDictionary<string, MockFileData> files)
     {
         var fileSystem = new MockFileSystem(files, s_workingDir);
 
         var context = new Mock<IContext>();
         context.SetupGet(c => c.FileSystem).Returns(fileSystem);
 
-        return PackageManagerFromCxtAndFs(context, fileSystem);
+        return WorkspaceManagerFromCxtAndFs(context, fileSystem);
     }
 
-    private static PackageManager PackageManagerFromCxtAndFs(Mock<IContext> context, MockFileSystem fileSystem)
+    private static WorkspaceManager WorkspaceManagerFromCxtAndFs(Mock<IContext> context, MockFileSystem fileSystem)
     {
         var pathManager = new PathManager(fileSystem, baseCacheDir: s_cacheDir, workingDir: s_workingDir);
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        return new PackageManager(
+        return new WorkspaceManager(
             context.Object.FileSystem,
             context.Object.CommandRunner,
             context.Object.Logger,
@@ -102,10 +95,10 @@ public class PackageManagerTests
             Packages = []
         };
 
-        var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData>());
+        var workspaceManager = WorkspaceManagerFromFiles(new Dictionary<string, MockFileData>());
 
         // Act.
-        var result = await packageManager.GetCurrentPackageLock();
+        var result = await workspaceManager.GetCurrentPackageLock();
 
         // Assert.
         Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackageLock), LipTestExtensions.ToJsonBytes(result));
@@ -117,13 +110,13 @@ public class PackageManagerTests
         // Arrange.
         var expectedPackageLock = s_examplePackageLock;
 
-        var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData>
+        var workspaceManager = WorkspaceManagerFromFiles(new Dictionary<string, MockFileData>
         {
             { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(LipTestExtensions.ToJsonBytes(expectedPackageLock)) }
         });
 
         // Act.
-        var result = await packageManager.GetCurrentPackageLock();
+        var result = await workspaceManager.GetCurrentPackageLock();
 
         // Assert.
         Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackageLock), LipTestExtensions.ToJsonBytes(result));
@@ -135,14 +128,14 @@ public class PackageManagerTests
         // Arrange.
         var expectedPackage = s_examplePackage_1;
 
-        var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData> {
+        var workspaceManager = WorkspaceManagerFromFiles(new Dictionary<string, MockFileData> {
             { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(LipTestExtensions.ToJsonBytes(s_examplePackageLock)) }
         });
 
         var specifier = new PackageIdentifier(expectedPackage.ToothPath, "variant");
 
         // Act.
-        var pkg = await packageManager.GetPackageFromLock(specifier);
+        var pkg = await workspaceManager.GetPackageFromLock(specifier);
         var result = (PackageManifest?)pkg?.GetType().GetProperty("Manifest")?.GetValue(pkg);
 
         // Assert.
@@ -157,14 +150,14 @@ public class PackageManagerTests
     public async Task GetPackageManifestFromInstalledPackages_NotFound()
     {
         // Arrange.
-        var packageManager = PackageManagerFromFiles(new Dictionary<string, MockFileData> {
+        var workspaceManager = WorkspaceManagerFromFiles(new Dictionary<string, MockFileData> {
             { Path.Join(s_workingDir, "tooth_lock.json"), new MockFileData(LipTestExtensions.ToJsonBytes(s_examplePackageLock)) }
         });
 
         var specifier = new PackageIdentifier("example.com/pkg1", "variant");
 
         // Act.
-        var pkg = await packageManager.GetPackageFromLock(specifier);
+        var pkg = await workspaceManager.GetPackageFromLock(specifier);
         var result = pkg != null ? (PackageManifest?)pkg.GetType().GetProperty("Manifest")?.GetValue(pkg) : null;
 
         // Assert.
@@ -186,10 +179,10 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, s_workingDir);
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        var pkg = await packageManager.GetPackageManifestFromFileSource(fileSource);
+        var pkg = await workspaceManager.GetPackageManifestFromFileSource(fileSource);
 
         // Assert.
         Assert.Equal(LipTestExtensions.ToJsonBytes(expectedPackage), LipTestExtensions.ToJsonBytes(pkg!));
@@ -206,10 +199,10 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, s_workingDir);
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        var pkg = await packageManager.GetPackageManifestFromFileSource(fileSource);
+        var pkg = await workspaceManager.GetPackageManifestFromFileSource(fileSource);
 
         // Assert.
         Assert.Null(pkg);
@@ -226,12 +219,12 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, s_workingDir);
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await packageManager.InstallPackage(fileSource, "", false, false, false, false);
+            await workspaceManager.InstallPackage(fileSource, "", false, false, false, false);
         });
 
         // Assert.
@@ -256,12 +249,12 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await packageManager.InstallPackage(fileSource, "", false, false, false, false);
+            await workspaceManager.InstallPackage(fileSource, "", false, false, false, false);
         });
 
         // Assert.
@@ -304,10 +297,10 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        await packageManager.InstallPackage(fileSource, veriants, false, false, locked, false);
+        await workspaceManager.InstallPackage(fileSource, veriants, false, false, locked, false);
 
         // Assert.
         var resultPackageLock = fileSystem.GetFile(Path.Join(s_workingDir, "tooth_lock.json")).Contents;
@@ -349,10 +342,10 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        await packageManager.InstallPackage(fileSource, "", false, false, true, false);
+        await workspaceManager.InstallPackage(fileSource, "", false, false, true, false);
 
         // Assert.
         // ?
@@ -394,12 +387,12 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act. & Assert.
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await packageManager.InstallPackage(fileSource, "", false, false, false, false);
+            await workspaceManager.InstallPackage(fileSource, "", false, false, false, false);
         });
     }
 
@@ -411,8 +404,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
-            FormatVersion = DefaultFormatVersion,
-            FormatUuid = DefaultFormatUuid,
+            FormatVersion = PackageLock.DefaultFormatVersion,
+            FormatUuid = PackageLock.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -531,7 +524,7 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(
+        var workspaceManager = new WorkspaceManager(
             context.Object.FileSystem,
             context.Object.CommandRunner,
             context.Object.Logger,
@@ -540,7 +533,7 @@ public class PackageManagerTests
             pathManager);
 
         // Act.
-        await packageManager.InstallPackage(fileSource, "", dryRun, ignoreScripts, false, false);
+        await workspaceManager.InstallPackage(fileSource, "", dryRun, ignoreScripts, false, false);
 
         // Assert.
         // == Check Filse ==
@@ -551,7 +544,7 @@ public class PackageManagerTests
         var fileFormDownLoadZip1 = fileSystem.GetFile(Path.Join(s_workingDir, "d", "file1.txt"));
         var fileFormDownLoadZip2 = fileSystem.GetFile(Path.Join(s_workingDir, "d", "file2.txt"));
 
-        var locks = await packageManager.GetCurrentPackageLock();
+        var locks = await workspaceManager.GetCurrentPackageLock();
 
         if (!dryRun)
         {
@@ -605,8 +598,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
-            FormatVersion = DefaultFormatVersion,
-            FormatUuid = DefaultFormatUuid,
+            FormatVersion = PackageLock.DefaultFormatVersion,
+            FormatUuid = PackageLock.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -672,7 +665,7 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(
+        var workspaceManager = new WorkspaceManager(
             context.Object.FileSystem,
             context.Object.CommandRunner,
             context.Object.Logger,
@@ -682,7 +675,7 @@ public class PackageManagerTests
 
         // Act.
         // It should NOT throw, but skip overwrite because User selected "No"
-        await packageManager.InstallPackage(fileSource, "", false, false, false, false);
+        await workspaceManager.InstallPackage(fileSource, "", false, false, false, false);
         // Assert.
 
         var fileNotChange = fileSystem.GetFile(Path.Join(s_workingDir, "a.txt"));
@@ -698,8 +691,8 @@ public class PackageManagerTests
         // Arrange.
         var manifest = new PackageManifest
         {
-            FormatVersion = DefaultFormatVersion,
-            FormatUuid = DefaultFormatUuid,
+            FormatVersion = PackageLock.DefaultFormatVersion,
+            FormatUuid = PackageLock.DefaultFormatUuid,
             ToothPath = "example.com/pkg",
             Version = SemVersion.Parse("1.0.0"),
             Info = new() { Name = "", Description = "", Tags = [], AvatarUrl = Url.Parse("https://example.com/icon") },
@@ -820,7 +813,7 @@ public class PackageManagerTests
 
         var cacheManager = new CacheManager(context.Object, pathManager, [], []);
 
-        var packageManager = new PackageManager(
+        var workspaceManager = new WorkspaceManager(
             context.Object.FileSystem,
             context.Object.CommandRunner,
             context.Object.Logger,
@@ -828,10 +821,10 @@ public class PackageManagerTests
             cacheManager,
             pathManager);
 
-        await packageManager.InstallPackage(fileSource, "", false, true, false, false);
+        await workspaceManager.InstallPackage(fileSource, "", false, true, false, false);
 
         // Act.
-        await packageManager.UninstallPackage(new PackageIdentifier(manifest.ToothPath, manifest.Variants.First().Label), dryRun, ignoreScripts);
+        await workspaceManager.UninstallPackage(new PackageIdentifier(manifest.ToothPath, manifest.Variants.First().Label), dryRun, ignoreScripts);
 
         // Assert.
         // == Check Filse ==
@@ -844,7 +837,7 @@ public class PackageManagerTests
         var fileFormDownLoadZip2 = fileSystem.GetFile(Path.Join(s_workingDir, "d", "file2.txt"));
         var userFile = fileSystem.GetFile(Path.Join(s_workingDir, "userfile"));
 
-        var locks = await packageManager.GetCurrentPackageLock();
+        var locks = await workspaceManager.GetCurrentPackageLock();
 
         if (!dryRun)
         {
@@ -893,10 +886,10 @@ public class PackageManagerTests
 
         var fileSource = new DirectoryFileSource(fileSystem, Path.Join(s_cacheDir, "package"));
 
-        var packageManager = PackageManagerFromCxtAndFs(context, fileSystem);
+        var workspaceManager = WorkspaceManagerFromCxtAndFs(context, fileSystem);
 
         // Act.
-        await packageManager.UninstallPackage(new PackageIdentifier("exampel.com/pkg", ""), true, true);
+        await workspaceManager.UninstallPackage(new PackageIdentifier("exampel.com/pkg", ""), true, true);
 
         // Assert.
         // ?

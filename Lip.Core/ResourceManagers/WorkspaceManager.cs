@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace Lip.Core;
 
-public interface IPackageManager
+public interface IWorkspaceManager
 {
     Task<PackageLock> GetCurrentPackageLock();
     Task<PackageLock.Package?> GetPackageFromLock(PackageIdentifier packageSpecifier);
@@ -19,13 +19,13 @@ public interface IPackageManager
     Task UninstallPackage(PackageIdentifier packageSpecifierWithoutVersion, bool dryRun, bool ignoreScripts);
 }
 
-public class PackageManager(
+public class WorkspaceManager(
     IFileSystem fileSystem,
     ICommandRunner commandRunner,
     ILogger logger,
     IUserInteraction userInteraction,
     ICacheManager cacheManager,
-    IPathManager pathManager) : IPackageManager
+    IPathManager pathManager) : IWorkspaceManager
 {
     private readonly ICacheManager _cacheManager = cacheManager;
     private readonly IFileSystem _fileSystem = fileSystem;

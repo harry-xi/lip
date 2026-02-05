@@ -37,7 +37,7 @@ public void Method_Scenario_Result()
 ```
 
 ## Mocking & Dependencies
-- **Interfaces**: Mock all external dependencies (e.g., `IContext`, `IPackageManager`, `IGit`, `IDownloader`, `ILogger`) using `Moq`.
+- **Interfaces**: Mock all external dependencies (e.g., `IContext`, `IWorkspaceManager`, `IGit`, `IDownloader`, `ILogger`) using `Moq`.
 - **FileSystem**: **NEVER** use real file system paths or operations in unit tests. Use `MockFileSystem` and `MockFileData`/`MockDirectoryData`.
   - Use `OperatingSystem.IsWindows()` checks if path separators matter, or `Path.Join` to be cross-platform safe even in mocks if needed.
   - Initialize `MockFileSystem` with a dictionary of files for "Arrange".

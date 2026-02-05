@@ -7,7 +7,7 @@ namespace Lip.Core.Services;
 public class UpdateService
 {
     private readonly IContext _context;
-    private readonly IPackageManager _packageManager;
+    private readonly IWorkspaceManager _workspaceManager;
     private readonly InstallService _installService;
 
     public UpdateService(IContext context)
@@ -20,21 +20,21 @@ public class UpdateService
         var registry = ServiceFactory.CreatePackageRegistry(context, pathManager, cacheManager, runtimeConfig);
         var solver = new DependencySolver(context.Logger, registry);
 
-        _packageManager = ServiceFactory.CreatePackageManager(context, pathManager, cacheManager);
+        _workspaceManager = ServiceFactory.CreateWorkspaceManager(context, pathManager, cacheManager);
 
         _installService = new InstallService(
             context,
-            _packageManager,
+            _workspaceManager,
             solver,
             cacheManager,
             registry,
             pathManager);
     }
 
-    internal UpdateService(IContext context, IPackageManager packageManager, InstallService installService)
+    internal UpdateService(IContext context, IWorkspaceManager workspaceManager, InstallService installService)
     {
         _context = context;
-        _packageManager = packageManager;
+        _workspaceManager = workspaceManager;
         _installService = installService;
     }
 
@@ -49,7 +49,7 @@ public class UpdateService
         foreach (string packageText in userInputPackageTexts)
         {
             PackageIdentifier identifier = PackageIdentifier.Parse(packageText);
-            PackageLock.Package? package = await _packageManager.GetPackageFromLock(identifier);
+            PackageLock.Package? package = await _workspaceManager.GetPackageFromLock(identifier);
 
             if (package is null)
             {

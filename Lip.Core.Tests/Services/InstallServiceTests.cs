@@ -18,7 +18,7 @@ public class InstallServiceTests
     private readonly Mock<ICacheManager> _cacheManagerMock = new();
     private readonly Mock<IContext> _contextMock = new();
     private readonly Mock<IDependencySolver> _dependencySolverMock = new();
-    private readonly Mock<IPackageManager> _packageManagerMock = new();
+    private readonly Mock<IWorkspaceManager> _workspaceManagerMock = new();
     private readonly Mock<IPackageRegistry> _packageRegistryMock = new();
     private readonly Mock<IPathManager> _pathManagerMock = new();
     private readonly RuntimeConfig _runtimeConfig = new();
@@ -36,7 +36,7 @@ public class InstallServiceTests
 
         _installService = new InstallService(
             _contextMock.Object,
-            _packageManagerMock.Object,
+            _workspaceManagerMock.Object,
             _dependencySolverMock.Object,
             _cacheManagerMock.Object,
             _packageRegistryMock.Object,
@@ -103,9 +103,9 @@ public class InstallServiceTests
 
         var lockedPackage = CreateLockedPackage("locked-pkg", "1.0.0");
 
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
             .ReturnsAsync(new PackageLock { Packages = [lockedPackage] });
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
             .ReturnsAsync(lockedPackage);
 
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
@@ -113,7 +113,7 @@ public class InstallServiceTests
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
             .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("new-pkg", "2.0.0"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
@@ -139,9 +139,9 @@ public class InstallServiceTests
 
         var lockedPackage = CreateLockedPackage("locked-pkg", "1.0.0");
 
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
             .ReturnsAsync(new PackageLock { Packages = [lockedPackage] });
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
             .ReturnsAsync(lockedPackage);
 
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/new-pkg")))
@@ -149,7 +149,7 @@ public class InstallServiceTests
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
             .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("new-pkg", "2.0.0"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
@@ -178,9 +178,9 @@ public class InstallServiceTests
         var existingPkg = CreateLockedPackage("existing-pkg", "1.0.0");
 
 
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
              .ReturnsAsync(new PackageLock { Packages = [existingPkg] });
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(existingPkgId))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(existingPkgId))
              .ReturnsAsync(existingPkg);
 
         _packageRegistryMock.Setup(pm => pm.GetVersions(existingPkgId))
@@ -188,7 +188,7 @@ public class InstallServiceTests
 
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
             .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("existing-pkg", "1.0.0"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
@@ -210,9 +210,9 @@ public class InstallServiceTests
         var pkgOld = CreateLockedPackage("pkg-old", "1.0.0");
 
         // Locked package setup
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
              .ReturnsAsync(new PackageLock { Packages = [pkgOld] });
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(pkgOld.Specifier.Identifier))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(pkgOld.Specifier.Identifier))
              .ReturnsAsync(pkgOld);
 
         // User Input Resolution Mocking
@@ -220,7 +220,7 @@ public class InstallServiceTests
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Identifier.ToString() == "github.com/test/pkg-a")))
             .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0")); // Simplified: assumes same manifest for all file sources for now, or use specific setup
 
         // Dependency Resolution Result
@@ -250,9 +250,9 @@ public class InstallServiceTests
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Identifier.ToString() == "github.com/test/pkg-b")))
              .ReturnsAsync(sourceB.Object);
 
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceA.Object))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceA.Object))
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceB.Object))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceB.Object))
              .ReturnsAsync(CreateManifest("pkg-b", "1.0.0"));
 
 
@@ -262,14 +262,14 @@ public class InstallServiceTests
         // Assert
 
         // 1. Uninstallation of pkg-old
-        _packageManagerMock.Verify(pm => pm.UninstallPackage(
+        _workspaceManagerMock.Verify(pm => pm.UninstallPackage(
             It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-old"),
             false,
             false
         ), Times.Once);
 
         // 2. Installation of pkg-a and pkg-b
-        _packageManagerMock.Verify(pm => pm.InstallPackage(
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(
             sourceA.Object,
             "",
             false,
@@ -278,7 +278,7 @@ public class InstallServiceTests
             false
         ), Times.Once);
 
-        _packageManagerMock.Verify(pm => pm.InstallPackage(
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(
             sourceB.Object,
             "",
             false,
@@ -296,7 +296,7 @@ public class InstallServiceTests
 
 
         // Mock empty lock
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
              .ReturnsAsync(new PackageLock { Packages = [] });
 
         // Mock FileSystem for directory check
@@ -305,7 +305,7 @@ public class InstallServiceTests
 
         // Mock Manifest for local directory
         // GetPackageManifestFromFileSource should be called with DirectoryFileSource
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<DirectoryFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<DirectoryFileSource>()))
              .ReturnsAsync(CreateManifest("local-pkg", "1.0.0"));
 
         // Identify dependency solver call
@@ -321,10 +321,10 @@ public class InstallServiceTests
 
         // Assert
         // Verify GetPackageManifestFromFileSource was called with DirectoryFileSource
-        _packageManagerMock.Verify(pm => pm.GetPackageManifestFromFileSource(It.IsAny<DirectoryFileSource>()), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.GetPackageManifestFromFileSource(It.IsAny<DirectoryFileSource>()), Times.Once);
 
         // Verify InstallPackage called
-        _packageManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once);
     }
 
     [Fact]
@@ -333,12 +333,12 @@ public class InstallServiceTests
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
         // Mock generic setups for valid install flow
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
              .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
              .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
         var pkgA = new PackageSpecifier(new PackageIdentifier("github.com/test/pkg-a", ""), SemVersion.Parse("1.0.0"));
@@ -350,7 +350,7 @@ public class InstallServiceTests
 
         // Assert
         // Verify InstallPackage called with dryRun=true
-        _packageManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), It.IsAny<string>(), true, It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), It.IsAny<string>(), true, It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
     }
 
     [Fact]
@@ -359,12 +359,12 @@ public class InstallServiceTests
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a" };
         // Mock setup
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
              .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
              .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
         // Act
@@ -375,7 +375,7 @@ public class InstallServiceTests
         _dependencySolverMock.Verify(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()), Times.Never);
 
         // But install should still happen for the primary package
-        _packageManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
     }
 
     [Fact]
@@ -386,14 +386,14 @@ public class InstallServiceTests
 
 
         // Mock setup
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
 
         // Should NOT call GetPackageRemoteVersions because we have explicit version
         // Should call GetPackageFileSource with the specific version
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Version.ToString() == "1.2.3")))
              .ReturnsAsync(new Mock<IFileSource>().Object);
 
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-spec", "1.2.3"));
 
         _dependencySolverMock.Setup(ds => ds.ResolveDependencies(It.IsAny<IEnumerable<(PackageIdentifier, SemVersionRange)>>(), It.IsAny<IEnumerable<PackageLock.Package>>()))
@@ -414,7 +414,7 @@ public class InstallServiceTests
 
 
         // Mock setup
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
 
         // Return empty list implies package not found remotely
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.IsAny<PackageIdentifier>()))
@@ -431,7 +431,7 @@ public class InstallServiceTests
         var userInput = new List<string> { "package.zip" }; // Use default variant to match CreateManifest
 
 
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
 
         // Create a dummy zip file with minimal valid structure if possible, or just magic headers
         // SharpCompress checks signatures. PK\03\04 is local file header. 
@@ -451,7 +451,7 @@ public class InstallServiceTests
         _fileSystem.AddFile(Path.Combine(_workingDir, "package.zip"), new MockFileData(zipBytes));
 
         // Mock Manifest
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<ArchiveFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<ArchiveFileSource>()))
              .ReturnsAsync(CreateManifest("archive-pkg", "1.0.0"));
 
         // Expect default variant label.
@@ -465,8 +465,8 @@ public class InstallServiceTests
         await _installService.Install(userInput);
 
         // Assert
-        _packageManagerMock.Verify(pm => pm.GetPackageManifestFromFileSource(It.IsAny<ArchiveFileSource>()), Times.Once);
-        _packageManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.GetPackageManifestFromFileSource(It.IsAny<ArchiveFileSource>()), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once);
     }
 
     [Fact]
@@ -482,17 +482,17 @@ public class InstallServiceTests
         var pkgA = CreateLockedPackage("pkg-a", "1.0.0");
         var pkgBOld = CreateLockedPackage("pkg-b", "1.0.0");
 
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
              .ReturnsAsync(new PackageLock { Packages = [pkgA, pkgBOld] });
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(pkgA.Specifier.Identifier)).ReturnsAsync(pkgA);
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(pkgBOld.Specifier.Identifier)).ReturnsAsync(pkgBOld);
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(pkgA.Specifier.Identifier)).ReturnsAsync(pkgA);
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(pkgBOld.Specifier.Identifier)).ReturnsAsync(pkgBOld);
 
         // Remote B (new)
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-b")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
              .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-b", "2.0.0")); // For B new
 
         // Act
@@ -500,7 +500,7 @@ public class InstallServiceTests
 
         // Assert
         // A should remain installed (not uninstalled)
-        _packageManagerMock.Verify(pm => pm.UninstallPackage(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-a"), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        _workspaceManagerMock.Verify(pm => pm.UninstallPackage(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-a"), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
 
         // B (old) should be uninstalled because it was overridden by UIP B(new) in the DP list?
         // Wait, Uninstalled = IP x (-DP + UIP).
@@ -515,7 +515,7 @@ public class InstallServiceTests
         // For A: Matches dependentSpecifier (A). UserInput? No. => Keep.
         // For B(old): Matches dependentSpecifier (B(new))? Yes (Identifier match). UserInput? Yes. => Uninstall.
 
-        _packageManagerMock.Verify(pm => pm.UninstallPackage(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-b"), false, false), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.UninstallPackage(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-b"), false, false), Times.Once);
     }
 
     [Fact]
@@ -528,16 +528,16 @@ public class InstallServiceTests
 
         // Installed: pkg-b (dependency of A)
         var pkgBLocked = CreateLockedPackage("pkg-b", "1.0.0");
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
              .ReturnsAsync(new PackageLock { Packages = [pkgBLocked] });
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(pkgBLocked.Specifier.Identifier)).ReturnsAsync(pkgBLocked);
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(pkgBLocked.Specifier.Identifier)).ReturnsAsync(pkgBLocked);
 
         // Setup A
         _packageRegistryMock.Setup(pm => pm.GetVersions(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-a")))
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("1.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Identifier.ToString() == "github.com/test/pkg-a")))
              .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
 
         // Resolution returns A and B
@@ -551,12 +551,12 @@ public class InstallServiceTests
 
         // Assert
         // Install pkg-a
-        _packageManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once); // For A only
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once); // For A only
 
         // Should NOT install B (because it's installed)
         // We verify by checking that we didn't fetch manifest for B from file source inside the installation loop logic
         // But to be sure, we check that InstallPackage was called exactly ONCE (for A).
-        _packageManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once);
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Once);
     }
 
     [Fact]
@@ -567,7 +567,7 @@ public class InstallServiceTests
         // Arrange
         var userInput = new List<string> { "github.com/test/pkg-a", "github.com/test/pkg-b" };
 
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock()).ReturnsAsync(new PackageLock { Packages = [] });
 
         // Setup A and B with distinct manifests
         var sourceA = new Mock<IFileSource>();
@@ -581,9 +581,9 @@ public class InstallServiceTests
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.Is<PackageSpecifier>(s => s.Identifier.ToString() == "github.com/test/pkg-b")))
              .ReturnsAsync(sourceB.Object);
 
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceA.Object))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceA.Object))
              .ReturnsAsync(CreateManifest("pkg-a", "1.0.0"));
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceB.Object))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(sourceB.Object))
              .ReturnsAsync(CreateManifest("pkg-b", "1.0.0"));
 
         // Resolution returns A and B (B is dependency of A)
@@ -598,6 +598,6 @@ public class InstallServiceTests
 
         // Assert
         // Both installed exactly once (from user input list, not duplicated by dependency list)
-        _packageManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Exactly(2));
+        _workspaceManagerMock.Verify(pm => pm.InstallPackage(It.IsAny<IFileSource>(), "", false, false, It.IsAny<bool>(), false), Times.Exactly(2));
     }
 }

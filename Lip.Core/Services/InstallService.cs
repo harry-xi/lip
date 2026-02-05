@@ -12,7 +12,7 @@ namespace Lip.Core.Services;
 public class InstallService
 {
     private readonly IContext _context;
-    private readonly IPackageManager _packageManager;
+    private readonly IWorkspaceManager _workspaceManager;
     private readonly IDependencySolver _dependencySolver;
     private readonly ICacheManager _cacheManager;
     private readonly IPackageRegistry _packageRegistry;
@@ -28,7 +28,7 @@ public class InstallService
 
         _cacheManager = ServiceFactory.CreateCacheManager(context, _pathManager, runtimeConfig);
 
-        _packageManager = ServiceFactory.CreatePackageManager(context, _pathManager, _cacheManager);
+        _workspaceManager = ServiceFactory.CreateWorkspaceManager(context, _pathManager, _cacheManager);
 
         _packageRegistry = ServiceFactory.CreatePackageRegistry(context, _pathManager, _cacheManager, runtimeConfig);
 
@@ -37,14 +37,14 @@ public class InstallService
 
     internal InstallService(
         IContext context,
-        IPackageManager packageManager,
+        IWorkspaceManager workspaceManager,
         IDependencySolver dependencySolver,
         ICacheManager cacheManager,
         IPackageRegistry packageRegistry,
         IPathManager pathManager)
     {
         _context = context;
-        _packageManager = packageManager;
+        _workspaceManager = workspaceManager;
         _dependencySolver = dependencySolver;
         _cacheManager = cacheManager;
         _packageRegistry = packageRegistry;
@@ -134,7 +134,7 @@ public class InstallService
 
         _context.Logger.LogDebug("Getting installed packages...");
 
-        PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
+        PackageLock packageLock = await _workspaceManager.GetCurrentPackageLock();
 
         IEnumerable<PackageSpecifier> installedSpecifiers = packageLock.Packages
             .Select(@lock => @lock.Specifier);
@@ -236,7 +236,7 @@ public class InstallService
         TopoSortedPackageList<PackageUninstallDetail> uninstallDetails = [];
         foreach (var installedSpecifier in installedSpecifiers)
         {
-            PackageLock.Package installedPackage = (await _packageManager.GetPackageFromLock(installedSpecifier.Identifier))!;
+            PackageLock.Package installedPackage = (await _workspaceManager.GetPackageFromLock(installedSpecifier.Identifier))!;
 
             if (!dependentSpecifiers.Any(dependentSpecifier => dependentSpecifier.Identifier == installedSpecifier.Identifier)
                 || userInputSpecifiers.Any(userInputSpecifier => userInputSpecifier.Identifier == installedSpecifier.Identifier))
@@ -280,7 +280,7 @@ public class InstallService
 
             IFileSource fileSource = await _cacheManager.GetPackageFileSource(dependentSpecifier);
 
-            PackageManifest manifest = await _packageManager.GetPackageManifestFromFileSource(fileSource)
+            PackageManifest manifest = await _workspaceManager.GetPackageManifestFromFileSource(fileSource)
                 ?? throw new InvalidOperationException($"Cannot get package manifest from package '{dependentSpecifier}'.");
 
             installDetails.Add(new PackageInstallDetail
@@ -333,7 +333,7 @@ public class InstallService
         // Uninstall packages in topological order.
         foreach (PackageUninstallDetail uninstallDetail in uninstallDetails)
         {
-            await _packageManager.UninstallPackage(
+            await _workspaceManager.UninstallPackage(
                 uninstallDetail.Package.Specifier.Identifier,
                 dryRun,
                 ignoreScripts);
@@ -343,7 +343,7 @@ public class InstallService
         foreach (PackageInstallDetail packageInstallDetail in installDetails.AsEnumerable().Reverse())
         {
             // Lock the package if it is a primary package specifier.
-            await _packageManager.InstallPackage(
+            await _workspaceManager.InstallPackage(
                 packageInstallDetail.FileSource,
                 packageInstallDetail.VariantLabel,
                 dryRun,
@@ -364,7 +364,7 @@ public class InstallService
         {
             DirectoryFileSource directoryFileSource = new(_context.FileSystem, possibleDirPath);
 
-            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(directoryFileSource);
+            PackageManifest? packageManifest = await _workspaceManager.GetPackageManifestFromFileSource(directoryFileSource);
 
             if (packageManifest is not null)
             {
@@ -389,7 +389,7 @@ public class InstallService
             {
                 ArchiveFileSource archiveFileSource = new(_context.FileSystem, possibleFilePath);
 
-                PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(archiveFileSource);
+                PackageManifest? packageManifest = await _workspaceManager.GetPackageManifestFromFileSource(archiveFileSource);
 
                 if (packageManifest is not null)
                 {
@@ -411,7 +411,7 @@ public class InstallService
 
             IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 
-            PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource);
+            PackageManifest? packageManifest = await _workspaceManager.GetPackageManifestFromFileSource(fileSource);
 
             if (packageManifest is not null)
             {
@@ -438,7 +438,7 @@ public class InstallService
 
                 IFileSource fileSource = await _cacheManager.GetPackageFileSource(packageSpecifier);
 
-                PackageManifest? packageManifest = await _packageManager.GetPackageManifestFromFileSource(fileSource);
+                PackageManifest? packageManifest = await _workspaceManager.GetPackageManifestFromFileSource(fileSource);
 
                 if (packageManifest is not null)
                 {

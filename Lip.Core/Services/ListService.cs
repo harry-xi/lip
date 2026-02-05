@@ -5,26 +5,26 @@ namespace Lip.Core.Services;
 
 public class ListService
 {
-    private readonly IPackageManager _packageManager;
+    private readonly IWorkspaceManager _workspaceManager;
 
     public ListService(IContext context)
     {
         var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
         var pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
         var cacheManager = ServiceFactory.CreateCacheManager(context, pathManager, runtimeConfig);
-        _packageManager = ServiceFactory.CreatePackageManager(context, pathManager, cacheManager);
+        _workspaceManager = ServiceFactory.CreateWorkspaceManager(context, pathManager, cacheManager);
     }
 
-    internal ListService(IPackageManager packageManager)
+    internal ListService(IWorkspaceManager workspaceManager)
     {
-        _packageManager = packageManager;
+        _workspaceManager = workspaceManager;
     }
 
 
 
     public async Task<List<PackageSpecifier>> List()
     {
-        PackageLock packageLock = await _packageManager.GetCurrentPackageLock();
+        PackageLock packageLock = await _workspaceManager.GetCurrentPackageLock();
 
         return packageLock.Packages.ConvertAll(@lock => @lock.Specifier);
     }

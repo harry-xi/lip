@@ -17,7 +17,7 @@ public class UpdateServiceTests
     private readonly Mock<ICacheManager> _cacheManagerMock = new();
     private readonly Mock<IContext> _contextMock = new();
     private readonly Mock<IDependencySolver> _dependencySolverMock = new();
-    private readonly Mock<IPackageManager> _packageManagerMock = new();
+    private readonly Mock<IWorkspaceManager> _workspaceManagerMock = new();
     private readonly Mock<IPackageRegistry> _packageRegistryMock = new();
     private readonly Mock<IPathManager> _pathManagerMock = new();
     private readonly RuntimeConfig _runtimeConfig = new();
@@ -35,7 +35,7 @@ public class UpdateServiceTests
 
         var installService = new InstallService(
             _contextMock.Object,
-            _packageManagerMock.Object,
+            _workspaceManagerMock.Object,
             _dependencySolverMock.Object,
             _cacheManagerMock.Object,
             _packageRegistryMock.Object,
@@ -43,7 +43,7 @@ public class UpdateServiceTests
 
         _updateService = new UpdateService(
             _contextMock.Object,
-            _packageManagerMock.Object,
+            _workspaceManagerMock.Object,
             installService);
     }
 
@@ -109,11 +109,11 @@ public class UpdateServiceTests
         var lockedPackage = CreateLockedPackage("locked-pkg", "1.0.0");
         var pkgUpdateLocked = CreateLockedPackage("pkg-update", "1.0.0"); // Update package is also installed
 
-        _packageManagerMock.Setup(pm => pm.GetCurrentPackageLock())
+        _workspaceManagerMock.Setup(pm => pm.GetCurrentPackageLock())
             .ReturnsAsync(new PackageLock { Packages = [lockedPackage, pkgUpdateLocked] });
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/locked-pkg")))
              .ReturnsAsync(lockedPackage);
-        _packageManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-update")))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageFromLock(It.Is<PackageIdentifier>(id => id.ToString() == "github.com/test/pkg-update")))
              .ReturnsAsync(pkgUpdateLocked);
 
         // Mock user input resolution
@@ -121,7 +121,7 @@ public class UpdateServiceTests
             .ReturnsAsync(new List<SemVersion> { SemVersion.Parse("2.0.0") });
         _cacheManagerMock.Setup(cm => cm.GetPackageFileSource(It.IsAny<PackageSpecifier>()))
             .ReturnsAsync(new Mock<IFileSource>().Object);
-        _packageManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
+        _workspaceManagerMock.Setup(pm => pm.GetPackageManifestFromFileSource(It.IsAny<IFileSource>()))
             .ReturnsAsync(CreateManifest("pkg-update", "2.0.0"));
 
         // Mock dependency resolution success (return empty list)

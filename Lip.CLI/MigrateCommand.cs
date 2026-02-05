@@ -13,9 +13,9 @@ class MigrateCommand : AsyncCommand<MigrateCommand.Settings>
         [Description("The path to the tooth.json file to migrate.")]
         public required string Path { get; init; }
 
-        [CommandArgument(1, "[output]")]
+        [CommandArgument(1, "<output>")]
         [Description("The output path for the migrated file.")]
-        public required string? Output { get; init; }
+        public required string Output { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)

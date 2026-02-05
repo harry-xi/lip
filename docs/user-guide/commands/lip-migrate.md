@@ -5,13 +5,13 @@ Migrate a tooth.json file to the latest schema version
 ## Usage
 
 ```
-lip migrate <path> [output] [OPTIONS]
+lip migrate <path> <output> [OPTIONS]
 ```
 
 ## Arguments
 
 - `<path>`: The path to the tooth.json file to migrate
-- `[output]`: The path to write the migrated tooth.json file to. Defaults to the input path
+- `<output>`: The path to write the migrated tooth.json file to
 
 ## Options
 

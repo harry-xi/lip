@@ -3,47 +3,21 @@ using Lip.Core.Context;
 
 namespace Lip.Core.Services;
 
-public class MigrateService
+public class MigrateService(IContext context)
 {
-    private readonly IContext _context;
-    private readonly IPathManager _pathManager;
+    private readonly IContext _context = context;
 
-    public MigrateService(IContext context)
+
+
+    public async Task Migrate(string inputPath, string outputPath)
     {
-        _context = context;
-        var runtimeConfig = RuntimeConfig.Load(context.FileSystem);
-        _pathManager = ServiceFactory.CreatePathManager(context, runtimeConfig);
-    }
-
-    internal MigrateService(IContext context, IPathManager pathManager)
-    {
-        _context = context;
-        _pathManager = pathManager;
-    }
-
-
-
-    public async Task Migrate(string inputPath, string? outputPath = null)
-    {
-        string realInputPath = _context.FileSystem.Path.Combine(
-            _pathManager.WorkingDir,
-            inputPath
-        );
-
         PackageManifest packageManifest;
-        using (var inputFileStream = _context.FileSystem.File.OpenRead(realInputPath))
+        using (var inputFileStream = _context.FileSystem.File.OpenRead(inputPath))
         {
             packageManifest = await PackageManifest.FromStream(inputFileStream);
         }
 
-        string realOutputPath = _context.FileSystem.Path.Combine(
-            _pathManager.WorkingDir,
-            outputPath ?? inputPath
-        );
-
-        using (var outputFileStream = _context.FileSystem.File.OpenWrite(realOutputPath))
-        {
-            await PackageManifest.WriteToStreamAsync(packageManifest, outputFileStream);
-        }
+        using var outputFileStream = _context.FileSystem.File.OpenWrite(outputPath);
+        await PackageManifest.WriteToStreamAsync(packageManifest, outputFileStream);
     }
 }

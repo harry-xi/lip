@@ -1,11 +1,19 @@
 # lip cache
 
-Inspect and manage lip's cache.
+Inspect and manage lip's cache
 
-`lip cache [command] [options]`
+## Usage
 
-## clean
+```
+lip cache [OPTIONS] <COMMAND>
+```
 
-Clean the cache.
+## Options
 
-`lip cache clean [options]`
+- `-h, --help`: Prints help information
+- `-q, --quiet`: Show only errors
+- `-v, --verbose`: Show verbose output
+
+## Commands
+
+- `clean`: Clean the cache

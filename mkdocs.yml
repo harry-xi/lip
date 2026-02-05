@@ -8,15 +8,21 @@ nav:
     - user-guide/installation.md
     - user-guide/faq.md
     - Commands:
-      - user-guide/commands/lip.md
-      - user-guide/commands/lip-cache.md
-      - user-guide/commands/lip-config.md
-      - user-guide/commands/lip-init.md
-      - user-guide/commands/lip-install.md
-      - user-guide/commands/lip-list.md
-      - user-guide/commands/lip-uninstall.md
-      - user-guide/commands/lip-update.md
-      - user-guide/commands/lip-view.md
+      - lip: user-guide/commands/lip.md
+      - lip cache: user-guide/commands/lip-cache.md
+      - lip cache clean: user-guide/commands/lip-cache-clean.md
+      - lip config: user-guide/commands/lip-config.md
+      - lip config delete: user-guide/commands/lip-config-delete.md
+      - lip config get: user-guide/commands/lip-config-get.md
+      - lip config list: user-guide/commands/lip-config-list.md
+      - lip config set: user-guide/commands/lip-config-set.md
+      - lip init: user-guide/commands/lip-init.md
+      - lip install: user-guide/commands/lip-install.md
+      - lip list: user-guide/commands/lip-list.md
+      - lip migrate: user-guide/commands/lip-migrate.md
+      - lip uninstall: user-guide/commands/lip-uninstall.md
+      - lip update: user-guide/commands/lip-update.md
+      - lip view: user-guide/commands/lip-view.md
     - Files:
       - user-guide/files/tooth-json.md
 

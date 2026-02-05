@@ -1,5 +1,15 @@
 # lip list
 
-List installed packages.
+List installed packages
 
-`lip list [options]`
+## Usage
+
+```
+lip list [OPTIONS]
+```
+
+## Options
+
+- `-h, --help`: Prints help information
+- `-q, --quiet`: Show only errors
+- `-v, --verbose`: Show verbose output

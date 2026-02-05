@@ -1,12 +1,21 @@
 # lip uninstall
 
-Uninstall packages.
+Uninstall packages and unused dependencies
 
-`lip uninstall <package>... [options]`
+## Usage
 
-- `<package>`: The packages to uninstall.
+```
+lip uninstall <package ...> [OPTIONS]
+```
+
+## Arguments
+
+- `<package ...>`: The packages to uninstall
 
 ## Options
 
-- `--dry-run`: Do not actually uninstall any packages.
-- `--ignore-scripts`: Do not run any scripts during uninstallation.
+- `-h, --help`: Prints help information
+- `-q, --quiet`: Show only errors
+- `-v, --verbose`: Show verbose output
+- `--dry-run`: Do not actually uninstall any packages
+- `--ignore-scripts`: Do not run any scripts during uninstallation

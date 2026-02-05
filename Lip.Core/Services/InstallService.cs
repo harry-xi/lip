@@ -52,26 +52,17 @@ public class InstallService
     }
 
     [ExcludeFromCodeCoverage]
-    private record PackageInstallDetail : TopoSortedPackageList<PackageInstallDetail>.IItem
+    private record PackageInstallDetail
     {
-        public Dictionary<PackageIdentifier, SemVersionRange> Dependencies
-        {
-            get
-            {
-                return Manifest.GetVariant(
-                        VariantLabel,
-                        RuntimeInformation.RuntimeIdentifier)?
-                        .Dependencies ?? [];
-            }
-        }
-
         public required IFileSource FileSource { get; init; }
-
         public required PackageManifest Manifest { get; init; }
+        public required string VariantLabel { get; init; }
 
         public PackageSpecifier Specifier => new(new PackageIdentifier(Manifest.ToothPath, VariantLabel), Manifest.Version);
 
-        public required string VariantLabel { get; init; }
+        public IDictionary<PackageIdentifier, SemVersionRange> Dependencies =>
+            Manifest.GetVariant(VariantLabel, RuntimeInformation.RuntimeIdentifier)?.Dependencies
+            ?? new Dictionary<PackageIdentifier, SemVersionRange>();
     }
 
     public async Task Install(
@@ -233,7 +224,7 @@ public class InstallService
 
         _context.Logger.LogDebug("Getting packages to uninstall...");
 
-        TopoSortedPackageList<PackageUninstallDetail> uninstallDetails = [];
+        List<PackageDependencyDescriptor> uninstallDescriptors = [];
         foreach (var installedSpecifier in installedSpecifiers)
         {
             PackageLock.Package installedPackage = (await _workspaceManager.GetPackageFromLock(installedSpecifier.Identifier))!;
@@ -241,17 +232,18 @@ public class InstallService
             if (!dependentSpecifiers.Any(dependentSpecifier => dependentSpecifier.Identifier == installedSpecifier.Identifier)
                 || userInputSpecifiers.Any(userInputSpecifier => userInputSpecifier.Identifier == installedSpecifier.Identifier))
             {
-                uninstallDetails.Add(new PackageUninstallDetail()
-                {
-                    Package = installedPackage
-                });
+                uninstallDescriptors.Add(new PackageDependencyDescriptor(
+                    installedPackage.Specifier,
+                    installedPackage.Variant.Dependencies));
             }
         }
 
+        var sortedUninstallDescriptors = TopologicalSort.Sort(uninstallDescriptors);
+
         _context.Logger.LogDebug("Packages to uninstall:");
-        foreach (PackageUninstallDetail uninstallDetail in uninstallDetails)
+        foreach (var uninstallDescriptor in sortedUninstallDescriptors)
         {
-            _context.Logger.LogDebug("  {specifier}", uninstallDetail.Package.Specifier);
+            _context.Logger.LogDebug("  {specifier}", uninstallDescriptor.Specifier);
         }
 
         #endregion
@@ -266,9 +258,7 @@ public class InstallService
 
         _context.Logger.LogDebug("Getting packages to install...");
 
-        TopoSortedPackageList<PackageInstallDetail> installDetails = [];
-
-        installDetails.AddRange(userInputDetails);
+        List<PackageInstallDetail> installDetails = [.. userInputDetails];
 
         foreach (PackageSpecifier dependentSpecifier in dependentSpecifiers)
         {
@@ -331,26 +321,29 @@ public class InstallService
         //
 
         // Uninstall packages in topological order.
-        foreach (PackageUninstallDetail uninstallDetail in uninstallDetails)
+        foreach (var uninstallDescriptor in sortedUninstallDescriptors)
         {
             await _workspaceManager.UninstallPackage(
-                uninstallDetail.Package.Specifier.Identifier,
+                uninstallDescriptor.Specifier.Identifier,
                 dryRun,
                 ignoreScripts);
         }
 
         // Install packages in reverse topological order.
-        foreach (PackageInstallDetail packageInstallDetail in installDetails.AsEnumerable().Reverse())
+        var sortedInstallDescriptors = TopologicalSort.Sort(
+            installDetails.Select(d => new PackageDependencyDescriptor(d.Specifier, d.Dependencies)));
+
+        var installDetailMap = installDetails.ToDictionary(d => d.Specifier);
+        foreach (var descriptor in sortedInstallDescriptors.AsEnumerable().Reverse())
         {
-            // Lock the package if it is a primary package specifier.
+            var detail = installDetailMap[descriptor.Specifier];
             await _workspaceManager.InstallPackage(
-                packageInstallDetail.FileSource,
-                packageInstallDetail.VariantLabel,
+                detail.FileSource,
+                detail.VariantLabel,
                 dryRun,
                 ignoreScripts,
-                locked: specifiersToLock.Contains(packageInstallDetail.Specifier),
-                overwriteFiles
-                );
+                locked: specifiersToLock.Contains(detail.Specifier),
+                overwriteFiles);
         }
     }
 

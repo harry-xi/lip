@@ -35,7 +35,7 @@ public class UninstallService
 
         // Remove non-installed packages and sort packages topologically.
 
-        TopoSortedPackageList<PackageUninstallDetail> packageUninstallDetails = [];
+        List<PackageDependencyDescriptor> packageDescriptors = [];
 
         foreach (PackageIdentifier identifier in packageSpecifiersToUninstallSpecified)
         {
@@ -50,20 +50,22 @@ public class UninstallService
                 continue;
             }
 
-            packageUninstallDetails.Add(new PackageUninstallDetail
-            {
-                Package = package
-            });
+            packageDescriptors.Add(new PackageDependencyDescriptor(
+                package.Specifier,
+                package.Variant.Dependencies));
         }
+
+        var sortedPackages = TopologicalSort.Sort(packageDescriptors);
 
         // Uninstall packages in topological order.
 
-        foreach (PackageUninstallDetail packageUninstallDetail in packageUninstallDetails)
+        foreach (var descriptor in sortedPackages)
         {
             await _workspaceManager.UninstallPackage(
-                packageUninstallDetail.Specifier.Identifier,
+                descriptor.Specifier.Identifier,
                 dryRun,
                 ignoreScripts);
         }
+
     }
 }

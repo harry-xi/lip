@@ -13,10 +13,6 @@ class ViewCommand : AsyncCommand<ViewCommand.Settings>
         [CommandArgument(0, "<package>")]
         [Description("The package specifier to view.")]
         public required string Package { get; init; }
-
-        [CommandArgument(1, "[path]")]
-        [Description("The path to a specific field in the manifest.")]
-        public required string? Path { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -25,7 +21,7 @@ class ViewCommand : AsyncCommand<ViewCommand.Settings>
 
         var viewService = new ViewService(ctx);
 
-        string result = await viewService.View(settings.Package, settings.Path);
+        string result = await viewService.View(settings.Package);
 
         AnsiConsole.MarkupLine(result.EscapeMarkup());
 

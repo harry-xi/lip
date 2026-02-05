@@ -5,13 +5,12 @@ Show information about a package. If not cached, lip will download the package
 ## Usage
 
 ```
-lip view <package> [path] [OPTIONS]
+lip view <package> [OPTIONS]
 ```
 
 ## Arguments
 
 - `<package>`: The package to view
-- `[path]`: The path to the property to view. If not specified, the entire package information will be shown
 
 ## Options
 

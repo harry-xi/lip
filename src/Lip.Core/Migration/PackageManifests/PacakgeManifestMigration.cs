@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Lip.Core.Migration.PackageManifests;
 
-public static class MigrationV1ToV3
+public static class PackageManifestMigration
 {
     public static PackageManifest Migrate(JsonDocument jsonDocument)
     {

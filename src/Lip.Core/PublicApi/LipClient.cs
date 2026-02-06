@@ -1,5 +1,7 @@
 ﻿using Lip.Core.Entities;
+using Lip.Core.Migration.PackageManifests;
 using Lip.Core.Services;
+using System.IO.Abstractions;
 using System.Text.Json;
 
 namespace Lip.Core.PublicApi;
@@ -35,10 +37,12 @@ public interface ILipClient
 }
 
 public class LipClient(
+    IFileSystem fileSystem,
     ICacheService cacheService,
     IConfigService configService,
     IRegistryService registryService) : ILipClient
 {
+    private readonly IFileSystem _fileSystem = fileSystem;
     private readonly ICacheService _cacheService = cacheService;
     private readonly IConfigService _configService = configService;
     private readonly IRegistryService _registryService = registryService;
@@ -68,9 +72,22 @@ public class LipClient(
         await _configService.Set(key, value);
     }
 
-    public Task Init()
+    public async Task Init()
     {
-        throw new NotImplementedException();
+        PackageManifest packageManifest = new()
+        {
+            Path = "github.com/user/repo",
+            Version = new(0),
+        };
+
+        JsonSerializerOptions options = new()
+        {
+            WriteIndented = true,
+        };
+
+        using Stream stream = _fileSystem.File.Create("tooth.json");
+
+        await JsonSerializer.SerializeAsync(stream, packageManifest, options);
     }
 
     public Task Install(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
@@ -83,9 +100,22 @@ public class LipClient(
         throw new NotImplementedException();
     }
 
-    public Task Migrate(string file, string output)
+    public async Task Migrate(string file, string output)
     {
-        throw new NotImplementedException();
+        using Stream inputStream = _fileSystem.File.OpenRead(file);
+
+        JsonDocument inputJson = await JsonDocument.ParseAsync(inputStream);
+
+        PackageManifest packageManifest = PackageManifestMigration.Migrate(inputJson);
+
+        JsonSerializerOptions options = new()
+        {
+            WriteIndented = true,
+        };
+
+        using Stream outputStream = _fileSystem.File.Create(output);
+
+        await JsonSerializer.SerializeAsync(outputStream, packageManifest, options);
     }
 
     public Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)

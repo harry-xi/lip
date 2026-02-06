@@ -41,7 +41,7 @@ public record PackageManifest
     public required string Path
     {
         get;
-        init => field = (Golang.Org.X.Mod.Module.CheckPath(Path) is null)
+        init => field = (Golang.Org.X.Mod.Module.CheckPath(value) is null)
             ? value
             : throw new FormatException($"Invalid package path: {value}");
     }

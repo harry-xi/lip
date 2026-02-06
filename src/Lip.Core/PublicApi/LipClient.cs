@@ -1,5 +1,4 @@
 ﻿using Lip.Core.Entities;
-using Lip.Core.Registries;
 using Lip.Core.Services;
 using System.Text.Json;
 

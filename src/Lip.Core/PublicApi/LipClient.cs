@@ -1,4 +1,7 @@
-﻿using Lip.Core.Services;
+﻿using Lip.Core.Entities;
+using Lip.Core.Registries;
+using Lip.Core.Services;
+using System.Text.Json;
 
 namespace Lip.Core.PublicApi;
 
@@ -32,10 +35,14 @@ public interface ILipClient
     Task<string> View(string package);
 }
 
-public class LipClient(ICacheService cacheService, IConfigService configService) : ILipClient
+public class LipClient(
+    ICacheService cacheService,
+    IConfigService configService,
+    IRegistryService registryService) : ILipClient
 {
     private readonly ICacheService _cacheService = cacheService;
     private readonly IConfigService _configService = configService;
+    private readonly IRegistryService _registryService = registryService;
 
     public async Task CacheClean()
     {
@@ -92,8 +99,17 @@ public class LipClient(ICacheService cacheService, IConfigService configService)
         throw new NotImplementedException();
     }
 
-    public Task<string> View(string package)
+    public async Task<string> View(string package)
     {
-        throw new NotImplementedException();
+        PackageSpec packageSpec = PackageSpec.Parse(package);
+
+        PackageManifest packageManifest = await _registryService.GetPackageManifest(packageSpec);
+
+        JsonSerializerOptions options = new()
+        {
+            WriteIndented = true,
+        };
+
+        return JsonSerializer.Serialize(packageManifest, options);
     }
 }

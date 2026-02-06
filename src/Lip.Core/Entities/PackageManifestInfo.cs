@@ -1,0 +1,33 @@
+using Flurl;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+
+namespace Lip.Core.Entities;
+
+public partial record PackageManifestInfo
+{
+    [JsonPropertyName("name")]
+    public string Name { get; init; } = "";
+
+    [JsonPropertyName("description")]
+    public string Description { get; init; } = "";
+
+    [JsonPropertyName("tags")]
+    public List<string> Tags
+    {
+        get;
+        init
+        {
+            string? invalidTag = value.FirstOrDefault(tag => !TagRegex().IsMatch(tag));
+            field = (invalidTag == null)
+                ? value
+                : throw new FormatException($"Invalid package tag: {invalidTag}");
+        }
+    } = [];
+
+    [GeneratedRegex("^[a-z0-9-]+(:[a-z0-9-]+)?$")]
+    private static partial Regex TagRegex();
+
+    [JsonPropertyName("avatar_url")]
+    public Url? AvatarUrl { get; init; }
+}

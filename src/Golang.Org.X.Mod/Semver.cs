@@ -4,7 +4,7 @@ public static class Semver
 {
     public static string Build(string v)
     {
-        var (pv, ok) = SemverInternal.Parse(v);
+        (Parsed pv, bool ok) = SemverInternal.Parse(v);
         if (!ok)
         {
             return string.Empty;
@@ -14,7 +14,7 @@ public static class Semver
 
     public static string Canonical(string v)
     {
-        var (p, ok) = SemverInternal.Parse(v);
+        (Parsed p, bool ok) = SemverInternal.Parse(v);
         if (!ok)
         {
             return string.Empty;
@@ -97,13 +97,13 @@ file static class SemverInternal
             return (default, false);
         }
 
-        var (major, rest, ok) = ParseInt(v[1..]);
+        (string? major, string? rest, bool ok) = ParseInt(v[1..]);
         if (!ok)
         {
             return (default, false);
         }
 
-        var p = new Parsed { Major = major };
+        Parsed p = new Parsed { Major = major };
 
         if (string.IsNullOrEmpty(rest))
         {
@@ -118,7 +118,7 @@ file static class SemverInternal
             return (default, false);
         }
 
-        var (minor, rest2, ok2) = ParseInt(rest[1..]);
+        (string? minor, string? rest2, bool ok2) = ParseInt(rest[1..]);
         if (!ok2)
         {
             return (default, false);
@@ -138,7 +138,7 @@ file static class SemverInternal
             return (default, false);
         }
 
-        var (patch, rest3, ok3) = ParseInt(rest2[1..]);
+        (string? patch, string? rest3, bool ok3) = ParseInt(rest2[1..]);
         if (!ok3)
         {
             return (default, false);
@@ -148,7 +148,7 @@ file static class SemverInternal
 
         if (rest3.Length > 0 && rest3[0] == '-')
         {
-            var (prerelease, rest4, ok4) = ParsePrerelease(rest3);
+            (string? prerelease, string? rest4, bool ok4) = ParsePrerelease(rest3);
             if (!ok4)
             {
                 return (default, false);
@@ -159,7 +159,7 @@ file static class SemverInternal
 
         if (rest3.Length > 0 && rest3[0] == '+')
         {
-            var (build, rest5, ok5) = ParseBuild(rest3);
+            (string? build, string? rest5, bool ok5) = ParseBuild(rest3);
             if (!ok5)
             {
                 return (default, false);

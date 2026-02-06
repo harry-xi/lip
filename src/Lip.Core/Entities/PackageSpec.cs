@@ -5,6 +5,10 @@ namespace Lip.Core.Entities;
 
 public partial record PackageSpec(PackageId Id, SemVersion Version)
 {
+    public PackageId Id { get; init; } = Id;
+
+    public SemVersion Version { get; init; } = Version;
+
     public override string ToString() => $"{Id}@{Version}";
 
     public static PackageSpec Parse(string s)

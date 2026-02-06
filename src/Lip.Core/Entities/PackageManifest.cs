@@ -1,0 +1,105 @@
+using DotNet.Globbing;
+using Semver;
+using System.Text.Json.Serialization;
+
+namespace Lip.Core.Entities;
+
+public record PackageManifest
+{
+    private const int _currentFormatVersion = 3;
+    private const string _currentFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
+
+    [JsonInclude]
+    [JsonPropertyName("format_version")]
+    private int _formatVersion
+    {
+        get => _currentFormatVersion;
+        init
+        {
+            if (value != _currentFormatVersion)
+            {
+                throw new NotSupportedException($"Unsupported format version: {value}");
+            }
+        }
+    }
+
+    [JsonInclude]
+    [JsonPropertyName("format_uuid")]
+    private string _formatUuid
+    {
+        get => _currentFormatUuid;
+        init
+        {
+            if (value != _currentFormatUuid)
+            {
+                throw new NotSupportedException($"Unsupported format UUID: {value}");
+            }
+        }
+    }
+
+    [JsonPropertyName("tooth")]
+    public required string Path
+    {
+        get;
+        init => field = (Golang.Org.X.Mod.Module.CheckPath(Path) is null)
+            ? value
+            : throw new FormatException($"Invalid package path: {value}");
+    }
+
+    [JsonPropertyName("version")]
+    public required SemVersion Version { get; init; }
+
+    [JsonPropertyName("info")]
+    public PackageManifestInfo Info { get; init; } = new();
+
+    [JsonPropertyName("variants")]
+    public List<PackageManifestVariant> Variants { get; init; } = [];
+
+    public PackageManifestVariant GetVariant(string label, string platform)
+    {
+        List<PackageManifestVariant> matchingVariants = [];
+        foreach (PackageManifestVariant variant in Variants)
+        {
+            if (!(label == variant.Label) && !Glob.Parse(variant.Label).IsMatch(label))
+            {
+                continue;
+            }
+
+            if (
+                variant.Platform != ""
+                && !(platform == variant.Platform)
+                && !Glob.Parse(variant.Platform).IsMatch(platform))
+            {
+                continue;
+            }
+        }
+
+        // At least one full match is required to indicate that the current
+        // platform is supported for the given variant.
+        if (matchingVariants.All(
+            v => (v.Label != label) && (v.Platform != platform)
+        ))
+        {
+            throw new KeyNotFoundException($"No variant found for label '{label}' and platform '{platform}'.");
+        }
+
+        return new()
+        {
+            Label = label,
+            Platform = platform,
+            Dependencies = matchingVariants
+                .SelectMany(variant => variant.Dependencies)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+            Assets = [.. matchingVariants.SelectMany(variant => variant.Assets)],
+            PreserveFiles = [.. matchingVariants.SelectMany(variant => variant.PreserveFiles)],
+            RemoveFiles = [.. matchingVariants.SelectMany(variant => variant.RemoveFiles)],
+            Scripts = new()
+            {
+                PreInstall = matchingVariants.LastOrDefault(v => v.Scripts.PreInstall.Count > 0)?.Scripts.PreInstall ?? [],
+                PostInstall = matchingVariants.LastOrDefault(v => v.Scripts.PostInstall.Count > 0)?.Scripts.PostInstall ?? [],
+                PreUninstall = matchingVariants.LastOrDefault(v => v.Scripts.PreUninstall.Count > 0)?.Scripts.PreUninstall ?? [],
+                PostUninstall = matchingVariants.LastOrDefault(v => v.Scripts.PostUninstall.Count > 0)?.Scripts.PostUninstall ?? [],
+            }
+        };
+    }
+}

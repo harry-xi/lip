@@ -129,7 +129,7 @@ public class ModuleTests
 #pragma warning restore xUnit1026 // Theory methods should use all of their parameters
     {
         // Act.
-        var err = Module.CheckPath(path);
+        Exception? err = Module.CheckPath(path);
 
         // Assert.
         Assert.Equal(ok, err == null);
@@ -141,7 +141,7 @@ public class ModuleTests
     public void EscapePath_ValidInput_ReturnsExpectedOutput(string path, string expectedEsc)
     {
         // Act.
-        var (esc, err) = Module.EscapePath(path);
+        (string? esc, Exception? err) = Module.EscapePath(path);
 
         // Assert.
         Assert.Null(err);
@@ -161,7 +161,7 @@ public class ModuleTests
         }
 
         // Act.
-        var (_, err) = Module.EscapePath(path);
+        (string _, Exception? err) = Module.EscapePath(path);
 
         // Assert.
         Assert.NotNull(err);
@@ -179,7 +179,7 @@ public class ModuleTests
     public void SplitPathVersion_ValidInput_ReturnsExpectedOutput(string expectedPathPrefix, string expectedVersion)
     {
         // Act.
-        var (pathPrefix, version, ok) = Module.SplitPathVersion(expectedPathPrefix + expectedVersion);
+        (string? pathPrefix, string? version, bool ok) = Module.SplitPathVersion(expectedPathPrefix + expectedVersion);
 
         // Assert.
         Assert.Equal(expectedPathPrefix, pathPrefix);
@@ -194,7 +194,7 @@ public class ModuleTests
 #pragma warning restore xUnit1026 // Theory methods should use all of their parameters
     {
         // Act.
-        var (pathPrefix, version, ok) = Module.SplitPathVersion(path);
+        (string? pathPrefix, string? version, bool ok) = Module.SplitPathVersion(path);
 
         // Assert.
         Assert.Equal(path, pathPrefix + version);

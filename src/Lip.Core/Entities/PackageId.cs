@@ -4,11 +4,11 @@ namespace Lip.Core.Entities;
 
 public partial record PackageId(string Path, string Variant)
 {
-    public string Path { get; } = (Golang.Org.X.Mod.Module.CheckPath(Path) is null)
+    public string Path { get; init; } = (Golang.Org.X.Mod.Module.CheckPath(Path) is null)
         ? Path
         : throw new FormatException($"Invalid package path: {Path}");
 
-    public string Variant { get; } = VariantRegex().IsMatch(Variant)
+    public string Variant { get; init; } = VariantRegex().IsMatch(Variant)
         ? Variant
         : throw new FormatException($"Invalid package variant: {Variant}");
 

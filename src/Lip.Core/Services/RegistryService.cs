@@ -1,0 +1,8 @@
+using Lip.Core.Entities;
+
+namespace Lip.Core.Services;
+
+public interface IRegistryService
+{
+    Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec);
+}

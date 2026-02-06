@@ -50,7 +50,7 @@ public static class Module
             return new InvalidPathError("module", path, exception);
         }
 
-        var err = ModuleInternal.CheckPath(path, ModuleInternal.PathKind.ModulePath);
+        Exception? err = ModuleInternal.CheckPath(path, ModuleInternal.PathKind.ModulePath);
         if (err != null)
         {
             return MakeError(err);
@@ -79,7 +79,7 @@ public static class Module
                 return new InvalidPathError("module", path, new Exception($"invalid char '{path[j]}' in first path element"));
             }
         }
-        var split = SplitPathVersion(path);
+        (string, string, bool) split = SplitPathVersion(path);
         if (!split.Item3)
         {
             return new InvalidPathError("module", path, new Exception("invalid version"));
@@ -94,7 +94,7 @@ public static class Module
 
     public static (string, Exception?) EscapePath(string path)
     {
-        var err = CheckPath(path);
+        Exception? err = CheckPath(path);
         if (err != null)
         {
             return (string.Empty, err);
@@ -105,7 +105,7 @@ public static class Module
 
     public static (string, Exception?) EscapeVersion(string v)
     {
-        var err = ModuleInternal.CheckElem(v, ModuleInternal.PathKind.FilePath);
+        Exception? err = ModuleInternal.CheckElem(v, ModuleInternal.PathKind.FilePath);
         if (err != null || v.Contains('!'))
         {
             return (
@@ -409,7 +409,7 @@ file static class ModuleInternal
                 return (s, null);
             }
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             foreach (char r in s)
             {
                 if (r >= 'A' && r <= 'Z')

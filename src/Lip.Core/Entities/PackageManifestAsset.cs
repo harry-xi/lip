@@ -1,0 +1,31 @@
+using Flurl;
+using System.Text.Json.Serialization;
+
+namespace Lip.Core.Entities;
+
+public record PackageManifestAsset
+{
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum AssetType
+    {
+        [JsonStringEnumMemberName("self")]
+        Self,
+        [JsonStringEnumMemberName("tar")]
+        Tar,
+        [JsonStringEnumMemberName("tgz")]
+        Tgz,
+        [JsonStringEnumMemberName("uncompressed")]
+        Uncompressed,
+        [JsonStringEnumMemberName("zip")]
+        Zip,
+    }
+
+    [JsonPropertyName("type")]
+    public required AssetType Type { get; init; }
+
+    [JsonPropertyName("urls")]
+    public List<Url> Urls { get; init; } = [];
+
+    [JsonPropertyName("placements")]
+    public List<PackageManifestAssetPlacement> Placements { get; init; } = [];
+}

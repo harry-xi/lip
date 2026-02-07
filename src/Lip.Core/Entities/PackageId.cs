@@ -1,7 +1,10 @@
+using Lip.Core.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Lip.Core.Entities;
 
+[JsonConverter(typeof(PackageIdJsonConverter))]
 public partial record PackageId(string Path, string Variant)
 {
     public string Path { get; init; } = (Golang.Org.X.Mod.Module.CheckPath(Path) is null)

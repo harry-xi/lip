@@ -10,8 +10,9 @@ public record PackageManifest
     private const string _currentFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
 
     [JsonInclude]
+    [JsonRequired]
     [JsonPropertyName("format_version")]
-    private int _formatVersion
+    public int FormatVersion
     {
         get => _currentFormatVersion;
         init
@@ -24,8 +25,9 @@ public record PackageManifest
     }
 
     [JsonInclude]
+    [JsonRequired]
     [JsonPropertyName("format_uuid")]
-    private string _formatUuid
+    public string FormatUuid
     {
         get => _currentFormatUuid;
         init

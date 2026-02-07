@@ -11,9 +11,12 @@ public static class PackageManifestMigration
 
         return formatVersion switch
         {
-            1 => MigrateV2ToV3(MigrateV1ToV2(JsonSerializer.Deserialize<PackageManifestV1>(jsonDocument)!)),
-            2 => MigrateV2ToV3(JsonSerializer.Deserialize<PackageManifestV2>(jsonDocument)!),
-            3 => JsonSerializer.Deserialize<PackageManifest>(jsonDocument)!,
+            1 => MigrateV2ToV3(MigrateV1ToV2(JsonSerializer.Deserialize<PackageManifestV1>(jsonDocument)
+                ?? throw new JsonException("Failed to deserialize PackageManifestV1"))),
+            2 => MigrateV2ToV3(JsonSerializer.Deserialize<PackageManifestV2>(jsonDocument)
+                ?? throw new JsonException("Failed to deserialize PackageManifestV2")),
+            3 => JsonSerializer.Deserialize<PackageManifest>(jsonDocument)
+                ?? throw new JsonException("Failed to deserialize PackageManifest"),
             _ => throw new NotSupportedException($"Unsupported format version: {formatVersion}")
         };
     }

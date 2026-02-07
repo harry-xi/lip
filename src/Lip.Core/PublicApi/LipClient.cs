@@ -45,22 +45,38 @@ public class LipClient(
 
     public async Task ConfigDelete(string key)
     {
-        await _configService.Delete(key);
+        RuntimeConfig config = await _configService.LoadConfig();
+
+        RuntimeConfig newConfig = config.With(key, null);
+
+        await _configService.SaveConfig(newConfig);
     }
 
     public async Task<string> ConfigGet(string key)
     {
-        return await _configService.Get(key);
+        RuntimeConfig config = await _configService.LoadConfig();
+
+        return config.AsDictionary()[key]?.ToString() ?? "";
     }
 
     public async Task<IDictionary<string, string>> ConfigList()
     {
-        return await _configService.List();
+        RuntimeConfig config = await _configService.LoadConfig();
+
+        return config
+            .AsDictionary()
+            .ToDictionary<KeyValuePair<string, dynamic?>, string, string>(
+                kvp => kvp.Key,
+                kvp => kvp.Value?.ToString() ?? "");
     }
 
     public async Task ConfigSet(string key, string value)
     {
-        await _configService.Set(key, value);
+        RuntimeConfig config = await _configService.LoadConfig();
+
+        RuntimeConfig newConfig = config.With(key, value);
+
+        await _configService.SaveConfig(newConfig);
     }
 
     public async Task Init()

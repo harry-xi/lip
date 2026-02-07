@@ -19,7 +19,7 @@ public partial record PackageManifestInfo
         init
         {
             string? invalidTag = value.FirstOrDefault(tag => !TagRegex().IsMatch(tag));
-            field = (invalidTag == null)
+            field = (invalidTag is null)
                 ? value
                 : throw new FormatException($"Invalid package tag: {invalidTag}");
         }

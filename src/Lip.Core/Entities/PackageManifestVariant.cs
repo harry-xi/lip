@@ -24,7 +24,7 @@ public record PackageManifestVariant
         init
         {
             string? invalidPath = value.FirstOrDefault(path => !PackageManifestAssetPlacement.IsValidDst(path));
-            field = (invalidPath == null)
+            field = (invalidPath is null)
                 ? value
                 : throw new ArgumentException($"Invalid preserve file path: {invalidPath}");
         }
@@ -37,7 +37,7 @@ public record PackageManifestVariant
         init
         {
             string? invalidPath = value.FirstOrDefault(path => !PackageManifestAssetPlacement.IsValidDst(path));
-            field = (invalidPath == null)
+            field = (invalidPath is null)
                 ? value
                 : throw new ArgumentException($"Invalid remove file path: {invalidPath}");
         }

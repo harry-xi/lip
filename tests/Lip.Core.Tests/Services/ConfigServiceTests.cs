@@ -1,5 +1,4 @@
 using Lip.Core.Entities;
-using Lip.Core.Json;
 using Lip.Core.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -12,152 +11,109 @@ namespace Lip.Core.Tests.Services;
 public class ConfigServiceTests
 {
     private readonly MockFileSystem _fileSystem;
-    private readonly Mock<ILogger<ConfigService>> _loggerMock;
+    private readonly Mock<ILogger> _loggerMock;
     private readonly ConfigService _configService;
     private readonly string _configPath;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public ConfigServiceTests()
     {
         _fileSystem = new MockFileSystem();
-        _loggerMock = new Mock<ILogger<ConfigService>>();
+        _loggerMock = new Mock<ILogger>();
         _configService = new ConfigService(_fileSystem, _loggerMock.Object);
+
         _configPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
+
+        _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
     }
 
     [Fact]
-    public async Task List_ReturnsAllNonNullProperties()
+    public async Task LoadConfig_FileDoesNotExist_ReturnsDefaultAndCreatesFile()
     {
-        // Arrange
-        var config = new RuntimeConfig
-        {
-            GithubProxy = "https://proxy.example.com",
-            GoModuleProxy = "https://goproxy.example.com"
-        };
-        await SaveConfigAsync(config);
-
         // Act
-        var result = await _configService.List();
+        var result = await _configService.LoadConfig();
 
         // Assert
-        Assert.Contains("format_version", result.Keys);
-        Assert.Contains("format_uuid", result.Keys);
-        Assert.Equal("https://proxy.example.com", result["github_proxy"]);
-        Assert.Equal("https://goproxy.example.com", result["go_module_proxy"]);
+        Assert.NotNull(result);
+        Assert.Equal(3, result.FormatVersion); // Default version
+        Assert.True(_fileSystem.File.Exists(_configPath));
+
+        // Verify logs
+        VerifyLog(LogLevel.Error, times: Times.Once()); // Exception caught
+        VerifyLog(LogLevel.Information, "Using default runtime configuration", Times.Once());
     }
 
     [Fact]
-    public async Task Get_ExistingKey_ReturnsCorrectValue()
+    public async Task LoadConfig_FileExistsAndIsValid_ReturnsDeserializedConfig()
     {
         // Arrange
-        var config = new RuntimeConfig
-        {
-            GithubProxy = "https://proxy.example.com"
-        };
-        await SaveConfigAsync(config);
+        var expectedConfig = new RuntimeConfig { FormatVersion = 3, FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d" };
+        var json = JsonSerializer.Serialize(expectedConfig, _jsonOptions);
+
+        _fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(_configPath)!);
+        await _fileSystem.File.WriteAllTextAsync(_configPath, json);
 
         // Act
-        var result = await _configService.Get("github_proxy");
+        var result = await _configService.LoadConfig();
 
         // Assert
-        Assert.Equal("https://proxy.example.com", result);
+        Assert.NotNull(result);
+        Assert.Equal(expectedConfig.FormatVersion, result.FormatVersion);
+        Assert.Equal(expectedConfig.FormatUuid, result.FormatUuid);
     }
 
     [Fact]
-    public async Task Get_NonExistingKey_ThrowsKeyNotFoundException()
+    public async Task LoadConfig_FileExistsButIsInvalidJson_ReturnsDefaultAndOverwritesFile()
     {
         // Arrange
-        await SaveConfigAsync(new RuntimeConfig());
-
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _configService.Get("non_existent_key"));
-    }
-
-    [Fact]
-    public async Task Set_ValidKey_UpdatesValue()
-    {
-        // Arrange
-        await SaveConfigAsync(new RuntimeConfig());
+        _fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(_configPath)!);
+        await _fileSystem.File.WriteAllTextAsync(_configPath, "invalid json");
 
         // Act
-        await _configService.Set("github_proxy", "https://newproxy.example.com");
+        var result = await _configService.LoadConfig();
 
         // Assert
-        var result = await _configService.Get("github_proxy");
-        Assert.Equal("https://newproxy.example.com", result);
+        Assert.NotNull(result);
+        // Should return default
+        Assert.Equal(3, result.FormatVersion);
+
+        // Should overwrite file with valid default config
+        var fileContent = await _fileSystem.File.ReadAllTextAsync(_configPath);
+        var savedConfig = JsonSerializer.Deserialize<RuntimeConfig>(fileContent);
+        Assert.NotNull(savedConfig);
+
+        // Verify logs
+        VerifyLog(LogLevel.Error, times: Times.Once());
+        VerifyLog(LogLevel.Information, "Using default runtime configuration", Times.Once());
     }
 
     [Fact]
-    public async Task Set_NonExistingKey_ThrowsKeyNotFoundException()
+    public async Task SaveConfig_WritesConfigToFile()
     {
         // Arrange
-        await SaveConfigAsync(new RuntimeConfig());
-
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _configService.Set("non_existent_key", "value"));
-    }
-
-    [Fact]
-    public async Task Set_ReadOnlyKey_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        await SaveConfigAsync(new RuntimeConfig());
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _configService.Set("format_version", "100"));
-    }
-
-    [Fact]
-    public async Task Delete_ExistingKey_SetsValueToNull()
-    {
-        // Arrange
-        var config = new RuntimeConfig
-        {
-            GithubProxy = "https://proxy.example.com"
-        };
-        await SaveConfigAsync(config);
+        var config = new RuntimeConfig(); // Default
 
         // Act
-        await _configService.Delete("github_proxy");
+        await _configService.SaveConfig(config);
 
         // Assert
-        var result = await _configService.Get("github_proxy");
-        Assert.Equal(string.Empty, result);
+        Assert.True(_fileSystem.File.Exists(_configPath));
+        var fileContent = await _fileSystem.File.ReadAllTextAsync(_configPath);
+        var savedConfig = JsonSerializer.Deserialize<RuntimeConfig>(fileContent);
+        Assert.NotNull(savedConfig);
+        Assert.Equal(config.FormatVersion, savedConfig.FormatVersion);
     }
 
-    [Fact]
-    public async Task Delete_NonExistingKey_ThrowsKeyNotFoundException()
+    private void VerifyLog(LogLevel level, string? messageContains = null, Times? times = null)
     {
-        // Arrange
-        await SaveConfigAsync(new RuntimeConfig());
-
-        // Act & Assert
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _configService.Delete("non_existent_key"));
-    }
-
-    [Fact]
-    public async Task Delete_ReadOnlyKey_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        await SaveConfigAsync(new RuntimeConfig());
-
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _configService.Delete("format_version"));
-    }
-
-    private async Task SaveConfigAsync(RuntimeConfig config)
-    {
-        if (!_fileSystem.Directory.Exists(Path.GetDirectoryName(_configPath)))
-        {
-            _fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(_configPath)!);
-        }
-
-        JsonSerializerOptions options = new()
-        {
-            Converters = { new UrlJsonConverter() }
-        };
-
-        using var stream = _fileSystem.File.Create(_configPath);
-        await JsonSerializer.SerializeAsync(stream, config, options);
+        _loggerMock.Verify(
+            x => x.Log(
+                level,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => messageContains == null || v.ToString()!.Contains(messageContains)),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times ?? Times.AtLeastOnce());
     }
 }

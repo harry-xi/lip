@@ -132,7 +132,7 @@ public class ModuleTests
         Exception? err = Module.CheckPath(path);
 
         // Assert.
-        Assert.Equal(ok, err == null);
+        Assert.Equal(ok, err is null);
     }
 
     [Theory]

@@ -26,22 +26,22 @@ public static class PackageManifestMigration
         var data = manifestV1.Information?.Data;
         var info = new PackageManifestV2Info
         {
-            Name = data != null && data.TryGetValue("name", out var n)
+            Name = data is not null && data.TryGetValue("name", out var n)
                 ? n.GetString() ?? ""
                 : "",
-            Description = data != null && data.TryGetValue("description", out var d)
+            Description = data is not null && data.TryGetValue("description", out var d)
                 ? d.GetString() ?? ""
                 : "",
-            Author = data != null && data.TryGetValue("author", out var a)
+            Author = data is not null && data.TryGetValue("author", out var a)
                 ? a.GetString() ?? ""
                 : "",
-            Tags = data != null && data.TryGetValue("tags", out var t) && t.ValueKind == JsonValueKind.Array
+            Tags = data is not null && data.TryGetValue("tags", out var t) && t.ValueKind == JsonValueKind.Array
                 ? [.. t.EnumerateArray().Select(e => e.GetString() ?? "")]
                 : []
         };
 
         PackageManifestV2Commands? commands = null;
-        if (manifestV1.Commands != null)
+        if (manifestV1.Commands is not null)
         {
             var result = new PackageManifestV2Commands();
             foreach (var cmd in manifestV1.Commands)
@@ -57,7 +57,7 @@ public static class PackageManifestMigration
                     result.PostUninstall.AddRange(cmd.Commands);
                 }
             }
-            if (result.PostInstall != null || result.PostUninstall != null)
+            if (result.PostInstall is not null || result.PostUninstall is not null)
             {
                 commands = result;
             }
@@ -76,7 +76,7 @@ public static class PackageManifestMigration
                 kvp => string.Join(" || ", kvp.Value.Select(group => string.Join(" && ", group)))
             ),
             Prerequisites = null,
-            Files = manifestV1.Placement != null
+            Files = manifestV1.Placement is not null
                 ? new PackageManifestV2Files
                 {
                     Place = [.. manifestV1.Placement.Select(p => new PackageManifestV2Place { Src = p.Source, Dest = p.Destination.TrimEnd('*') })]
@@ -104,7 +104,7 @@ public static class PackageManifestMigration
             Variants = []
         };
 
-        if (manifestV2.Platforms != null)
+        if (manifestV2.Platforms is not null)
         {
             foreach (var p in manifestV2.Platforms)
             {
@@ -130,7 +130,7 @@ public static class PackageManifestMigration
                 };
 
                 var dependencies = new Dictionary<PackageId, Semver.SemVersionRange>();
-                if (p.Dependencies != null || manifestV2.Dependencies != null)
+                if (p.Dependencies is not null || manifestV2.Dependencies is not null)
                 {
                     foreach (var kvp in p.Dependencies ?? manifestV2.Dependencies!)
                     {
@@ -147,7 +147,7 @@ public static class PackageManifestMigration
 
                 var assets = new List<PackageManifestAsset>();
                 var assetUrl = p.AssetUrl ?? manifestV2.AssetUrl;
-                if (assetUrl != null)
+                if (assetUrl is not null)
                 {
                     var url = System.Text.RegularExpressions.Regex.Replace(assetUrl, @"\$\(([^)]+?)\)", "{{$1}}");
                     var type = url.Split('.').Last() switch
@@ -161,7 +161,7 @@ public static class PackageManifestMigration
 
                     var placements = new List<PackageManifestAssetPlacement>();
                     var places = p.Files?.Place ?? manifestV2.Files?.Place;
-                    if (places != null)
+                    if (places is not null)
                     {
                         foreach (var pl in places)
                         {
@@ -188,7 +188,7 @@ public static class PackageManifestMigration
 
                 var scripts = new PackageManifestScripts();
                 var cmds = p.Commands ?? manifestV2.Commands;
-                if (cmds != null)
+                if (cmds is not null)
                 {
                     scripts = new PackageManifestScripts
                     {
@@ -213,7 +213,7 @@ public static class PackageManifestMigration
         else
         {
             var dependencies = new Dictionary<PackageId, Semver.SemVersionRange>();
-            if (manifestV2.Dependencies != null)
+            if (manifestV2.Dependencies is not null)
             {
                 foreach (var kvp in manifestV2.Dependencies)
                 {
@@ -229,7 +229,7 @@ public static class PackageManifestMigration
             }
 
             var assets = new List<PackageManifestAsset>();
-            if (manifestV2.AssetUrl != null)
+            if (manifestV2.AssetUrl is not null)
             {
                 var url = System.Text.RegularExpressions.Regex.Replace(manifestV2.AssetUrl, @"\$\(([^)]+?)\)", "{{$1}}");
                 var type = url.Split('.').Last() switch
@@ -242,7 +242,7 @@ public static class PackageManifestMigration
                 };
 
                 var placements = new List<PackageManifestAssetPlacement>();
-                if (manifestV2.Files?.Place != null)
+                if (manifestV2.Files?.Place is not null)
                 {
                     foreach (var pl in manifestV2.Files.Place)
                     {
@@ -269,7 +269,7 @@ public static class PackageManifestMigration
             else
             {
                 var placements = new List<PackageManifestAssetPlacement>();
-                if (manifestV2.Files?.Place != null)
+                if (manifestV2.Files?.Place is not null)
                 {
                     foreach (var pl in manifestV2.Files.Place)
                     {
@@ -294,7 +294,7 @@ public static class PackageManifestMigration
             }
 
             var scripts = new PackageManifestScripts();
-            if (manifestV2.Commands != null)
+            if (manifestV2.Commands is not null)
             {
                 scripts = new PackageManifestScripts
                 {
@@ -317,7 +317,7 @@ public static class PackageManifestMigration
 
         if (manifest.Variants.Any(variant =>
                 !string.IsNullOrEmpty(variant.Platform) &&
-                manifest.Variants.Any(s => s.Platform != null && s.Platform.Contains('*'))))
+                manifest.Variants.Any(s => s.Platform is not null && s.Platform.Contains('*'))))
         {
             manifest.Variants.Insert(0, new PackageManifestVariant { Platform = System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier });
         }

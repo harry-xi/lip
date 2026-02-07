@@ -51,7 +51,7 @@ public static class Module
         }
 
         Exception? err = ModuleInternal.CheckPath(path, ModuleInternal.PathKind.ModulePath);
-        if (err != null)
+        if (err is not null)
         {
             return MakeError(err);
         }
@@ -95,7 +95,7 @@ public static class Module
     public static (string, Exception?) EscapePath(string path)
     {
         Exception? err = CheckPath(path);
-        if (err != null)
+        if (err is not null)
         {
             return (string.Empty, err);
         }
@@ -106,7 +106,7 @@ public static class Module
     public static (string, Exception?) EscapeVersion(string v)
     {
         Exception? err = ModuleInternal.CheckElem(v, ModuleInternal.PathKind.FilePath);
-        if (err != null || v.Contains('!'))
+        if (err is not null || v.Contains('!'))
         {
             return (
                 string.Empty,
@@ -358,7 +358,7 @@ file static class ModuleInternal
             if (path[i] == '/')
             {
                 Exception? err = CheckElem(path.Substring(elemStart, i - elemStart), kind);
-                if (err != null)
+                if (err is not null)
                 {
                     return err;
                 }
@@ -366,7 +366,7 @@ file static class ModuleInternal
             }
         }
         Exception? lastErr = CheckElem(path.Substring(elemStart), kind);
-        if (lastErr != null)
+        if (lastErr is not null)
         {
             return lastErr;
         }

@@ -1,4 +1,7 @@
 using Flurl;
+using Lip.Core.Json;
+using System.Collections;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace Lip.Core.Entities;
@@ -38,9 +41,36 @@ public record RuntimeConfig
         }
     }
 
+    [JsonConverter(typeof(UrlJsonConverter))]
     [JsonPropertyName("github_proxy")]
     public Url? GithubProxy { get; init; }
 
+    [JsonConverter(typeof(UrlJsonConverter))]
     [JsonPropertyName("go_module_proxy")]
     public Url? GoModuleProxy { get; init; }
+
+    public IDictionary<string, dynamic?> AsDictionary()
+    {
+        return GetType()
+            .GetProperties()
+            .Where(p => p.GetCustomAttribute<JsonPropertyNameAttribute>() is not null)
+            .Select(p => new KeyValuePair<string, dynamic?>(
+                p.GetCustomAttribute<JsonPropertyNameAttribute>()!.Name,
+                p.GetValue(this)
+            ))
+            .ToDictionary();
+    }
+
+    public RuntimeConfig With(string key, dynamic? value)
+    {
+        RuntimeConfig newConfig = this with { };
+
+        PropertyInfo prop = GetType().GetProperties()
+            .FirstOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == key)
+            ?? throw new KeyNotFoundException($"Key not found: {key}");
+
+        prop.SetValue(newConfig, value);
+
+        return newConfig;
+    }
 }

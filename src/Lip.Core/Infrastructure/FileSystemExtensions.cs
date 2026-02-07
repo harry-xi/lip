@@ -1,10 +1,10 @@
 using System.IO.Abstractions;
 
-namespace Lip.Core.Extensions;
+namespace Lip.Core.Infrastructure;
 
 public static class FileSystemExtensions
 {
-    public static Stream CreateFileWithDirectory(this IFileSystem fs, string path)
+    public static FileSystemStream CreateFileWithDirectory(this IFileSystem fs, string path)
     {
         string? dirPath = fs.Path.GetDirectoryName(path);
 

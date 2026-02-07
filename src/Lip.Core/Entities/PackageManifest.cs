@@ -1,5 +1,6 @@
 using DotNet.Globbing;
 using Semver;
+using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
 namespace Lip.Core.Entities;
@@ -57,8 +58,10 @@ public record PackageManifest
     [JsonPropertyName("variants")]
     public List<PackageManifestVariant> Variants { get; init; } = [];
 
-    public PackageManifestVariant GetVariant(string label, string platform)
+    public PackageManifestVariant GetVariant(string label)
     {
+        string platform = RuntimeInformation.RuntimeIdentifier;
+
         List<PackageManifestVariant> matchingVariants = [];
         foreach (PackageManifestVariant variant in Variants)
         {

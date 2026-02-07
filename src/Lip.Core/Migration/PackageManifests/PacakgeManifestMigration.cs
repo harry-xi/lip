@@ -1,3 +1,4 @@
+using DotNet.Globbing;
 using Lip.Core.Entities;
 using System.Text.Json;
 
@@ -11,12 +12,9 @@ public static class PackageManifestMigration
 
         return formatVersion switch
         {
-            1 => MigrateV2ToV3(MigrateV1ToV2(JsonSerializer.Deserialize<PackageManifestV1>(jsonDocument)
-                ?? throw new JsonException("Failed to deserialize PackageManifestV1"))),
-            2 => MigrateV2ToV3(JsonSerializer.Deserialize<PackageManifestV2>(jsonDocument)
-                ?? throw new JsonException("Failed to deserialize PackageManifestV2")),
-            3 => JsonSerializer.Deserialize<PackageManifest>(jsonDocument)
-                ?? throw new JsonException("Failed to deserialize PackageManifest"),
+            1 => MigrateV2ToV3(MigrateV1ToV2(JsonSerializer.Deserialize<PackageManifestV1>(jsonDocument)!)),
+            2 => MigrateV2ToV3(JsonSerializer.Deserialize<PackageManifestV2>(jsonDocument)!),
+            3 => JsonSerializer.Deserialize<PackageManifest>(jsonDocument)!,
             _ => throw new NotSupportedException($"Unsupported format version: {formatVersion}")
         };
     }
@@ -204,8 +202,8 @@ public static class PackageManifestMigration
                     Platform = $"{prefix}-{suffix}",
                     Dependencies = dependencies,
                     Assets = assets,
-                    PreserveFiles = (p.Files?.Preserve ?? manifestV2.Files?.Preserve)?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).ToList() ?? [],
-                    RemoveFiles = (p.Files?.Remove ?? manifestV2.Files?.Remove)?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).ToList() ?? [],
+                    PreserveFiles = (p.Files?.Preserve ?? manifestV2.Files?.Preserve)?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
+                    RemoveFiles = (p.Files?.Remove ?? manifestV2.Files?.Remove)?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
                     Scripts = scripts
                 });
             }
@@ -309,8 +307,8 @@ public static class PackageManifestMigration
             {
                 Dependencies = dependencies,
                 Assets = assets,
-                PreserveFiles = manifestV2.Files?.Preserve?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).ToList() ?? [],
-                RemoveFiles = manifestV2.Files?.Remove?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).ToList() ?? [],
+                PreserveFiles = manifestV2.Files?.Preserve?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
+                RemoveFiles = manifestV2.Files?.Remove?.Select(s => System.Text.RegularExpressions.Regex.Replace(s, @"\$\(([^)]+?)\)", "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
                 Scripts = scripts
             });
         }

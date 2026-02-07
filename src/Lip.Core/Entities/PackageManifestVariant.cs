@@ -1,3 +1,4 @@
+using DotNet.Globbing;
 using Semver;
 using System.Text.Json.Serialization;
 
@@ -18,30 +19,10 @@ public record PackageManifestVariant
     public List<PackageManifestAsset> Assets { get; init; } = [];
 
     [JsonPropertyName("preserve_files")]
-    public List<string> PreserveFiles
-    {
-        get;
-        init
-        {
-            string? invalidPath = value.FirstOrDefault(path => !PackageManifestAssetPlacement.IsValidDst(path));
-            field = (invalidPath is null)
-                ? value
-                : throw new ArgumentException($"Invalid preserve file path: {invalidPath}");
-        }
-    } = [];
+    public List<Glob> PreserveFiles { get; init; } = [];
 
     [JsonPropertyName("remove_files")]
-    public List<string> RemoveFiles
-    {
-        get;
-        init
-        {
-            string? invalidPath = value.FirstOrDefault(path => !PackageManifestAssetPlacement.IsValidDst(path));
-            field = (invalidPath is null)
-                ? value
-                : throw new ArgumentException($"Invalid remove file path: {invalidPath}");
-        }
-    } = [];
+    public List<Glob> RemoveFiles { get; init; } = [];
 
     [JsonPropertyName("scripts")]
     public PackageManifestScripts Scripts { get; init; } = new();

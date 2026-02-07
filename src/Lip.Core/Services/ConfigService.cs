@@ -1,5 +1,5 @@
 using Lip.Core.Entities;
-using Lip.Core.Extensions;
+using Lip.Core.Infrastructure;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 using System.Text.Json;
@@ -41,8 +41,7 @@ public class ConfigService(IFileSystem fileSystem, ILogger logger) : IConfigServ
         {
             using Stream readStream = _fileSystem.File.OpenRead(_configPath);
 
-            RuntimeConfig config = await JsonSerializer.DeserializeAsync<RuntimeConfig>(readStream, _jsonSerializerOptions)
-                ?? throw new JsonException("Failed to deserialize RuntimeConfig");
+            RuntimeConfig config = (await JsonSerializer.DeserializeAsync<RuntimeConfig>(readStream, _jsonSerializerOptions))!;
 
             return config;
         }

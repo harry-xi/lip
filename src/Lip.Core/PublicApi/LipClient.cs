@@ -1,6 +1,6 @@
 ﻿using Flurl;
 using Lip.Core.Entities;
-using Lip.Core.Extensions;
+using Lip.Core.Infrastructure;
 using Lip.Core.Migration.PackageManifests;
 using Lip.Core.Services;
 using System.IO.Abstractions;
@@ -32,6 +32,11 @@ public class LipClient(
     IRegistryService registryService,
     IWorkspaceService workspaceService) : ILipClient
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true
+    };
+
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly ICacheService _cacheService = cacheService;
     private readonly IConfigService _configService = configService;
@@ -88,14 +93,9 @@ public class LipClient(
             Version = new(0),
         };
 
-        JsonSerializerOptions options = new()
-        {
-            WriteIndented = true,
-        };
-
         using Stream stream = _fileSystem.CreateFileWithDirectory("tooth.json");
 
-        await JsonSerializer.SerializeAsync(stream, packageManifest, options);
+        await JsonSerializer.SerializeAsync(stream, packageManifest, _jsonSerializerOptions);
     }
 
     public async Task Install(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
@@ -192,14 +192,9 @@ public class LipClient(
 
         PackageManifest packageManifest = PackageManifestMigration.Migrate(inputJson);
 
-        JsonSerializerOptions options = new()
-        {
-            WriteIndented = true,
-        };
-
         using Stream outputStream = _fileSystem.CreateFileWithDirectory(output);
 
-        await JsonSerializer.SerializeAsync(outputStream, packageManifest, options);
+        await JsonSerializer.SerializeAsync(outputStream, packageManifest, _jsonSerializerOptions);
     }
 
     public async Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
@@ -252,11 +247,6 @@ public class LipClient(
 
         PackageManifest packageManifest = await _registryService.GetPackageManifest(packageSpec);
 
-        JsonSerializerOptions options = new()
-        {
-            WriteIndented = true,
-        };
-
-        return JsonSerializer.Serialize(packageManifest, options);
+        return JsonSerializer.Serialize(packageManifest, _jsonSerializerOptions);
     }
 }

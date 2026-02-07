@@ -1,4 +1,5 @@
-﻿using Lip.Core.Entities;
+﻿using Flurl;
+using Lip.Core.Entities;
 using Lip.Core.Migration.PackageManifests;
 using Lip.Core.Services;
 using System.IO.Abstractions;
@@ -14,25 +15,11 @@ public interface ILipClient
     Task<IDictionary<string, string>> ConfigList();
     Task ConfigSet(string key, string value);
     Task Init();
-    Task Install(
-        IEnumerable<string> packages,
-        bool dryRun,
-        bool ignoreScripts,
-        bool noDependencies);
-    Task<string> List();
+    Task Install(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies);
+    Task<(IEnumerable<PackageSpec> ExplicitInstalled, IEnumerable<PackageSpec> ImplicitInstalled)> List();
     Task Migrate(string file, string output);
-    Task Uninstall(
-        IEnumerable<string> packages,
-        bool dryRun,
-        bool ignoreScripts,
-        bool noDependencies
-    );
-    Task Update(
-        IEnumerable<string> packages,
-        bool dryRun,
-        bool ignoreScripts,
-        bool noDependencies
-    );
+    Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies);
+    Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts);
     Task<string> View(string package);
 }
 
@@ -40,12 +27,16 @@ public class LipClient(
     IFileSystem fileSystem,
     ICacheService cacheService,
     IConfigService configService,
-    IRegistryService registryService) : ILipClient
+    IInstallService installService,
+    IRegistryService registryService,
+    IWorkspaceService workspaceService) : ILipClient
 {
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly ICacheService _cacheService = cacheService;
     private readonly IConfigService _configService = configService;
+    private readonly IInstallService _installService = installService;
     private readonly IRegistryService _registryService = registryService;
+    private readonly IWorkspaceService _workspaceService = workspaceService;
 
     public async Task CacheClean()
     {
@@ -90,14 +81,90 @@ public class LipClient(
         await JsonSerializer.SerializeAsync(stream, packageManifest, options);
     }
 
-    public Task Install(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
+    public async Task Install(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
     {
-        throw new NotImplementedException();
+        List<PackageSpec> parsedPackages = [];
+        List<PackageId> flexiblePackages = [];
+        List<IFileInfo> localPackages = [];
+        List<Url> remotePackages = [];
+
+        foreach (string package in packages)
+        {
+            // Order of parsing is:
+            // 1. PackageSpec
+            // 2. PackageId (flexible package)
+            // 3. Local file
+            // 4. Remote URL
+
+            List<Exception> exceptions = [];
+
+            try
+            {
+                PackageSpec packageSpec = PackageSpec.Parse(package);
+                parsedPackages.Add(packageSpec);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            try
+            {
+                PackageId packageId = PackageId.Parse(package);
+                flexiblePackages.Add(packageId);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            try
+            {
+                IFileInfo localPackage = _fileSystem.FileInfo.New(package) is { Exists: true } fileInfo
+                    ? fileInfo
+                    : throw new FileNotFoundException($"Local package '{package}' not found.");
+                localPackages.Add(localPackage);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            try
+            {
+                Url remotePackage = new(package);
+                remotePackages.Add(remotePackage);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            throw new AggregateException($"Failed to parse package '{package}'.", exceptions);
+        }
+
+        await _installService.InstallPackage(
+            parsedPackages,
+            flexiblePackages,
+            localPackages,
+            remotePackages,
+            dryRun,
+            ignoreScripts,
+            noDependencies);
     }
 
-    public Task<string> List()
+    public async Task<(IEnumerable<PackageSpec> ExplicitInstalled, IEnumerable<PackageSpec> ImplicitInstalled)> List()
     {
-        throw new NotImplementedException();
+        IEnumerable<PackageSpec> explicitInstalled = await _workspaceService
+            .GetInstalledPackages(IWorkspaceService.PackageScope.Explicit);
+        IEnumerable<PackageSpec> implicitInstalled = await _workspaceService
+            .GetInstalledPackages(IWorkspaceService.PackageScope.Implicit);
+
+        return (explicitInstalled, implicitInstalled);
     }
 
     public async Task Migrate(string file, string output)
@@ -118,14 +185,48 @@ public class LipClient(
         await JsonSerializer.SerializeAsync(outputStream, packageManifest, options);
     }
 
-    public Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
+    public async Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
     {
-        throw new NotImplementedException();
+        IEnumerable<PackageId> parsedPackages = packages.Select(PackageId.Parse);
+
+        await _installService.UninstallPackage(parsedPackages, dryRun, ignoreScripts, noDependencies);
     }
 
-    public Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies)
+    public Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts)
     {
-        throw new NotImplementedException();
+        IEnumerable<PackageSpec> parsedPackages = [];
+        IEnumerable<PackageId> flexiblePackages = [];
+
+        foreach (string package in packages)
+        {
+            List<Exception> exceptions = [];
+
+            try
+            {
+                PackageSpec packageSpec = PackageSpec.Parse(package);
+                parsedPackages = parsedPackages.Append(packageSpec);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            try
+            {
+                PackageId packageId = PackageId.Parse(package);
+                flexiblePackages = flexiblePackages.Append(packageId);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            throw new AggregateException($"Failed to parse package '{package}'.", exceptions);
+        }
+
+        return _installService.UpdatePackage(parsedPackages, flexiblePackages, dryRun, ignoreScripts);
     }
 
     public async Task<string> View(string package)

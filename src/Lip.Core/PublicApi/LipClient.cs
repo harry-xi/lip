@@ -1,5 +1,6 @@
 ﻿using Flurl;
 using Lip.Core.Entities;
+using Lip.Core.Extensions;
 using Lip.Core.Migration.PackageManifests;
 using Lip.Core.Services;
 using System.IO.Abstractions;
@@ -92,7 +93,7 @@ public class LipClient(
             WriteIndented = true,
         };
 
-        using Stream stream = _fileSystem.File.Create("tooth.json");
+        using Stream stream = _fileSystem.CreateFileWithDirectory("tooth.json");
 
         await JsonSerializer.SerializeAsync(stream, packageManifest, options);
     }
@@ -196,7 +197,7 @@ public class LipClient(
             WriteIndented = true,
         };
 
-        using Stream outputStream = _fileSystem.File.Create(output);
+        using Stream outputStream = _fileSystem.CreateFileWithDirectory(output);
 
         await JsonSerializer.SerializeAsync(outputStream, packageManifest, options);
     }

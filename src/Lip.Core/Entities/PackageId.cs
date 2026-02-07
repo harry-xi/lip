@@ -11,11 +11,13 @@ public partial record PackageId(string Path, string Variant)
         ? Path
         : throw new FormatException($"Invalid package path: {Path}");
 
-    public string Variant { get; init; } = VariantRegex().IsMatch(Variant)
+    public string Variant { get; init; } = IsValidVariant(Variant)
         ? Variant
         : throw new FormatException($"Invalid package variant: {Variant}");
 
     public override string ToString() => $"{Path}{(Variant != string.Empty ? "#" : string.Empty)}{Variant}";
+
+    public static bool IsValidVariant(string variant) => VariantRegex().IsMatch(variant);
 
     public static PackageId Parse(string s)
     {

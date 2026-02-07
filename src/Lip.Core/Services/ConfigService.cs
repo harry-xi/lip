@@ -1,4 +1,5 @@
 using Lip.Core.Entities;
+using Lip.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 using System.Text.Json;
@@ -25,6 +26,17 @@ public class ConfigService(IFileSystem fileSystem, ILogger logger) : IConfigServ
 
     public async Task<RuntimeConfig> LoadConfig()
     {
+        if (!_fileSystem.File.Exists(_configPath))
+        {
+            _logger.LogInformation("Runtime configuration file not found at '{ConfigPath}'. Using default configuration.", _configPath);
+
+            RuntimeConfig config = new();
+
+            await SaveConfig(config);
+
+            return config;
+        }
+
         try
         {
             using Stream readStream = _fileSystem.File.OpenRead(_configPath);
@@ -49,13 +61,7 @@ public class ConfigService(IFileSystem fileSystem, ILogger logger) : IConfigServ
 
     public async Task SaveConfig(RuntimeConfig config)
     {
-        string? directoryPath = Path.GetDirectoryName(_configPath);
-        if (!string.IsNullOrEmpty(directoryPath))
-        {
-            _fileSystem.Directory.CreateDirectory(directoryPath);
-        }
-
-        using Stream writeStream = _fileSystem.File.Create(_configPath);
+        using Stream writeStream = _fileSystem.CreateFileWithDirectory(_configPath);
 
         await JsonSerializer.SerializeAsync(writeStream, config, _jsonSerializerOptions);
     }

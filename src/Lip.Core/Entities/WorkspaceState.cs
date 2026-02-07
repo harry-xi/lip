@@ -1,0 +1,43 @@
+using System.Text.Json.Serialization;
+
+namespace Lip.Core.Entities;
+
+public record WorkspaceState
+{
+    private const int _currentFormatVersion = 3;
+    private const string _currentFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
+
+    [JsonInclude]
+    [JsonRequired]
+    [JsonPropertyName("format_version")]
+    public int FormatVersion
+    {
+        get => _currentFormatVersion;
+        init
+        {
+            if (value != _currentFormatVersion)
+            {
+                throw new NotSupportedException($"Unsupported format version: {value}");
+            }
+        }
+    }
+
+    [JsonInclude]
+    [JsonRequired]
+    [JsonPropertyName("format_uuid")]
+    public string FormatUuid
+    {
+        get => _currentFormatUuid;
+        init
+        {
+            if (value != _currentFormatUuid)
+            {
+                throw new NotSupportedException($"Unsupported format UUID: {value}");
+            }
+        }
+    }
+
+    [JsonRequired]
+    [JsonPropertyName("packages")]
+    public List<WorkspaceStatePackage> Packages { get; init; } = [];
+}

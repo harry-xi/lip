@@ -25,7 +25,7 @@ public partial record PackageManifestInfo
         }
     } = [];
 
-    [GeneratedRegex("^[a-z0-9-]+(:[a-z0-9-]+)?$")]
+    [GeneratedRegex(@"^[a-z0-9-]+(:[a-z0-9-]+)?$")]
     private static partial Regex TagRegex();
 
     [JsonPropertyName("avatar_url")]

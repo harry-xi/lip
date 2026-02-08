@@ -1,8 +1,8 @@
 using DotNet.Globbing;
 using Flurl;
 using Lip.Core.Entities;
-using Lip.Core.SourceProviders;
 using Lip.Core.Infrastructure;
+using Lip.Core.SourceProviders;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 using System.Text.Json;
@@ -48,11 +48,9 @@ public class PackageInstaller(
         IEnumerable<PackageSpec> installedPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.All);
 
-        if (installedPackages.FirstOrDefault(p => p.Id == packageSpec.Id) is PackageSpec existingPackageSpec)
-        {
-            throw new InvalidOperationException(
-                $"Cannot install package {packageSpec.Id} version {packageSpec.Version} because version {existingPackageSpec.Version} is already installed");
-        }
+        PackageSpec existingPackageSpec = installedPackages.FirstOrDefault(p => p.Id == packageSpec.Id)
+            ?? throw new InvalidOperationException(
+                $"Cannot install package {packageSpec.Id} version {packageSpec.Version} because it is not already installed. Use explicitInstall to force installation.");
 
         if (dryRun)
         {
@@ -178,10 +176,9 @@ public class PackageInstaller(
         IEnumerable<PackageSpec> installedPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.All);
 
-        if (installedPackages.FirstOrDefault(p => p.Id == packageId) is not PackageSpec existingPackageSpec)
-        {
-            throw new InvalidOperationException($"Cannot uninstall package {packageId} because it is not installed");
-        }
+
+        PackageSpec existingPackageSpec = installedPackages.FirstOrDefault(p => p.Id == packageId)
+            ?? throw new InvalidOperationException($"Cannot uninstall package {packageId} because it is not installed");
 
         if (dryRun)
         {

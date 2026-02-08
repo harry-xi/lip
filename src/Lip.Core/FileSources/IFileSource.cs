@@ -4,5 +4,5 @@ public interface IFileSource
 {
     public IEnumerable<string> Keys { get; }
 
-    public Task<Stream> this[string key] { get; }
+    public Task<Stream> OpenRead(string key);
 }

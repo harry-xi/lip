@@ -170,7 +170,7 @@ public static class PackageManifestMigration
                                 Src = src,
                                 Dst = dst,
                                 Type = pl.Src.EndsWith('*')
-                                    ? PackageManifestAssetPlacement.PlacementType.Dir
+                                    ? PackageManifestAssetPlacement.PlacementType.Directory
                                     : PackageManifestAssetPlacement.PlacementType.File
                             });
                         }
@@ -251,7 +251,7 @@ public static class PackageManifestMigration
                             Src = src,
                             Dst = dst,
                             Type = pl.Src.EndsWith('*')
-                                ? PackageManifestAssetPlacement.PlacementType.Dir
+                                ? PackageManifestAssetPlacement.PlacementType.Directory
                                 : PackageManifestAssetPlacement.PlacementType.File
                         });
                     }
@@ -278,7 +278,7 @@ public static class PackageManifestMigration
                             Src = src,
                             Dst = dst,
                             Type = pl.Src.EndsWith('*')
-                                ? PackageManifestAssetPlacement.PlacementType.Dir
+                                ? PackageManifestAssetPlacement.PlacementType.Directory
                                 : PackageManifestAssetPlacement.PlacementType.File
                         });
                     }

@@ -1,4 +1,5 @@
 using DotNet.Globbing;
+using Flurl;
 using Lip.Core.Entities;
 using Lip.Core.FileSources;
 using Lip.Core.Infrastructure;
@@ -27,11 +28,14 @@ public class PackageInstaller(
     ICommandRunner commandRunner,
     IFileSystem fileSystem,
     ILogger logger,
+    ISourceService sourceService,
     IWorkspaceService workspaceService) : IPackageInstaller
 {
     private readonly ICommandRunner _commandRunner = commandRunner;
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly ILogger _logger = logger;
+
+    private readonly ISourceService _sourceService = sourceService;
     private readonly IWorkspaceService _workspaceService = workspaceService;
 
     public async Task InstallPackage(
@@ -65,7 +69,7 @@ public class PackageInstaller(
             packageSpec.Id,
             packageSpec.Version);
 
-        using Stream manifestStream = await fileSource["tooth.json"];
+        using Stream manifestStream = await fileSource.OpenRead("tooth.json");
         PackageManifest manifest = (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
         PackageManifestVariant variant = manifest.GetVariant(packageSpec.Id.Variant);
 
@@ -88,7 +92,10 @@ public class PackageInstaller(
             IFileSource assetFileSource = asset.Type switch
             {
                 PackageManifestAsset.AssetType.Self => fileSource,
-                // TODO
+                PackageManifestAsset.AssetType.Uncompressed => await GetFileSource(asset.Urls, ISourceService.ParsingMode.File),
+                PackageManifestAsset.AssetType.Tar => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Archive),
+                PackageManifestAsset.AssetType.Tgz => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Archive),
+                PackageManifestAsset.AssetType.Zip => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Archive),
                 _ => throw new NotSupportedException($"Unsupported asset type: {asset.Type}"),
             };
 
@@ -114,7 +121,7 @@ public class PackageInstaller(
 
                             break;
 
-                        case PackageManifestAssetPlacement.PlacementType.Dir:
+                        case PackageManifestAssetPlacement.PlacementType.Directory:
                             if (Path.GetRelativePath(placement.Src, key) is string relativePath
                                 && !relativePath.StartsWith(".."))
                             {
@@ -135,7 +142,7 @@ public class PackageInstaller(
                 {
                     _fileSystem.CreateFileWithDirectory(targetLocation.FullName);
 
-                    using Stream sourceStream = await assetFileSource[key];
+                    using Stream sourceStream = await assetFileSource.OpenRead(key);
                     using Stream targetStream = targetLocation.Create();
                     await sourceStream.CopyToAsync(targetStream);
 
@@ -242,5 +249,26 @@ public class PackageInstaller(
         // Step 4: Remove package from workspace state.
 
         await _workspaceService.RemoveInstalledPackage(existingPackageSpec);
+    }
+
+    private async Task<IFileSource> GetFileSource(
+        IEnumerable<Url> urls,
+        ISourceService.ParsingMode parsingMode)
+    {
+        List<Exception> exceptions = [];
+
+        foreach (Url url in urls)
+        {
+            try
+            {
+                return await _sourceService.Get(url, parsingMode);
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(new Exception($"Failed to get file source from {url}", ex));
+            }
+        }
+
+        throw new AggregateException("Failed to get file source from all provided URLs", exceptions);
     }
 }

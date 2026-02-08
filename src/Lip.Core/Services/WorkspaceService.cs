@@ -119,7 +119,7 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
             IWorkspaceService.PackageScope.Implicit => state.Packages
                 .Where(p => !p.IsExplicit)
                 .Select(p => p.GetPackageSpec()),
-            _ => throw new NotImplementedException(),
+            _ => throw new NotSupportedException($"Unsupported package scope: {scope}"),
         };
     }
 

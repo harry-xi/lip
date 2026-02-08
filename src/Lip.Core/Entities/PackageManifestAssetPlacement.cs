@@ -11,7 +11,7 @@ public record PackageManifestAssetPlacement
         [JsonStringEnumMemberName("file")]
         File,
         [JsonStringEnumMemberName("dir")]
-        Dir,
+        Directory,
     }
 
     [JsonPropertyName("type")]

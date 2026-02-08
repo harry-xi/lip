@@ -4,6 +4,7 @@ using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.SourceProviders;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Text.Json;
 
@@ -94,7 +95,7 @@ public class PackageInstaller(
                 PackageManifestAsset.AssetType.Tar => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
                 PackageManifestAsset.AssetType.Tgz => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
                 PackageManifestAsset.AssetType.Zip => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
-                _ => throw new NotSupportedException($"Unsupported asset type: {asset.Type}"),
+                _ => throw new UnreachableException(),
             };
 
             foreach (string key in assetSourceProvider.Keys)
@@ -132,7 +133,7 @@ public class PackageInstaller(
                             break;
 
                         default:
-                            throw new NotSupportedException($"Unsupported placement type: {placement.Type}");
+                            throw new ArgumentException($"Unsupported placement type: {placement.Type}");
                     }
                 }
 

@@ -8,7 +8,7 @@ public record WorkspaceState
     private const string _currentFormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d";
 
     [JsonInclude]
-    [JsonRequired]
+    // [JsonRequired] // For compatibility, it cannot be required.
     [JsonPropertyName("format_version")]
     public int FormatVersion
     {
@@ -17,13 +17,13 @@ public record WorkspaceState
         {
             if (value != _currentFormatVersion)
             {
-                throw new NotSupportedException($"Unsupported format version: {value}");
+                throw new ArgumentException($"Unsupported format version: {value}");
             }
         }
     }
 
     [JsonInclude]
-    [JsonRequired]
+    // [JsonRequired] // For compatibility, it cannot be required.
     [JsonPropertyName("format_uuid")]
     public string FormatUuid
     {
@@ -32,7 +32,7 @@ public record WorkspaceState
         {
             if (value != _currentFormatUuid)
             {
-                throw new NotSupportedException($"Unsupported format UUID: {value}");
+                throw new ArgumentException($"Unsupported format UUID: {value}");
             }
         }
     }

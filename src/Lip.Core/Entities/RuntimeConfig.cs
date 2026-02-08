@@ -21,7 +21,7 @@ public record RuntimeConfig
         {
             if (value != _currentFormatVersion)
             {
-                throw new NotSupportedException($"Unsupported format version: {value}");
+                throw new ArgumentException($"Unsupported format version: {value}");
             }
         }
     }
@@ -36,7 +36,7 @@ public record RuntimeConfig
         {
             if (value != _currentFormatUuid)
             {
-                throw new NotSupportedException($"Unsupported format UUID: {value}");
+                throw new ArgumentException($"Unsupported format UUID: {value}");
             }
         }
     }

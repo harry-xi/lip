@@ -1,6 +1,7 @@
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Text.Json;
 
@@ -119,7 +120,7 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
             IWorkspaceService.PackageScope.Implicit => state.Packages
                 .Where(p => !p.IsExplicit)
                 .Select(p => p.GetPackageSpec()),
-            _ => throw new NotSupportedException($"Unsupported package scope: {scope}"),
+            _ => throw new UnreachableException(),
         };
     }
 

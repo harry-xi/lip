@@ -12,7 +12,7 @@ public record WorkspaceStatePackage
         {
             string? invalidFile = value.FirstOrDefault(f => !PackageManifestAssetPlacement.IsValidDst(f));
 
-            if (invalidFile != null)
+            if (invalidFile is not null)
             {
                 throw new ArgumentException($"Invalid file path: {invalidFile}");
             }

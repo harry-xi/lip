@@ -1,7 +1,7 @@
 using DotNet.Globbing;
 using Flurl;
 using Lip.Core.Entities;
-using Lip.Core.FileSources;
+using Lip.Core.SourceProviders;
 using Lip.Core.Infrastructure;
 using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
@@ -13,7 +13,7 @@ public interface IPackageInstaller
 {
     Task InstallPackage(
         PackageSpec packageSpec,
-        IFileSource fileSource,
+        ISourceProvider sourceProvider,
         bool dryRun,
         bool explicitInstall,
         bool ignoreScripts);
@@ -40,7 +40,7 @@ public class PackageInstaller(
 
     public async Task InstallPackage(
         PackageSpec packageSpec,
-        IFileSource fileSource,
+        ISourceProvider sourceProvider,
         bool dryRun,
         bool explicitInstall,
         bool ignoreScripts)
@@ -69,7 +69,7 @@ public class PackageInstaller(
             packageSpec.Id,
             packageSpec.Version);
 
-        using Stream manifestStream = await fileSource.OpenRead("tooth.json");
+        using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
         PackageManifest manifest = (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
         PackageManifestVariant variant = manifest.GetVariant(packageSpec.Id.Variant);
 
@@ -89,17 +89,17 @@ public class PackageInstaller(
 
         foreach (PackageManifestAsset asset in variant.Assets)
         {
-            IFileSource assetFileSource = asset.Type switch
+            ISourceProvider assetSourceProvider = asset.Type switch
             {
-                PackageManifestAsset.AssetType.Self => fileSource,
-                PackageManifestAsset.AssetType.Uncompressed => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Single),
-                PackageManifestAsset.AssetType.Tar => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Composite),
-                PackageManifestAsset.AssetType.Tgz => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Composite),
-                PackageManifestAsset.AssetType.Zip => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Composite),
+                PackageManifestAsset.AssetType.Self => sourceProvider,
+                PackageManifestAsset.AssetType.Uncompressed => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Single),
+                PackageManifestAsset.AssetType.Tar => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
+                PackageManifestAsset.AssetType.Tgz => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
+                PackageManifestAsset.AssetType.Zip => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
                 _ => throw new NotSupportedException($"Unsupported asset type: {asset.Type}"),
             };
 
-            foreach (string key in assetFileSource.Keys)
+            foreach (string key in assetSourceProvider.Keys)
             {
                 List<IFileInfo> targetLocations = [];
                 foreach (PackageManifestAssetPlacement placement in asset.Placements)
@@ -142,7 +142,7 @@ public class PackageInstaller(
                 {
                     _fileSystem.CreateFileWithDirectory(targetLocation.FullName);
 
-                    using Stream sourceStream = await assetFileSource.OpenRead(key);
+                    using Stream sourceStream = await assetSourceProvider.OpenRead(key);
                     using Stream targetStream = targetLocation.Create();
                     await sourceStream.CopyToAsync(targetStream);
 
@@ -251,7 +251,7 @@ public class PackageInstaller(
         await _workspaceService.RemoveInstalledPackage(existingPackageSpec);
     }
 
-    private async Task<IFileSource> GetFileSource(
+    private async Task<ISourceProvider> GetSourceProvider(
         IEnumerable<Url> urls,
         ISourceService.ParsingMode parsingMode)
     {

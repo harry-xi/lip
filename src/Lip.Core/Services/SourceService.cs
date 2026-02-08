@@ -1,5 +1,5 @@
 using Flurl;
-using Lip.Core.FileSources;
+using Lip.Core.SourceProviders;
 
 namespace Lip.Core.Services;
 
@@ -11,5 +11,5 @@ public interface ISourceService
         Single,
     }
 
-    Task<IFileSource> Get(Url url, ParsingMode parsingMode);
+    Task<ISourceProvider> Get(Url url, ParsingMode parsingMode);
 }

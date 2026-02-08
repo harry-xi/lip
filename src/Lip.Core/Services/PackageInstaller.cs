@@ -92,10 +92,10 @@ public class PackageInstaller(
             IFileSource assetFileSource = asset.Type switch
             {
                 PackageManifestAsset.AssetType.Self => fileSource,
-                PackageManifestAsset.AssetType.Uncompressed => await GetFileSource(asset.Urls, ISourceService.ParsingMode.File),
-                PackageManifestAsset.AssetType.Tar => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Archive),
-                PackageManifestAsset.AssetType.Tgz => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Archive),
-                PackageManifestAsset.AssetType.Zip => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Archive),
+                PackageManifestAsset.AssetType.Uncompressed => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Single),
+                PackageManifestAsset.AssetType.Tar => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Composite),
+                PackageManifestAsset.AssetType.Tgz => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Composite),
+                PackageManifestAsset.AssetType.Zip => await GetFileSource(asset.Urls, ISourceService.ParsingMode.Composite),
                 _ => throw new NotSupportedException($"Unsupported asset type: {asset.Type}"),
             };
 

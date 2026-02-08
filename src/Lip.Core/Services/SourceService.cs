@@ -7,9 +7,8 @@ public interface ISourceService
 {
     enum ParsingMode
     {
-        Archive,
-        File,
-        Directory,
+        Composite,
+        Single,
     }
 
     Task<IFileSource> Get(Url url, ParsingMode parsingMode);

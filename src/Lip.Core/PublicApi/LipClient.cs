@@ -45,9 +45,9 @@ public class LipClient(
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
     private readonly IWorkspaceService _workspaceService = workspaceService;
 
-    public static async Task<LipClient> Create(ILogger logger)
+    public static async Task<LipClient> Create(ILogger logger, IFileSystem? fileSystem = null)
     {
-        FileSystem fileSystem = new();
+        fileSystem ??= new FileSystem();
 
         ConfigService configService = new(fileSystem, logger);
 

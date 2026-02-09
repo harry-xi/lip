@@ -5,21 +5,7 @@ namespace Lip.Core.Entities;
 public record WorkspaceStatePackage
 {
     [JsonPropertyName("files")]
-    public required List<string> Files
-    {
-        get;
-        init
-        {
-            string? invalidFile = value.FirstOrDefault(f => !PackageManifestAssetPlacement.IsValidDst(f));
-
-            if (invalidFile is not null)
-            {
-                throw new ArgumentException($"Invalid file path: {invalidFile}", nameof(Files));
-            }
-
-            field = value;
-        }
-    }
+    public required List<string> Files { get; init; }
 
     [JsonPropertyName("locked")]
     public required bool IsExplicit { get; init; }

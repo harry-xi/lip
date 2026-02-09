@@ -25,7 +25,7 @@ public record PackageManifestAssetPlacement
         get;
         init => field = IsValidDst(value)
             ? value
-            : throw new ArgumentException($"Invalid destination path: {value}");
+            : throw new ArgumentException($"Invalid destination path: {value}", nameof(Dst));
     }
 
     public static bool IsValidDst(string path) => !(Path.IsPathFullyQualified(path) || Path.IsPathRooted(path) || path.Contains(".."));

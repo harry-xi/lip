@@ -26,7 +26,8 @@ public class GitPackageRegistry(IGitRunner gitRunner, Url? githubProxy) : IPacka
             .Where(item => item.Ref.StartsWith("refs/tags/v"))
             .Select(item => item.Ref["refs/tags/v".Length..])
             .Where(version => SemVersion.TryParse(version, out _))
-            .Select(version => SemVersion.Parse(version));
+            .Select(version => SemVersion.Parse(version))
+            .Order();
     }
 
     public Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)

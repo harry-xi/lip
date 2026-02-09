@@ -35,7 +35,6 @@ public interface IInstallService
 
 public class InstallService(
     ILogger logger,
-    IDependencySolver dependencySolver,
     IPackageInstaller packageInstaller,
     IPackageRegistry packageRegistry,
     ISourceService sourceService,
@@ -43,7 +42,6 @@ public class InstallService(
 {
     private readonly ILogger _logger = logger;
 
-    private readonly IDependencySolver _dependencySolver = dependencySolver;
     private readonly IPackageInstaller _packageInstaller = packageInstaller;
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
     private readonly ISourceService _sourceService = sourceService;
@@ -86,12 +84,19 @@ public class InstallService(
                 $"Cannot install package '{pa.Spec.Id}' because it is already explicitly installed.");
         }
 
+        CompositePackageRegistry packageRegistry = new(
+        [
+            new ArtifactsPackageRegistry(packageArtifacts),
+            _packageRegistry
+        ]);
+        DependencySolver dependencySolver = new(_logger, packageRegistry);
+
         IEnumerable<PackageSpec> newExplicitlyInstalledPackages =
         [
             .. explicitlyInstalledPackages,
             .. packageArtifacts.Select(pa => pa.Spec)
         ]; // Not sorted.
-        IEnumerable<PackageSpec> newInstalledPackages = await _dependencySolver.Solve(newExplicitlyInstalledPackages
+        IEnumerable<PackageSpec> newInstalledPackages = await dependencySolver.Solve(newExplicitlyInstalledPackages
             .Select(p => new PackageReqt(p.Id, SemVersionRange.Equals(p.Version))));
 
         IEnumerable<PackageSpec> installedPackages = await _workspaceService.GetInstalledPackages(
@@ -142,6 +147,8 @@ public class InstallService(
             return;
         }
 
+        DependencySolver dependencySolver = new(_logger, _packageRegistry);
+
         IEnumerable<PackageSpec> explicitlyInstalledPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.Explicit);
 
@@ -153,7 +160,7 @@ public class InstallService(
 
         IEnumerable<PackageSpec> newExplicitlyInstalledPackages = explicitlyInstalledPackages
             .Where(p => !packages.Contains(p.Id));
-        IEnumerable<PackageSpec> newInstalledPackages = await _dependencySolver.Solve(newExplicitlyInstalledPackages
+        IEnumerable<PackageSpec> newInstalledPackages = await dependencySolver.Solve(newExplicitlyInstalledPackages
             .Select(p => new PackageReqt(p.Id, SemVersionRange.Equals(p.Version))));
 
         IEnumerable<PackageSpec> installedPackages = await _workspaceService.GetInstalledPackages(
@@ -191,6 +198,13 @@ public class InstallService(
                 $"Cannot update package '{pa.Spec.Id}' because it is not currently installed.");
         }
 
+        CompositePackageRegistry packageRegistry = new(
+        [
+            new ArtifactsPackageRegistry(packageArtifacts),
+            _packageRegistry
+        ]);
+        DependencySolver dependencySolver = new(_logger, packageRegistry);
+
         IEnumerable<PackageSpec> explicitlyInstalledPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.Explicit);
 
@@ -199,7 +213,7 @@ public class InstallService(
             .. packageArtifacts.Select(pa => pa.Spec)
         ]; // Not sorted.
 
-        IEnumerable<PackageSpec> newInstalledPackages = await _dependencySolver.Solve(newExplicitlyInstalledPackages
+        IEnumerable<PackageSpec> newInstalledPackages = await dependencySolver.Solve(newExplicitlyInstalledPackages
             .Select(p => new PackageReqt(p.Id, SemVersionRange.Equals(p.Version))));
 
         // Uninstall packages that are no longer needed.

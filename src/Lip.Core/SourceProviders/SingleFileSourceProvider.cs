@@ -12,7 +12,7 @@ public class SingleFileSourceProvider(IFileInfo fileInfo) : ISourceProvider
     {
         if (key != "")
         {
-            throw new ArgumentException($"Key not found: '{key}'");
+            throw new ArgumentException($"Key not found: '{key}'", nameof(key));
         }
 
         return _fileInfo.OpenRead();

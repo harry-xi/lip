@@ -47,7 +47,7 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
         if (packageSpec.Id.Path != manifest.Path || packageSpec.Version != manifest.Version)
         {
             throw new ArgumentException(
-                $"Package spec '{packageSpec}' does not match manifest path '{manifest.Path}' and version '{manifest.Version}'.");
+                $"Package spec '{packageSpec}' does not match manifest path '{manifest.Path}' and version '{manifest.Version}'.", nameof(packageSpec));
         }
 
         WorkspaceStatePackage newPackage = new()

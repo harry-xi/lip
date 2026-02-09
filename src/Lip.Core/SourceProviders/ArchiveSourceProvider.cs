@@ -26,7 +26,7 @@ public class ArchiveSourceProvider(IFileInfo archiveFileInfo) : ISourceProvider
         using IArchive archive = ArchiveFactory.Open(archiveStream);
 
         IArchiveEntry entry = archive.Entries.FirstOrDefault(e => e.Key == key && !e.IsDirectory)
-            ?? throw new ArgumentException($"Key not found: {key}");
+            ?? throw new ArgumentException($"Key not found: {key}", nameof(key));
 
         MemoryStream memoryStream = new();
 

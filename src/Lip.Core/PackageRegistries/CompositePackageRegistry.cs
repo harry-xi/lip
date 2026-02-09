@@ -46,7 +46,7 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
     {
         List<Exception> exceptions = [];
 
-        foreach (var registry in _registries)
+        foreach (IPackageRegistry registry in _registries)
         {
             try
             {

@@ -17,7 +17,7 @@ public record WorkspaceState
         {
             if (value != _currentFormatVersion)
             {
-                throw new ArgumentException($"Unsupported format version: {value}");
+                throw new ArgumentException($"Unsupported format version: {value}", nameof(FormatVersion));
             }
         }
     }
@@ -32,7 +32,7 @@ public record WorkspaceState
         {
             if (value != _currentFormatUuid)
             {
-                throw new ArgumentException($"Unsupported format UUID: {value}");
+                throw new ArgumentException($"Unsupported format UUID: {value}", nameof(FormatUuid));
             }
         }
     }

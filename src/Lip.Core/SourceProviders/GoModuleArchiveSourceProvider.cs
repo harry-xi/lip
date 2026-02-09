@@ -16,7 +16,7 @@ public partial class GoModuleArchiveSourceProvider(IFileInfo archiveFileInfo)
     {
         string archiveKey = _archiveSourceProvider.Keys
             .FirstOrDefault(k => KeyRegex().IsMatch(k) && KeyRegex().Match(k).Groups["key"].Value == key)
-            ?? throw new ArgumentException($"Key not found: {key}");
+            ?? throw new ArgumentException($"Key not found: {key}", nameof(key));
 
         return await _archiveSourceProvider.OpenRead(archiveKey);
     }

@@ -20,7 +20,7 @@ public record PackageManifest
         {
             if (value != _currentFormatVersion)
             {
-                throw new ArgumentException($"Unsupported format version: {value}");
+                throw new ArgumentException($"Unsupported format version: {value}", nameof(FormatVersion));
             }
         }
     }
@@ -35,7 +35,7 @@ public record PackageManifest
         {
             if (value != _currentFormatUuid)
             {
-                throw new ArgumentException($"Unsupported format UUID: {value}");
+                throw new ArgumentException($"Unsupported format UUID: {value}", nameof(FormatUuid));
             }
         }
     }
@@ -77,6 +77,8 @@ public record PackageManifest
             {
                 continue;
             }
+
+            matchingVariants.Add(variant);
         }
 
         // At least one full match is required to indicate that the current

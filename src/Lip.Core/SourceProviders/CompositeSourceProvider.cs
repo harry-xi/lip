@@ -18,6 +18,6 @@ public class CompositeSourceProvider(IEnumerable<ISourceProvider> providers) : I
             }
         }
 
-        throw new ArgumentException($"Key not found: {key}");
+        throw new ArgumentException($"Key not found: {key}", nameof(key));
     }
 }

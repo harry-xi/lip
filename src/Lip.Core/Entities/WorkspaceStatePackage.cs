@@ -14,7 +14,7 @@ public record WorkspaceStatePackage
 
             if (invalidFile is not null)
             {
-                throw new ArgumentException($"Invalid file path: {invalidFile}");
+                throw new ArgumentException($"Invalid file path: {invalidFile}", nameof(Files));
             }
 
             field = value;
@@ -33,7 +33,7 @@ public record WorkspaceStatePackage
         get;
         init => field = PackageId.IsValidVariant(value)
             ? value
-            : throw new ArgumentException($"Invalid package variant: {value}");
+            : throw new ArgumentException($"Invalid package variant: {value}", nameof(Variant));
     }
 
     public PackageSpec GetPackageSpec()

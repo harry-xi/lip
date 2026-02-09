@@ -131,7 +131,7 @@ public class PackageInstaller(
                             break;
 
                         default:
-                            throw new ArgumentException($"Unsupported placement type: {placement.Type}");
+                            throw new UnreachableException();
                     }
                 }
 

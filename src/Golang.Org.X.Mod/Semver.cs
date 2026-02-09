@@ -103,7 +103,7 @@ file static class SemverInternal
             return (default, false);
         }
 
-        Parsed p = new Parsed { Major = major };
+        Parsed p = new() { Major = major };
 
         if (string.IsNullOrEmpty(rest))
         {

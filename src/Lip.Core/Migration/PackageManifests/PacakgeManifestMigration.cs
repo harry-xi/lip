@@ -24,7 +24,7 @@ public static class PackageManifestMigration
     private static PackageManifestV2 MigrateV1ToV2(PackageManifestV1 manifestV1)
     {
         Dictionary<string, JsonElement>? data = manifestV1.Information?.Data;
-        PackageManifestV2Info info = new PackageManifestV2Info
+        PackageManifestV2Info info = new()
         {
             Name = data is not null && data.TryGetValue("name", out JsonElement n)
                 ? n.GetString() ?? ""
@@ -43,7 +43,7 @@ public static class PackageManifestMigration
         PackageManifestV2Commands? commands = null;
         if (manifestV1.Commands is not null)
         {
-            PackageManifestV2Commands result = new PackageManifestV2Commands();
+            PackageManifestV2Commands result = new();
             foreach (PackageManifestV1Command cmd in manifestV1.Commands)
             {
                 if (cmd.Type.Equals("install", StringComparison.OrdinalIgnoreCase))
@@ -88,7 +88,7 @@ public static class PackageManifestMigration
 
     private static PackageManifest MigrateV2ToV3(PackageManifestV2 manifestV2)
     {
-        PackageManifest manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = manifestV2.Tooth,
             Version = Semver.SemVersion.Parse(manifestV2.Version, Semver.SemVersionStyles.Any),
@@ -186,7 +186,7 @@ public static class PackageManifestMigration
                     });
                 }
 
-                PackageManifestScripts scripts = new PackageManifestScripts();
+                PackageManifestScripts scripts = new();
                 PackageManifestV2Commands? cmds = p.Commands ?? manifestV2.Commands;
                 if (cmds is not null)
                 {
@@ -293,7 +293,7 @@ public static class PackageManifestMigration
                 }
             }
 
-            PackageManifestScripts scripts = new PackageManifestScripts();
+            PackageManifestScripts scripts = new();
             if (manifestV2.Commands is not null)
             {
                 scripts = new PackageManifestScripts

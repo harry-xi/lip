@@ -409,7 +409,7 @@ file static class ModuleInternal
                 return (s, null);
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (char r in s)
             {
                 if (r >= 'A' && r <= 'Z')

@@ -1,6 +1,7 @@
 using Flurl;
 using Lip.Core.Json;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Lip.Core.Entities;
@@ -67,6 +68,16 @@ public record RuntimeConfig
         PropertyInfo prop = GetType().GetProperties()
             .FirstOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == key)
             ?? throw new KeyNotFoundException($"Key not found: {key}");
+
+        // If type mismatch, try to serialize and deserialize to convert.
+        if (value is not null && !prop.PropertyType.IsAssignableFrom(value.GetType()))
+        {
+            string json = JsonSerializer.Serialize(value);
+            value = JsonSerializer.Deserialize(json, prop.PropertyType, new JsonSerializerOptions
+            {
+                Converters = { new UrlJsonConverter() }
+            });
+        }
 
         prop.SetValue(newConfig, value);
 

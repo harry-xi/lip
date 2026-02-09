@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text.Json;
-using Xunit;
 
 namespace Lip.Core.Tests.Services;
 
@@ -32,7 +31,7 @@ public class ConfigServiceTests
     public async Task LoadConfig_FileDoesNotExist_ReturnsDefaultAndCreatesFile()
     {
         // Act
-        var result = await _configService.LoadConfig();
+        RuntimeConfig result = await _configService.LoadConfig();
 
         // Assert
         Assert.NotNull(result);
@@ -48,14 +47,14 @@ public class ConfigServiceTests
     public async Task LoadConfig_FileExistsAndIsValid_ReturnsDeserializedConfig()
     {
         // Arrange
-        var expectedConfig = new RuntimeConfig { FormatVersion = 3, FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d" };
-        var json = JsonSerializer.Serialize(expectedConfig, _jsonOptions);
+        RuntimeConfig expectedConfig = new RuntimeConfig { FormatVersion = 3, FormatUuid = "289f771f-2c9a-4d73-9f3f-8492495a924d" };
+        string json = JsonSerializer.Serialize(expectedConfig, _jsonOptions);
 
         _fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(_configPath)!);
         await _fileSystem.File.WriteAllTextAsync(_configPath, json);
 
         // Act
-        var result = await _configService.LoadConfig();
+        RuntimeConfig result = await _configService.LoadConfig();
 
         // Assert
         Assert.NotNull(result);
@@ -71,7 +70,7 @@ public class ConfigServiceTests
         await _fileSystem.File.WriteAllTextAsync(_configPath, "invalid json");
 
         // Act
-        var result = await _configService.LoadConfig();
+        RuntimeConfig result = await _configService.LoadConfig();
 
         // Assert
         Assert.NotNull(result);
@@ -79,8 +78,8 @@ public class ConfigServiceTests
         Assert.Equal(3, result.FormatVersion);
 
         // Should overwrite file with valid default config
-        var fileContent = await _fileSystem.File.ReadAllTextAsync(_configPath);
-        var savedConfig = JsonSerializer.Deserialize<RuntimeConfig>(fileContent);
+        string fileContent = await _fileSystem.File.ReadAllTextAsync(_configPath);
+        RuntimeConfig? savedConfig = JsonSerializer.Deserialize<RuntimeConfig>(fileContent);
         Assert.NotNull(savedConfig);
 
         // Verify logs
@@ -92,15 +91,15 @@ public class ConfigServiceTests
     public async Task SaveConfig_WritesConfigToFile()
     {
         // Arrange
-        var config = new RuntimeConfig(); // Default
+        RuntimeConfig config = new RuntimeConfig(); // Default
 
         // Act
         await _configService.SaveConfig(config);
 
         // Assert
         Assert.True(_fileSystem.File.Exists(_configPath));
-        var fileContent = await _fileSystem.File.ReadAllTextAsync(_configPath);
-        var savedConfig = JsonSerializer.Deserialize<RuntimeConfig>(fileContent);
+        string fileContent = await _fileSystem.File.ReadAllTextAsync(_configPath);
+        RuntimeConfig? savedConfig = JsonSerializer.Deserialize<RuntimeConfig>(fileContent);
         Assert.NotNull(savedConfig);
         Assert.Equal(config.FormatVersion, savedConfig.FormatVersion);
     }

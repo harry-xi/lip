@@ -21,9 +21,9 @@ public interface IWorkspaceService
         PackageManifest manifest,
         IEnumerable<IFileInfo> files,
         bool isExplicit);
-    Task<IEnumerable<PackageSpec>> GetInstalledPackages(PackageScope scope);
     Task<IEnumerable<IFileInfo>> GetInstalledPackageFiles(PackageSpec packageSpec);
     Task<PackageManifest> GetInstalledPackageManifest(PackageSpec packageSpec);
+    Task<IEnumerable<PackageSpec>> GetInstalledPackages(PackageScope scope);
     Task RemoveInstalledPackage(PackageSpec packageSpec);
     Task UpdateInstalledPackageExplicitness(PackageSpec packageSpec, bool isExplicit);
 }
@@ -110,7 +110,7 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
     {
         WorkspaceState state = await LoadWorkspaceState();
 
-        return scope switch
+        IEnumerable<PackageSpec> packages = scope switch
         {
             IWorkspaceService.PackageScope.All => state.Packages
                 .Select(p => p.GetPackageSpec()),
@@ -122,6 +122,21 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
                 .Select(p => p.GetPackageSpec()),
             _ => throw new UnreachableException(),
         };
+
+        // Topologically sort packages.
+        IEnumerable<DependencyNode> dependencyNodes = packages
+            .Select(p => new DependencyNode(
+                p,
+                state.Packages
+                    .Single(sp => sp.GetPackageSpec() == p)
+                    .Manifest
+                    .GetVariant(p.Id.Variant)
+                    .Dependencies
+                    .Select(d => new PackageReqt(d.Key, d.Value))));
+
+        IEnumerable<PackageSpec> sortedPackages = IDependencySolver.TopologicalSort(dependencyNodes);
+
+        return sortedPackages;
     }
 
     public async Task RemoveInstalledPackage(PackageSpec packageSpec)

@@ -2,6 +2,7 @@
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Migration.PackageManifests;
+using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
 using System.IO.Abstractions;
 using System.Text.Json;
@@ -29,7 +30,7 @@ public class LipClient(
     ICacheService cacheService,
     IConfigService configService,
     IInstallService installService,
-    IRegistryService registryService,
+    IPackageRegistry packageRegistry,
     IWorkspaceService workspaceService) : ILipClient
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -41,7 +42,7 @@ public class LipClient(
     private readonly ICacheService _cacheService = cacheService;
     private readonly IConfigService _configService = configService;
     private readonly IInstallService _installService = installService;
-    private readonly IRegistryService _registryService = registryService;
+    private readonly IPackageRegistry _packageRegistry = packageRegistry;
     private readonly IWorkspaceService _workspaceService = workspaceService;
 
     public async Task CacheClean()
@@ -102,8 +103,8 @@ public class LipClient(
     {
         List<PackageSpec> parsedPackages = [];
         List<PackageId> flexiblePackages = [];
-        List<IFileInfo> localPackages = [];
-        List<Url> remotePackages = [];
+        List<LocalPackageSpec> localPackages = [];
+        List<RemotePackageSpec> remotePackages = [];
 
         foreach (string package in packages)
         {
@@ -139,10 +140,8 @@ public class LipClient(
 
             try
             {
-                IFileInfo localPackage = _fileSystem.FileInfo.New(package) is { Exists: true } fileInfo
-                    ? fileInfo
-                    : throw new FileNotFoundException($"Local package '{package}' not found.");
-                localPackages.Add(localPackage);
+                LocalPackageSpec localPackageSpec = LocalPackageSpec.Parse(package, _fileSystem);
+                localPackages.Add(localPackageSpec);
                 continue;
             }
             catch (Exception ex)
@@ -152,7 +151,7 @@ public class LipClient(
 
             try
             {
-                Url remotePackage = new(package);
+                RemotePackageSpec remotePackage = RemotePackageSpec.Parse(package);
                 remotePackages.Add(remotePackage);
                 continue;
             }
@@ -164,7 +163,7 @@ public class LipClient(
             throw new AggregateException($"Failed to parse package '{package}'.", exceptions);
         }
 
-        await _installService.InstallPackage(
+        await _installService.InstallPackages(
             parsedPackages,
             flexiblePackages,
             localPackages,
@@ -201,13 +200,15 @@ public class LipClient(
     {
         IEnumerable<PackageId> parsedPackages = packages.Select(PackageId.Parse);
 
-        await _installService.UninstallPackage(parsedPackages, dryRun, ignoreScripts, noDependencies);
+        await _installService.UninstallPackages(parsedPackages, dryRun, ignoreScripts, noDependencies);
     }
 
     public Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts)
     {
         IEnumerable<PackageSpec> parsedPackages = [];
         IEnumerable<PackageId> flexiblePackages = [];
+        IEnumerable<LocalPackageSpec> localPackages = [];
+        IEnumerable<RemotePackageSpec> remotePackages = [];
 
         foreach (string package in packages)
         {
@@ -235,17 +236,45 @@ public class LipClient(
                 exceptions.Add(ex);
             }
 
+            try
+            {
+                LocalPackageSpec localPackageSpec = LocalPackageSpec.Parse(package, _fileSystem);
+                localPackages = localPackages.Append(localPackageSpec);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            try
+            {
+                RemotePackageSpec remotePackage = RemotePackageSpec.Parse(package);
+                remotePackages = remotePackages.Append(remotePackage);
+                continue;
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
             throw new AggregateException($"Failed to parse package '{package}'.", exceptions);
         }
 
-        return _installService.UpdatePackage(parsedPackages, flexiblePackages, dryRun, ignoreScripts);
+        return _installService.UpdatePackages(
+            parsedPackages,
+            flexiblePackages,
+            localPackages,
+            remotePackages,
+            dryRun,
+            ignoreScripts);
     }
 
     public async Task<string> View(string package)
     {
         PackageSpec packageSpec = PackageSpec.Parse(package);
 
-        PackageManifest packageManifest = await _registryService.GetPackageManifest(packageSpec);
+        PackageManifest packageManifest = await _packageRegistry.GetPackageManifest(packageSpec);
 
         return JsonSerializer.Serialize(packageManifest, _jsonSerializerOptions);
     }

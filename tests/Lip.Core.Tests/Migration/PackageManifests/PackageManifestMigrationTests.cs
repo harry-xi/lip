@@ -232,8 +232,8 @@ public class PackageManifestMigrationTests
 
     private void AssertJsonEqual(string expected, string actual)
     {
-        using var expectedDoc = JsonDocument.Parse(expected);
-        using var actualDoc = JsonDocument.Parse(actual);
+        using JsonDocument expectedDoc = JsonDocument.Parse(expected);
+        using JsonDocument actualDoc = JsonDocument.Parse(actual);
 
         string expectedNormalized = JsonSerializer.Serialize(expectedDoc.RootElement, _jsonSerializerOptions);
         string actualNormalized = JsonSerializer.Serialize(actualDoc.RootElement, _jsonSerializerOptions);

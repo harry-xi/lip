@@ -1,5 +1,4 @@
 using Lip.Core.Entities;
-using Microsoft.Extensions.Logging;
 using Semver;
 using System.Collections.Concurrent;
 
@@ -13,7 +12,7 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
     {
         ConcurrentBag<Exception> exceptions = [];
 
-        var tasks = _registries.Select(async r =>
+        IEnumerable<Task<IEnumerable<SemVersion>>> tasks = _registries.Select(async r =>
         {
             try
             {
@@ -26,7 +25,7 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
             }
         });
 
-        var taskResults = await Task.WhenAll(tasks);
+        IEnumerable<SemVersion>[] taskResults = await Task.WhenAll(tasks);
 
         // Throw if all registries failed.
         if (exceptions.Count == _registries.Count())
@@ -46,7 +45,7 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
     {
         ConcurrentBag<Exception> exceptions = [];
 
-        var tasks = _registries.Select(async r =>
+        IEnumerable<Task<PackageManifest?>> tasks = _registries.Select(async r =>
         {
             try
             {
@@ -59,7 +58,7 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
             }
         });
 
-        var taskResults = await Task.WhenAll(tasks);
+        PackageManifest?[] taskResults = await Task.WhenAll(tasks);
 
         // Throw if all registries failed.
         if (exceptions.Count == _registries.Count())

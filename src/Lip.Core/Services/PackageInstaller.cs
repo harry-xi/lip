@@ -13,8 +13,7 @@ namespace Lip.Core.Services;
 public interface IPackageInstaller
 {
     Task InstallPackage(
-        PackageSpec packageSpec,
-        ISourceProvider sourceProvider,
+        PackageArtifact packageArtifact,
         bool dryRun,
         bool explicitInstall,
         bool ignoreScripts);
@@ -40,8 +39,7 @@ public class PackageInstaller(
     private readonly IWorkspaceService _workspaceService = workspaceService;
 
     public async Task InstallPackage(
-        PackageSpec packageSpec,
-        ISourceProvider sourceProvider,
+        PackageArtifact packageArtifact,
         bool dryRun,
         bool explicitInstall,
         bool ignoreScripts)
@@ -49,28 +47,28 @@ public class PackageInstaller(
         IEnumerable<PackageSpec> installedPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.All);
 
-        PackageSpec existingPackageSpec = installedPackages.FirstOrDefault(p => p.Id == packageSpec.Id)
+        PackageSpec existingPackageSpec = installedPackages.FirstOrDefault(p => p.Id == packageArtifact.Spec.Id)
             ?? throw new InvalidOperationException(
-                $"Cannot install package {packageSpec.Id} version {packageSpec.Version} because it is not already installed. Use explicitInstall to force installation.");
+                $"Cannot install package {packageArtifact.Spec.Id} version {packageArtifact.Spec.Version} because it is not already installed. Use explicitInstall to force installation.");
 
         if (dryRun)
         {
             _logger.LogInformation(
                 "Dry run: would install package {PackageId} version {PackageVersion}",
-                packageSpec.Id,
-                packageSpec.Version);
+                packageArtifact.Spec.Id,
+                packageArtifact.Spec.Version);
 
             return;
         }
 
         _logger.LogInformation(
             "Installing package {PackageId} version {PackageVersion}",
-            packageSpec.Id,
-            packageSpec.Version);
+            packageArtifact.Spec.Id,
+            packageArtifact.Spec.Version);
 
-        using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
+        using Stream manifestStream = await packageArtifact.SourceProvider.OpenRead("tooth.json");
         PackageManifest manifest = (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
-        PackageManifestVariant variant = manifest.GetVariant(packageSpec.Id.Variant);
+        PackageManifestVariant variant = manifest.GetVariant(packageArtifact.Spec.Id.Variant);
 
         // Step 1: Run pre-install scripts.
 
@@ -90,7 +88,7 @@ public class PackageInstaller(
         {
             ISourceProvider assetSourceProvider = asset.Type switch
             {
-                PackageManifestAsset.AssetType.Self => sourceProvider,
+                PackageManifestAsset.AssetType.Self => packageArtifact.SourceProvider,
                 PackageManifestAsset.AssetType.Uncompressed => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Single),
                 PackageManifestAsset.AssetType.Tar => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
                 PackageManifestAsset.AssetType.Tgz => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
@@ -163,7 +161,7 @@ public class PackageInstaller(
         // Step 4: Add package to workspace state.
 
         await _workspaceService.AddInstalledPackage(
-            packageSpec,
+            packageArtifact.Spec,
             manifest,
             placedFiles,
             explicitInstall);

@@ -10,7 +10,7 @@ public class CompositeSourceProvider(IEnumerable<ISourceProvider> providers) : I
 
     public async Task<Stream> OpenRead(string key)
     {
-        foreach (var provider in _providers)
+        foreach (ISourceProvider provider in _providers)
         {
             if (provider.Keys.Contains(key))
             {

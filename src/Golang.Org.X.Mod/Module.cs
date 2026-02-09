@@ -20,7 +20,7 @@ public static class Module
 
     public static string CanonicalVersion(string v)
     {
-        var cv = Semver.Canonical(v);
+        string cv = Semver.Canonical(v);
         if (Semver.Build(v) == "+incompatible")
         {
             cv += "+incompatible";

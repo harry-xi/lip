@@ -2,7 +2,7 @@ using Semver;
 
 namespace Lip.Core.Entities;
 
-public record PackageRequirement(PackageId Id, SemVersionRange VersionRange)
+public record PackageReqt(PackageId Id, SemVersionRange VersionRange)
 {
     public PackageId Id { get; init; } = Id;
 

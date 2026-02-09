@@ -1,5 +1,6 @@
 using DotNet.Globbing;
 using Lip.Core.Entities;
+using Semver;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -22,19 +23,19 @@ public static class PackageManifestMigration
 
     private static PackageManifestV2 MigrateV1ToV2(PackageManifestV1 manifestV1)
     {
-        var data = manifestV1.Information?.Data;
-        var info = new PackageManifestV2Info
+        Dictionary<string, JsonElement>? data = manifestV1.Information?.Data;
+        PackageManifestV2Info info = new PackageManifestV2Info
         {
-            Name = data is not null && data.TryGetValue("name", out var n)
+            Name = data is not null && data.TryGetValue("name", out JsonElement n)
                 ? n.GetString() ?? ""
                 : "",
-            Description = data is not null && data.TryGetValue("description", out var d)
+            Description = data is not null && data.TryGetValue("description", out JsonElement d)
                 ? d.GetString() ?? ""
                 : "",
-            Author = data is not null && data.TryGetValue("author", out var a)
+            Author = data is not null && data.TryGetValue("author", out JsonElement a)
                 ? a.GetString() ?? ""
                 : "",
-            Tags = data is not null && data.TryGetValue("tags", out var t) && t.ValueKind == JsonValueKind.Array
+            Tags = data is not null && data.TryGetValue("tags", out JsonElement t) && t.ValueKind == JsonValueKind.Array
                 ? [.. t.EnumerateArray().Select(e => e.GetString() ?? "")]
                 : []
         };
@@ -42,8 +43,8 @@ public static class PackageManifestMigration
         PackageManifestV2Commands? commands = null;
         if (manifestV1.Commands is not null)
         {
-            var result = new PackageManifestV2Commands();
-            foreach (var cmd in manifestV1.Commands)
+            PackageManifestV2Commands result = new PackageManifestV2Commands();
+            foreach (PackageManifestV1Command cmd in manifestV1.Commands)
             {
                 if (cmd.Type.Equals("install", StringComparison.OrdinalIgnoreCase))
                 {
@@ -87,7 +88,7 @@ public static class PackageManifestMigration
 
     private static PackageManifest MigrateV2ToV3(PackageManifestV2 manifestV2)
     {
-        var manifest = new PackageManifest
+        PackageManifest manifest = new PackageManifest
         {
             Path = manifestV2.Tooth,
             Version = Semver.SemVersion.Parse(manifestV2.Version, Semver.SemVersionStyles.Any),
@@ -105,7 +106,7 @@ public static class PackageManifestMigration
 
         if (manifestV2.Platforms is not null)
         {
-            foreach (var p in manifestV2.Platforms)
+            foreach (PackageManifestV2Platform p in manifestV2.Platforms)
             {
                 string prefix = p.GOOS switch
                 {
@@ -128,10 +129,10 @@ public static class PackageManifestMigration
                     _ => throw new PlatformNotSupportedException($"Unsupported GOARCH: {p.GOARCH}")
                 };
 
-                var dependencies = new Dictionary<PackageId, Semver.SemVersionRange>();
+                Dictionary<PackageId, SemVersionRange> dependencies = [];
                 if (p.Dependencies is not null || manifestV2.Dependencies is not null)
                 {
-                    foreach (var kvp in p.Dependencies ?? manifestV2.Dependencies!)
+                    foreach (KeyValuePair<string, string> kvp in p.Dependencies ?? manifestV2.Dependencies!)
                     {
                         try
                         {
@@ -144,12 +145,12 @@ public static class PackageManifestMigration
                     }
                 }
 
-                var assets = new List<PackageManifestAsset>();
-                var assetUrl = p.AssetUrl ?? manifestV2.AssetUrl;
+                List<PackageManifestAsset> assets = [];
+                string? assetUrl = p.AssetUrl ?? manifestV2.AssetUrl;
                 if (assetUrl is not null)
                 {
-                    var url = System.Text.RegularExpressions.Regex.Replace(assetUrl, @"\$\(([^)]+?)\)", "{{$1}}");
-                    var type = url.Split('.').Last() switch
+                    string url = System.Text.RegularExpressions.Regex.Replace(assetUrl, @"\$\(([^)]+?)\)", "{{$1}}");
+                    PackageManifestAsset.AssetType type = url.Split('.').Last() switch
                     {
                         "tar" => PackageManifestAsset.AssetType.Tar,
                         "tgz" => PackageManifestAsset.AssetType.Tgz,
@@ -158,14 +159,14 @@ public static class PackageManifestMigration
                         _ => PackageManifestAsset.AssetType.Uncompressed
                     };
 
-                    var placements = new List<PackageManifestAssetPlacement>();
-                    var places = p.Files?.Place ?? manifestV2.Files?.Place;
+                    List<PackageManifestAssetPlacement> placements = [];
+                    List<PackageManifestV2Place>? places = p.Files?.Place ?? manifestV2.Files?.Place;
                     if (places is not null)
                     {
-                        foreach (var pl in places)
+                        foreach (PackageManifestV2Place pl in places)
                         {
-                            var src = System.Text.RegularExpressions.Regex.Replace(pl.Src, @"\$\(([^)]+?)\)", "{{$1}}")?.TrimEnd('*') ?? "";
-                            var dst = System.Text.RegularExpressions.Regex.Replace(pl.Dest, @"\$\(([^)]+?)\)", "{{$1}}") ?? "";
+                            string src = System.Text.RegularExpressions.Regex.Replace(pl.Src, @"\$\(([^)]+?)\)", "{{$1}}")?.TrimEnd('*') ?? "";
+                            string dst = System.Text.RegularExpressions.Regex.Replace(pl.Dest, @"\$\(([^)]+?)\)", "{{$1}}") ?? "";
                             placements.Add(new PackageManifestAssetPlacement
                             {
                                 Src = src,
@@ -185,8 +186,8 @@ public static class PackageManifestMigration
                     });
                 }
 
-                var scripts = new PackageManifestScripts();
-                var cmds = p.Commands ?? manifestV2.Commands;
+                PackageManifestScripts scripts = new PackageManifestScripts();
+                PackageManifestV2Commands? cmds = p.Commands ?? manifestV2.Commands;
                 if (cmds is not null)
                 {
                     scripts = new PackageManifestScripts
@@ -211,10 +212,10 @@ public static class PackageManifestMigration
         }
         else
         {
-            var dependencies = new Dictionary<PackageId, Semver.SemVersionRange>();
+            Dictionary<PackageId, SemVersionRange> dependencies = [];
             if (manifestV2.Dependencies is not null)
             {
-                foreach (var kvp in manifestV2.Dependencies)
+                foreach (KeyValuePair<string, string> kvp in manifestV2.Dependencies)
                 {
                     try
                     {
@@ -227,11 +228,11 @@ public static class PackageManifestMigration
                 }
             }
 
-            var assets = new List<PackageManifestAsset>();
+            List<PackageManifestAsset> assets = [];
             if (manifestV2.AssetUrl is not null)
             {
-                var url = System.Text.RegularExpressions.Regex.Replace(manifestV2.AssetUrl, @"\$\(([^)]+?)\)", "{{$1}}");
-                var type = url.Split('.').Last() switch
+                string url = System.Text.RegularExpressions.Regex.Replace(manifestV2.AssetUrl, @"\$\(([^)]+?)\)", "{{$1}}");
+                PackageManifestAsset.AssetType type = url.Split('.').Last() switch
                 {
                     "tar" => PackageManifestAsset.AssetType.Tar,
                     "tgz" => PackageManifestAsset.AssetType.Tgz,
@@ -240,13 +241,13 @@ public static class PackageManifestMigration
                     _ => PackageManifestAsset.AssetType.Uncompressed
                 };
 
-                var placements = new List<PackageManifestAssetPlacement>();
+                List<PackageManifestAssetPlacement> placements = [];
                 if (manifestV2.Files?.Place is not null)
                 {
-                    foreach (var pl in manifestV2.Files.Place)
+                    foreach (PackageManifestV2Place pl in manifestV2.Files.Place)
                     {
-                        var src = System.Text.RegularExpressions.Regex.Replace(pl.Src, @"\$\(([^)]+?)\)", "{{$1}}")?.TrimEnd('*') ?? "";
-                        var dst = System.Text.RegularExpressions.Regex.Replace(pl.Dest, @"\$\(([^)]+?)\)", "{{$1}}") ?? "";
+                        string src = System.Text.RegularExpressions.Regex.Replace(pl.Src, @"\$\(([^)]+?)\)", "{{$1}}")?.TrimEnd('*') ?? "";
+                        string dst = System.Text.RegularExpressions.Regex.Replace(pl.Dest, @"\$\(([^)]+?)\)", "{{$1}}") ?? "";
                         placements.Add(new PackageManifestAssetPlacement
                         {
                             Src = src,
@@ -267,13 +268,13 @@ public static class PackageManifestMigration
             }
             else
             {
-                var placements = new List<PackageManifestAssetPlacement>();
+                List<PackageManifestAssetPlacement> placements = [];
                 if (manifestV2.Files?.Place is not null)
                 {
-                    foreach (var pl in manifestV2.Files.Place)
+                    foreach (PackageManifestV2Place pl in manifestV2.Files.Place)
                     {
-                        var src = System.Text.RegularExpressions.Regex.Replace(pl.Src, @"\$\(([^)]+?)\)", "{{$1}}")?.TrimEnd('*') ?? "";
-                        var dst = System.Text.RegularExpressions.Regex.Replace(pl.Dest, @"\$\(([^)]+?)\)", "{{$1}}") ?? "";
+                        string src = System.Text.RegularExpressions.Regex.Replace(pl.Src, @"\$\(([^)]+?)\)", "{{$1}}")?.TrimEnd('*') ?? "";
+                        string dst = System.Text.RegularExpressions.Regex.Replace(pl.Dest, @"\$\(([^)]+?)\)", "{{$1}}") ?? "";
                         placements.Add(new PackageManifestAssetPlacement
                         {
                             Src = src,
@@ -292,7 +293,7 @@ public static class PackageManifestMigration
                 }
             }
 
-            var scripts = new PackageManifestScripts();
+            PackageManifestScripts scripts = new PackageManifestScripts();
             if (manifestV2.Commands is not null)
             {
                 scripts = new PackageManifestScripts

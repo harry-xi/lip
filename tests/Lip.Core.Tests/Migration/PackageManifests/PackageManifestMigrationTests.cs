@@ -12,11 +12,13 @@ public class PackageManifestMigrationTests
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         Converters =
         {
-            new Json.SemVersionJsonConverter(),
-            new Json.SemVersionRangeJsonConverter(),
-            new Json.UrlJsonConverter()
+            new Lip.Core.Json.SemVersionJsonConverter(),
+            new Lip.Core.Json.SemVersionRangeJsonConverter(),
+            new Lip.Core.Json.UrlJsonConverter(),
+            new Lip.Core.Json.GlobJsonConverter()
         }
     };
+
 
     [Fact]
     public void Migrate_ValidV1Json_ReturnsMigratedV3Json()

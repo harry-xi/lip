@@ -69,10 +69,10 @@ public class GitRunner : IGitRunner
         string outputString = Encoding.UTF8.GetString(outStream.ToArray());
 
         return outputString
-            .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries)
+            .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(static line =>
             {
-                string[] parts = line.Split('\t');
+                string[] parts = line.Split('\t', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 return (Sha: parts[0], Ref: parts[1]);
             });
     }

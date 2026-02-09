@@ -1,32 +1,34 @@
 using Flurl;
+using Flurl.Http;
+using Golang.Org.X.Mod;
 using Lip.Core.Entities;
-using Lip.Core.Infrastructure;
 using Semver;
 
 namespace Lip.Core.PackageRegistries;
 
-public class GoModuleProxyPackageRegistry(IGitRunner gitRunner, Url? githubProxy) : IPackageRegistry
+public class GoModuleProxyPackageRegistry(Url goModuleProxy) : IPackageRegistry
 {
-    private readonly IGitRunner _gitRunner = gitRunner;
-    private readonly Url? _githubProxy = githubProxy;
 
     public async Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
-        Url repoUrl = Url.Parse($"https://{packageId.Path}.git");
+        Url url = goModuleProxy
+            .Clone()
+            .AppendPathSegments(Module.EscapePath(packageId.Path).Item1, "@v", "list");
 
-        if (_githubProxy is not null && repoUrl.Host == "github.com")
-        {
-            repoUrl = _githubProxy
-                .Clone()
-                .AppendPathSegments(repoUrl.PathSegments);
-        }
+        string response = await url.GetStringAsync();
 
-        return (await _gitRunner.LsRemote(repoUrl, refs: true, tags: true))
-            .Where(item => item.Ref.StartsWith("refs/tags/v"))
-            .Select(item => item.Ref["refs/tags/v".Length..])
-            .Where(version => SemVersion.TryParse(version, out _))
-            .Select(version => SemVersion.Parse(version))
-            .Order();
+        return
+        [
+            .. response
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(s => s.StartsWith('v'))
+                .Select(v =>
+                    SemVersion.TryParse(Golang.Org.X.Mod.Semver.Canonical(v).Trim('v'), out SemVersion? version)
+                        ? version
+                        : null)
+                .Where(version => version is not null)
+                .Select(version => version!)
+        ];
     }
 
     public Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)

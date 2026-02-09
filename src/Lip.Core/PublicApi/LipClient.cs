@@ -1,9 +1,9 @@
-﻿using Flurl;
-using Lip.Core.Entities;
+﻿using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Migration.PackageManifests;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
+using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 using System.Text.Json;
 
@@ -44,6 +44,54 @@ public class LipClient(
     private readonly IInstallService _installService = installService;
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
     private readonly IWorkspaceService _workspaceService = workspaceService;
+
+    public static async Task<LipClient> Create(ILogger logger)
+    {
+        FileSystem fileSystem = new();
+
+        ConfigService configService = new(fileSystem, logger);
+
+        CacheService cacheService = new(fileSystem);
+        RuntimeConfig config = await configService.LoadConfig();
+        GitRunner gitRunner = new();
+
+        CommandRunner commandRunner = new();
+        SourceService sourceService = new(
+            gitRunner,
+            cacheService,
+            config.GithubProxy,
+            config.GoModuleProxy);
+        WorkspaceService workspaceService = new(fileSystem, logger);
+
+        PackageInstaller packageInstaller = new(
+            commandRunner,
+            fileSystem,
+            logger,
+            sourceService,
+            workspaceService);
+        CompositePackageRegistry packageRegistry = new([
+           new WorkspaceServicePackageRegistry(workspaceService),
+           new GitPackageRegistry(gitRunner, config.GithubProxy),
+           new GoModuleProxyPackageRegistry(config.GoModuleProxy),
+           new LiprPackageRegistry(),
+           new SourceServicePackageRegistry(sourceService),
+        ]);
+
+        InstallService installService = new(
+            logger,
+            packageInstaller,
+            packageRegistry,
+            sourceService,
+            workspaceService);
+
+        return new LipClient(
+            fileSystem,
+            cacheService,
+            configService,
+            installService,
+            packageRegistry,
+            workspaceService);
+    }
 
     public async Task CacheClean()
     {

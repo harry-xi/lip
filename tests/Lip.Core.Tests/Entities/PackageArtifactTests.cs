@@ -2,7 +2,6 @@ using Lip.Core.Entities;
 using Lip.Core.SourceProviders;
 using Moq;
 using Semver;
-using Xunit;
 
 namespace Lip.Core.Tests.Entities;
 

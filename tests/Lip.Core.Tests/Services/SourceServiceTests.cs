@@ -7,7 +7,6 @@ using Moq;
 using Semver;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using Xunit;
 
 namespace Lip.Core.Tests.Services;
 

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text.Json;
-using Xunit;
 
 namespace Lip.Core.Tests.Services;
 

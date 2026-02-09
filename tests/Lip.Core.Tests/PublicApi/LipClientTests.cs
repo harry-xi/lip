@@ -6,8 +6,6 @@ using Lip.Core.Services;
 using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
-using System.Text.Json;
-using Xunit;
 
 namespace Lip.Core.Tests.PublicApi;
 

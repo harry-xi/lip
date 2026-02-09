@@ -4,7 +4,6 @@ using Lip.Core.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
-using Xunit;
 
 namespace Lip.Core.Tests.Services;
 

@@ -1,5 +1,4 @@
 using Lip.Core.Entities;
-using Xunit;
 
 namespace Lip.Core.Tests.Entities;
 

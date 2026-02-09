@@ -5,8 +5,6 @@ using Lip.Core.SourceProviders;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
-using System.Text.Json;
-using Xunit;
 
 namespace Lip.Core.Tests.Services;
 

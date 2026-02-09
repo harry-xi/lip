@@ -2,7 +2,6 @@ using DotNet.Globbing;
 using Lip.Core.Entities;
 using Semver;
 using System.Text.Json;
-using Xunit;
 
 namespace Lip.Core.Tests.Json;
 

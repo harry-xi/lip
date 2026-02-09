@@ -1,12 +1,6 @@
 using Lip.Core.SourceProviders;
-using Moq;
-using SharpCompress.Archives;
-using SharpCompress.Archives.Zip;
-using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using System.IO.Compression;
 using System.Text;
-using Xunit;
 
 namespace Lip.Core.Tests.SourceProviders;
 

@@ -3,7 +3,6 @@ using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
 using Moq;
 using Semver;
-using Xunit;
 
 namespace Lip.Core.Tests.PackageRegistries;
 

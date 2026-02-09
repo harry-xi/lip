@@ -1,7 +1,6 @@
 using Flurl;
 using Lip.Core.Entities;
 using Semver;
-using Xunit;
 
 namespace Lip.Core.Tests.Entities;
 

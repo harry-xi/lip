@@ -1,6 +1,5 @@
 using Lip.Core.SourceProviders;
 using System.IO.Abstractions.TestingHelpers;
-using Xunit;
 
 namespace Lip.Core.Tests.SourceProviders;
 

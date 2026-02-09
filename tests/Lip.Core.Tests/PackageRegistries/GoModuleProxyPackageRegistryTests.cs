@@ -3,7 +3,6 @@ using Flurl.Http.Testing;
 using Lip.Core.Entities;
 using Lip.Core.PackageRegistries;
 using Semver;
-using Xunit;
 
 namespace Lip.Core.Tests.PackageRegistries;
 

@@ -1,6 +1,5 @@
 using Lip.Core.SourceProviders;
 using Moq;
-using Xunit;
 
 namespace Lip.Core.Tests.SourceProviders;
 

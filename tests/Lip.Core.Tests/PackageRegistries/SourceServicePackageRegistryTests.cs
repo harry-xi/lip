@@ -4,7 +4,6 @@ using Lip.Core.Services;
 using Lip.Core.SourceProviders;
 using Moq;
 using Semver;
-using Xunit;
 
 namespace Lip.Core.Tests.PackageRegistries;
 

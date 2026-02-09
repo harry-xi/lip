@@ -1,6 +1,5 @@
 using Lip.Core.Infrastructure;
 using System.IO.Abstractions.TestingHelpers;
-using Xunit;
 
 namespace Lip.Core.Tests.Infrastructure;
 

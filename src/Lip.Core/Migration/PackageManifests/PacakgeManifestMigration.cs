@@ -1,7 +1,6 @@
 using DotNet.Globbing;
 using Lip.Core.Entities;
 using Semver;
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace Lip.Core.Migration.PackageManifests;
@@ -17,7 +16,7 @@ public static class PackageManifestMigration
             1 => MigrateV2ToV3(MigrateV1ToV2(JsonSerializer.Deserialize<PackageManifestV1>(jsonDocument)!)),
             2 => MigrateV2ToV3(JsonSerializer.Deserialize<PackageManifestV2>(jsonDocument)!),
             3 => JsonSerializer.Deserialize<PackageManifest>(jsonDocument)!,
-            _ => throw new UnreachableException(),
+            _ => throw new NotSupportedException(),
         };
     }
 

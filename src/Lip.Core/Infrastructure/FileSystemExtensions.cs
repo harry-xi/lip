@@ -8,7 +8,7 @@ public static class FileSystemExtensions
     {
         string? dirPath = fs.Path.GetDirectoryName(path);
 
-        if (dirPath is not null)
+        if (!string.IsNullOrEmpty(dirPath))
         {
             fs.Directory.CreateDirectory(dirPath);
         }

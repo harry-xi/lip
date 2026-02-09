@@ -1,4 +1,5 @@
 using DotNet.Globbing;
+using Lip.Core.Json;
 using Semver;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
@@ -49,6 +50,7 @@ public record PackageManifest
             : throw new FormatException($"Invalid package path: {value}");
     }
 
+    [JsonConverter(typeof(SemVersionJsonConverter))]
     [JsonPropertyName("version")]
     public required SemVersion Version { get; init; }
 

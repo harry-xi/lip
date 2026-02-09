@@ -46,7 +46,7 @@ public record RuntimeConfig
 
     [JsonConverter(typeof(UrlJsonConverter))]
     [JsonPropertyName("go_module_proxy")]
-    public Url? GoModuleProxy { get; init; }
+    public Url GoModuleProxy { get; init; } = Url.Parse("https://goproxy.io");
 
     public IDictionary<string, dynamic?> AsDictionary()
     {

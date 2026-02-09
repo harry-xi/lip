@@ -1,3 +1,4 @@
+using Lip.Core.Infrastructure;
 using System.IO.Abstractions;
 
 namespace Lip.Core.Services;
@@ -35,6 +36,8 @@ public class CacheService(IFileSystem fileSystem) : ICacheService
 
         if (!cacheInfo.Exists)
         {
+            _fileSystem.Directory.CreateDirectory(cacheInfo.FullName);
+
             await factory(cacheInfo);
         }
 
@@ -51,6 +54,8 @@ public class CacheService(IFileSystem fileSystem) : ICacheService
 
         if (!cacheInfo.Exists)
         {
+            _fileSystem.CreateFileWithDirectory(cacheInfo.FullName).Dispose();
+
             await factory(cacheInfo);
         }
 

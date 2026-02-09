@@ -30,7 +30,8 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
         // Throw if all registries failed.
         if (exceptions.Count == _registries.Count())
         {
-            throw new AggregateException(exceptions);
+            throw new AggregateException(
+                $"Failed to retrieve available versions for package {packageId} from any registry.", exceptions);
         }
 
         IEnumerable<SemVersion> versions = taskResults
@@ -43,32 +44,21 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
 
     public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)
     {
-        ConcurrentBag<Exception> exceptions = [];
+        List<Exception> exceptions = [];
 
-        IEnumerable<Task<PackageManifest?>> tasks = _registries.Select(async r =>
+        foreach (var registry in _registries)
         {
             try
             {
-                return await r.GetPackageManifest(packageSpec);
+                return await registry.GetPackageManifest(packageSpec);
             }
             catch (Exception ex)
             {
                 exceptions.Add(ex);
-                return null;
             }
-        });
-
-        PackageManifest?[] taskResults = await Task.WhenAll(tasks);
-
-        // Throw if all registries failed.
-        if (exceptions.Count == _registries.Count())
-        {
-            throw new AggregateException(exceptions);
         }
 
-        PackageManifest? manifest = taskResults.FirstOrDefault(m => m is not null)
-            ?? throw new Exception("Failed to retrieve package manifest from any registry.");
-
-        return manifest;
+        throw new AggregateException(
+            $"Failed to retrieve package manifest for package {packageSpec} from any registry.", exceptions);
     }
 }

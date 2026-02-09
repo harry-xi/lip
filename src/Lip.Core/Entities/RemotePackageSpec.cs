@@ -23,12 +23,12 @@ public partial record RemotePackageSpec(
             throw new FormatException($"Invalid remote package spec: {s}");
         }
 
-        string path = match.Groups["path"].Value;
+        string url = match.Groups["url"].Value;
         string variant = match.Groups["label"].Value;
 
-        return new RemotePackageSpec(new Url(path), variant);
+        return new RemotePackageSpec(Url.Parse(url), variant);
     }
 
-    [GeneratedRegex(@"^(?<path>[^#]+)(?:#(?<label>[^#]*))?$")]
+    [GeneratedRegex(@"^(?<url>[^#]+)(?:#(?<label>[^#]*))?$")]
     private static partial Regex SelfRegex();
 }

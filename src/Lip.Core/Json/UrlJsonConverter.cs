@@ -9,7 +9,7 @@ public class UrlJsonConverter : JsonConverter<Url>
     public override Url? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         string? s = reader.GetString();
-        return s is null ? null : new Url(s);
+        return s is null ? null : Url.Parse(s);
     }
 
     public override void Write(Utf8JsonWriter writer, Url value, JsonSerializerOptions options)

@@ -1,27 +1,133 @@
 using Flurl;
+using Flurl.Http;
+using Golang.Org.X.Mod;
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.SourceProviders;
+using Semver;
+using System.IO.Abstractions;
 
 namespace Lip.Core.Services;
 
 public interface ISourceService
 {
-    enum ParsingMode
-    {
-        Composite,
-        Single,
-    }
-
     Task<ISourceProvider> Get(LocalPackageSpec localPackageSpec);
     Task<ISourceProvider> Get(PackageSpec packageSpec);
     Task<ISourceProvider> Get(RemotePackageSpec remotePackageSpec);
+    Task<ISourceProvider> Get(Url url, bool isArchive);
+}
 
-    /// <param name="url">
-    /// Supported formats include:
-    /// - Local directories or files with absolute paths: `file:///path/to/target`
-    /// - Remote files: `https://example.com/path/to/target`
-    /// - Git repositories: `git+https://example.com/path/to/repo.git#ref`
-    /// - Go modules: `go://example.com/path/to/module#v1.0.0`
-    /// </param>
-    Task<ISourceProvider> Get(Url url, ParsingMode parsingMode);
+public class SourceService(
+    IGitRunner gitRunner,
+    ICacheService cacheService,
+    Url? githubProxy,
+    Url goModuleProxy) : ISourceService
+{
+    private readonly IGitRunner _gitRunner = gitRunner;
+    private readonly ICacheService _cacheService = cacheService;
+
+    private readonly Url? _githubProxy = githubProxy;
+    private readonly Url _goModuleProxy = goModuleProxy;
+
+    public async Task<ISourceProvider> Get(LocalPackageSpec localPackageSpec)
+    {
+        if (!localPackageSpec.ArchiveFile.Exists)
+        {
+            throw new FileNotFoundException($"The specified local package file does not exist: {localPackageSpec.ArchiveFile.FullName}");
+        }
+
+        return new ArchiveSourceProvider(localPackageSpec.ArchiveFile);
+    }
+
+    public async Task<ISourceProvider> Get(PackageSpec packageSpec)
+    {
+        List<Exception> exceptions = [];
+
+        foreach (Func<Task<ISourceProvider>> sourceFunc in new Func<Task<ISourceProvider>>[]
+        {
+            () => GetPackageViaGit(packageSpec),
+            () => GetPackageViaGoModuleProxy(packageSpec)
+        })
+        {
+            try
+            {
+                return await sourceFunc();
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+        }
+
+        throw new AggregateException($"Failed to retrieve package '{packageSpec}' from all sources.", exceptions);
+    }
+
+    public async Task<ISourceProvider> Get(RemotePackageSpec remotePackageSpec)
+    {
+        return await Get(remotePackageSpec.ArchiveUrl, isArchive: true);
+    }
+
+    public async Task<ISourceProvider> Get(Url url, bool isArchive)
+    {
+        IFileInfo archiveFile = await _cacheService.GetOrCreateFile(url, async cacheFile =>
+        {
+            using Stream respStream = await url.GetStreamAsync();
+            using Stream fileStream = cacheFile.OpenWrite();
+
+            await respStream.CopyToAsync(fileStream);
+        });
+
+        return isArchive
+            ? new ArchiveSourceProvider(archiveFile)
+            : new SingleFileSourceProvider(archiveFile);
+    }
+
+    private async Task<ISourceProvider> GetPackageViaGit(PackageSpec packageSpec)
+    {
+        Url repoUrl = Url.Parse($"https://{packageSpec.Id.Path}.git");
+
+        if (_githubProxy is not null && repoUrl.Host == "github.com")
+        {
+            repoUrl = _githubProxy
+                .Clone()
+                .AppendPathSegments(repoUrl.PathSegments);
+        }
+
+        string @ref = $"v{packageSpec.Version}";
+
+        Url keyUrl = repoUrl.Clone();
+        keyUrl.Scheme = $"git+{keyUrl.Scheme}";
+        keyUrl.Fragment = @ref;
+
+        IDirectoryInfo repoDir = await _cacheService.GetOrCreateDirectory(keyUrl, async cacheDir =>
+        {
+            await _gitRunner.Clone(repoUrl, cacheDir.FullName, branch: @ref);
+        });
+
+        return new DirectorySourceProvider(repoDir);
+    }
+
+    private async Task<ISourceProvider> GetPackageViaGoModuleProxy(PackageSpec packageSpec)
+    {
+        SemVersion version = (packageSpec.Version.Major >= 2)
+            ? packageSpec.Version.WithMetadata("incompatible")
+            : packageSpec.Version;
+
+        Url archiveUrl = _goModuleProxy
+            .Clone()
+            .AppendPathSegments(
+            Module.EscapePath(packageSpec.Id.Path).Item1,
+            "@v",
+            Module.EscapeVersion(Module.CanonicalVersion($"v{version}")).Item1 + ".zip");
+
+        IFileInfo archiveFile = await _cacheService.GetOrCreateFile(archiveUrl, async cacheFile =>
+        {
+            using Stream respStream = await archiveUrl.GetStreamAsync();
+            using Stream fileStream = cacheFile.OpenWrite();
+
+            await respStream.CopyToAsync(fileStream);
+        });
+
+        return new GoModuleArchiveSourceProvider(archiveFile);
+    }
 }

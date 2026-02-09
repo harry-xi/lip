@@ -50,3 +50,11 @@ public interface IDependencySolver
         return sorted;
     }
 }
+
+public class DependencySolver : IDependencySolver
+{
+    public Task<IEnumerable<PackageSpec>> Solve(IEnumerable<PackageReqt> packageReqts)
+    {
+        throw new NotImplementedException();
+    }
+}

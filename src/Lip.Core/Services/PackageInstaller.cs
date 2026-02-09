@@ -89,10 +89,10 @@ public class PackageInstaller(
             ISourceProvider assetSourceProvider = asset.Type switch
             {
                 PackageManifestAsset.AssetType.Self => packageArtifact.SourceProvider,
-                PackageManifestAsset.AssetType.Uncompressed => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Single),
-                PackageManifestAsset.AssetType.Tar => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
-                PackageManifestAsset.AssetType.Tgz => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
-                PackageManifestAsset.AssetType.Zip => await GetSourceProvider(asset.Urls, ISourceService.ParsingMode.Composite),
+                PackageManifestAsset.AssetType.Uncompressed => await GetSourceProvider(asset.Urls, isArchive: false),
+                PackageManifestAsset.AssetType.Tar => await GetSourceProvider(asset.Urls, isArchive: true),
+                PackageManifestAsset.AssetType.Tgz => await GetSourceProvider(asset.Urls, isArchive: true),
+                PackageManifestAsset.AssetType.Zip => await GetSourceProvider(asset.Urls, isArchive: true),
                 _ => throw new UnreachableException(),
             };
 
@@ -247,9 +247,7 @@ public class PackageInstaller(
         await _workspaceService.RemoveInstalledPackage(existingPackageSpec);
     }
 
-    private async Task<ISourceProvider> GetSourceProvider(
-        IEnumerable<Url> urls,
-        ISourceService.ParsingMode parsingMode)
+    private async Task<ISourceProvider> GetSourceProvider(IEnumerable<Url> urls, bool isArchive)
     {
         List<Exception> exceptions = [];
 
@@ -257,7 +255,7 @@ public class PackageInstaller(
         {
             try
             {
-                return await _sourceService.Get(url, parsingMode);
+                return await _sourceService.Get(url, isArchive);
             }
             catch (Exception ex)
             {

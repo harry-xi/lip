@@ -46,9 +46,10 @@ public class PackageInstaller(
         IEnumerable<PackageSpec> installedPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.All);
 
-        PackageSpec existingPackageSpec = installedPackages.FirstOrDefault(p => p.Id == packageArtifact.Spec.Id)
-            ?? throw new InvalidOperationException(
-                $"Cannot install package {packageArtifact.Spec.Id} version {packageArtifact.Spec.Version} because it is not already installed. Use explicitInstall to force installation.");
+        if (installedPackages.FirstOrDefault(p => p.Id == packageArtifact.Spec.Id) is PackageSpec existingPackageSpec)
+        {
+            throw new InvalidOperationException($"Cannot install package {packageArtifact.Spec.Id} version {packageArtifact.Spec.Version} because it is already installed with version {existingPackageSpec.Version}");
+        }
 
         if (dryRun)
         {

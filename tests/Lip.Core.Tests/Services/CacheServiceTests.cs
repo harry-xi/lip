@@ -38,8 +38,8 @@ public class CacheServiceTests
     {
         // Arrange
         var cachePath = GetCachePath();
-        var encodedKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("test-key"));
-        var targetPath = Path.Combine(cachePath, encodedKey);
+        var safeKey = Uri.EscapeDataString("test-key");
+        var targetPath = Path.Combine(cachePath, safeKey);
 
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {

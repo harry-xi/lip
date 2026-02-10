@@ -40,10 +40,10 @@ public class CacheService(IFileSystem fileSystem, IUserInteraction userInteracti
 
     public async Task<IDirectoryInfo> GetOrCreateDirectory(string key, Func<IDirectoryInfo, Task> factory)
     {
-        string encodedKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(key));
+        string safeKey = Uri.EscapeDataString(key);
 
         IDirectoryInfo cacheInfo = _fileSystem.DirectoryInfo.New(Path.Combine(
-            _cacheDirectory.FullName, encodedKey));
+            _cacheDirectory.FullName, safeKey));
 
         if (!cacheInfo.Exists)
         {
@@ -57,10 +57,10 @@ public class CacheService(IFileSystem fileSystem, IUserInteraction userInteracti
 
     public async Task<IFileInfo> GetOrCreateFile(string key, Func<IFileInfo, Task> factory)
     {
-        string encodedKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(key));
+        string safeKey = Uri.EscapeDataString(key);
 
         IFileInfo cacheInfo = _fileSystem.FileInfo.New(Path.Combine(
-            _cacheDirectory.FullName, encodedKey));
+            _cacheDirectory.FullName, safeKey));
 
         if (!cacheInfo.Exists)
         {

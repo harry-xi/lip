@@ -36,14 +36,14 @@ public class PackageInstallerTests
     }
 
     [Fact]
-    public async Task InstallPackage_NotAlreadyInstalled_ThrowsException()
+    public async Task InstallPackage_AlreadyInstalled_ThrowsException()
     {
         // Arrange
         PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
         PackageArtifact artifact = new(pkgSpec, new Mock<ISourceProvider>().Object);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([]);
+            .ReturnsAsync([pkgSpec]);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => _installer.InstallPackage(
@@ -78,7 +78,7 @@ public class PackageInstallerTests
 
         // Setup WorkspaceService to allow install
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([pkgSpec]);
+            .ReturnsAsync([]);
 
         // Setup Manifest
         var manifestJson = """
@@ -127,7 +127,7 @@ public class PackageInstallerTests
         PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([pkgSpec]);
+            .ReturnsAsync([]);
 
         var manifestJson = """
             {

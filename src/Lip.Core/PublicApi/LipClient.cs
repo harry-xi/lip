@@ -59,6 +59,7 @@ public class LipClient(
         CommandRunner commandRunner = new();
         SourceService sourceService = new(
             gitRunner,
+            userInteraction,
             cacheService,
             githubProxy,
             goModuleProxy);

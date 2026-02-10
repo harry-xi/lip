@@ -13,15 +13,18 @@ namespace Lip.Core.Tests.Services;
 public class SourceServiceTests
 {
     private readonly Mock<IGitRunner> _mockGitRunner;
+    private readonly Mock<IUserInteraction> _mockUserInteraction;
     private readonly Mock<ICacheService> _mockCacheService;
     private readonly SourceService _service;
 
     public SourceServiceTests()
     {
         _mockGitRunner = new Mock<IGitRunner>();
+        _mockUserInteraction = new Mock<IUserInteraction>();
         _mockCacheService = new Mock<ICacheService>();
         _service = new SourceService(
             _mockGitRunner.Object,
+            _mockUserInteraction.Object,
             _mockCacheService.Object,
             githubProxy: null,
             goModuleProxy: new Url("https://proxy.golang.org"));
@@ -74,6 +77,9 @@ public class SourceServiceTests
         mockFs.AddDirectory(@"C:\cache\repo");
         IDirectoryInfo mockDir = mockFs.DirectoryInfo.New(@"C:\cache\repo");
 
+        _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
+            .ThrowsAsync(new Exception("Go Proxy failed"));
+
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.IsAny<string>(), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ReturnsAsync(mockDir);
 
@@ -106,6 +112,7 @@ public class SourceServiceTests
     {
         SourceService serviceWithProxy = new(
             _mockGitRunner.Object,
+            _mockUserInteraction.Object,
             _mockCacheService.Object,
             githubProxy: new Url("https://ghproxy.com"),
             goModuleProxy: new Url("https://proxy.golang.org"));
@@ -114,6 +121,9 @@ public class SourceServiceTests
         MockFileSystem mockFs = new();
         mockFs.AddDirectory(@"C:\cache\repo");
         IDirectoryInfo mockDir = mockFs.DirectoryInfo.New(@"C:\cache\repo");
+
+        _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
+            .ThrowsAsync(new Exception("Go Proxy failed"));
 
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.Is<string>(k => k.Contains("ghproxy.com")), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ReturnsAsync(mockDir);

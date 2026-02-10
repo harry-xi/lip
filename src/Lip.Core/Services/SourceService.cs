@@ -19,11 +19,14 @@ public interface ISourceService
 
 public class SourceService(
     IGitRunner gitRunner,
+    IUserInteraction userInteraction,
     ICacheService cacheService,
     Url? githubProxy,
     Url goModuleProxy) : ISourceService
 {
     private readonly IGitRunner _gitRunner = gitRunner;
+    private readonly IUserInteraction _userInteraction = userInteraction;
+
     private readonly ICacheService _cacheService = cacheService;
 
     private readonly Url? _githubProxy = githubProxy;
@@ -45,8 +48,8 @@ public class SourceService(
 
         foreach (Func<Task<ISourceProvider>> sourceFunc in new Func<Task<ISourceProvider>>[]
         {
+            () => GetPackageViaGoModuleProxy(packageSpec),
             () => GetPackageViaGit(packageSpec),
-            () => GetPackageViaGoModuleProxy(packageSpec)
         })
         {
             try
@@ -73,6 +76,8 @@ public class SourceService(
         {
             using Stream respStream = await url.GetStreamAsync();
             using Stream fileStream = cacheFile.OpenWrite();
+
+            await _userInteraction.PrintInfo($"Downloading from '{url}'...");
 
             await respStream.CopyToAsync(fileStream);
         });
@@ -101,6 +106,8 @@ public class SourceService(
 
         IDirectoryInfo repoDir = await _cacheService.GetOrCreateDirectory(keyUrl, async cacheDir =>
         {
+            await _userInteraction.PrintInfo($"Cloning git repository from '{repoUrl}'...");
+
             await _gitRunner.Clone(repoUrl, cacheDir.FullName, branch: @ref);
         });
 
@@ -124,6 +131,8 @@ public class SourceService(
         {
             using Stream respStream = await archiveUrl.GetStreamAsync();
             using Stream fileStream = cacheFile.OpenWrite();
+
+            await _userInteraction.PrintInfo($"Downloading from '{archiveUrl}'...");
 
             await respStream.CopyToAsync(fileStream);
         });

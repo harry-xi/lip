@@ -20,6 +20,6 @@ public class LiprPackageRegistry : IPackageRegistry
 
         using Stream manifestStream = await url.GetStreamAsync();
 
-        return (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
+        return await PackageManifest.FromStream(manifestStream);
     }
 }

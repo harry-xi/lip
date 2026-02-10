@@ -1,7 +1,9 @@
 using DotNet.Globbing;
 using Lip.Core.Json;
+using Lip.Core.Migration.PackageManifests;
 using Semver;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Lip.Core.Entities;
@@ -59,6 +61,13 @@ public record PackageManifest
 
     [JsonPropertyName("variants")]
     public List<PackageManifestVariant> Variants { get; init; } = [];
+
+    public static async Task<PackageManifest> FromStream(Stream stream)
+    {
+        JsonDocument jsonDocument = await JsonDocument.ParseAsync(stream);
+
+        return PackageManifestMigration.Migrate(jsonDocument);
+    }
 
     public PackageManifestVariant GetVariant(string label)
     {

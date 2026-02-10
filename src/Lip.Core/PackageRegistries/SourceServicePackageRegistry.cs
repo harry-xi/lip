@@ -20,7 +20,7 @@ public class SourceServicePackageRegistry(ISourceService sourceService) : IPacka
         ISourceProvider sourceProvider = await _sourceService.Get(packageSpec);
 
         using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
-        PackageManifest manifest = (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
+        PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
 
         return manifest;
     }

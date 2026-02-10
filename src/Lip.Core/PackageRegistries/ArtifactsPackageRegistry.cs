@@ -24,7 +24,7 @@ public class ArtifactsPackageRegistry(IEnumerable<PackageArtifact> packageArtifa
             {
                 using Stream stream = await pa.SourceProvider.OpenRead("tooth.json");
 
-                return (await JsonSerializer.DeserializeAsync<PackageManifest>(stream))!;
+                return await PackageManifest.FromStream(stream);
             })
             .Single();
     }

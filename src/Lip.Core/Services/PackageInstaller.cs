@@ -67,7 +67,7 @@ public class PackageInstaller(
             packageArtifact.Spec.Version);
 
         using Stream manifestStream = await packageArtifact.SourceProvider.OpenRead("tooth.json");
-        PackageManifest manifest = (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
+        PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
         PackageManifestVariant variant = manifest.GetVariant(packageArtifact.Spec.Id.Variant);
 
         // Step 1: Run pre-install scripts.

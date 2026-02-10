@@ -275,7 +275,7 @@ public class InstallService(
             ISourceProvider sourceProvider = await _sourceService.Get(localPackageSpec);
 
             using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
-            PackageManifest manifest = (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
+            PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
 
             PackageId packageId = new(manifest.Path, localPackageSpec.Variant);
             PackageSpec packageSpec = new(packageId, manifest.Version);
@@ -289,7 +289,7 @@ public class InstallService(
             ISourceProvider sourceProvider = await _sourceService.Get(remotePackageSpec);
 
             using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
-            PackageManifest manifest = (await JsonSerializer.DeserializeAsync<PackageManifest>(manifestStream))!;
+            PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
 
             PackageId packageId = new(manifest.Path, remotePackageSpec.Variant);
             PackageSpec packageSpec = new(packageId, manifest.Version);

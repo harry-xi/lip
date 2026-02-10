@@ -12,10 +12,10 @@ public class PackageManifestMigrationTests
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         Converters =
         {
-            new Lip.Core.Json.SemVersionJsonConverter(),
-            new Lip.Core.Json.SemVersionRangeJsonConverter(),
-            new Lip.Core.Json.UrlJsonConverter(),
-            new Lip.Core.Json.GlobJsonConverter()
+            new Core.Json.SemVersionJsonConverter(),
+            new Core.Json.SemVersionRangeJsonConverter(),
+            new Core.Json.UrlJsonConverter(),
+            new Core.Json.GlobJsonConverter()
         }
     };
 

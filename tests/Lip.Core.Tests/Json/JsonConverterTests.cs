@@ -11,11 +11,11 @@ public class JsonConverterTests
     {
         Converters =
         {
-            new Lip.Core.Json.GlobJsonConverter(),
-            new Lip.Core.Json.PackageIdJsonConverter(),
-            new Lip.Core.Json.SemVersionJsonConverter(),
-            new Lip.Core.Json.SemVersionRangeJsonConverter(),
-            new Lip.Core.Json.UrlJsonConverter()
+            new Core.Json.GlobJsonConverter(),
+            new Core.Json.PackageIdJsonConverter(),
+            new Core.Json.SemVersionJsonConverter(),
+            new Core.Json.SemVersionRangeJsonConverter(),
+            new Core.Json.UrlJsonConverter()
         }
     };
 
@@ -157,10 +157,10 @@ public class JsonConverterTests
     {
         var json = "{\"github.com/a/b#main\": \"1.0.0\"}";
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Lip.Core.Json.DependencyDictJsonConverter());
-        
+        options.Converters.Add(new Core.Json.DependencyDictJsonConverter());
+
         var result = JsonSerializer.Deserialize<Dictionary<PackageId, SemVersionRange>>(json, options);
-        
+
         Assert.NotNull(result);
         Assert.Single(result);
         var kvp = result.First();
@@ -177,10 +177,10 @@ public class JsonConverterTests
             { new PackageId("github.com/a/b", "main"), SemVersionRange.Parse("1.0.0") }
         };
         var options = new JsonSerializerOptions();
-        options.Converters.Add(new Lip.Core.Json.DependencyDictJsonConverter());
+        options.Converters.Add(new Core.Json.DependencyDictJsonConverter());
 
         var result = JsonSerializer.Serialize(dict, options);
-        
+
         Assert.Contains("github.com/a/b#main", result);
         Assert.Contains("1.0.0", result);
     }

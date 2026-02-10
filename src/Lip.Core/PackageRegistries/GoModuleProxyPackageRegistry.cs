@@ -9,7 +9,7 @@ namespace Lip.Core.PackageRegistries;
 public class GoModuleProxyPackageRegistry(Url goModuleProxy) : IPackageRegistry
 {
 
-    public async Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
+    public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
         Url url = goModuleProxy
             .Clone()
@@ -17,18 +17,16 @@ public class GoModuleProxyPackageRegistry(Url goModuleProxy) : IPackageRegistry
 
         string response = await url.GetStringAsync();
 
-        return
-        [
-            .. response
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(s => s.StartsWith('v'))
-                .Select(v =>
-                    SemVersion.TryParse(Golang.Org.X.Mod.Semver.Canonical(v).Trim('v'), out SemVersion? version)
-                        ? version
-                        : null)
-                .Where(version => version is not null)
-                .Select(version => version!)
-        ];
+        return response
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(s => s.StartsWith('v'))
+            .Select(v =>
+                SemVersion.TryParse(Golang.Org.X.Mod.Semver.Canonical(v).Trim('v'), out SemVersion? version)
+                    ? version
+                    : null)
+            .Where(version => version is not null)
+            .Select(version => version!)
+            .Order(SemVersion.PrecedenceComparer);
     }
 
     public Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)

@@ -8,15 +8,16 @@ public class WorkspaceServicePackageRegistry(IWorkspaceService workspaceService)
 {
     private readonly IWorkspaceService _workspaceService = workspaceService;
 
-    public async Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
+    public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
         if ((await _workspaceService.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .SingleOrDefault(p => p.Id == packageId) is not PackageSpec packageSpec)
         {
-            return [];
+            return Enumerable.Empty<SemVersion>().Order(SemVersion.PrecedenceComparer);
+
         }
 
-        return [packageSpec.Version];
+        return new[] { packageSpec.Version }.Order(SemVersion.PrecedenceComparer);
     }
 
     public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)

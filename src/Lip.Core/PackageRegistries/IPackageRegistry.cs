@@ -8,6 +8,6 @@ public interface IPackageRegistry
     /// <returns>
     /// A sorted list of available versions for the given package ID (oldest first).
     /// </returns>
-    Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId);
+    Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId);
     Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec);
 }

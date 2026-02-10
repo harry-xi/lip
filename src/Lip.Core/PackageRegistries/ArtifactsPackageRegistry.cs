@@ -8,12 +8,12 @@ public class ArtifactsPackageRegistry(IEnumerable<PackageArtifact> packageArtifa
 {
     private readonly IEnumerable<PackageArtifact> _packageArtifacts = packageArtifacts;
 
-    public async Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
+    public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
         return _packageArtifacts
             .Where(pa => pa.Spec.Id == packageId)
             .Select(pa => pa.Spec.Version)
-            .Order();
+            .Order(SemVersion.PrecedenceComparer);
     }
 
     public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)

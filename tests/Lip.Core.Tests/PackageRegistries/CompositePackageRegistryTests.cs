@@ -16,9 +16,9 @@ public class CompositePackageRegistryTests
         var mockRegistry2 = new Mock<IPackageRegistry>();
 
         mockRegistry1.Setup(r => r.GetAvailableVersions(pkgId))
-            .ReturnsAsync([new SemVersion(1, 0, 0), new SemVersion(1, 1, 0)]);
+            .ReturnsAsync(new[] { new SemVersion(1, 0, 0), new SemVersion(1, 1, 0) }.Order(SemVersion.PrecedenceComparer));
         mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
-            .ReturnsAsync([new SemVersion(1, 1, 0), new SemVersion(2, 0, 0)]);
+            .ReturnsAsync(new[] { new SemVersion(1, 1, 0), new SemVersion(2, 0, 0) }.Order(SemVersion.PrecedenceComparer));
 
         var composite = new CompositePackageRegistry([mockRegistry1.Object, mockRegistry2.Object]);
 
@@ -43,7 +43,7 @@ public class CompositePackageRegistryTests
         mockRegistry1.Setup(r => r.GetAvailableVersions(pkgId))
             .ThrowsAsync(new Exception("Registry 1 failed"));
         mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
-            .ReturnsAsync([new SemVersion(1, 0, 0)]);
+            .ReturnsAsync(new[] { new SemVersion(1, 0, 0) }.OrderBy(v => v, SemVersion.PrecedenceComparer));
 
         var composite = new CompositePackageRegistry([mockRegistry1.Object, mockRegistry2.Object]);
 

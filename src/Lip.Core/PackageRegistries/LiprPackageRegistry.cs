@@ -8,7 +8,7 @@ namespace Lip.Core.PackageRegistries;
 
 public class LiprPackageRegistry : IPackageRegistry
 {
-    public async Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
+    public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
         throw new NotSupportedException();
     }

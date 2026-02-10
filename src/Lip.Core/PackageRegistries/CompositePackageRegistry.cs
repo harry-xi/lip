@@ -8,11 +8,11 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
 {
     private readonly IEnumerable<IPackageRegistry> _registries = registries;
 
-    public async Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
+    public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
         ConcurrentBag<Exception> exceptions = [];
 
-        IEnumerable<Task<IEnumerable<SemVersion>>> tasks = _registries.Select(async r =>
+        IEnumerable<Task<IOrderedEnumerable<SemVersion>>> tasks = _registries.Select(async r =>
         {
             try
             {
@@ -21,7 +21,7 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
             catch (Exception ex)
             {
                 exceptions.Add(ex);
-                return [];
+                return Enumerable.Empty<SemVersion>().Order(SemVersion.PrecedenceComparer);
             }
         });
 
@@ -34,10 +34,10 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
                 $"Failed to retrieve available versions for package {packageId} from any registry.", exceptions);
         }
 
-        IEnumerable<SemVersion> versions = taskResults
+        IOrderedEnumerable<SemVersion> versions = taskResults
             .SelectMany(v => v)
             .Distinct()
-            .Order();
+            .Order(SemVersion.PrecedenceComparer);
 
         return versions;
     }

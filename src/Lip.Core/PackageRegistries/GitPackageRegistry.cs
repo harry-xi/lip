@@ -11,7 +11,7 @@ public class GitPackageRegistry(IGitRunner gitRunner, Url? githubProxy) : IPacka
 
     private readonly Url? _githubProxy = githubProxy;
 
-    public async Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
+    public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
         Url repoUrl = Url.Parse($"https://{packageId.Path}.git");
 
@@ -27,7 +27,7 @@ public class GitPackageRegistry(IGitRunner gitRunner, Url? githubProxy) : IPacka
             .Select(item => item.Ref["refs/tags/v".Length..])
             .Where(version => SemVersion.TryParse(version, out _))
             .Select(version => SemVersion.Parse(version))
-            .Order();
+            .Order(SemVersion.PrecedenceComparer);
     }
 
     public Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)

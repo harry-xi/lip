@@ -109,10 +109,11 @@ public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) 
         // Fail-first heuristic: Pick candidate with fewest version options.
         (PackageId? nextId, HashSet<SemVersion>? versions) = candidates.MinBy(x => x.Value.Count);
 
-        // Prefer newest versions.
-        IOrderedEnumerable<SemVersion> sortedVersions = versions.OrderDescending();
+        IOrderedEnumerable<SemVersion> sortedVersions = versions
+            .Order(SemVersion.PrecedenceComparer);
 
-        foreach (SemVersion? version in sortedVersions)
+        // Prefer newest versions.
+        foreach (SemVersion? version in sortedVersions.Reverse())
         {
             Dictionary<PackageId, SemVersion> nextSelected = new(selected) { [nextId] = version };
 

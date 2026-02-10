@@ -40,7 +40,7 @@ public class DependencySolverTests
         var reqt = new PackageReqt(packageId, SemVersionRange.All);
 
         _mockRegistry.Setup(r => r.GetAvailableVersions(packageId))
-            .ReturnsAsync([version]);
+            .ReturnsAsync(new[] { version }.OrderBy(v => v));
 
         var manifest = new PackageManifest
         {
@@ -82,7 +82,7 @@ public class DependencySolverTests
         var reqtA = new PackageReqt(pkgA, SemVersionRange.All);
 
         _mockRegistry.Setup(r => r.GetAvailableVersions(pkgA))
-            .ReturnsAsync([verA]);
+            .ReturnsAsync(new[] { verA }.OrderBy(v => v));
 
         var manifestA = new PackageManifest
         {
@@ -108,7 +108,7 @@ public class DependencySolverTests
         var reqtB = new PackageReqt(pkgB, SemVersionRange.Parse("2.0.0"));
 
         _mockRegistry.Setup(r => r.GetAvailableVersions(pkgB))
-            .ReturnsAsync([verB1, verB2]);
+            .ReturnsAsync(new[] { verB1, verB2 }.OrderBy(v => v));
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => _solver.Solve([reqtA, reqtB]));

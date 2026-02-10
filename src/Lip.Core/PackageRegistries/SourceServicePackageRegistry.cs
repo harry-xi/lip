@@ -10,7 +10,7 @@ public class SourceServicePackageRegistry(ISourceService sourceService) : IPacka
 {
     private readonly ISourceService _sourceService = sourceService;
 
-    public Task<IEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
+    public Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
         throw new NotSupportedException();
     }

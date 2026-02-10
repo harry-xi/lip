@@ -120,7 +120,7 @@ public class InstallServiceTests
         };
 
         _mockPackageRegistry.Setup(r => r.GetAvailableVersions(It.IsAny<PackageId>()))
-            .ReturnsAsync((PackageId id) => id.ToString().Contains("dep") ? [pkgDepVer] : []);
+            .ReturnsAsync((PackageId id) => (id.ToString().Contains("dep") ? new[] { pkgDepVer } : Array.Empty<SemVersion>()).OrderBy(v => v));
 
         _mockPackageRegistry.Setup(r => r.GetPackageManifest(It.IsAny<PackageSpec>()))
             .Returns((PackageSpec s) =>
@@ -248,7 +248,7 @@ public class InstallServiceTests
         var pkgSpecV2 = new PackageSpec(pkgId, v2);
 
         _mockPackageRegistry.Setup(r => r.GetAvailableVersions(pkgId))
-            .ReturnsAsync([v1, v2]);
+            .ReturnsAsync(new[] { v1, v2 }.OrderBy(v => v));
 
         var mockSourceProvider = new Mock<ISourceProvider>();
         // Mock manifest for v2

@@ -14,9 +14,9 @@ public class ArchiveSourceProvider(IFileInfo archiveFileInfo) : ISourceProvider
             using Stream archiveStream = _archiveFileInfo.OpenRead();
             using IArchive archive = ArchiveFactory.Open(archiveStream);
 
-            return archive.Entries
+            return [.. archive.Entries
                 .Where(e => !e.IsDirectory && e.Key is not null)
-                .Select(e => e.Key!);
+                .Select(e => e.Key!)];
         }
     }
 

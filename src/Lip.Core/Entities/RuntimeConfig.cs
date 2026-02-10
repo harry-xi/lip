@@ -54,6 +54,7 @@ public record RuntimeConfig
         return GetType()
             .GetProperties()
             .Where(p => p.GetCustomAttribute<JsonPropertyNameAttribute>() is not null)
+            .Where(p => p.Name != nameof(FormatVersion) && p.Name != nameof(FormatUuid))
             .Select(p => new KeyValuePair<string, dynamic?>(
                 p.GetCustomAttribute<JsonPropertyNameAttribute>()!.Name,
                 p.GetValue(this)
@@ -66,11 +67,12 @@ public record RuntimeConfig
         RuntimeConfig newConfig = this with { };
 
         PropertyInfo prop = GetType().GetProperties()
+            .Where(p => p.Name != nameof(FormatVersion) && p.Name != nameof(FormatUuid))
             .FirstOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == key)
-            ?? throw new KeyNotFoundException($"Key not found: {key}");
+            ?? throw new KeyNotFoundException($"Configuration key '{key}' not found.");
 
         // If type mismatch, try to serialize and deserialize to convert.
-        if (value is not null && !prop.PropertyType.IsAssignableFrom(value.GetType()))
+        if (!prop.PropertyType.IsAssignableFrom(value?.GetType()))
         {
             string json = JsonSerializer.Serialize(value);
             value = JsonSerializer.Deserialize(json, prop.PropertyType, new JsonSerializerOptions

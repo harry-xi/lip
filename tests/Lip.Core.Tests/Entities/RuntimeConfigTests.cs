@@ -30,7 +30,7 @@ public class RuntimeConfigTests
     }
 
     [Fact]
-    public void AsDictionary_ReturnsAllProperties()
+    public void AsDictionary_ReturnsOnlyEditableProperties()
     {
         RuntimeConfig config = new()
         {
@@ -40,8 +40,8 @@ public class RuntimeConfigTests
 
         IDictionary<string, dynamic?> dict = config.AsDictionary();
 
-        Assert.True(dict.ContainsKey("format_version"));
-        Assert.True(dict.ContainsKey("format_uuid"));
+        Assert.False(dict.ContainsKey("format_version"));
+        Assert.False(dict.ContainsKey("format_uuid"));
         Assert.True(dict.ContainsKey("github_proxy"));
         Assert.True(dict.ContainsKey("go_module_proxy"));
     }
@@ -64,6 +64,15 @@ public class RuntimeConfigTests
         RuntimeConfig config = new();
 
         Assert.Throws<KeyNotFoundException>(() => config.With("invalid_key", "value"));
+    }
+
+    [Theory]
+    [InlineData("format_version")]
+    [InlineData("format_uuid")]
+    public void With_InternalProperties_ThrowsKeyNotFoundException(string key)
+    {
+        RuntimeConfig config = new();
+        Assert.Throws<KeyNotFoundException>(() => config.With(key, "value"));
     }
 }
 

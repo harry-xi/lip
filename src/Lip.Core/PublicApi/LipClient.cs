@@ -1,4 +1,5 @@
-﻿using Lip.Core.Entities;
+﻿using Flurl;
+using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Migration.PackageManifests;
 using Lip.Core.PackageRegistries;
@@ -51,15 +52,16 @@ public class LipClient(
         ConfigService configService = new(fileSystem, userInteraction);
 
         CacheService cacheService = new(fileSystem, userInteraction);
-        RuntimeConfig config = await configService.LoadConfig();
+        Url? githubProxy = await configService.Get<Url?>("github_proxy");
+        Url goModuleProxy = await configService.Get<Url>("go_module_proxy");
         GitRunner gitRunner = new();
 
         CommandRunner commandRunner = new();
         SourceService sourceService = new(
             gitRunner,
             cacheService,
-            config.GithubProxy,
-            config.GoModuleProxy);
+            githubProxy,
+            goModuleProxy);
         WorkspaceService workspaceService = new(fileSystem, userInteraction);
 
         PackageInstaller packageInstaller = new(
@@ -70,8 +72,8 @@ public class LipClient(
             workspaceService);
         CompositePackageRegistry packageRegistry = new([
            new WorkspaceServicePackageRegistry(workspaceService),
-           new GitPackageRegistry(gitRunner, config.GithubProxy),
-           new GoModuleProxyPackageRegistry(config.GoModuleProxy),
+           new GitPackageRegistry(gitRunner, githubProxy),
+           new GoModuleProxyPackageRegistry(goModuleProxy),
            new LiprPackageRegistry(),
            new SourceServicePackageRegistry(sourceService),
         ]);
@@ -99,38 +101,22 @@ public class LipClient(
 
     public async Task ConfigDelete(string key)
     {
-        RuntimeConfig config = await _configService.LoadConfig();
-
-        RuntimeConfig newConfig = config.With(key, null);
-
-        await _configService.SaveConfig(newConfig);
+        await _configService.Delete(key);
     }
 
     public async Task<string> ConfigGet(string key)
     {
-        RuntimeConfig config = await _configService.LoadConfig();
-
-        return config.AsDictionary()[key]?.ToString() ?? "";
+        return await _configService.Get(key);
     }
 
     public async Task<IDictionary<string, string>> ConfigList()
     {
-        RuntimeConfig config = await _configService.LoadConfig();
-
-        return config
-            .AsDictionary()
-            .ToDictionary<KeyValuePair<string, dynamic?>, string, string>(
-                kvp => kvp.Key,
-                kvp => kvp.Value?.ToString() ?? "");
+        return await _configService.List();
     }
 
     public async Task ConfigSet(string key, string value)
     {
-        RuntimeConfig config = await _configService.LoadConfig();
-
-        RuntimeConfig newConfig = config.With(key, value);
-
-        await _configService.SaveConfig(newConfig);
+        await _configService.Set(key, value);
     }
 
     public async Task Init()

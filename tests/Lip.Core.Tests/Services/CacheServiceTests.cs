@@ -1,4 +1,6 @@
+using Lip.Core.Infrastructure;
 using Lip.Core.Services;
+using Moq;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
@@ -15,7 +17,8 @@ public class CacheServiceTests
         // Arrange
         var cachePath = GetCachePath();
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>(), cachePath);
-        CacheService service = new(mockFileSystem);
+        var mockUserInteraction = new Mock<IUserInteraction>();
+        CacheService service = new(mockFileSystem, mockUserInteraction.Object);
         bool factoryCalled = false;
 
         // Act
@@ -42,7 +45,8 @@ public class CacheServiceTests
         {
             { Path.Combine(targetPath, "placeholder.txt"), new MockFileData("") }
         });
-        CacheService service = new(mockFileSystem);
+        var mockUserInteraction = new Mock<IUserInteraction>();
+        CacheService service = new(mockFileSystem, mockUserInteraction.Object);
         bool factoryCalled = false;
 
         // Act
@@ -65,7 +69,8 @@ public class CacheServiceTests
         {
             { Path.Combine(cachePath, "placeholder.txt"), new MockFileData("") }
         }, cachePath);
-        CacheService service = new(mockFileSystem);
+        var mockUserInteraction = new Mock<IUserInteraction>();
+        CacheService service = new(mockFileSystem, mockUserInteraction.Object);
         bool factoryCalled = false;
 
         // Act
@@ -89,7 +94,8 @@ public class CacheServiceTests
         {
             { Path.Combine(cachePath, "somefile.txt"), new MockFileData("cached data") }
         });
-        CacheService service = new(mockFileSystem);
+        var mockUserInteraction = new Mock<IUserInteraction>();
+        CacheService service = new(mockFileSystem, mockUserInteraction.Object);
 
         // Act
         await service.Clean();

@@ -28,7 +28,9 @@ public interface IWorkspaceService
     Task UpdateInstalledPackageExplicitness(PackageSpec packageSpec, bool isExplicit);
 }
 
-public class WorkspaceService(IFileSystem fileSystem, IUserInteraction userInteraction) : IWorkspaceService
+public class WorkspaceService(
+    IFileSystem fileSystem,
+    IUserInteraction userInteraction) : IWorkspaceService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -182,7 +184,7 @@ public class WorkspaceService(IFileSystem fileSystem, IUserInteraction userInter
     {
         if (!_fileSystem.File.Exists("tooth_lock.json"))
         {
-            await _userInteraction.PrintInfo("Workspace state file not found at 'tooth_lock.json'. Using default workspace state.");
+            await _userInteraction.PrintWarning("Workspace state file not found at 'tooth_lock.json'. Using default workspace state.");
 
             WorkspaceState state = new();
 
@@ -202,7 +204,7 @@ public class WorkspaceService(IFileSystem fileSystem, IUserInteraction userInter
         catch (Exception ex)
         {
             await _userInteraction.PrintError($"Failed to load workspace state from 'tooth_lock.json': {ex.Message}");
-            await _userInteraction.PrintInfo("Using default workspace state.");
+            await _userInteraction.PrintWarning("Using default workspace state.");
 
             WorkspaceState state = new();
 

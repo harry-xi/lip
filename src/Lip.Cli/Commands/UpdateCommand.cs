@@ -1,13 +1,14 @@
+using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.Cli.Commands;
 
-public class UpdateCommand(ILipClient lipClient) : AsyncCommand<UpdateCommand.Settings>
+public class UpdateCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<UpdateCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -27,7 +28,7 @@ public class UpdateCommand(ILipClient lipClient) : AsyncCommand<UpdateCommand.Se
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         await _lipClient.Update(settings.Packages, settings.DryRun, settings.IgnoreScripts);
-        AnsiConsole.MarkupLine("[green]Packages updated successfully.[/]");
+        await _userInteraction.PrintSuccess("Packages updated successfully.");
         return 0;
     }
 }

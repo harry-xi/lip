@@ -14,25 +14,36 @@ public interface ICacheService
         Func<IFileInfo, Task> factory);
 }
 
-public class CacheService(IFileSystem fileSystem) : ICacheService
+public class CacheService(IFileSystem fileSystem, IUserInteraction userInteraction) : ICacheService
 {
-    private static readonly string _cacheDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "lip", "cache");
+    private readonly IDirectoryInfo _cacheDirectory = fileSystem.DirectoryInfo.New(
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "lip",
+            "cache"));
 
     private readonly IFileSystem _fileSystem = fileSystem;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public async Task Clean()
     {
-        _fileSystem.Directory.Delete(_cacheDirectory, true);
+        if (!_cacheDirectory.Exists)
+        {
+            await _userInteraction.PrintWarning(
+                $"Cache directory '{_cacheDirectory.FullName}' does not exist, skipping clean.");
+
+            return;
+        }
+
+        _cacheDirectory.Delete(recursive: true);
     }
 
     public async Task<IDirectoryInfo> GetOrCreateDirectory(string key, Func<IDirectoryInfo, Task> factory)
     {
         string encodedKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(key));
 
-        string cachePath = Path.Combine(_cacheDirectory, encodedKey);
-
-        IDirectoryInfo cacheInfo = _fileSystem.DirectoryInfo.New(cachePath);
+        IDirectoryInfo cacheInfo = _fileSystem.DirectoryInfo.New(Path.Combine(
+            _cacheDirectory.FullName, encodedKey));
 
         if (!cacheInfo.Exists)
         {
@@ -48,9 +59,8 @@ public class CacheService(IFileSystem fileSystem) : ICacheService
     {
         string encodedKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(key));
 
-        string cachePath = Path.Combine(_cacheDirectory, encodedKey);
-
-        IFileInfo cacheInfo = _fileSystem.FileInfo.New(cachePath);
+        IFileInfo cacheInfo = _fileSystem.FileInfo.New(Path.Combine(
+            _cacheDirectory.FullName, encodedKey));
 
         if (!cacheInfo.Exists)
         {

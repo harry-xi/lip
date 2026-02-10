@@ -1,13 +1,14 @@
+using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.Cli.Commands;
 
-public class ConfigDeleteCommand(ILipClient lipClient) : AsyncCommand<ConfigDeleteCommand.Settings>
+public class ConfigDeleteCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<ConfigDeleteCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -19,7 +20,7 @@ public class ConfigDeleteCommand(ILipClient lipClient) : AsyncCommand<ConfigDele
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         await _lipClient.ConfigDelete(settings.Key);
-        AnsiConsole.MarkupLine($"[green]Config key '{settings.Key}' deleted.[/]");
+        await _userInteraction.PrintSuccess($"Config key '{settings.Key}' deleted.");
         return 0;
     }
 }

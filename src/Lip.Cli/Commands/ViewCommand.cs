@@ -1,13 +1,14 @@
+using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.Cli.Commands;
 
-public class ViewCommand(ILipClient lipClient) : AsyncCommand<ViewCommand.Settings>
+public class ViewCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<ViewCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -19,7 +20,7 @@ public class ViewCommand(ILipClient lipClient) : AsyncCommand<ViewCommand.Settin
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         var json = await _lipClient.View(settings.Package);
-        AnsiConsole.Write(new Text(json));
+        await _userInteraction.PrintInfo(json);
         return 0;
     }
 }

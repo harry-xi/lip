@@ -1,13 +1,14 @@
+using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.Cli.Commands;
 
-public class MigrateCommand(ILipClient lipClient) : AsyncCommand<MigrateCommand.Settings>
+public class MigrateCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<MigrateCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -23,7 +24,7 @@ public class MigrateCommand(ILipClient lipClient) : AsyncCommand<MigrateCommand.
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         await _lipClient.Migrate(settings.File, settings.Output);
-        AnsiConsole.MarkupLine("[green]Migration completed successfully.[/]");
+        await _userInteraction.PrintSuccess("Migration completed successfully.");
         return 0;
     }
 }

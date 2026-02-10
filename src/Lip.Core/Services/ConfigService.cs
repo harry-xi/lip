@@ -28,7 +28,7 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
     {
         if (!_fileSystem.File.Exists(_configPath))
         {
-            await _userInteraction.PrintInfo(
+            await _userInteraction.PrintWarning(
                 $"Runtime configuration file not found at '{_configPath}'. Using default configuration.");
 
             RuntimeConfig config = new();
@@ -49,7 +49,7 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
         catch (Exception ex)
         {
             await _userInteraction.PrintError($"Failed to load runtime configuration from '{_configPath}': {ex.Message}");
-            await _userInteraction.PrintInfo("Using default runtime configuration.");
+            await _userInteraction.PrintWarning("Using default runtime configuration.");
 
             RuntimeConfig config = new();
 

@@ -1,13 +1,14 @@
+using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.Cli.Commands;
 
-public class UninstallCommand(ILipClient lipClient) : AsyncCommand<UninstallCommand.Settings>
+public class UninstallCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<UninstallCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -31,7 +32,7 @@ public class UninstallCommand(ILipClient lipClient) : AsyncCommand<UninstallComm
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         await _lipClient.Uninstall(settings.Packages, settings.DryRun, settings.IgnoreScripts, settings.NoDependencies);
-        AnsiConsole.MarkupLine("[green]Packages uninstalled successfully.[/]");
+        await _userInteraction.PrintSuccess("Packages uninstalled successfully.");
         return 0;
     }
 }

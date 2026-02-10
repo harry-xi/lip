@@ -50,7 +50,7 @@ public class LipClient(
 
         ConfigService configService = new(fileSystem, userInteraction);
 
-        CacheService cacheService = new(fileSystem);
+        CacheService cacheService = new(fileSystem, userInteraction);
         RuntimeConfig config = await configService.LoadConfig();
         GitRunner gitRunner = new();
 

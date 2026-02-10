@@ -1,13 +1,14 @@
+using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.Cli.Commands;
 
-public class InstallCommand(ILipClient lipClient) : AsyncCommand<InstallCommand.Settings>
+public class InstallCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<InstallCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -31,7 +32,7 @@ public class InstallCommand(ILipClient lipClient) : AsyncCommand<InstallCommand.
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         await _lipClient.Install(settings.Packages, settings.DryRun, settings.IgnoreScripts, settings.NoDependencies);
-        AnsiConsole.MarkupLine("[green]Packages installed successfully.[/]");
+        await _userInteraction.PrintSuccess("Packages installed successfully.");
         return 0;
     }
 }

@@ -1,13 +1,17 @@
 ﻿using Lip.Cli;
 using Lip.Cli.Commands;
 
+using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
 using Spectre.Console.Cli;
 
 LipClient lipClient = await LipClient.Create(new ConsoleUserInteraction());
+// Register ConsoleUserInteraction as IUserInteraction
+ConsoleUserInteraction userInteraction = new();
 
 TypeRegistrar registrar = new();
 registrar.RegisterInstance(typeof(ILipClient), lipClient);
+registrar.RegisterInstance(typeof(IUserInteraction), userInteraction);
 
 CommandApp app = new(registrar);
 

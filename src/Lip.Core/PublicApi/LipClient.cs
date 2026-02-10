@@ -3,7 +3,6 @@ using Lip.Core.Infrastructure;
 using Lip.Core.Migration.PackageManifests;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
-using Microsoft.Extensions.Logging;
 using System.IO.Abstractions;
 using System.Text.Json;
 
@@ -45,11 +44,11 @@ public class LipClient(
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
     private readonly IWorkspaceService _workspaceService = workspaceService;
 
-    public static async Task<LipClient> Create(ILogger logger, IFileSystem? fileSystem = null)
+    public static async Task<LipClient> Create(IUserInteraction userInteraction, IFileSystem? fileSystem = null)
     {
         fileSystem ??= new FileSystem();
 
-        ConfigService configService = new(fileSystem, logger);
+        ConfigService configService = new(fileSystem, userInteraction);
 
         CacheService cacheService = new(fileSystem);
         RuntimeConfig config = await configService.LoadConfig();
@@ -61,12 +60,12 @@ public class LipClient(
             cacheService,
             config.GithubProxy,
             config.GoModuleProxy);
-        WorkspaceService workspaceService = new(fileSystem, logger);
+        WorkspaceService workspaceService = new(fileSystem, userInteraction);
 
         PackageInstaller packageInstaller = new(
             commandRunner,
             fileSystem,
-            logger,
+            userInteraction,
             sourceService,
             workspaceService);
         CompositePackageRegistry packageRegistry = new([
@@ -78,7 +77,7 @@ public class LipClient(
         ]);
 
         InstallService installService = new(
-            logger,
+            userInteraction,
             packageInstaller,
             packageRegistry,
             sourceService,

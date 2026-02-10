@@ -1,6 +1,6 @@
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
-using Microsoft.Extensions.Logging;
+
 using System.IO.Abstractions;
 using System.Text.Json;
 
@@ -12,7 +12,7 @@ public interface IConfigService
     Task SaveConfig(RuntimeConfig config);
 }
 
-public class ConfigService(IFileSystem fileSystem, ILogger logger) : IConfigService
+public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteraction) : IConfigService
 {
     private static readonly string _configPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
@@ -22,13 +22,14 @@ public class ConfigService(IFileSystem fileSystem, ILogger logger) : IConfigServ
     };
 
     private readonly IFileSystem _fileSystem = fileSystem;
-    private readonly ILogger _logger = logger;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public async Task<RuntimeConfig> LoadConfig()
     {
         if (!_fileSystem.File.Exists(_configPath))
         {
-            _logger.LogInformation("Runtime configuration file not found at '{ConfigPath}'. Using default configuration.", _configPath);
+            await _userInteraction.PrintInfo(
+                $"Runtime configuration file not found at '{_configPath}'. Using default configuration.");
 
             RuntimeConfig config = new();
 
@@ -47,8 +48,8 @@ public class ConfigService(IFileSystem fileSystem, ILogger logger) : IConfigServ
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load runtime configuration from '{ConfigPath}'.", _configPath);
-            _logger.LogInformation("Using default runtime configuration.");
+            await _userInteraction.PrintError($"Failed to load runtime configuration from '{_configPath}': {ex.Message}");
+            await _userInteraction.PrintInfo("Using default runtime configuration.");
 
             RuntimeConfig config = new();
 

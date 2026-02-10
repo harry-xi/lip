@@ -206,7 +206,7 @@ public class LipClientTests
     [Fact]
     public async Task Create_ReturnsInstance()
     {
-        var logger = new Mock<Microsoft.Extensions.Logging.ILogger>();
+        var logger = new Mock<Lip.Core.Infrastructure.IUserInteraction>();
         var fileSystem = new MockFileSystem();
 
         // Setup config structure if needed by ConfigService internals, 

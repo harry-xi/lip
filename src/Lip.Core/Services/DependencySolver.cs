@@ -1,6 +1,6 @@
 using Lip.Core.Entities;
 using Lip.Core.PackageRegistries;
-using Microsoft.Extensions.Logging;
+
 using Semver;
 
 namespace Lip.Core.Services;
@@ -54,9 +54,8 @@ public interface IDependencySolver
     }
 }
 
-public class DependencySolver(ILogger logger, IPackageRegistry packageRegistry) : IDependencySolver
+public class DependencySolver(IPackageRegistry packageRegistry) : IDependencySolver
 {
-    private readonly ILogger _logger = logger;
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
 
     public async Task<IEnumerable<PackageSpec>> Solve(IEnumerable<PackageReqt> requirements)

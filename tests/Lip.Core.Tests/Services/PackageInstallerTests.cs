@@ -1,8 +1,8 @@
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
+
 using Lip.Core.Services;
 using Lip.Core.SourceProviders;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.IO.Abstractions;
@@ -14,7 +14,7 @@ public class PackageInstallerTests
 {
     private readonly Mock<ICommandRunner> _mockCommandRunner;
     private readonly MockFileSystem _mockFileSystem;
-    private readonly Mock<ILogger<PackageInstaller>> _mockLogger;
+    private readonly Mock<IUserInteraction> _userInteraction;
     private readonly Mock<ISourceService> _mockSourceService;
     private readonly Mock<IWorkspaceService> _mockWorkspaceService;
     private readonly PackageInstaller _installer;
@@ -23,14 +23,14 @@ public class PackageInstallerTests
     {
         _mockCommandRunner = new Mock<ICommandRunner>();
         _mockFileSystem = new MockFileSystem();
-        _mockLogger = new Mock<ILogger<PackageInstaller>>();
+        _userInteraction = new Mock<IUserInteraction>();
         _mockSourceService = new Mock<ISourceService>();
         _mockWorkspaceService = new Mock<IWorkspaceService>();
 
         _installer = new PackageInstaller(
             _mockCommandRunner.Object,
             _mockFileSystem,
-            _mockLogger.Object,
+            _userInteraction.Object,
             _mockSourceService.Object,
             _mockWorkspaceService.Object);
     }

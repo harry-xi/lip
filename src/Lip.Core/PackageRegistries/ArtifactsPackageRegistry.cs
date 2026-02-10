@@ -1,6 +1,5 @@
 using Lip.Core.Entities;
 using Semver;
-using System.Text.Json;
 
 namespace Lip.Core.PackageRegistries;
 

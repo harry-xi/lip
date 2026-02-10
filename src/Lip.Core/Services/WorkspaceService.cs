@@ -1,6 +1,6 @@
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
-using Microsoft.Extensions.Logging;
+
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Text.Json;
@@ -28,7 +28,7 @@ public interface IWorkspaceService
     Task UpdateInstalledPackageExplicitness(PackageSpec packageSpec, bool isExplicit);
 }
 
-public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspaceService
+public class WorkspaceService(IFileSystem fileSystem, IUserInteraction userInteraction) : IWorkspaceService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -36,7 +36,7 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
     };
 
     private readonly IFileSystem _fileSystem = fileSystem;
-    private readonly ILogger _logger = logger;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public async Task AddInstalledPackage(
         PackageSpec packageSpec,
@@ -182,7 +182,7 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
     {
         if (!_fileSystem.File.Exists("tooth_lock.json"))
         {
-            _logger.LogInformation("Workspace state file not found at 'tooth_lock.json'. Using default workspace state.");
+            await _userInteraction.PrintInfo("Workspace state file not found at 'tooth_lock.json'. Using default workspace state.");
 
             WorkspaceState state = new();
 
@@ -201,8 +201,8 @@ public class WorkspaceService(IFileSystem fileSystem, ILogger logger) : IWorkspa
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load workspace state from 'tooth_lock.json'.");
-            _logger.LogInformation("Using default workspace state.");
+            await _userInteraction.PrintError($"Failed to load workspace state from 'tooth_lock.json': {ex.Message}");
+            await _userInteraction.PrintInfo("Using default workspace state.");
 
             WorkspaceState state = new();
 

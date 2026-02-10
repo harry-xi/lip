@@ -1,6 +1,6 @@
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.Services;
-using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Abstractions.TestingHelpers;
 using System.Text.Json;
@@ -21,8 +21,8 @@ public class ConfigServiceTests
         {
             { Path.Combine(Path.GetDirectoryName(configPath)!, "placeholder.txt"), new MockFileData("") }
         });
-        var mockLogger = new Mock<ILogger>();
-        var service = new ConfigService(mockFileSystem, mockLogger.Object);
+        var mockUserInteraction = new Mock<IUserInteraction>();
+        var service = new ConfigService(mockFileSystem, mockUserInteraction.Object);
 
         // Act
         var result = await service.LoadConfig();
@@ -45,8 +45,8 @@ public class ConfigServiceTests
         {
             { configPath, new MockFileData(json) }
         });
-        var mockLogger = new Mock<ILogger>();
-        var service = new ConfigService(mockFileSystem, mockLogger.Object);
+        var mockUserInteraction = new Mock<IUserInteraction>();
+        var service = new ConfigService(mockFileSystem, mockUserInteraction.Object);
 
         // Act
         var result = await service.LoadConfig();
@@ -65,8 +65,8 @@ public class ConfigServiceTests
         {
             { Path.Combine(Path.GetDirectoryName(configPath)!, "placeholder.txt"), new MockFileData("") }
         });
-        var mockLogger = new Mock<ILogger>();
-        var service = new ConfigService(mockFileSystem, mockLogger.Object);
+        var mockUserInteraction = new Mock<IUserInteraction>();
+        var service = new ConfigService(mockFileSystem, mockUserInteraction.Object);
         var config = new RuntimeConfig();
 
         // Act

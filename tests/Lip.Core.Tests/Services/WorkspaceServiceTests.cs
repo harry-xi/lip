@@ -1,6 +1,6 @@
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.Services;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 using System.IO.Abstractions.TestingHelpers;
@@ -10,14 +10,14 @@ namespace Lip.Core.Tests.Services;
 public class WorkspaceServiceTests
 {
     private readonly MockFileSystem _fileSystem;
-    private readonly Mock<ILogger> _logger;
+    private readonly Mock<IUserInteraction> _userInteraction;
     private readonly WorkspaceService _service;
 
     public WorkspaceServiceTests()
     {
         _fileSystem = new MockFileSystem();
-        _logger = new Mock<ILogger>();
-        _service = new WorkspaceService(_fileSystem, _logger.Object);
+        _userInteraction = new Mock<IUserInteraction>();
+        _service = new WorkspaceService(_fileSystem, _userInteraction.Object);
     }
 
     [Fact]

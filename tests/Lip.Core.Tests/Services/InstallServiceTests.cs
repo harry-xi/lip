@@ -1,8 +1,8 @@
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
 using Lip.Core.SourceProviders;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 
@@ -10,7 +10,7 @@ namespace Lip.Core.Tests.Services;
 
 public class InstallServiceTests
 {
-    private readonly Mock<ILogger<InstallService>> _mockLogger;
+    private readonly Mock<IUserInteraction> _mockLogger;
     private readonly Mock<IPackageInstaller> _mockPackageInstaller;
     private readonly Mock<IPackageRegistry> _mockPackageRegistry;
     private readonly Mock<ISourceService> _mockSourceService;
@@ -19,7 +19,7 @@ public class InstallServiceTests
 
     public InstallServiceTests()
     {
-        _mockLogger = new Mock<ILogger<InstallService>>();
+        _mockLogger = new Mock<IUserInteraction>();
         _mockPackageInstaller = new Mock<IPackageInstaller>();
         _mockPackageRegistry = new Mock<IPackageRegistry>();
         _mockSourceService = new Mock<ISourceService>();

@@ -1,7 +1,7 @@
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Semver;
 
@@ -9,15 +9,15 @@ namespace Lip.Core.Tests.Services;
 
 public class DependencySolverTests
 {
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<IUserInteraction> _mockLogger;
     private readonly Mock<IPackageRegistry> _mockRegistry;
     private readonly DependencySolver _solver;
 
     public DependencySolverTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<IUserInteraction>();
         _mockRegistry = new Mock<IPackageRegistry>();
-        _solver = new DependencySolver(_mockLogger.Object, _mockRegistry.Object);
+        _solver = new DependencySolver(_mockRegistry.Object);
     }
 
     [Fact]

@@ -1,9 +1,9 @@
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
 using Lip.Core.SourceProviders;
-using Microsoft.Extensions.Logging;
+
 using Semver;
-using System.Text.Json;
 
 namespace Lip.Core.Services;
 
@@ -34,13 +34,13 @@ public interface IInstallService
 }
 
 public class InstallService(
-    ILogger logger,
+    IUserInteraction userInteraction,
     IPackageInstaller packageInstaller,
     IPackageRegistry packageRegistry,
     ISourceService sourceService,
     IWorkspaceService workspaceService) : IInstallService
 {
-    private readonly ILogger _logger = logger;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     private readonly IPackageInstaller _packageInstaller = packageInstaller;
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
@@ -64,7 +64,7 @@ public class InstallService(
 
         if (noDependencies)
         {
-            _logger.LogWarning(
+            await _userInteraction.PrintWarning(
                 "--no-dependencies is enabled. This operation may result in a broken workspace.");
 
             foreach (PackageArtifact packageArtifact in packageArtifacts)
@@ -89,7 +89,7 @@ public class InstallService(
             new ArtifactsPackageRegistry(packageArtifacts),
             _packageRegistry
         ]);
-        DependencySolver dependencySolver = new(_logger, packageRegistry);
+        DependencySolver dependencySolver = new(packageRegistry);
 
         IEnumerable<PackageSpec> newExplicitlyInstalledPackages =
         [
@@ -136,7 +136,7 @@ public class InstallService(
     {
         if (noDependencies)
         {
-            _logger.LogWarning(
+            await _userInteraction.PrintWarning(
                 "--no-dependencies is enabled. This operation may result in a broken workspace.");
 
             foreach (PackageId package in packages)
@@ -147,7 +147,7 @@ public class InstallService(
             return;
         }
 
-        DependencySolver dependencySolver = new(_logger, _packageRegistry);
+        DependencySolver dependencySolver = new(_packageRegistry);
 
         IEnumerable<PackageSpec> explicitlyInstalledPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.Explicit);
@@ -203,7 +203,7 @@ public class InstallService(
             new ArtifactsPackageRegistry(packageArtifacts),
             _packageRegistry
         ]);
-        DependencySolver dependencySolver = new(_logger, packageRegistry);
+        DependencySolver dependencySolver = new(packageRegistry);
 
         IEnumerable<PackageSpec> explicitlyInstalledPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.Explicit);

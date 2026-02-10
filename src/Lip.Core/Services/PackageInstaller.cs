@@ -3,10 +3,9 @@ using Flurl;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.SourceProviders;
-using Microsoft.Extensions.Logging;
+
 using System.Diagnostics;
 using System.IO.Abstractions;
-using System.Text.Json;
 
 namespace Lip.Core.Services;
 
@@ -27,13 +26,13 @@ public interface IPackageInstaller
 public class PackageInstaller(
     ICommandRunner commandRunner,
     IFileSystem fileSystem,
-    ILogger logger,
+    IUserInteraction userInteraction,
     ISourceService sourceService,
     IWorkspaceService workspaceService) : IPackageInstaller
 {
     private readonly ICommandRunner _commandRunner = commandRunner;
     private readonly IFileSystem _fileSystem = fileSystem;
-    private readonly ILogger _logger = logger;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     private readonly ISourceService _sourceService = sourceService;
     private readonly IWorkspaceService _workspaceService = workspaceService;
@@ -53,18 +52,14 @@ public class PackageInstaller(
 
         if (dryRun)
         {
-            _logger.LogInformation(
-                "Dry run: would install package {PackageId} version {PackageVersion}",
-                packageArtifact.Spec.Id,
-                packageArtifact.Spec.Version);
+            await _userInteraction.PrintInfo(
+                $"Dry run: would install package {packageArtifact.Spec.Id} version {packageArtifact.Spec.Version}");
 
             return;
         }
 
-        _logger.LogInformation(
-            "Installing package {PackageId} version {PackageVersion}",
-            packageArtifact.Spec.Id,
-            packageArtifact.Spec.Version);
+        await _userInteraction.PrintInfo(
+            $"Installing package {packageArtifact.Spec.Id} version {packageArtifact.Spec.Version}");
 
         using Stream manifestStream = await packageArtifact.SourceProvider.OpenRead("tooth.json");
         PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
@@ -179,18 +174,14 @@ public class PackageInstaller(
 
         if (dryRun)
         {
-            _logger.LogInformation(
-                "Dry run: would uninstall package {PackageId} version {PackageVersion}",
-                existingPackageSpec.Id,
-                existingPackageSpec.Version);
+            await _userInteraction.PrintInfo(
+                $"Dry run: would uninstall package {existingPackageSpec.Id} version {existingPackageSpec.Version}");
 
             return;
         }
 
-        _logger.LogInformation(
-            "Uninstalling package {PackageId} version {PackageVersion}",
-            existingPackageSpec.Id,
-            existingPackageSpec.Version);
+        await _userInteraction.PrintInfo(
+            $"Uninstalling package {existingPackageSpec.Id} version {existingPackageSpec.Version}");
 
         PackageManifest manifest = await _workspaceService.GetInstalledPackageManifest(existingPackageSpec);
         PackageManifestVariant variant = manifest.GetVariant(existingPackageSpec.Id.Variant);

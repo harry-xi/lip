@@ -2,7 +2,6 @@ using Lip.Core.Entities;
 using Lip.Core.Services;
 using Lip.Core.SourceProviders;
 using Semver;
-using System.Text.Json;
 
 namespace Lip.Core.PackageRegistries;
 

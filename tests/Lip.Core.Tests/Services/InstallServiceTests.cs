@@ -25,6 +25,9 @@ public class InstallServiceTests
         _mockSourceService = new Mock<ISourceService>();
         _mockWorkspaceService = new Mock<IWorkspaceService>();
 
+        _mockPackageRegistry.Setup(r => r.GetAvailableVersions(It.IsAny<PackageId>()))
+            .ReturnsAsync(Enumerable.Empty<SemVersion>().OrderBy(v => v));
+
         _service = new InstallService(
             _mockLogger.Object,
             _mockPackageInstaller.Object,

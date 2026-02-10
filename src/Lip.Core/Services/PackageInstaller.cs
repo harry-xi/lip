@@ -137,10 +137,8 @@ public class PackageInstaller(
 
                 foreach (IFileInfo targetLocation in targetLocations)
                 {
-                    _fileSystem.CreateFileWithDirectory(targetLocation.FullName);
-
                     using Stream sourceStream = await assetSourceProvider.OpenRead(key);
-                    using Stream targetStream = targetLocation.Create();
+                    using Stream targetStream = _fileSystem.CreateFileWithDirectory(targetLocation.FullName);
                     await sourceStream.CopyToAsync(targetStream);
 
                     placedFiles.Add(targetLocation);
@@ -224,7 +222,7 @@ public class PackageInstaller(
         foreach (Glob glob in variant.RemoveFiles)
         {
             foreach (string path in _fileSystem.Directory.EnumerateFileSystemEntries(
-                "",
+                ".",
                 glob.ToString(),
                 SearchOption.AllDirectories))
             {

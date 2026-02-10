@@ -1,4 +1,5 @@
 using DotNet.Globbing;
+using Lip.Core.Json;
 using Semver;
 using System.Text.Json.Serialization;
 
@@ -12,6 +13,7 @@ public record PackageManifestVariant
     [JsonPropertyName("platform")]
     public string Platform { get; init; } = "";
 
+    [JsonConverter(typeof(DependencyDictJsonConverter))]
     [JsonPropertyName("dependencies")]
     public Dictionary<PackageId, SemVersionRange> Dependencies { get; init; } = [];
 

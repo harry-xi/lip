@@ -149,4 +149,41 @@ public class JsonConverterTests
     }
 
     #endregion
+
+    #region DependencyDictJsonConverter
+
+    [Fact]
+    public void DependencyDictJsonConverter_Read_ValidDict_ReturnsDictionary()
+    {
+        var json = "{\"github.com/a/b#main\": \"1.0.0\"}";
+        var options = new JsonSerializerOptions();
+        options.Converters.Add(new Lip.Core.Json.DependencyDictJsonConverter());
+        
+        var result = JsonSerializer.Deserialize<Dictionary<PackageId, SemVersionRange>>(json, options);
+        
+        Assert.NotNull(result);
+        Assert.Single(result);
+        var kvp = result.First();
+        Assert.Equal("github.com/a/b", kvp.Key.Path);
+        Assert.Equal("main", kvp.Key.Variant);
+        Assert.True(kvp.Value.Contains(new SemVersion(1, 0, 0)));
+    }
+
+    [Fact]
+    public void DependencyDictJsonConverter_Write_ValidDict_WritesJson()
+    {
+        var dict = new Dictionary<PackageId, SemVersionRange>
+        {
+            { new PackageId("github.com/a/b", "main"), SemVersionRange.Parse("1.0.0") }
+        };
+        var options = new JsonSerializerOptions();
+        options.Converters.Add(new Lip.Core.Json.DependencyDictJsonConverter());
+
+        var result = JsonSerializer.Serialize(dict, options);
+        
+        Assert.Contains("github.com/a/b#main", result);
+        Assert.Contains("1.0.0", result);
+    }
+
+    #endregion
 }

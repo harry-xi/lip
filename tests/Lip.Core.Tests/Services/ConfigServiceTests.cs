@@ -1,3 +1,4 @@
+using Flurl;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Services;
@@ -13,7 +14,7 @@ public class ConfigServiceTests
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lip", "liprc.json");
 
     [Fact]
-    public async Task LoadConfig_FileNotExists_ReturnsDefaultAndSaves()
+    public async Task List_FileNotExists_ReturnsDefaultAndSaves()
     {
         // Arrange
         var configPath = GetConfigPath();
@@ -25,20 +26,19 @@ public class ConfigServiceTests
         ConfigService service = new(mockFileSystem, mockUserInteraction.Object);
 
         // Act
-        RuntimeConfig result = await service.LoadConfig();
+        var result = await service.List();
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(3, result.FormatVersion);
         Assert.True(mockFileSystem.File.Exists(configPath));
     }
 
     [Fact]
-    public async Task LoadConfig_ValidFile_ReturnsConfig()
+    public async Task Get_ValidFile_ReturnsConfig()
     {
         // Arrange
         var configPath = GetConfigPath();
-        RuntimeConfig config = new();
+        RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
         var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
 
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
@@ -49,15 +49,14 @@ public class ConfigServiceTests
         ConfigService service = new(mockFileSystem, mockUserInteraction.Object);
 
         // Act
-        RuntimeConfig result = await service.LoadConfig();
+        string result = await service.Get("github_proxy");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(3, result.FormatVersion);
+        Assert.Equal("https://proxy.com", result);
     }
 
     [Fact]
-    public async Task SaveConfig_CreatesFileWithConfig()
+    public async Task Set_CreatesFileWithConfig()
     {
         // Arrange
         var configPath = GetConfigPath();
@@ -67,14 +66,13 @@ public class ConfigServiceTests
         });
         Mock<IUserInteraction> mockUserInteraction = new();
         ConfigService service = new(mockFileSystem, mockUserInteraction.Object);
-        RuntimeConfig config = new();
 
         // Act
-        await service.SaveConfig(config);
+        await service.Set("github_proxy", "https://new.com");
 
         // Assert
         Assert.True(mockFileSystem.File.Exists(configPath));
         var content = mockFileSystem.File.ReadAllText(configPath);
-        Assert.Contains("format_version", content);
+        Assert.Contains("https://new.com", content);
     }
 }

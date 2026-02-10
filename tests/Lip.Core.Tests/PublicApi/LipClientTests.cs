@@ -48,8 +48,7 @@ public class LipClientTests
     [Fact]
     public async Task ConfigGet_ReturnsValue()
     {
-        RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
-        _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
+        _configService.Setup(s => s.Get("github_proxy")).ReturnsAsync("https://proxy.com");
 
         var result = await _client.ConfigGet("github_proxy");
 
@@ -59,30 +58,23 @@ public class LipClientTests
     [Fact]
     public async Task ConfigSet_SavesConfig()
     {
-        RuntimeConfig config = new();
-        _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
-
         await _client.ConfigSet("github_proxy", "https://new_proxy.com");
 
-        _configService.Verify(s => s.SaveConfig(It.Is<RuntimeConfig>(c => c.GithubProxy != null && c.GithubProxy.ToString() == "https://new_proxy.com")), Times.Once);
+        _configService.Verify(s => s.Set("github_proxy", "https://new_proxy.com"), Times.Once);
     }
 
     [Fact]
     public async Task ConfigDelete_RemovesKey()
     {
-        RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
-        _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
-
         await _client.ConfigDelete("github_proxy");
 
-        _configService.Verify(s => s.SaveConfig(It.Is<RuntimeConfig>(c => c.GithubProxy == null)), Times.Once);
+        _configService.Verify(s => s.Delete("github_proxy"), Times.Once);
     }
 
     [Fact]
     public async Task ConfigList_ReturnsAllKeys()
     {
-        RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
-        _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
+        _configService.Setup(s => s.List()).ReturnsAsync(new Dictionary<string, string> { { "github_proxy", "https://proxy.com" } });
 
         IDictionary<string, string> result = await _client.ConfigList();
 

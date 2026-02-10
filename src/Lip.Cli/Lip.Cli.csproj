@@ -12,4 +12,8 @@
     <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Lip.Core\Lip.Core.csproj" />
+  </ItemGroup>
+
 </Project>

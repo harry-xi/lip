@@ -1,4 +1,5 @@
 using Lip.Core.SourceProviders;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Core.Tests.SourceProviders;
@@ -9,16 +10,16 @@ public class DirectorySourceProviderTests
     public void Keys_ReturnsAllFiles()
     {
         // Arrange
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { @"C:\test\file1.txt", new MockFileData("content1") },
             { @"C:\test\subdir\file2.txt", new MockFileData("content2") }
         });
-        var dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
-        var provider = new DirectorySourceProvider(dirInfo);
+        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
+        DirectorySourceProvider provider = new(dirInfo);
 
         // Act
-        var keys = provider.Keys.ToList();
+        List<string> keys = provider.Keys.ToList();
 
         // Assert
         Assert.Equal(2, keys.Count);
@@ -30,16 +31,16 @@ public class DirectorySourceProviderTests
     public async Task OpenRead_ValidKey_ReturnsStream()
     {
         // Arrange
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { @"C:\test\file.txt", new MockFileData("test content") }
         });
-        var dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
-        var provider = new DirectorySourceProvider(dirInfo);
+        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
+        DirectorySourceProvider provider = new(dirInfo);
 
         // Act
-        using var stream = await provider.OpenRead("file.txt");
-        using var reader = new StreamReader(stream);
+        using Stream stream = await provider.OpenRead("file.txt");
+        using StreamReader reader = new(stream);
         var content = await reader.ReadToEndAsync();
 
         // Assert
@@ -50,12 +51,12 @@ public class DirectorySourceProviderTests
     public async Task OpenRead_InvalidKey_ThrowsArgumentException()
     {
         // Arrange
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { @"C:\test\file.txt", new MockFileData("content") }
         });
-        var dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
-        var provider = new DirectorySourceProvider(dirInfo);
+        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
+        DirectorySourceProvider provider = new(dirInfo);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => provider.OpenRead("nonexistent.txt"));

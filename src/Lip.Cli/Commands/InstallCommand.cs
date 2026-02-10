@@ -16,15 +16,15 @@ public class InstallCommand(ILipClient lipClient) : AsyncCommand<InstallCommand.
         public required string[] Packages { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Perform a dry run without making changes")]
+        [Description("Run without making any changes")]
         public bool DryRun { get; init; }
 
         [CommandOption("--ignore-scripts")]
-        [Description("Ignore scripts during installation")]
+        [Description("Skip running install scripts")]
         public bool IgnoreScripts { get; init; }
 
         [CommandOption("--no-dependencies")]
-        [Description("Do not install dependencies")]
+        [Description("Skip installing dependencies")]
         public bool NoDependencies { get; init; }
     }
 

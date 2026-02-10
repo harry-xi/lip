@@ -1,5 +1,7 @@
 using Lip.Core.SourceProviders;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using System.IO.Compression;
 using System.Text;
 
 namespace Lip.Core.Tests.SourceProviders;
@@ -10,18 +12,18 @@ public class ArchiveSourceProviderTests
     public async Task Keys_ReturnsAllFileKeys()
     {
         // Arrange
-        using var memoryStream = new MemoryStream();
+        using MemoryStream memoryStream = new();
 
-        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+        using (ZipArchive archive = new(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
         {
-            var entry = archive.CreateEntry("file1.txt");
-            using (var entryStream = entry.Open())
+            ZipArchiveEntry entry = archive.CreateEntry("file1.txt");
+            using (Stream entryStream = entry.Open())
             {
                 entryStream.Write(Encoding.UTF8.GetBytes("content1"));
             }
 
-            var entry2 = archive.CreateEntry("dir/file2.txt");
-            using (var entryStream2 = entry2.Open())
+            ZipArchiveEntry entry2 = archive.CreateEntry("dir/file2.txt");
+            using (Stream entryStream2 = entry2.Open())
             {
                 entryStream2.Write(Encoding.UTF8.GetBytes("content2"));
             }
@@ -29,15 +31,15 @@ public class ArchiveSourceProviderTests
         memoryStream.Position = 0;
         byte[] archiveBytes = memoryStream.ToArray();
 
-        var mockFileSystem = new MockFileSystem();
+        MockFileSystem mockFileSystem = new();
         var path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
-        var fileInfo = mockFileSystem.FileInfo.New(path);
+        IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        var provider = new ArchiveSourceProvider(fileInfo);
+        ArchiveSourceProvider provider = new(fileInfo);
 
         // Act
-        var keys = provider.Keys.ToList();
+        List<string> keys = provider.Keys.ToList();
 
         // Assert
         Assert.Equal(2, keys.Count);
@@ -49,27 +51,27 @@ public class ArchiveSourceProviderTests
     public async Task OpenRead_ValidKey_ReturnsContent()
     {
         // Arrange
-        using var memoryStream = new MemoryStream();
+        using MemoryStream memoryStream = new();
 
-        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+        using (ZipArchive archive = new(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
         {
-            var entry = archive.CreateEntry("file1.txt");
-            using var entryStream = entry.Open();
+            ZipArchiveEntry entry = archive.CreateEntry("file1.txt");
+            using Stream entryStream = entry.Open();
             entryStream.Write(Encoding.UTF8.GetBytes("test content"));
         }
         memoryStream.Position = 0;
         byte[] archiveBytes = memoryStream.ToArray();
 
-        var mockFileSystem = new MockFileSystem();
+        MockFileSystem mockFileSystem = new();
         var path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
-        var fileInfo = mockFileSystem.FileInfo.New(path);
+        IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        var provider = new ArchiveSourceProvider(fileInfo);
+        ArchiveSourceProvider provider = new(fileInfo);
 
         // Act
-        using var stream = await provider.OpenRead("file1.txt");
-        using var reader = new StreamReader(stream);
+        using Stream stream = await provider.OpenRead("file1.txt");
+        using StreamReader reader = new(stream);
         var content = await reader.ReadToEndAsync();
 
         // Assert
@@ -80,20 +82,20 @@ public class ArchiveSourceProviderTests
     public async Task OpenRead_InvalidKey_ThrowsArgumentException()
     {
         // Arrange
-        using var memoryStream = new MemoryStream();
+        using MemoryStream memoryStream = new();
 
-        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+        using (ZipArchive archive = new(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
         {
         }
         memoryStream.Position = 0;
         byte[] archiveBytes = memoryStream.ToArray();
 
-        var mockFileSystem = new MockFileSystem();
+        MockFileSystem mockFileSystem = new();
         var path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
-        var fileInfo = mockFileSystem.FileInfo.New(path);
+        IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        var provider = new ArchiveSourceProvider(fileInfo);
+        ArchiveSourceProvider provider = new(fileInfo);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => provider.OpenRead("nonexistent"));

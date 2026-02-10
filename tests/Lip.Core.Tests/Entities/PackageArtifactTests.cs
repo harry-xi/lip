@@ -11,13 +11,13 @@ public class PackageArtifactTests
     public void Constructor_SetsPropertiesCorrectly()
     {
         // Arrange
-        var packageId = new PackageId("github.com/user/repo", string.Empty);
-        var version = new SemVersion(1, 0, 0);
-        var spec = new PackageSpec(packageId, version);
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        PackageId packageId = new("github.com/user/repo", string.Empty);
+        SemVersion version = new(1, 0, 0);
+        PackageSpec spec = new(packageId, version);
+        Mock<ISourceProvider> mockSourceProvider = new();
 
         // Act
-        var artifact = new PackageArtifact(spec, mockSourceProvider.Object);
+        PackageArtifact artifact = new(spec, mockSourceProvider.Object);
 
         // Assert
         Assert.Same(spec, artifact.Spec);

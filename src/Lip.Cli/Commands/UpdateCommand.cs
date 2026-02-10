@@ -16,11 +16,11 @@ public class UpdateCommand(ILipClient lipClient) : AsyncCommand<UpdateCommand.Se
         public required string[] Packages { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Perform a dry run without making changes")]
+        [Description("Run without making any changes")]
         public bool DryRun { get; init; }
 
         [CommandOption("--ignore-scripts")]
-        [Description("Ignore scripts during update")]
+        [Description("Skip running update scripts")]
         public bool IgnoreScripts { get; init; }
     }
 

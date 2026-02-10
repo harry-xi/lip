@@ -8,7 +8,7 @@ public class PackageManifestAssetPlacementTests
     [Fact]
     public void Constructor_ValidRelativeDst_Succeeds()
     {
-        var placement = new PackageManifestAssetPlacement
+        PackageManifestAssetPlacement placement = new()
         {
             Type = PackageManifestAssetPlacement.PlacementType.File,
             Src = "src/*",
@@ -53,10 +53,10 @@ public class PackageReqtTests
     [Fact]
     public void Constructor_ValidValues_CreatesInstance()
     {
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var range = SemVersionRange.Parse(">=1.0.0");
+        PackageId pkgId = new("github.com/test/pkg", "");
+        SemVersionRange range = SemVersionRange.Parse(">=1.0.0");
 
-        var reqt = new PackageReqt(pkgId, range);
+        PackageReqt reqt = new(pkgId, range);
 
         Assert.Equal(pkgId, reqt.Id);
         Assert.Equal(range, reqt.VersionRange);
@@ -68,7 +68,7 @@ public class PackageManifestInfoTests
     [Fact]
     public void Constructor_DefaultValues_SetsDefaults()
     {
-        var info = new PackageManifestInfo();
+        PackageManifestInfo info = new();
 
         Assert.Equal("", info.Name);
         Assert.Equal("", info.Description);
@@ -79,7 +79,7 @@ public class PackageManifestInfoTests
     [Fact]
     public void Constructor_WithValues_SetsValues()
     {
-        var info = new PackageManifestInfo
+        PackageManifestInfo info = new()
         {
             Name = "Test Package",
             Description = "A test package",
@@ -97,7 +97,7 @@ public class PackageManifestVariantTests
     [Fact]
     public void Constructor_DefaultValues_SetsDefaults()
     {
-        var variant = new PackageManifestVariant();
+        PackageManifestVariant variant = new();
 
         Assert.Equal("", variant.Label);
         Assert.Equal("", variant.Platform);
@@ -114,7 +114,7 @@ public class PackageManifestAssetTests
     [Fact]
     public void Constructor_WithValues_SetsValues()
     {
-        var asset = new PackageManifestAsset
+        PackageManifestAsset asset = new()
         {
             Type = PackageManifestAsset.AssetType.Zip,
             Urls = [new Flurl.Url("https://example.com/file.zip")]

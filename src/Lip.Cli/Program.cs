@@ -4,12 +4,12 @@ using Lip.Cli.Commands;
 using Lip.Core.PublicApi;
 using Spectre.Console.Cli;
 
-var lipClient = await LipClient.Create(new ConsoleUserInteraction());
+LipClient lipClient = await LipClient.Create(new ConsoleUserInteraction());
 
-var registrar = new TypeRegistrar();
+TypeRegistrar registrar = new();
 registrar.RegisterInstance(typeof(ILipClient), lipClient);
 
-var app = new CommandApp(registrar);
+CommandApp app = new(registrar);
 
 app.Configure(config =>
 {
@@ -18,41 +18,41 @@ app.Configure(config =>
     config.AddBranch("cache", cache =>
     {
         cache.AddCommand<CacheCleanCommand>("clean")
-            .WithDescription("Cleans the cache");
+            .WithDescription("Cleans the local cache");
     });
 
     config.AddBranch("config", config =>
     {
         config.AddCommand<ConfigGetCommand>("get")
-            .WithDescription("Get a configuration value");
+            .WithDescription("Gets a configuration value");
         config.AddCommand<ConfigSetCommand>("set")
-            .WithDescription("Set a configuration value");
+            .WithDescription("Sets a configuration value");
         config.AddCommand<ConfigListCommand>("list")
-            .WithDescription("List configuration values");
+            .WithDescription("Lists all configuration values");
         config.AddCommand<ConfigDeleteCommand>("delete")
-            .WithDescription("Delete a configuration value");
+            .WithDescription("Deletes a configuration value");
     });
 
     config.AddCommand<InitCommand>("init")
-        .WithDescription("Initialize a new Lip project");
+        .WithDescription("Initializes a new project");
 
     config.AddCommand<InstallCommand>("install")
-        .WithDescription("Install packages");
+        .WithDescription("Installs packages");
 
     config.AddCommand<ListCommand>("list")
-        .WithDescription("List installed packages");
+        .WithDescription("Lists installed packages");
 
     config.AddCommand<MigrateCommand>("migrate")
-        .WithDescription("Migrate a package manifest");
+        .WithDescription("Migrates a package manifest");
 
     config.AddCommand<UninstallCommand>("uninstall")
-        .WithDescription("Uninstall packages");
+        .WithDescription("Uninstalls packages");
 
     config.AddCommand<UpdateCommand>("update")
-        .WithDescription("Update packages");
+        .WithDescription("Updates packages");
 
     config.AddCommand<ViewCommand>("view")
-        .WithDescription("View package details");
+        .WithDescription("Views package details");
 });
 
 return await app.RunAsync(args);

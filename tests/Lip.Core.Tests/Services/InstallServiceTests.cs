@@ -40,11 +40,11 @@ public class InstallServiceTests
     public async Task InstallPackages_NoDependencies_InstallsArtifacts()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", string.Empty);
-        var pkgVer = new SemVersion(1, 0, 0);
-        var pkgSpec = new PackageSpec(pkgId, pkgVer);
+        PackageId pkgId = new("github.com/test/pkg", string.Empty);
+        SemVersion pkgVer = new(1, 0, 0);
+        PackageSpec pkgSpec = new(pkgId, pkgVer);
 
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         _mockSourceService.Setup(s => s.Get(pkgSpec))
             .ReturnsAsync(mockSourceProvider.Object);
 
@@ -70,13 +70,13 @@ public class InstallServiceTests
     public async Task InstallPackages_WithDependencies_InstallsAllPackages()
     {
         // Arrange
-        var pkgRootId = new PackageId("github.com/test/root", string.Empty);
-        var pkgRootVer = new SemVersion(1, 0, 0);
-        var pkgRootSpec = new PackageSpec(pkgRootId, pkgRootVer);
+        PackageId pkgRootId = new("github.com/test/root", string.Empty);
+        SemVersion pkgRootVer = new(1, 0, 0);
+        PackageSpec pkgRootSpec = new(pkgRootId, pkgRootVer);
 
-        var pkgDepId = new PackageId("github.com/test/dep", string.Empty);
-        var pkgDepVer = new SemVersion(2, 0, 0);
-        var pkgDepSpec = new PackageSpec(pkgDepId, pkgDepVer);
+        PackageId pkgDepId = new("github.com/test/dep", string.Empty);
+        SemVersion pkgDepVer = new(2, 0, 0);
+        PackageSpec pkgDepSpec = new(pkgDepId, pkgDepVer);
 
         // Root package manifest with dependency
         var rootManifestJson = $$"""
@@ -94,7 +94,7 @@ public class InstallServiceTests
                 ]
             }
             """;
-        var rootProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> rootProvider = new();
         rootProvider.Setup(p => p.OpenRead("tooth.json"))
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(rootManifestJson))));
 
@@ -108,14 +108,14 @@ public class InstallServiceTests
                 "variants": [ {} ]
             }
             """;
-        var depProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> depProvider = new();
         depProvider.Setup(p => p.OpenRead("tooth.json"))
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(depManifestJson))));
 
         _mockSourceService.Setup(s => s.Get(pkgRootSpec)).ReturnsAsync(rootProvider.Object);
         _mockSourceService.Setup(s => s.Get(pkgDepSpec)).ReturnsAsync(depProvider.Object);
 
-        var depManifest = new PackageManifest
+        PackageManifest depManifest = new()
         {
             Path = "github.com/test/dep",
             Version = new SemVersion(2, 0, 0),
@@ -160,8 +160,8 @@ public class InstallServiceTests
     public async Task InstallPackages_DryRun_DoesNotInstallButLogs()
     {
         // Arrange
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
+        Mock<ISourceProvider> mockSourceProvider = new();
 
         var manifestJson = """
             {
@@ -192,9 +192,9 @@ public class InstallServiceTests
     public async Task UninstallPackages_Explicit_UninstallsPackage()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var pkgVersion = new SemVersion(1, 0, 0);
-        var pkgSpec = new PackageSpec(pkgId, pkgVersion);
+        PackageId pkgId = new("github.com/test/pkg", "");
+        SemVersion pkgVersion = new(1, 0, 0);
+        PackageSpec pkgSpec = new(pkgId, pkgVersion);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit))
             .ReturnsAsync([pkgSpec]);
@@ -212,11 +212,11 @@ public class InstallServiceTests
     public async Task UninstallPackages_WithDependencies_UninstallsUnusedDependencies()
     {
         // Arrange
-        var rootId = new PackageId("github.com/test/root", "");
-        var depId = new PackageId("github.com/test/dep", "");
+        PackageId rootId = new("github.com/test/root", "");
+        PackageId depId = new("github.com/test/dep", "");
 
-        var rootSpec = new PackageSpec(rootId, new SemVersion(1, 0, 0));
-        var depSpec = new PackageSpec(depId, new SemVersion(1, 0, 0));
+        PackageSpec rootSpec = new(rootId, new SemVersion(1, 0, 0));
+        PackageSpec depSpec = new(depId, new SemVersion(1, 0, 0));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit))
             .ReturnsAsync([rootSpec]);
@@ -234,7 +234,7 @@ public class InstallServiceTests
     [Fact]
     public async Task UninstallPackages_NotInstalled_ThrowsException()
     {
-        var pkgId = new PackageId("github.com/test/pkg", "");
+        PackageId pkgId = new("github.com/test/pkg", "");
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit))
             .ReturnsAsync([]);
 
@@ -245,15 +245,15 @@ public class InstallServiceTests
     [Fact]
     public async Task InstallPackages_FlexibleVersion_ResolvesLatest()
     {
-        var pkgId = new PackageId("github.com/flexible/pkg", "");
-        var v1 = new SemVersion(1, 0, 0);
-        var v2 = new SemVersion(2, 0, 0);
-        var pkgSpecV2 = new PackageSpec(pkgId, v2);
+        PackageId pkgId = new("github.com/flexible/pkg", "");
+        SemVersion v1 = new(1, 0, 0);
+        SemVersion v2 = new(2, 0, 0);
+        PackageSpec pkgSpecV2 = new(pkgId, v2);
 
         _mockPackageRegistry.Setup(r => r.GetAvailableVersions(pkgId))
             .ReturnsAsync(new[] { v1, v2 }.Order(SemVersion.PrecedenceComparer));
 
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         // Mock manifest for v2
         var manifestJson = """
             {
@@ -281,8 +281,8 @@ public class InstallServiceTests
     [Fact]
     public async Task InstallPackages_AlreadyExplicitlyInstalled_ThrowsException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1));
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1));
+        Mock<ISourceProvider> mockSourceProvider = new();
         _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSourceProvider.Object);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit))
@@ -295,10 +295,10 @@ public class InstallServiceTests
     [Fact]
     public async Task InstallPackages_DuplicateIds_ThrowsException()
     {
-        var pkgSpec1 = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1));
-        var pkgSpec2 = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(2));
+        PackageSpec pkgSpec1 = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1));
+        PackageSpec pkgSpec2 = new(new PackageId("github.com/test/pkg", ""), new SemVersion(2));
 
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         _mockSourceService.Setup(s => s.Get(It.IsAny<PackageSpec>())).ReturnsAsync(mockSourceProvider.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -308,12 +308,12 @@ public class InstallServiceTests
     [Fact]
     public async Task UpdatePackages_UpdatesExistingPackage()
     {
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var oldVer = new SemVersion(1);
-        var newVer = new SemVersion(2);
+        PackageId pkgId = new("github.com/test/pkg", "");
+        SemVersion oldVer = new(1);
+        SemVersion newVer = new(2);
 
-        var oldSpec = new PackageSpec(pkgId, oldVer);
-        var newSpec = new PackageSpec(pkgId, newVer);
+        PackageSpec oldSpec = new(pkgId, oldVer);
+        PackageSpec newSpec = new(pkgId, newVer);
 
         // Setup installed state
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
@@ -322,7 +322,7 @@ public class InstallServiceTests
             .ReturnsAsync([oldSpec]);
 
         // Setup new package resolution
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         var manifestJson = """
             {
                 "format_version": 3,
@@ -353,8 +353,8 @@ public class InstallServiceTests
     [Fact]
     public async Task UpdatePackages_NotInstalled_ThrowsException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(2));
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(2));
+        Mock<ISourceProvider> mockSourceProvider = new();
         _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSourceProvider.Object);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))

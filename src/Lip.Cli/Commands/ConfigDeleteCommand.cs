@@ -12,7 +12,7 @@ public class ConfigDeleteCommand(ILipClient lipClient) : AsyncCommand<ConfigDele
     public class Settings : CommandSettings
     {
         [CommandArgument(0, "<KEY>")]
-        [Description("The config key to delete")]
+        [Description("The configuration key to delete")]
         public required string Key { get; init; }
     }
 

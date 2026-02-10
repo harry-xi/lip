@@ -9,7 +9,7 @@ public class RuntimeConfigTests
     [Fact]
     public void Constructor_DefaultValues_SetsCorrectDefaults()
     {
-        var config = new RuntimeConfig();
+        RuntimeConfig config = new();
 
         Assert.Equal(3, config.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", config.FormatUuid);
@@ -32,13 +32,13 @@ public class RuntimeConfigTests
     [Fact]
     public void AsDictionary_ReturnsAllProperties()
     {
-        var config = new RuntimeConfig
+        RuntimeConfig config = new()
         {
             GithubProxy = new Url("https://proxy.example.com"),
             GoModuleProxy = new Url("https://custom.proxy.io")
         };
 
-        var dict = config.AsDictionary();
+        IDictionary<string, dynamic?> dict = config.AsDictionary();
 
         Assert.True(dict.ContainsKey("format_version"));
         Assert.True(dict.ContainsKey("format_uuid"));
@@ -49,10 +49,10 @@ public class RuntimeConfigTests
     [Fact]
     public void With_ValidKey_ReturnsNewConfigWithUpdatedValue()
     {
-        var config = new RuntimeConfig();
-        var newProxy = new Url("https://new.proxy.io");
+        RuntimeConfig config = new();
+        Url newProxy = new("https://new.proxy.io");
 
-        var newConfig = config.With("go_module_proxy", newProxy);
+        RuntimeConfig newConfig = config.With("go_module_proxy", newProxy);
 
         Assert.NotSame(config, newConfig);
         Assert.Equal(newProxy, newConfig.GoModuleProxy);
@@ -61,7 +61,7 @@ public class RuntimeConfigTests
     [Fact]
     public void With_InvalidKey_ThrowsKeyNotFoundException()
     {
-        var config = new RuntimeConfig();
+        RuntimeConfig config = new();
 
         Assert.Throws<KeyNotFoundException>(() => config.With("invalid_key", "value"));
     }
@@ -72,7 +72,7 @@ public class WorkspaceStateTests
     [Fact]
     public void Constructor_DefaultValues_SetsCorrectDefaults()
     {
-        var state = new WorkspaceState();
+        WorkspaceState state = new();
 
         Assert.Equal(3, state.FormatVersion);
         Assert.Equal("289f771f-2c9a-4d73-9f3f-8492495a924d", state.FormatUuid);
@@ -97,12 +97,12 @@ public class WorkspaceStatePackageTests
     [Fact]
     public void GetPackageSpec_ReturnsCorrectSpec()
     {
-        var manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/pkg",
             Version = new SemVersion(1, 0, 0)
         };
-        var pkg = new WorkspaceStatePackage
+        WorkspaceStatePackage pkg = new()
         {
             Files = [],
             IsExplicit = true,
@@ -110,7 +110,7 @@ public class WorkspaceStatePackageTests
             Variant = "win_x64"
         };
 
-        var spec = pkg.GetPackageSpec();
+        PackageSpec spec = pkg.GetPackageSpec();
 
         Assert.Equal("github.com/test/pkg", spec.Id.Path);
         Assert.Equal("win_x64", spec.Id.Variant);
@@ -120,7 +120,7 @@ public class WorkspaceStatePackageTests
     [Fact]
     public void Variant_Invalid_ThrowsArgumentException()
     {
-        var manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/pkg",
             Version = new SemVersion(1, 0, 0)

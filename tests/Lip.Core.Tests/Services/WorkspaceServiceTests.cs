@@ -3,6 +3,7 @@ using Lip.Core.Infrastructure;
 using Lip.Core.Services;
 using Moq;
 using Semver;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Core.Tests.Services;
@@ -23,16 +24,16 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task AddInstalledPackage_AddsPackageToState()
     {
-        var pkgId = new PackageId("github.com/foo/bar", "");
-        var version = new SemVersion(1, 0, 0);
-        var pkgSpec = new PackageSpec(pkgId, version);
-        var manifest = new PackageManifest { Path = "github.com/foo/bar", Version = version, Variants = [new()] };
-        var files = new List<string> { @"C:\lip\plugins\foo.dll" };
-        var fileInfoList = files.Select(f => _fileSystem.FileInfo.New(f)).ToList();
+        PackageId pkgId = new("github.com/foo/bar", "");
+        SemVersion version = new(1, 0, 0);
+        PackageSpec pkgSpec = new(pkgId, version);
+        PackageManifest manifest = new() { Path = "github.com/foo/bar", Version = version, Variants = [new()] };
+        List<string> files = new() { @"C:\lip\plugins\foo.dll" };
+        List<IFileInfo> fileInfoList = files.Select(f => _fileSystem.FileInfo.New(f)).ToList();
 
         await _service.AddInstalledPackage(pkgSpec, manifest, fileInfoList, true);
 
-        var installed = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.All);
+        IEnumerable<PackageSpec> installed = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.All);
         Assert.Single(installed);
         Assert.Equal(pkgSpec, installed.First());
     }
@@ -40,8 +41,8 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task AddInstalledPackage_MismatchedSpec_ThrowsArgumentException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/other/repo", Version = new SemVersion(2, 0, 0), Variants = [new()] };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/other/repo", Version = new SemVersion(2, 0, 0), Variants = [new()] };
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _service.AddInstalledPackage(pkgSpec, manifest, [], true));
@@ -50,8 +51,8 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task AddInstalledPackage_AlreadyInstalled_ThrowsInvalidOperationException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
         await _service.AddInstalledPackage(pkgSpec, manifest, [], true);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -61,13 +62,13 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task GetInstalledPackageFiles_ReturnsFiles()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
         _fileSystem.AddFile(@"C:\test\file.dll", new MockFileData("content"));
-        var files = new[] { _fileSystem.FileInfo.New(@"C:\test\file.dll") };
+        IFileInfo[] files = new[] { _fileSystem.FileInfo.New(@"C:\test\file.dll") };
         await _service.AddInstalledPackage(pkgSpec, manifest, files, true);
 
-        var result = await _service.GetInstalledPackageFiles(pkgSpec);
+        IEnumerable<IFileInfo> result = await _service.GetInstalledPackageFiles(pkgSpec);
 
         Assert.Single(result);
     }
@@ -75,7 +76,7 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task GetInstalledPackageFiles_NotInstalled_ThrowsInvalidOperationException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _service.GetInstalledPackageFiles(pkgSpec));
@@ -84,11 +85,11 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task GetInstalledPackageManifest_ReturnsCorrectManifest()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
         await _service.AddInstalledPackage(pkgSpec, manifest, [], true);
 
-        var result = await _service.GetInstalledPackageManifest(pkgSpec);
+        PackageManifest result = await _service.GetInstalledPackageManifest(pkgSpec);
 
         Assert.Equal(manifest.Path, result.Path);
     }
@@ -96,7 +97,7 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task GetInstalledPackageManifest_NotInstalled_ThrowsInvalidOperationException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _service.GetInstalledPackageManifest(pkgSpec));
@@ -105,15 +106,15 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task GetInstalledPackages_ExplicitScope_ReturnsOnlyExplicit()
     {
-        var explicitPkg = new PackageSpec(new PackageId("github.com/explicit/pkg", ""), new SemVersion(1, 0, 0));
-        var implicitPkg = new PackageSpec(new PackageId("github.com/implicit/pkg", ""), new SemVersion(1, 0, 0));
-        var manifest1 = new PackageManifest { Path = "github.com/explicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
-        var manifest2 = new PackageManifest { Path = "github.com/implicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec explicitPkg = new(new PackageId("github.com/explicit/pkg", ""), new SemVersion(1, 0, 0));
+        PackageSpec implicitPkg = new(new PackageId("github.com/implicit/pkg", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest1 = new() { Path = "github.com/explicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageManifest manifest2 = new() { Path = "github.com/implicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
 
         await _service.AddInstalledPackage(explicitPkg, manifest1, [], true);
         await _service.AddInstalledPackage(implicitPkg, manifest2, [], false);
 
-        var result = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit);
+        IEnumerable<PackageSpec> result = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit);
 
         Assert.Single(result);
         Assert.Equal(explicitPkg, result.First());
@@ -122,15 +123,15 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task GetInstalledPackages_ImplicitScope_ReturnsOnlyImplicit()
     {
-        var explicitPkg = new PackageSpec(new PackageId("github.com/explicit/pkg", ""), new SemVersion(1, 0, 0));
-        var implicitPkg = new PackageSpec(new PackageId("github.com/implicit/pkg", ""), new SemVersion(1, 0, 0));
-        var manifest1 = new PackageManifest { Path = "github.com/explicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
-        var manifest2 = new PackageManifest { Path = "github.com/implicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec explicitPkg = new(new PackageId("github.com/explicit/pkg", ""), new SemVersion(1, 0, 0));
+        PackageSpec implicitPkg = new(new PackageId("github.com/implicit/pkg", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest1 = new() { Path = "github.com/explicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageManifest manifest2 = new() { Path = "github.com/implicit/pkg", Version = new SemVersion(1, 0, 0), Variants = [new()] };
 
         await _service.AddInstalledPackage(explicitPkg, manifest1, [], true);
         await _service.AddInstalledPackage(implicitPkg, manifest2, [], false);
 
-        var result = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Implicit);
+        IEnumerable<PackageSpec> result = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Implicit);
 
         Assert.Single(result);
         Assert.Equal(implicitPkg, result.First());
@@ -139,20 +140,20 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task RemoveInstalledPackage_RemovesFromState()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
         await _service.AddInstalledPackage(pkgSpec, manifest, [], true);
 
         await _service.RemoveInstalledPackage(pkgSpec);
 
-        var installed = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.All);
+        IEnumerable<PackageSpec> installed = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.All);
         Assert.Empty(installed);
     }
 
     [Fact]
     public async Task RemoveInstalledPackage_NotInstalled_ThrowsInvalidOperationException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _service.RemoveInstalledPackage(pkgSpec));
@@ -161,14 +162,14 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task UpdateInstalledPackageExplicitness_UpdatesExplicitness()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
         await _service.AddInstalledPackage(pkgSpec, manifest, [], true);
 
         await _service.UpdateInstalledPackageExplicitness(pkgSpec, false);
 
-        var explicitPkgs = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit);
-        var implicitPkgs = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Implicit);
+        IEnumerable<PackageSpec> explicitPkgs = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit);
+        IEnumerable<PackageSpec> implicitPkgs = await _service.GetInstalledPackages(IWorkspaceService.PackageScope.Implicit);
         Assert.Empty(explicitPkgs);
         Assert.Single(implicitPkgs);
     }
@@ -176,7 +177,7 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task UpdateInstalledPackageExplicitness_NotInstalled_ThrowsInvalidOperationException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _service.UpdateInstalledPackageExplicitness(pkgSpec, false));
@@ -185,8 +186,8 @@ public class WorkspaceServiceTests
     [Fact]
     public async Task CreateFileWithDirectory_HandlesRootFilePath()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0), Variants = [new()] };
 
         await _service.AddInstalledPackage(pkgSpec, manifest, [], true);
 

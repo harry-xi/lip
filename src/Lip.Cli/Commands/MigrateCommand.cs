@@ -12,7 +12,7 @@ public class MigrateCommand(ILipClient lipClient) : AsyncCommand<MigrateCommand.
     public class Settings : CommandSettings
     {
         [CommandArgument(0, "<FILE>")]
-        [Description("The input file to migrate")]
+        [Description("The input manifest file")]
         public required string File { get; init; }
 
         [CommandArgument(1, "<OUTPUT>")]

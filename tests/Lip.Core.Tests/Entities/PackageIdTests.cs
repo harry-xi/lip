@@ -10,7 +10,7 @@ public class PackageIdTests
     public void Constructor_ValidInputs_CreatesInstance(string path, string variant)
     {
         // Act
-        var packageId = new PackageId(path, variant);
+        PackageId packageId = new(path, variant);
 
         // Assert
         Assert.Equal(path, packageId.Path);
@@ -39,7 +39,7 @@ public class PackageIdTests
     public void ToString_ReturnsCorrectFormat()
     {
         // Arrange
-        var packageId = new PackageId("github.com/user/repo", "variant");
+        PackageId packageId = new("github.com/user/repo", "variant");
 
         // Act
         var result = packageId.ToString();
@@ -55,7 +55,7 @@ public class PackageIdTests
         var input = "github.com/user/repo#variant";
 
         // Act
-        var result = PackageId.Parse(input);
+        PackageId result = PackageId.Parse(input);
 
         // Assert
         Assert.Equal("github.com/user/repo", result.Path);

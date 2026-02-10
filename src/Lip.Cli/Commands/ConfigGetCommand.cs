@@ -12,7 +12,7 @@ public class ConfigGetCommand(ILipClient lipClient) : AsyncCommand<ConfigGetComm
     public class Settings : CommandSettings
     {
         [CommandArgument(0, "<KEY>")]
-        [Description("The config key to get")]
+        [Description("The configuration key to get")]
         public required string Key { get; init; }
     }
 

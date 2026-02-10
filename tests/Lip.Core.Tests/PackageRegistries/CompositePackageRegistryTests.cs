@@ -11,19 +11,19 @@ public class CompositePackageRegistryTests
     public async Task GetAvailableVersions_AggregatesFromAllRegistries()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var mockRegistry1 = new Mock<IPackageRegistry>();
-        var mockRegistry2 = new Mock<IPackageRegistry>();
+        PackageId pkgId = new("github.com/test/pkg", "");
+        Mock<IPackageRegistry> mockRegistry1 = new();
+        Mock<IPackageRegistry> mockRegistry2 = new();
 
         mockRegistry1.Setup(r => r.GetAvailableVersions(pkgId))
             .ReturnsAsync(new[] { new SemVersion(1, 0, 0), new SemVersion(1, 1, 0) }.Order(SemVersion.PrecedenceComparer));
         mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
             .ReturnsAsync(new[] { new SemVersion(1, 1, 0), new SemVersion(2, 0, 0) }.Order(SemVersion.PrecedenceComparer));
 
-        var composite = new CompositePackageRegistry([mockRegistry1.Object, mockRegistry2.Object]);
+        CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
 
         // Act
-        var result = (await composite.GetAvailableVersions(pkgId)).ToList();
+        List<SemVersion> result = (await composite.GetAvailableVersions(pkgId)).ToList();
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -36,19 +36,19 @@ public class CompositePackageRegistryTests
     public async Task GetAvailableVersions_OneRegistryFails_ReturnsFromOther()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var mockRegistry1 = new Mock<IPackageRegistry>();
-        var mockRegistry2 = new Mock<IPackageRegistry>();
+        PackageId pkgId = new("github.com/test/pkg", "");
+        Mock<IPackageRegistry> mockRegistry1 = new();
+        Mock<IPackageRegistry> mockRegistry2 = new();
 
         mockRegistry1.Setup(r => r.GetAvailableVersions(pkgId))
             .ThrowsAsync(new Exception("Registry 1 failed"));
         mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
             .ReturnsAsync(new[] { new SemVersion(1, 0, 0) }.OrderBy(v => v, SemVersion.PrecedenceComparer));
 
-        var composite = new CompositePackageRegistry([mockRegistry1.Object, mockRegistry2.Object]);
+        CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
 
         // Act
-        var result = (await composite.GetAvailableVersions(pkgId)).ToList();
+        List<SemVersion> result = (await composite.GetAvailableVersions(pkgId)).ToList();
 
         // Assert
         Assert.Single(result);
@@ -59,16 +59,16 @@ public class CompositePackageRegistryTests
     public async Task GetAvailableVersions_AllRegistriesFail_ThrowsAggregateException()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var mockRegistry1 = new Mock<IPackageRegistry>();
-        var mockRegistry2 = new Mock<IPackageRegistry>();
+        PackageId pkgId = new("github.com/test/pkg", "");
+        Mock<IPackageRegistry> mockRegistry1 = new();
+        Mock<IPackageRegistry> mockRegistry2 = new();
 
         mockRegistry1.Setup(r => r.GetAvailableVersions(pkgId))
             .ThrowsAsync(new Exception("Registry 1 failed"));
         mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
             .ThrowsAsync(new Exception("Registry 2 failed"));
 
-        var composite = new CompositePackageRegistry([mockRegistry1.Object, mockRegistry2.Object]);
+        CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
 
         // Act & Assert
         await Assert.ThrowsAsync<AggregateException>(() => composite.GetAvailableVersions(pkgId));
@@ -78,18 +78,18 @@ public class CompositePackageRegistryTests
     public async Task GetPackageManifest_FirstRegistrySucceeds_ReturnsManifest()
     {
         // Arrange
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/pkg", Version = new SemVersion(1, 0, 0) };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/pkg", Version = new SemVersion(1, 0, 0) };
 
-        var mockRegistry1 = new Mock<IPackageRegistry>();
-        var mockRegistry2 = new Mock<IPackageRegistry>();
+        Mock<IPackageRegistry> mockRegistry1 = new();
+        Mock<IPackageRegistry> mockRegistry2 = new();
 
         mockRegistry1.Setup(r => r.GetPackageManifest(pkgSpec)).ReturnsAsync(manifest);
 
-        var composite = new CompositePackageRegistry([mockRegistry1.Object, mockRegistry2.Object]);
+        CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
 
         // Act
-        var result = await composite.GetPackageManifest(pkgSpec);
+        PackageManifest result = await composite.GetPackageManifest(pkgSpec);
 
         // Assert
         Assert.Equal(manifest, result);
@@ -100,17 +100,17 @@ public class CompositePackageRegistryTests
     public async Task GetPackageManifest_AllFail_ThrowsAggregateException()
     {
         // Arrange
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
 
-        var mockRegistry1 = new Mock<IPackageRegistry>();
-        var mockRegistry2 = new Mock<IPackageRegistry>();
+        Mock<IPackageRegistry> mockRegistry1 = new();
+        Mock<IPackageRegistry> mockRegistry2 = new();
 
         mockRegistry1.Setup(r => r.GetPackageManifest(pkgSpec))
             .ThrowsAsync(new Exception("Failed 1"));
         mockRegistry2.Setup(r => r.GetPackageManifest(pkgSpec))
             .ThrowsAsync(new Exception("Failed 2"));
 
-        var composite = new CompositePackageRegistry([mockRegistry1.Object, mockRegistry2.Object]);
+        CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
 
         // Act & Assert
         await Assert.ThrowsAsync<AggregateException>(() => composite.GetPackageManifest(pkgSpec));
@@ -122,8 +122,8 @@ public class CompositePackageRegistryTests
         // Note: Currently CompositePackageRegistry probably throws or returns null if list is empty?
         // Looking at implementation logic (implied from typical usage), if empty, it probably throws AggregateException or similar because it tries nothing.
 
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
-        var composite = new CompositePackageRegistry([]);
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
+        CompositePackageRegistry composite = new([]);
 
         // Based on implementation of iterating and throwing exceptions if all fail, an empty list means 0 exceptions but loop finishes.
         // We should verify what happens when 0 registries are passed.

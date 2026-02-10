@@ -13,11 +13,11 @@ public class GitPackageRegistryTests
     public async Task GetAvailableVersions_ReturnsValidSemVerTags()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var repoUrl = Url.Parse("https://github.com/test/pkg.git");
+        PackageId pkgId = new("github.com/test/pkg", "");
+        Url repoUrl = Url.Parse("https://github.com/test/pkg.git");
 
-        var mockGitRunner = new Mock<IGitRunner>();
-        var refs = new List<(string Sha, string Ref)>
+        Mock<IGitRunner> mockGitRunner = new();
+        List<(string Sha, string Ref)> refs = new()
         {
             ("hash1", "refs/tags/v1.0.0"),
             ("hash2", "refs/tags/v1.1.0-beta.1"),
@@ -29,10 +29,10 @@ public class GitPackageRegistryTests
         mockGitRunner.Setup(r => r.LsRemote(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
             .ReturnsAsync(refs);
 
-        var registry = new GitPackageRegistry(mockGitRunner.Object, null);
+        GitPackageRegistry registry = new(mockGitRunner.Object, null);
 
         // Act
-        var result = (await registry.GetAvailableVersions(pkgId)).ToList();
+        List<SemVersion> result = (await registry.GetAvailableVersions(pkgId)).ToList();
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -45,15 +45,15 @@ public class GitPackageRegistryTests
     public async Task GetAvailableVersions_WithProxy_UsesProxyUrl()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var proxyUrl = Url.Parse("https://proxy.com");
-        var expectedRepoUrl = Url.Parse("https://proxy.com/test/pkg.git");
+        PackageId pkgId = new("github.com/test/pkg", "");
+        Url proxyUrl = Url.Parse("https://proxy.com");
+        Url expectedRepoUrl = Url.Parse("https://proxy.com/test/pkg.git");
 
-        var mockGitRunner = new Mock<IGitRunner>();
+        Mock<IGitRunner> mockGitRunner = new();
         mockGitRunner.Setup(r => r.LsRemote(It.Is<string>(u => u == expectedRepoUrl.ToString()), true, true))
             .ReturnsAsync([]);
 
-        var registry = new GitPackageRegistry(mockGitRunner.Object, proxyUrl);
+        GitPackageRegistry registry = new(mockGitRunner.Object, proxyUrl);
 
         // Act
         await registry.GetAvailableVersions(pkgId);
@@ -65,8 +65,8 @@ public class GitPackageRegistryTests
     [Fact]
     public async Task GetPackageManifest_ThrowsNotSupportedException()
     {
-        var mockGitRunner = new Mock<IGitRunner>();
-        var registry = new GitPackageRegistry(mockGitRunner.Object, null);
+        Mock<IGitRunner> mockGitRunner = new();
+        GitPackageRegistry registry = new(mockGitRunner.Object, null);
 
         await Assert.ThrowsAsync<NotSupportedException>(() =>
             registry.GetPackageManifest(new PackageSpec(PackageId.Parse("github.com/test/repo"), new SemVersion(1, 0, 0))));

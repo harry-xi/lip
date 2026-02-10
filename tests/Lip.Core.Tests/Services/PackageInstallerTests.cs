@@ -39,8 +39,8 @@ public class PackageInstallerTests
     public async Task InstallPackage_NotAlreadyInstalled_ThrowsException()
     {
         // Arrange
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
-        var artifact = new PackageArtifact(pkgSpec, new Mock<ISourceProvider>().Object);
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
+        PackageArtifact artifact = new(pkgSpec, new Mock<ISourceProvider>().Object);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([]);
@@ -57,7 +57,7 @@ public class PackageInstallerTests
     public async Task UninstallPackage_NotInstalled_ThrowsException()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", string.Empty);
+        PackageId pkgId = new("github.com/test/pkg", string.Empty);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([]);
@@ -72,9 +72,9 @@ public class PackageInstallerTests
     public async Task InstallPackage_ValidArtifact_InstallsFiles()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var pkgVer = new SemVersion(1, 0, 0);
-        var pkgSpec = new PackageSpec(pkgId, pkgVer);
+        PackageId pkgId = new("github.com/test/pkg", "");
+        SemVersion pkgVer = new(1, 0, 0);
+        PackageSpec pkgSpec = new(pkgId, pkgVer);
 
         // Setup WorkspaceService to allow install
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
@@ -101,7 +101,7 @@ public class PackageInstallerTests
                 ]
             }
             """;
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         mockSourceProvider.Setup(p => p.OpenRead("tooth.json"))
             .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
 
@@ -109,7 +109,7 @@ public class PackageInstallerTests
         mockSourceProvider.Setup(p => p.OpenRead("file.txt"))
             .ReturnsAsync(new MemoryStream("content"u8.ToArray()));
 
-        var artifact = new PackageArtifact(pkgSpec, mockSourceProvider.Object);
+        PackageArtifact artifact = new(pkgSpec, mockSourceProvider.Object);
 
         // Act
         await _installer.InstallPackage(artifact, false, false, false);
@@ -123,8 +123,8 @@ public class PackageInstallerTests
     public async Task InstallPackage_RunsScripts()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var pkgSpec = new PackageSpec(pkgId, new SemVersion(1, 0, 0));
+        PackageId pkgId = new("github.com/test/pkg", "");
+        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([pkgSpec]);
@@ -146,12 +146,12 @@ public class PackageInstallerTests
             }
             """;
 
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         mockSourceProvider.Setup(p => p.OpenRead("tooth.json"))
             .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
         mockSourceProvider.Setup(p => p.Keys).Returns([]);
 
-        var artifact = new PackageArtifact(pkgSpec, mockSourceProvider.Object);
+        PackageArtifact artifact = new(pkgSpec, mockSourceProvider.Object);
 
         // Act
         await _installer.InstallPackage(artifact, false, false, false);
@@ -165,13 +165,13 @@ public class PackageInstallerTests
     public async Task UninstallPackage_RemovesFiles()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var pkgSpec = new PackageSpec(pkgId, new SemVersion(1, 0, 0));
+        PackageId pkgId = new("github.com/test/pkg", "");
+        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([pkgSpec]);
 
-        var manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/pkg",
             Version = new SemVersion(1, 0, 0),
@@ -198,13 +198,13 @@ public class PackageInstallerTests
     public async Task UninstallPackage_PreserveFiles_KeepsFiles()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var pkgSpec = new PackageSpec(pkgId, new SemVersion(1, 0, 0));
+        PackageId pkgId = new("github.com/test/pkg", "");
+        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([pkgSpec]);
 
-        var manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/pkg",
             Version = new SemVersion(1, 0, 0),
@@ -234,13 +234,13 @@ public class PackageInstallerTests
     public async Task UninstallPackage_RemoveFiles_RemovesExtraFiles()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var pkgSpec = new PackageSpec(pkgId, new SemVersion(1, 0, 0));
+        PackageId pkgId = new("github.com/test/pkg", "");
+        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([pkgSpec]);
 
-        var manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/pkg",
             Version = new SemVersion(1, 0, 0),

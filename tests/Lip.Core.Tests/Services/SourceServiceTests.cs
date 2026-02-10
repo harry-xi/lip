@@ -30,9 +30,9 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_LocalPackageSpec_FileNotFound_ThrowsFileNotFoundException()
     {
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), @"C:\test");
-        var fileInfo = mockFileSystem.FileInfo.New(@"C:\nonexistent.zip");
-        var localSpec = new LocalPackageSpec(fileInfo, string.Empty);
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>(), @"C:\test");
+        IFileInfo fileInfo = mockFileSystem.FileInfo.New(@"C:\nonexistent.zip");
+        LocalPackageSpec localSpec = new(fileInfo, string.Empty);
 
         await Assert.ThrowsAsync<FileNotFoundException>(() => _service.Get(localSpec));
     }
@@ -40,14 +40,14 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_LocalPackageSpec_FileExists_ReturnsArchiveSourceProvider()
     {
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { @"C:\package.zip", new MockFileData("content") }
         }, @"C:\");
-        var fileInfo = mockFileSystem.FileInfo.New(@"C:\package.zip");
-        var localSpec = new LocalPackageSpec(fileInfo, string.Empty);
+        IFileInfo fileInfo = mockFileSystem.FileInfo.New(@"C:\package.zip");
+        LocalPackageSpec localSpec = new(fileInfo, string.Empty);
 
-        var result = await _service.Get(localSpec);
+        ISourceProvider result = await _service.Get(localSpec);
 
         Assert.IsType<ArchiveSourceProvider>(result);
     }
@@ -55,7 +55,7 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_PackageSpec_AllSourcesFail_ThrowsAggregateException()
     {
-        var pkgSpec = new PackageSpec(new PackageId("example.com/pkg", string.Empty), new SemVersion(1, 0, 0));
+        PackageSpec pkgSpec = new(new PackageId("example.com/pkg", string.Empty), new SemVersion(1, 0, 0));
 
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.IsAny<string>(), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ThrowsAsync(new Exception("Cache failed"));
@@ -69,15 +69,15 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_PackageSpec_GitSucceeds_ReturnsDirectorySourceProvider()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", string.Empty), new SemVersion(1, 0, 0));
-        var mockFs = new MockFileSystem();
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", string.Empty), new SemVersion(1, 0, 0));
+        MockFileSystem mockFs = new();
         mockFs.AddDirectory(@"C:\cache\repo");
-        var mockDir = mockFs.DirectoryInfo.New(@"C:\cache\repo");
+        IDirectoryInfo mockDir = mockFs.DirectoryInfo.New(@"C:\cache\repo");
 
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.IsAny<string>(), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ReturnsAsync(mockDir);
 
-        var result = await _service.Get(pkgSpec);
+        ISourceProvider result = await _service.Get(pkgSpec);
 
         Assert.IsType<DirectorySourceProvider>(result);
     }
@@ -85,10 +85,10 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_PackageSpec_GitFails_GoModuleProxySucceeds_ReturnsGoModuleArchiveSourceProvider()
     {
-        var pkgSpec = new PackageSpec(new PackageId("example.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
-        var mockFs = new MockFileSystem();
+        PackageSpec pkgSpec = new(new PackageId("example.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
+        MockFileSystem mockFs = new();
         mockFs.AddFile(@"C:\cache\pkg.zip", new MockFileData("content"));
-        var mockFile = mockFs.FileInfo.New(@"C:\cache\pkg.zip");
+        IFileInfo mockFile = mockFs.FileInfo.New(@"C:\cache\pkg.zip");
 
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.IsAny<string>(), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ThrowsAsync(new Exception("Git failed"));
@@ -96,7 +96,7 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        var result = await _service.Get(pkgSpec);
+        ISourceProvider result = await _service.Get(pkgSpec);
 
         Assert.IsType<GoModuleArchiveSourceProvider>(result);
     }
@@ -104,21 +104,21 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_PackageSpec_WithGithubProxy_UsesProxy()
     {
-        var serviceWithProxy = new SourceService(
+        SourceService serviceWithProxy = new(
             _mockGitRunner.Object,
             _mockCacheService.Object,
             githubProxy: new Url("https://ghproxy.com"),
             goModuleProxy: new Url("https://proxy.golang.org"));
 
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", string.Empty), new SemVersion(1, 0, 0));
-        var mockFs = new MockFileSystem();
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", string.Empty), new SemVersion(1, 0, 0));
+        MockFileSystem mockFs = new();
         mockFs.AddDirectory(@"C:\cache\repo");
-        var mockDir = mockFs.DirectoryInfo.New(@"C:\cache\repo");
+        IDirectoryInfo mockDir = mockFs.DirectoryInfo.New(@"C:\cache\repo");
 
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.Is<string>(k => k.Contains("ghproxy.com")), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ReturnsAsync(mockDir);
 
-        var result = await serviceWithProxy.Get(pkgSpec);
+        ISourceProvider result = await serviceWithProxy.Get(pkgSpec);
 
         Assert.IsType<DirectorySourceProvider>(result);
     }
@@ -126,10 +126,10 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_PackageSpec_MajorVersion2_AddsIncompatibleMetadata()
     {
-        var pkgSpec = new PackageSpec(new PackageId("example.com/test/pkg", string.Empty), new SemVersion(2, 0, 0));
-        var mockFs = new MockFileSystem();
+        PackageSpec pkgSpec = new(new PackageId("example.com/test/pkg", string.Empty), new SemVersion(2, 0, 0));
+        MockFileSystem mockFs = new();
         mockFs.AddFile(@"C:\cache\pkg.zip", new MockFileData("content"));
-        var mockFile = mockFs.FileInfo.New(@"C:\cache\pkg.zip");
+        IFileInfo mockFile = mockFs.FileInfo.New(@"C:\cache\pkg.zip");
 
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.IsAny<string>(), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ThrowsAsync(new Exception("Git failed"));
@@ -137,7 +137,7 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        var result = await _service.Get(pkgSpec);
+        ISourceProvider result = await _service.Get(pkgSpec);
 
         Assert.IsType<GoModuleArchiveSourceProvider>(result);
     }
@@ -145,16 +145,16 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_RemotePackageSpec_ReturnsArchiveSourceProvider()
     {
-        var mockFs = new MockFileSystem();
+        MockFileSystem mockFs = new();
         mockFs.AddFile(@"C:\cache\remote.zip", new MockFileData("content"));
-        var mockFile = mockFs.FileInfo.New(@"C:\cache\remote.zip");
+        IFileInfo mockFile = mockFs.FileInfo.New(@"C:\cache\remote.zip");
 
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        var remoteSpec = new RemotePackageSpec(new Url("https://example.com/package.zip"), string.Empty);
+        RemotePackageSpec remoteSpec = new(new Url("https://example.com/package.zip"), string.Empty);
 
-        var result = await _service.Get(remoteSpec);
+        ISourceProvider result = await _service.Get(remoteSpec);
 
         Assert.IsType<ArchiveSourceProvider>(result);
     }
@@ -162,14 +162,14 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_Url_IsArchiveTrue_ReturnsArchiveSourceProvider()
     {
-        var mockFs = new MockFileSystem();
+        MockFileSystem mockFs = new();
         mockFs.AddFile(@"C:\cache\file.zip", new MockFileData("content"));
-        var mockFile = mockFs.FileInfo.New(@"C:\cache\file.zip");
+        IFileInfo mockFile = mockFs.FileInfo.New(@"C:\cache\file.zip");
 
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        var result = await _service.Get(new Url("https://example.com/file.zip"), isArchive: true);
+        ISourceProvider result = await _service.Get(new Url("https://example.com/file.zip"), isArchive: true);
 
         Assert.IsType<ArchiveSourceProvider>(result);
     }
@@ -177,14 +177,14 @@ public class SourceServiceTests
     [Fact]
     public async Task Get_Url_IsArchiveFalse_ReturnsSingleFileSourceProvider()
     {
-        var mockFs = new MockFileSystem();
+        MockFileSystem mockFs = new();
         mockFs.AddFile(@"C:\cache\file.txt", new MockFileData("content"));
-        var mockFile = mockFs.FileInfo.New(@"C:\cache\file.txt");
+        IFileInfo mockFile = mockFs.FileInfo.New(@"C:\cache\file.txt");
 
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        var result = await _service.Get(new Url("https://example.com/file.txt"), isArchive: false);
+        ISourceProvider result = await _service.Get(new Url("https://example.com/file.txt"), isArchive: false);
 
         Assert.IsType<SingleFileSourceProvider>(result);
     }

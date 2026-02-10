@@ -17,15 +17,15 @@ public class ConfigServiceTests
     {
         // Arrange
         var configPath = GetConfigPath();
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(Path.GetDirectoryName(configPath)!, "placeholder.txt"), new MockFileData("") }
         });
-        var mockUserInteraction = new Mock<IUserInteraction>();
-        var service = new ConfigService(mockFileSystem, mockUserInteraction.Object);
+        Mock<IUserInteraction> mockUserInteraction = new();
+        ConfigService service = new(mockFileSystem, mockUserInteraction.Object);
 
         // Act
-        var result = await service.LoadConfig();
+        RuntimeConfig result = await service.LoadConfig();
 
         // Assert
         Assert.NotNull(result);
@@ -38,18 +38,18 @@ public class ConfigServiceTests
     {
         // Arrange
         var configPath = GetConfigPath();
-        var config = new RuntimeConfig();
+        RuntimeConfig config = new();
         var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
 
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { configPath, new MockFileData(json) }
         });
-        var mockUserInteraction = new Mock<IUserInteraction>();
-        var service = new ConfigService(mockFileSystem, mockUserInteraction.Object);
+        Mock<IUserInteraction> mockUserInteraction = new();
+        ConfigService service = new(mockFileSystem, mockUserInteraction.Object);
 
         // Act
-        var result = await service.LoadConfig();
+        RuntimeConfig result = await service.LoadConfig();
 
         // Assert
         Assert.NotNull(result);
@@ -61,13 +61,13 @@ public class ConfigServiceTests
     {
         // Arrange
         var configPath = GetConfigPath();
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(Path.GetDirectoryName(configPath)!, "placeholder.txt"), new MockFileData("") }
         });
-        var mockUserInteraction = new Mock<IUserInteraction>();
-        var service = new ConfigService(mockFileSystem, mockUserInteraction.Object);
-        var config = new RuntimeConfig();
+        Mock<IUserInteraction> mockUserInteraction = new();
+        ConfigService service = new(mockFileSystem, mockUserInteraction.Object);
+        RuntimeConfig config = new();
 
         // Act
         await service.SaveConfig(config);

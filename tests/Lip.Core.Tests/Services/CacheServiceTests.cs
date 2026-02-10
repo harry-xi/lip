@@ -1,4 +1,5 @@
 using Lip.Core.Services;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Core.Tests.Services;
@@ -13,12 +14,12 @@ public class CacheServiceTests
     {
         // Arrange
         var cachePath = GetCachePath();
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>(), cachePath);
-        var service = new CacheService(mockFileSystem);
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>(), cachePath);
+        CacheService service = new(mockFileSystem);
         bool factoryCalled = false;
 
         // Act
-        var result = await service.GetOrCreateDirectory("test-key", async dir =>
+        IDirectoryInfo result = await service.GetOrCreateDirectory("test-key", async dir =>
         {
             factoryCalled = true;
             await Task.CompletedTask;
@@ -37,15 +38,15 @@ public class CacheServiceTests
         var encodedKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("test-key"));
         var targetPath = Path.Combine(cachePath, encodedKey);
 
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(targetPath, "placeholder.txt"), new MockFileData("") }
         });
-        var service = new CacheService(mockFileSystem);
+        CacheService service = new(mockFileSystem);
         bool factoryCalled = false;
 
         // Act
-        var result = await service.GetOrCreateDirectory("test-key", async dir =>
+        IDirectoryInfo result = await service.GetOrCreateDirectory("test-key", async dir =>
         {
             factoryCalled = true;
             await Task.CompletedTask;
@@ -60,15 +61,15 @@ public class CacheServiceTests
     {
         // Arrange
         var cachePath = GetCachePath();
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(cachePath, "placeholder.txt"), new MockFileData("") }
         }, cachePath);
-        var service = new CacheService(mockFileSystem);
+        CacheService service = new(mockFileSystem);
         bool factoryCalled = false;
 
         // Act
-        var result = await service.GetOrCreateFile("test-key", async file =>
+        IFileInfo result = await service.GetOrCreateFile("test-key", async file =>
         {
             factoryCalled = true;
             await Task.CompletedTask;
@@ -84,11 +85,11 @@ public class CacheServiceTests
     {
         // Arrange
         var cachePath = GetCachePath();
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(cachePath, "somefile.txt"), new MockFileData("cached data") }
         });
-        var service = new CacheService(mockFileSystem);
+        CacheService service = new(mockFileSystem);
 
         // Act
         await service.Clean();

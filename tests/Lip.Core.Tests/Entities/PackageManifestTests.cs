@@ -16,7 +16,7 @@ public class PackageManifestTests
         // As required props are initialized, the FormatVersion setter will run at some point.
         // But first we need to pass a valid Path to avoid FormatException from Path.
 
-        var ex = Assert.ThrowsAny<Exception>(() => new PackageManifest
+        Exception ex = Assert.ThrowsAny<Exception>(() => new PackageManifest
         {
             FormatVersion = 999,
             Path = "github.com/test/valid",
@@ -30,7 +30,7 @@ public class PackageManifestTests
     [Fact]
     public void FormatUuid_InvalidUuid_ThrowsException()
     {
-        var ex = Assert.ThrowsAny<Exception>(() => new PackageManifest
+        Exception ex = Assert.ThrowsAny<Exception>(() => new PackageManifest
         {
             FormatVersion = 3,
             Path = "github.com/test/valid",
@@ -55,8 +55,8 @@ public class PackageManifestTests
     public void GetVariant_MatchesLabel_ReturnsVariant()
     {
         // Arrange
-        var variant = new PackageManifestVariant { Label = "default", Platform = "" };
-        var manifest = new PackageManifest
+        PackageManifestVariant variant = new() { Label = "default", Platform = "" };
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/valid",
             Version = new SemVersion(1, 0, 0),
@@ -64,7 +64,7 @@ public class PackageManifestTests
         };
 
         // Act
-        var result = manifest.GetVariant("default");
+        PackageManifestVariant result = manifest.GetVariant("default");
 
         // Assert
         Assert.Equal("default", result.Label);
@@ -74,7 +74,7 @@ public class PackageManifestTests
     public void GetVariant_NoMatch_ThrowsKeyNotFoundException()
     {
         // Arrange
-        var manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/valid",
             Version = new SemVersion(1, 0, 0),

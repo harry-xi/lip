@@ -13,9 +13,9 @@ public class SourceServicePackageRegistryTests
     public async Task GetAvailableVersions_ThrowsNotSupportedException()
     {
         // Arrange
-        var mockSourceService = new Mock<ISourceService>();
-        var registry = new SourceServicePackageRegistry(mockSourceService.Object);
-        var pkgId = new PackageId("github.com/test/pkg", "");
+        Mock<ISourceService> mockSourceService = new();
+        SourceServicePackageRegistry registry = new(mockSourceService.Object);
+        PackageId pkgId = new("github.com/test/pkg", "");
 
         // Act & Assert
         await Assert.ThrowsAsync<NotSupportedException>(() => registry.GetAvailableVersions(pkgId));
@@ -25,7 +25,7 @@ public class SourceServicePackageRegistryTests
     public async Task GetPackageManifest_RetrievesAndDeserializesManifest()
     {
         // Arrange
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
         var manifestJson = """
             {
                 "format_version": 3,
@@ -36,18 +36,18 @@ public class SourceServicePackageRegistryTests
                 "variants": []
             }
             """;
-        var manifestStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson));
+        MemoryStream manifestStream = new(System.Text.Encoding.UTF8.GetBytes(manifestJson));
 
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         mockSourceProvider.Setup(p => p.OpenRead("tooth.json")).ReturnsAsync(manifestStream);
 
-        var mockSourceService = new Mock<ISourceService>();
+        Mock<ISourceService> mockSourceService = new();
         mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSourceProvider.Object);
 
-        var registry = new SourceServicePackageRegistry(mockSourceService.Object);
+        SourceServicePackageRegistry registry = new(mockSourceService.Object);
 
         // Act
-        var result = await registry.GetPackageManifest(pkgSpec);
+        PackageManifest result = await registry.GetPackageManifest(pkgSpec);
 
         // Assert
         Assert.NotNull(result);

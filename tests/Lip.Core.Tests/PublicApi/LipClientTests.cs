@@ -1,5 +1,6 @@
 using Flurl;
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
 using Lip.Core.PublicApi;
 using Lip.Core.Services;
@@ -47,7 +48,7 @@ public class LipClientTests
     [Fact]
     public async Task ConfigGet_ReturnsValue()
     {
-        var config = new RuntimeConfig { GithubProxy = new Url("https://proxy.com") };
+        RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
         _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
 
         var result = await _client.ConfigGet("github_proxy");
@@ -58,7 +59,7 @@ public class LipClientTests
     [Fact]
     public async Task ConfigSet_SavesConfig()
     {
-        var config = new RuntimeConfig();
+        RuntimeConfig config = new();
         _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
 
         await _client.ConfigSet("github_proxy", "https://new_proxy.com");
@@ -69,7 +70,7 @@ public class LipClientTests
     [Fact]
     public async Task ConfigDelete_RemovesKey()
     {
-        var config = new RuntimeConfig { GithubProxy = new Url("https://proxy.com") };
+        RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
         _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
 
         await _client.ConfigDelete("github_proxy");
@@ -80,10 +81,10 @@ public class LipClientTests
     [Fact]
     public async Task ConfigList_ReturnsAllKeys()
     {
-        var config = new RuntimeConfig { GithubProxy = new Url("https://proxy.com") };
+        RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
         _configService.Setup(s => s.LoadConfig()).ReturnsAsync(config);
 
-        var result = await _client.ConfigList();
+        IDictionary<string, string> result = await _client.ConfigList();
 
         Assert.True(result.ContainsKey("github_proxy"));
         Assert.Equal("https://proxy.com", result["github_proxy"]);
@@ -134,15 +135,15 @@ public class LipClientTests
     [Fact]
     public async Task List_ReturnsPackages()
     {
-        var explicitPkg = new PackageSpec(new PackageId("github.com/test/pkg1", ""), new SemVersion(1));
-        var implicitPkg = new PackageSpec(new PackageId("github.com/test/pkg2", ""), new SemVersion(1));
+        PackageSpec explicitPkg = new(new PackageId("github.com/test/pkg1", ""), new SemVersion(1));
+        PackageSpec implicitPkg = new(new PackageId("github.com/test/pkg2", ""), new SemVersion(1));
 
         _workspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit))
             .ReturnsAsync([explicitPkg]);
         _workspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Implicit))
             .ReturnsAsync([implicitPkg]);
 
-        var (explicitInstalled, implicitInstalled) = await _client.List();
+        (IEnumerable<PackageSpec>? explicitInstalled, IEnumerable<PackageSpec>? implicitInstalled) = await _client.List();
 
         Assert.Single(explicitInstalled);
         Assert.Single(implicitInstalled);
@@ -195,8 +196,8 @@ public class LipClientTests
     [Fact]
     public async Task View_ReturnsManifestJson()
     {
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0) };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0) };
         _packageRegistry.Setup(r => r.GetPackageManifest(It.IsAny<PackageSpec>())).ReturnsAsync(manifest);
 
         var result = await _client.View("github.com/test/repo@1.0.0");
@@ -206,14 +207,14 @@ public class LipClientTests
     [Fact]
     public async Task Create_ReturnsInstance()
     {
-        var logger = new Mock<Lip.Core.Infrastructure.IUserInteraction>();
-        var fileSystem = new MockFileSystem();
+        Mock<IUserInteraction> logger = new();
+        MockFileSystem fileSystem = new();
 
         // Setup config structure if needed by ConfigService internals, 
         // though default usually works if files missing (it creates them or returns default).
         // If it fails we might need to pre-create directories.
 
-        var client = await LipClient.Create(logger.Object, fileSystem);
+        LipClient client = await LipClient.Create(logger.Object, fileSystem);
 
         Assert.NotNull(client);
     }

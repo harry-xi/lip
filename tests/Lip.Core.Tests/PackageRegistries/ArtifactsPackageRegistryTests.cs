@@ -12,17 +12,17 @@ public class ArtifactsPackageRegistryTests
     public async Task GetAvailableVersions_ReturnsOnlyMatchingPackageVersions()
     {
         // Arrange
-        var pkgId1 = new PackageId("github.com/foo/bar", "");
-        var pkgId2 = new PackageId("github.com/foo/baz", "");
+        PackageId pkgId1 = new("github.com/foo/bar", "");
+        PackageId pkgId2 = new("github.com/foo/baz", "");
 
-        var artifact1 = new PackageArtifact(new PackageSpec(pkgId1, new SemVersion(1, 0, 0)), Mock.Of<ISourceProvider>());
-        var artifact2 = new PackageArtifact(new PackageSpec(pkgId1, new SemVersion(1, 1, 0)), Mock.Of<ISourceProvider>());
-        var artifact3 = new PackageArtifact(new PackageSpec(pkgId2, new SemVersion(2, 0, 0)), Mock.Of<ISourceProvider>());
+        PackageArtifact artifact1 = new(new PackageSpec(pkgId1, new SemVersion(1, 0, 0)), Mock.Of<ISourceProvider>());
+        PackageArtifact artifact2 = new(new PackageSpec(pkgId1, new SemVersion(1, 1, 0)), Mock.Of<ISourceProvider>());
+        PackageArtifact artifact3 = new(new PackageSpec(pkgId2, new SemVersion(2, 0, 0)), Mock.Of<ISourceProvider>());
 
-        var registry = new ArtifactsPackageRegistry([artifact1, artifact2, artifact3]);
+        ArtifactsPackageRegistry registry = new([artifact1, artifact2, artifact3]);
 
         // Act
-        var result = (await registry.GetAvailableVersions(pkgId1)).ToList();
+        List<SemVersion> result = (await registry.GetAvailableVersions(pkgId1)).ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -35,9 +35,9 @@ public class ArtifactsPackageRegistryTests
     public async Task GetPackageManifest_ValidSpec_ReturnsDeserializedManifest()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/foo/bar", "");
-        var version = new SemVersion(1, 0, 0);
-        var pkgSpec = new PackageSpec(pkgId, version);
+        PackageId pkgId = new("github.com/foo/bar", "");
+        SemVersion version = new(1, 0, 0);
+        PackageSpec pkgSpec = new(pkgId, version);
 
         var manifestJson = """
             {
@@ -49,16 +49,16 @@ public class ArtifactsPackageRegistryTests
                 "variants": []
             }
             """;
-        var manifestStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson));
+        MemoryStream manifestStream = new(System.Text.Encoding.UTF8.GetBytes(manifestJson));
 
-        var mockSourceProvider = new Mock<ISourceProvider>();
+        Mock<ISourceProvider> mockSourceProvider = new();
         mockSourceProvider.Setup(p => p.OpenRead("tooth.json")).ReturnsAsync(manifestStream);
 
-        var artifact = new PackageArtifact(pkgSpec, mockSourceProvider.Object);
-        var registry = new ArtifactsPackageRegistry([artifact]);
+        PackageArtifact artifact = new(pkgSpec, mockSourceProvider.Object);
+        ArtifactsPackageRegistry registry = new([artifact]);
 
         // Act
-        var result = await registry.GetPackageManifest(pkgSpec);
+        PackageManifest result = await registry.GetPackageManifest(pkgSpec);
 
         // Assert
         Assert.NotNull(result);
@@ -70,8 +70,8 @@ public class ArtifactsPackageRegistryTests
     public async Task GetPackageManifest_NotFound_ThrowsInvalidOperationException()
     {
         // Arrange
-        var pkgSpec = new PackageSpec(new PackageId("github.com/foo/bar", ""), new SemVersion(1, 0, 0));
-        var registry = new ArtifactsPackageRegistry([]);
+        PackageSpec pkgSpec = new(new PackageId("github.com/foo/bar", ""), new SemVersion(1, 0, 0));
+        ArtifactsPackageRegistry registry = new([]);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => registry.GetPackageManifest(pkgSpec));

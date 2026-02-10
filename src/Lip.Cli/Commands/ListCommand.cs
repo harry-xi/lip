@@ -1,3 +1,4 @@
+using Lip.Core.Entities;
 using Lip.Core.PublicApi;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -14,10 +15,10 @@ public class ListCommand(ILipClient lipClient) : AsyncCommand<ListCommand.Settin
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
-        var (explicitPackages, implicitPackages) = await _lipClient.List();
+        (IEnumerable<PackageSpec>? explicitPackages, IEnumerable<PackageSpec>? implicitPackages) = await _lipClient.List();
 
         AnsiConsole.MarkupLine("[bold]Explicit Packages:[/]");
-        foreach (var pkg in explicitPackages)
+        foreach (PackageSpec pkg in explicitPackages)
         {
             AnsiConsole.MarkupLine($"  - {pkg}");
         }
@@ -25,7 +26,7 @@ public class ListCommand(ILipClient lipClient) : AsyncCommand<ListCommand.Settin
         AnsiConsole.WriteLine();
 
         AnsiConsole.MarkupLine("[bold]Implicit Packages:[/]");
-        foreach (var pkg in implicitPackages)
+        foreach (PackageSpec pkg in implicitPackages)
         {
             AnsiConsole.MarkupLine($"  - {pkg}");
         }

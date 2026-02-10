@@ -14,13 +14,13 @@ public class ConfigListCommand(ILipClient lipClient) : AsyncCommand<ConfigListCo
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
-        var config = await _lipClient.ConfigList();
+        IDictionary<string, string> config = await _lipClient.ConfigList();
 
-        var table = new Table();
+        Table table = new();
         table.AddColumn("Key");
         table.AddColumn("Value");
 
-        foreach (var kvp in config)
+        foreach (KeyValuePair<string, string> kvp in config)
         {
             table.AddRow(kvp.Key, kvp.Value);
         }

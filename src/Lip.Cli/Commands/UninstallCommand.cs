@@ -16,15 +16,15 @@ public class UninstallCommand(ILipClient lipClient) : AsyncCommand<UninstallComm
         public required string[] Packages { get; init; }
 
         [CommandOption("--dry-run")]
-        [Description("Perform a dry run without making changes")]
+        [Description("Run without making any changes")]
         public bool DryRun { get; init; }
 
         [CommandOption("--ignore-scripts")]
-        [Description("Ignore scripts during uninstallation")]
+        [Description("Skip running uninstall scripts")]
         public bool IgnoreScripts { get; init; }
 
         [CommandOption("--no-dependencies")]
-        [Description("Do not uninstall dependencies")]
+        [Description("Skip removing dependencies")]
         public bool NoDependencies { get; init; }
     }
 

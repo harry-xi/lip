@@ -10,7 +10,7 @@ public class LiprPackageRegistryTests
     [Fact]
     public async Task GetAvailableVersions_ThrowsNotSupportedException()
     {
-        var registry = new LiprPackageRegistry();
+        LiprPackageRegistry registry = new();
         await Assert.ThrowsAsync<NotSupportedException>(() => registry.GetAvailableVersions(PackageId.Parse("github.com/test/repo")));
     }
 
@@ -18,11 +18,11 @@ public class LiprPackageRegistryTests
     public async Task GetPackageManifest_ReturnsDeserializedManifest()
     {
         // Arrange
-        using var httpTest = new HttpTest();
-        var registry = new LiprPackageRegistry();
-        var pkgId = new PackageId("github.com/foo/bar", "");
-        var version = new SemVersion(1, 2, 3);
-        var pkgSpec = new PackageSpec(pkgId, version);
+        using HttpTest httpTest = new();
+        LiprPackageRegistry registry = new();
+        PackageId pkgId = new("github.com/foo/bar", "");
+        SemVersion version = new(1, 2, 3);
+        PackageSpec pkgSpec = new(pkgId, version);
 
         httpTest.RespondWith("""
             {
@@ -36,7 +36,7 @@ public class LiprPackageRegistryTests
             """);
 
         // Act
-        var result = await registry.GetPackageManifest(pkgSpec);
+        PackageManifest result = await registry.GetPackageManifest(pkgSpec);
 
         // Assert
         Assert.NotNull(result);

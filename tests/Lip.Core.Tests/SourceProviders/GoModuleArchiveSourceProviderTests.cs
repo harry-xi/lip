@@ -1,5 +1,7 @@
 using Lip.Core.SourceProviders;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using System.IO.Compression;
 using System.Text;
 
 namespace Lip.Core.Tests.SourceProviders;
@@ -11,23 +13,23 @@ public class GoModuleArchiveSourceProviderTests
     {
         // Arrange
         // Go module archives typically have structure: module@version/path/to/file
-        using var memoryStream = new MemoryStream();
-        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+        using MemoryStream memoryStream = new();
+        using (ZipArchive archive = new(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
         {
-            var entry = archive.CreateEntry("github.com/user/repo@v1.0.0/file1.txt");
-            using (var entryStream = entry.Open())
+            ZipArchiveEntry entry = archive.CreateEntry("github.com/user/repo@v1.0.0/file1.txt");
+            using (Stream entryStream = entry.Open())
             {
                 entryStream.Write(Encoding.UTF8.GetBytes("c1"));
             }
 
-            var entry2 = archive.CreateEntry("github.com/user/repo@v1.0.0/dir/file2.txt");
-            using (var entryStream2 = entry2.Open())
+            ZipArchiveEntry entry2 = archive.CreateEntry("github.com/user/repo@v1.0.0/dir/file2.txt");
+            using (Stream entryStream2 = entry2.Open())
             {
                 entryStream2.Write(Encoding.UTF8.GetBytes("c2"));
             }
 
-            var entry3 = archive.CreateEntry("other/file.txt");
-            using (var entryStream3 = entry3.Open())
+            ZipArchiveEntry entry3 = archive.CreateEntry("other/file.txt");
+            using (Stream entryStream3 = entry3.Open())
             {
                 entryStream3.Write(Encoding.UTF8.GetBytes("c3"));
             }
@@ -35,15 +37,15 @@ public class GoModuleArchiveSourceProviderTests
         memoryStream.Position = 0;
         byte[] archiveBytes = memoryStream.ToArray();
 
-        var mockFileSystem = new MockFileSystem();
+        MockFileSystem mockFileSystem = new();
         var path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
-        var fileInfo = mockFileSystem.FileInfo.New(path);
+        IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        var provider = new GoModuleArchiveSourceProvider(fileInfo);
+        GoModuleArchiveSourceProvider provider = new(fileInfo);
 
         // Act
-        var keys = provider.Keys.ToList();
+        List<string> keys = provider.Keys.ToList();
 
         // Assert
         // keys should be relative to the module root
@@ -56,26 +58,26 @@ public class GoModuleArchiveSourceProviderTests
     public async Task OpenRead_MapsKeyToArchiveEntry()
     {
         // Arrange
-        using var memoryStream = new MemoryStream();
-        using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+        using MemoryStream memoryStream = new();
+        using (ZipArchive archive = new(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
         {
-            var entry = archive.CreateEntry("github.com/user/repo@v1.0.0/file.txt");
-            using var entryStream = entry.Open();
+            ZipArchiveEntry entry = archive.CreateEntry("github.com/user/repo@v1.0.0/file.txt");
+            using Stream entryStream = entry.Open();
             entryStream.Write(Encoding.UTF8.GetBytes("content"));
         }
         memoryStream.Position = 0;
         byte[] archiveBytes = memoryStream.ToArray();
 
-        var mockFileSystem = new MockFileSystem();
+        MockFileSystem mockFileSystem = new();
         var path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
-        var fileInfo = mockFileSystem.FileInfo.New(path);
+        IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        var provider = new GoModuleArchiveSourceProvider(fileInfo);
+        GoModuleArchiveSourceProvider provider = new(fileInfo);
 
         // Act
-        using var stream = await provider.OpenRead("file.txt");
-        using var reader = new StreamReader(stream);
+        using Stream stream = await provider.OpenRead("file.txt");
+        using StreamReader reader = new(stream);
         var content = await reader.ReadToEndAsync();
 
         // Assert

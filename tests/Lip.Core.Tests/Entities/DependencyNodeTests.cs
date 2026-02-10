@@ -9,16 +9,16 @@ public class DependencyNodeTests
     public void Constructor_SetsPropertiesCorrectly()
     {
         // Arrange
-        var packageId = new PackageId("github.com/user/repo", string.Empty);
-        var version = new SemVersion(1, 0, 0);
-        var spec = new PackageSpec(packageId, version);
-        var reqts = new List<PackageReqt>
+        PackageId packageId = new("github.com/user/repo", string.Empty);
+        SemVersion version = new(1, 0, 0);
+        PackageSpec spec = new(packageId, version);
+        List<PackageReqt> reqts = new()
         {
             new PackageReqt(new PackageId("github.com/other/dep", string.Empty), SemVersionRange.Parse("1.0.0"))
         };
 
         // Act
-        var node = new DependencyNode(spec, reqts);
+        DependencyNode node = new(spec, reqts);
 
         // Assert
         Assert.Equal(spec, node.Spec);

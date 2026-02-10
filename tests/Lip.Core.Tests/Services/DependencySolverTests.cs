@@ -24,7 +24,7 @@ public class DependencySolverTests
     public async Task Solve_NoDependencies_ReturnsEmpty()
     {
         // Act
-        var result = await _solver.Solve([]);
+        IEnumerable<PackageSpec> result = await _solver.Solve([]);
 
         // Assert
         Assert.Empty(result);
@@ -34,15 +34,15 @@ public class DependencySolverTests
     public async Task Solve_SinglePackage_ReturnsPackage()
     {
         // Arrange
-        var packageId = new PackageId("github.com/test/pkg", string.Empty);
-        var version = new SemVersion(1, 0, 0);
-        var spec = new PackageSpec(packageId, version);
-        var reqt = new PackageReqt(packageId, SemVersionRange.All);
+        PackageId packageId = new("github.com/test/pkg", string.Empty);
+        SemVersion version = new(1, 0, 0);
+        PackageSpec spec = new(packageId, version);
+        PackageReqt reqt = new(packageId, SemVersionRange.All);
 
         _mockRegistry.Setup(r => r.GetAvailableVersions(packageId))
             .ReturnsAsync(new[] { version }.OrderBy(v => v));
 
-        var manifest = new PackageManifest
+        PackageManifest manifest = new()
         {
             Path = "github.com/test/pkg",
             Version = version,
@@ -60,7 +60,7 @@ public class DependencySolverTests
             .ReturnsAsync(manifest);
 
         // Act
-        var result = await _solver.Solve([reqt]);
+        IEnumerable<PackageSpec> result = await _solver.Solve([reqt]);
 
         // Assert
         Assert.Single(result);
@@ -71,20 +71,20 @@ public class DependencySolverTests
     public async Task Solve_Conflict_ThrowsException()
     {
         // Arrange
-        var pkgA = new PackageId("github.com/test/a", string.Empty);
-        var verA = new SemVersion(1, 0, 0);
-        var specA = new PackageSpec(pkgA, verA);
+        PackageId pkgA = new("github.com/test/a", string.Empty);
+        SemVersion verA = new(1, 0, 0);
+        PackageSpec specA = new(pkgA, verA);
 
-        var pkgB = new PackageId("github.com/test/b", string.Empty);
-        var verB1 = new SemVersion(1, 0, 0);
-        var verB2 = new SemVersion(2, 0, 0);
+        PackageId pkgB = new("github.com/test/b", string.Empty);
+        SemVersion verB1 = new(1, 0, 0);
+        SemVersion verB2 = new(2, 0, 0);
 
-        var reqtA = new PackageReqt(pkgA, SemVersionRange.All);
+        PackageReqt reqtA = new(pkgA, SemVersionRange.All);
 
         _mockRegistry.Setup(r => r.GetAvailableVersions(pkgA))
             .ReturnsAsync(new[] { verA }.OrderBy(v => v));
 
-        var manifestA = new PackageManifest
+        PackageManifest manifestA = new()
         {
             Path = "github.com/test/a",
             Version = verA,
@@ -105,7 +105,7 @@ public class DependencySolverTests
             .ReturnsAsync(manifestA);
 
         // But we also request pkg-b 2.0.0 exactly at root level (contradiction)
-        var reqtB = new PackageReqt(pkgB, SemVersionRange.Parse("2.0.0"));
+        PackageReqt reqtB = new(pkgB, SemVersionRange.Parse("2.0.0"));
 
         _mockRegistry.Setup(r => r.GetAvailableVersions(pkgB))
             .ReturnsAsync(new[] { verB1, verB2 }.OrderBy(v => v));

@@ -1,5 +1,6 @@
 using Spectre.Console.Cli;
 using System.Collections;
+using System.Reflection;
 
 namespace Lip.Cli;
 
@@ -11,7 +12,7 @@ public sealed class TypeRegistrar : ITypeRegistrar
 
     public void Register(Type service, Type implementation)
     {
-        if (!_registrations.TryGetValue(service, out var list))
+        if (!_registrations.TryGetValue(service, out List<Type>? list))
         {
             list = [];
             _registrations[service] = list;
@@ -58,7 +59,7 @@ public sealed class TypeResolver(
         }
 
         // 2. Check factories
-        if (_factories.TryGetValue(type, out var factory))
+        if (_factories.TryGetValue(type, out Func<object>? factory))
         {
             instance = factory();
             _instances[type] = instance; // Cache singleton behavior for factories
@@ -68,12 +69,12 @@ public sealed class TypeResolver(
         // 3. Handle IEnumerable<T>
         if (type is { IsGenericType: true } && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
         {
-            var itemType = type.GetGenericArguments()[0];
-            if (_registrations.TryGetValue(itemType, out var implementationTypes))
+            Type itemType = type.GetGenericArguments()[0];
+            if (_registrations.TryGetValue(itemType, out List<Type>? implementationTypes))
             {
-                var listType = typeof(List<>).MakeGenericType(itemType);
-                var list = (IList)Activator.CreateInstance(listType)!;
-                foreach (var implType in implementationTypes)
+                Type listType = typeof(List<>).MakeGenericType(itemType);
+                IList list = (IList)Activator.CreateInstance(listType)!;
+                foreach (Type implType in implementationTypes)
                 {
                     list.Add(ResolveType(implType));
                 }
@@ -83,7 +84,7 @@ public sealed class TypeResolver(
         }
 
         // 4. Check registrations
-        if (_registrations.TryGetValue(type, out var implementations) && implementations.Count > 0)
+        if (_registrations.TryGetValue(type, out List<Type>? implementations) && implementations.Count > 0)
         {
             // Resolve the last registered implementation
             return ResolveType(implementations[^1]);
@@ -100,7 +101,7 @@ public sealed class TypeResolver(
 
     private object ResolveType(Type type)
     {
-        var constructor = type.GetConstructors()
+        ConstructorInfo? constructor = type.GetConstructors()
             .OrderByDescending(c => c.GetParameters().Length)
             .FirstOrDefault();
 
@@ -109,7 +110,7 @@ public sealed class TypeResolver(
             return Activator.CreateInstance(type)!;
         }
 
-        var parameters = constructor.GetParameters();
+        ParameterInfo[] parameters = constructor.GetParameters();
         var args = new object?[parameters.Length];
 
         for (int i = 0; i < parameters.Length; i++)
@@ -122,7 +123,7 @@ public sealed class TypeResolver(
 
     public void Dispose()
     {
-        foreach (var instance in _instances.Values.OfType<IDisposable>())
+        foreach (IDisposable instance in _instances.Values.OfType<IDisposable>())
         {
             instance.Dispose();
         }

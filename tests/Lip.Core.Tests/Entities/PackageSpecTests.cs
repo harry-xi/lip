@@ -9,11 +9,11 @@ public class PackageSpecTests
     public void Constructor_SetsPropertiesCorrectly()
     {
         // Arrange
-        var packageId = new PackageId("github.com/user/repo", string.Empty);
-        var version = new SemVersion(1, 0, 0);
+        PackageId packageId = new("github.com/user/repo", string.Empty);
+        SemVersion version = new(1, 0, 0);
 
         // Act
-        var spec = new PackageSpec(packageId, version);
+        PackageSpec spec = new(packageId, version);
 
         // Assert
         Assert.Equal(packageId, spec.Id);
@@ -24,9 +24,9 @@ public class PackageSpecTests
     public void ToString_ReturnsCorrectFormat()
     {
         // Arrange
-        var packageId = new PackageId("github.com/user/repo", string.Empty);
-        var version = new SemVersion(1, 0, 0);
-        var spec = new PackageSpec(packageId, version);
+        PackageId packageId = new("github.com/user/repo", string.Empty);
+        SemVersion version = new(1, 0, 0);
+        PackageSpec spec = new(packageId, version);
 
         // Act
         var result = spec.ToString();
@@ -42,7 +42,7 @@ public class PackageSpecTests
         var input = "github.com/user/repo@1.0.0";
 
         // Act
-        var result = PackageSpec.Parse(input);
+        PackageSpec result = PackageSpec.Parse(input);
 
         // Assert
         Assert.Equal("github.com/user/repo", result.Id.Path);

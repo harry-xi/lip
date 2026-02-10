@@ -12,17 +12,17 @@ public class WorkspaceServicePackageRegistryTests
     public async Task GetAvailableVersions_PackageInstalled_ReturnsVersion()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
-        var pkgSpec = new PackageSpec(pkgId, new SemVersion(1, 0, 0));
+        PackageId pkgId = new("github.com/test/pkg", "");
+        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
-        var mockWorkspaceService = new Mock<IWorkspaceService>();
+        Mock<IWorkspaceService> mockWorkspaceService = new();
         mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([pkgSpec]);
 
-        var registry = new WorkspaceServicePackageRegistry(mockWorkspaceService.Object);
+        WorkspaceServicePackageRegistry registry = new(mockWorkspaceService.Object);
 
         // Act
-        var result = (await registry.GetAvailableVersions(pkgId)).ToList();
+        List<SemVersion> result = (await registry.GetAvailableVersions(pkgId)).ToList();
 
         // Assert
         Assert.Single(result);
@@ -33,16 +33,16 @@ public class WorkspaceServicePackageRegistryTests
     public async Task GetAvailableVersions_PackageNotInstalled_ReturnsEmpty()
     {
         // Arrange
-        var pkgId = new PackageId("github.com/test/pkg", "");
+        PackageId pkgId = new("github.com/test/pkg", "");
 
-        var mockWorkspaceService = new Mock<IWorkspaceService>();
+        Mock<IWorkspaceService> mockWorkspaceService = new();
         mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([]);
 
-        var registry = new WorkspaceServicePackageRegistry(mockWorkspaceService.Object);
+        WorkspaceServicePackageRegistry registry = new(mockWorkspaceService.Object);
 
         // Act
-        var result = await registry.GetAvailableVersions(pkgId);
+        IOrderedEnumerable<SemVersion> result = await registry.GetAvailableVersions(pkgId);
 
         // Assert
         Assert.Empty(result);
@@ -52,16 +52,16 @@ public class WorkspaceServicePackageRegistryTests
     public async Task GetPackageManifest_ReturnsFromWorkspaceService()
     {
         // Arrange
-        var pkgSpec = new PackageSpec(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
-        var manifest = new PackageManifest { Path = "github.com/test/pkg", Version = new SemVersion(1, 0, 0) };
+        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
+        PackageManifest manifest = new() { Path = "github.com/test/pkg", Version = new SemVersion(1, 0, 0) };
 
-        var mockWorkspaceService = new Mock<IWorkspaceService>();
+        Mock<IWorkspaceService> mockWorkspaceService = new();
         mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec)).ReturnsAsync(manifest);
 
-        var registry = new WorkspaceServicePackageRegistry(mockWorkspaceService.Object);
+        WorkspaceServicePackageRegistry registry = new(mockWorkspaceService.Object);
 
         // Act
-        var result = await registry.GetPackageManifest(pkgSpec);
+        PackageManifest result = await registry.GetPackageManifest(pkgSpec);
 
         // Assert
         Assert.Equal(manifest, result);

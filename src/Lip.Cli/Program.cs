@@ -3,6 +3,7 @@ using Lip.Cli.Commands;
 
 using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 LipClient lipClient = await LipClient.Create(new ConsoleUserInteraction());
@@ -57,6 +58,17 @@ app.Configure(config =>
 
     config.AddCommand<ViewCommand>("view")
         .WithDescription("Views package details");
+
+    config.PropagateExceptions();
 });
 
-return await app.RunAsync(args);
+try
+{
+    return await app.RunAsync(args);
+}
+catch (Exception ex)
+{
+    AnsiConsole.WriteException(ex,
+        ExceptionFormats.ShortenEverything);
+    return -1;
+}

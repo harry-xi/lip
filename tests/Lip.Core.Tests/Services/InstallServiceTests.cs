@@ -248,7 +248,7 @@ public class InstallServiceTests
         var pkgSpecV2 = new PackageSpec(pkgId, v2);
 
         _mockPackageRegistry.Setup(r => r.GetAvailableVersions(pkgId))
-            .ReturnsAsync(new[] { v1, v2 }.OrderBy(v => v));
+            .ReturnsAsync(new[] { v1, v2 }.Order(SemVersion.PrecedenceComparer));
 
         var mockSourceProvider = new Mock<ISourceProvider>();
         // Mock manifest for v2

@@ -45,6 +45,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - id: get-version
+        shell: bash
         run: |
           echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
 

@@ -21,10 +21,12 @@ jobs:
         with:
           node-version: 24
 
-      - run: |
+      - working-directory: docs
+        run: |
           npm ci
 
-      - run: |
+      - working-directory: docs
+        run: |
           npm run build
 
       - uses: actions/upload-pages-artifact@v4

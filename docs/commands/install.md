@@ -21,7 +21,7 @@ Each package argument is parsed in the following order:
 3. **Local file** — Path to a local archive file (e.g. `./package.zip`)
 4. **Remote URL** — URL to a remote archive (e.g. `https://example.com/package.zip`)
 
-Variant can be appended with `#<variant>` (e.g. `github.com/user/repo@1.0.0#my_variant`).
+Variant can be appended with `#<variant>` (e.g. `github.com/user/repo#my_variant@1.0.0`).
 
 ## Options
 

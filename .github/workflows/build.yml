@@ -2,33 +2,51 @@ on:
   pull_request:
     paths:
       - .github/workflows/build.yml
-      - '**.cs'
-      - '**.csproj'
-      - '**.wixproj'
-      - '**.wxl'
-      - '**.wxs'
+      - 'src/**'
+      - 'tests/**'
   push:
     paths:
       - .github/workflows/build.yml
-      - '**.cs'
-      - '**.csproj'
-      - '**.wixproj'
-      - '**.wxl'
-      - '**.wxs'
+      - 'src/**'
+      - 'tests/**'
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: 10.0.x
+  DOTNET_VERSION: 10.0
 
 jobs:
-  build-lib:
+  build:
+    runs-on: ${{ matrix.runs-on }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        project:
-          - Golang.Org.X.Mod
-          - Lip.Core
-          - Lip.Migration
+        runs-on:
+          - macos-15-intel
+          - macos-latest
+          - ubuntu-24.04-arm
+          - ubuntu-latest
+          - windows-11-arm
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - run: >
+          dotnet build -c Release
+
+  publish-cli:
+    needs: build
+    runs-on: ${{ matrix.runs-on }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
         runtime:
           - linux-arm64
           - linux-x64
@@ -38,20 +56,17 @@ jobs:
           - win-x64
         include:
           - runtime: linux-arm64
-            runs-on: ubuntu-22.04
+            runs-on: ubuntu-24.04-arm
           - runtime: linux-x64
             runs-on: ubuntu-latest
           - runtime: osx-arm64
-            runs-on: macos-latest
+            runs-on: macos-15-intel
           - runtime: osx-x64
             runs-on: macos-latest
           - runtime: win-arm64
-            runs-on: windows-latest
+            runs-on: windows-11-arm
           - runtime: win-x64
             runs-on: windows-latest
-    permissions:
-      contents: read
-    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v6
 
@@ -60,171 +75,21 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - run: >
-          dotnet build ${{ matrix.project }}
-          --configuration Release
-          --runtime ${{ matrix.runtime }}
-
-  build-app:
-    needs: build-lib
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          - Lip.CLI
-        runtime:
-          - linux-arm64
-          - linux-x64
-          - osx-arm64
-          - osx-x64
-          - win-arm64
-          - win-x64
-        self-contained:
-          - true
-          - false
-        include:
-          - runtime: linux-arm64
-            runs-on: ubuntu-22.04
-          - runtime: linux-x64
-            runs-on: ubuntu-latest
-          - runtime: osx-arm64
-            runs-on: macos-latest
-          - runtime: osx-x64
-            runs-on: macos-latest
-          - runtime: win-arm64
-            runs-on: windows-latest
-          - runtime: win-x64
-            runs-on: windows-latest
-          - self-contained: true
-            sc-flag: -self-contained
-          - self-contained: false
-            sc-flag: ''
-    permissions:
-      contents: read
-    runs-on: ${{ matrix.runs-on }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      # - if: matrix.runtime == 'linux-arm64'
-      #   run: |
-      #     sudo dpkg --add-architecture arm64
-      #     sudo bash -c 'cat > /etc/apt/sources.list.d/arm64.list <<EOF
-      #     deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted
-      #     deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main restricted
-      #     deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main restricted universe multiverse
-      #     EOF'
-      #     sudo sed -i -e 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
-      #     sudo sed -i -e 's/deb mirror/deb [arch=amd64] mirror/g' /etc/apt/sources.list
-      #     sudo apt update
-      #     sudo apt install -y clang llvm binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu zlib1g-dev:arm64
-
-      - run: >
-          dotnet publish ${{ matrix.project }}
-          --configuration Release
-          --output bin
-          --runtime ${{ matrix.runtime }}
-          --self-contained ${{ matrix.self-contained }}
-          -p:PublishSingleFile=true
-          -p:Version=0.0.0
+          dotnet publish src/Lip.Cli
+            -c Release
+            -o bin
+            -r ${{ matrix.runtime }}
+            --sc
 
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-cli-${{ matrix.runtime }}-${{ github.sha }}
           path: bin/
-
-  build-cli-windows-installer:
-    needs: build-app
-    permissions:
-      contents: read
-    strategy:
-      matrix:
-        runtime:
-          - arm64
-          - x64
-        self-contained:
-          - true
-          - false
-        include:
-          - runtime: arm64
-            runs-on: windows-latest
-          - runtime: x64
-            runs-on: windows-latest
-          - self-contained: true
-            sc-flag: -self-contained
-            ds-flag: -p:DefineConstants="DisableDotNetCheck"
-          - self-contained: false
-            sc-flag: ''
-            ds-flag: ''
-    runs-on: ${{ matrix.runs-on }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - uses: actions/download-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
-          path: bin/
-
-      - run: >
-          dotnet build Lip.Installer
-          --configuration Release
-          --output bin-installer
-          -p:Platform=${{ matrix.runtime }}
-          ${{ matrix.ds-flag }}
-
-      - uses: actions/upload-artifact@v6
-        with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
-          path: bin-installer/
 
   check-style:
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          - Golang.Org.X.Mod
-          - Golang.Org.X.Mod.Tests
-          - Lip.CLI
-          - Lip.Core
-          - Lip.Core.Tests
-          - Lip.Migration
-          - Lip.Migration.Tests
-    permissions:
-      contents: read
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - run: >
-          dotnet format ${{ matrix.project }}
-          --verify-no-changes
-
-  test:
-    needs: build-lib
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          - Golang.Org.X.Mod.Tests
-          - Lip.Core.Tests
-          - Lip.Migration.Tests
-        runs-on:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
     permissions:
       contents: read
-    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v6
 
@@ -233,4 +98,29 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - run: |
-          dotnet test ${{ matrix.project }}
+          dotnet format --verify-no-changes
+
+  test:
+    needs: build
+    runs-on: ${{ matrix.runs-on }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on:
+          - macos-15-intel
+          - macos-latest
+          - ubuntu-24.04-arm
+          - ubuntu-latest
+          - windows-11-arm
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - run: |
+          dotnet test

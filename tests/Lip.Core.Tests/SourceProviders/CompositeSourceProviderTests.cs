@@ -44,7 +44,7 @@ public class CompositeSourceProviderTests
         // Act
         using Stream stream = await provider.OpenRead("file1.txt");
         using StreamReader reader = new(stream);
-        var content = await reader.ReadToEndAsync();
+        string content = await reader.ReadToEndAsync();
 
         // Assert
         Assert.Equal("content1", content);

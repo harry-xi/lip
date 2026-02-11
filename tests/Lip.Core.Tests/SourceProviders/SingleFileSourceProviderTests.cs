@@ -39,7 +39,7 @@ public class SingleFileSourceProviderTests
         // Act
         using Stream stream = await provider.OpenRead("");
         using StreamReader reader = new(stream);
-        var content = await reader.ReadToEndAsync();
+        string content = await reader.ReadToEndAsync();
 
         // Assert
         Assert.Equal("file content", content);

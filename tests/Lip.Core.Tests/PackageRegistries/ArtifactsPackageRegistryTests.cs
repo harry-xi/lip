@@ -39,7 +39,7 @@ public class ArtifactsPackageRegistryTests
         SemVersion version = new(1, 0, 0);
         PackageSpec pkgSpec = new(pkgId, version);
 
-        var manifestJson = """
+        string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",

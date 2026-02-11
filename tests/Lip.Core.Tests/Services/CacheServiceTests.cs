@@ -15,7 +15,7 @@ public class CacheServiceTests
     public async Task GetOrCreateDirectory_NonExistent_CreatesAndCallsFactory()
     {
         // Arrange
-        var cachePath = GetCachePath();
+        string cachePath = GetCachePath();
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>(), cachePath);
         var mockUserInteraction = new Mock<IUserInteraction>();
         CacheService service = new(mockFileSystem, mockUserInteraction.Object);
@@ -37,9 +37,9 @@ public class CacheServiceTests
     public async Task GetOrCreateDirectory_Exists_DoesNotCallFactory()
     {
         // Arrange
-        var cachePath = GetCachePath();
-        var safeKey = Uri.EscapeDataString("test-key");
-        var targetPath = Path.Combine(cachePath, safeKey);
+        string cachePath = GetCachePath();
+        string safeKey = Uri.EscapeDataString("test-key");
+        string targetPath = Path.Combine(cachePath, safeKey);
 
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
@@ -64,7 +64,7 @@ public class CacheServiceTests
     public async Task GetOrCreateFile_NonExistent_CreatesAndCallsFactory()
     {
         // Arrange
-        var cachePath = GetCachePath();
+        string cachePath = GetCachePath();
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(cachePath, "placeholder.txt"), new MockFileData("") }
@@ -89,7 +89,7 @@ public class CacheServiceTests
     public async Task Clean_DeletesCacheDirectory()
     {
         // Arrange
-        var cachePath = GetCachePath();
+        string cachePath = GetCachePath();
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(cachePath, "somefile.txt"), new MockFileData("cached data") }

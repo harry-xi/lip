@@ -38,7 +38,7 @@ public class GoModuleArchiveSourceProviderTests
         byte[] archiveBytes = memoryStream.ToArray();
 
         MockFileSystem mockFileSystem = new();
-        var path = @"C:\archive.zip";
+        string path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
@@ -69,7 +69,7 @@ public class GoModuleArchiveSourceProviderTests
         byte[] archiveBytes = memoryStream.ToArray();
 
         MockFileSystem mockFileSystem = new();
-        var path = @"C:\archive.zip";
+        string path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
@@ -78,7 +78,7 @@ public class GoModuleArchiveSourceProviderTests
         // Act
         using Stream stream = await provider.OpenRead("file.txt");
         using StreamReader reader = new(stream);
-        var content = await reader.ReadToEndAsync();
+        string content = await reader.ReadToEndAsync();
 
         // Assert
         Assert.Equal("content", content);

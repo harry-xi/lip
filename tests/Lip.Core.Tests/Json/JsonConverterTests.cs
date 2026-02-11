@@ -26,7 +26,7 @@ public class JsonConverterTests
     [Fact]
     public void GlobJsonConverter_Read_ValidGlob_ReturnsGlob()
     {
-        var json = "\"*.txt\"";
+        string json = "\"*.txt\"";
         Glob? result = JsonSerializer.Deserialize<Glob>(json, _options);
         Assert.NotNull(result);
         Assert.True(result.IsMatch("file.txt"));
@@ -36,7 +36,7 @@ public class JsonConverterTests
     public void GlobJsonConverter_Write_ValidGlob_WritesString()
     {
         Glob glob = Glob.Parse("*.txt");
-        var result = JsonSerializer.Serialize(glob, _options);
+        string result = JsonSerializer.Serialize(glob, _options);
         Assert.Equal("\"*.txt\"", result);
     }
 
@@ -47,7 +47,7 @@ public class JsonConverterTests
     [Fact]
     public void PackageIdJsonConverter_Read_ValidPackageId_ReturnsPackageId()
     {
-        var json = "\"github.com/user/repo#variant\"";
+        string json = "\"github.com/user/repo#variant\"";
         PackageId? result = JsonSerializer.Deserialize<PackageId>(json, _options);
         Assert.NotNull(result);
         Assert.Equal("github.com/user/repo", result.Path);
@@ -58,14 +58,14 @@ public class JsonConverterTests
     public void PackageIdJsonConverter_Write_ValidPackageId_WritesString()
     {
         PackageId packageId = new("github.com/user/repo", "variant");
-        var result = JsonSerializer.Serialize(packageId, _options);
+        string result = JsonSerializer.Serialize(packageId, _options);
         Assert.Equal("\"github.com/user/repo#variant\"", result);
     }
 
     [Fact]
     public void PackageIdJsonConverter_ReadAsPropertyName_Works()
     {
-        var json = "{\"github.com/user/repo\": \"value\"}";
+        string json = "{\"github.com/user/repo\": \"value\"}";
         Dictionary<PackageId, string>? result = JsonSerializer.Deserialize<Dictionary<PackageId, string>>(json, _options);
         Assert.NotNull(result);
         Assert.Single(result);
@@ -79,7 +79,7 @@ public class JsonConverterTests
         {
             { new PackageId("github.com/user/repo", ""), "value" }
         };
-        var result = JsonSerializer.Serialize(dict, _options);
+        string result = JsonSerializer.Serialize(dict, _options);
         Assert.Contains("github.com/user/repo", result);
     }
 
@@ -90,7 +90,7 @@ public class JsonConverterTests
     [Fact]
     public void SemVersionJsonConverter_Read_ValidVersion_ReturnsSemVersion()
     {
-        var json = "\"1.2.3\"";
+        string json = "\"1.2.3\"";
         SemVersion? result = JsonSerializer.Deserialize<SemVersion>(json, _options);
         Assert.NotNull(result);
         Assert.Equal(1, result.Major);
@@ -102,7 +102,7 @@ public class JsonConverterTests
     public void SemVersionJsonConverter_Write_ValidVersion_WritesString()
     {
         SemVersion version = new(1, 2, 3);
-        var result = JsonSerializer.Serialize(version, _options);
+        string result = JsonSerializer.Serialize(version, _options);
         Assert.Equal("\"1.2.3\"", result);
     }
 
@@ -113,7 +113,7 @@ public class JsonConverterTests
     [Fact]
     public void SemVersionRangeJsonConverter_Read_ValidRange_ReturnsSemVersionRange()
     {
-        var json = "\">=1.0.0\"";
+        string json = "\">=1.0.0\"";
         SemVersionRange? result = JsonSerializer.Deserialize<SemVersionRange>(json, _options);
         Assert.NotNull(result);
         Assert.True(result.Contains(new SemVersion(1, 0, 0)));
@@ -124,7 +124,7 @@ public class JsonConverterTests
     public void SemVersionRangeJsonConverter_Write_ValidRange_WritesString()
     {
         SemVersionRange range = SemVersionRange.Parse(">=1.0.0");
-        var result = JsonSerializer.Serialize(range, _options);
+        string result = JsonSerializer.Serialize(range, _options);
         Assert.Contains("1.0.0", result);
     }
 
@@ -135,7 +135,7 @@ public class JsonConverterTests
     [Fact]
     public void UrlJsonConverter_Read_ValidUrl_ReturnsUrl()
     {
-        var json = "\"https://example.com/path\"";
+        string json = "\"https://example.com/path\"";
         Url? result = JsonSerializer.Deserialize<Flurl.Url>(json, _options);
         Assert.NotNull(result);
         Assert.Equal("https://example.com/path", result.ToString());
@@ -145,7 +145,7 @@ public class JsonConverterTests
     public void UrlJsonConverter_Write_ValidUrl_WritesString()
     {
         Url url = new("https://example.com/path");
-        var result = JsonSerializer.Serialize(url, _options);
+        string result = JsonSerializer.Serialize(url, _options);
         Assert.Equal("\"https://example.com/path\"", result);
     }
 
@@ -156,7 +156,7 @@ public class JsonConverterTests
     [Fact]
     public void DependencyDictJsonConverter_Read_ValidDict_ReturnsDictionary()
     {
-        var json = "{\"github.com/a/b#main\": \"1.0.0\"}";
+        string json = "{\"github.com/a/b#main\": \"1.0.0\"}";
         JsonSerializerOptions options = new();
         options.Converters.Add(new Core.Json.DependencyDictJsonConverter());
 
@@ -180,7 +180,7 @@ public class JsonConverterTests
         JsonSerializerOptions options = new();
         options.Converters.Add(new Core.Json.DependencyDictJsonConverter());
 
-        var result = JsonSerializer.Serialize(dict, options);
+        string result = JsonSerializer.Serialize(dict, options);
 
         Assert.Contains("github.com/a/b#main", result);
         Assert.Contains("1.0.0", result);

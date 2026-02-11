@@ -184,13 +184,7 @@ public class WorkspaceService(
     {
         if (!_fileSystem.File.Exists("tooth_lock.json"))
         {
-            await _userInteraction.PrintWarning("Workspace state file not found at 'tooth_lock.json'. Using default workspace state.");
-
-            WorkspaceState state = new();
-
-            await SaveWorkspaceState(state);
-
-            return state;
+            return new();
         }
 
         try
@@ -204,13 +198,9 @@ public class WorkspaceService(
         catch (Exception ex)
         {
             await _userInteraction.PrintError($"Failed to load workspace state from 'tooth_lock.json': {ex.Message}");
-            await _userInteraction.PrintWarning("Using default workspace state.");
+            await _userInteraction.PrintInfo("Using default workspace state.");
 
-            WorkspaceState state = new();
-
-            await SaveWorkspaceState(state);
-
-            return state;
+            return new();
         }
     }
 

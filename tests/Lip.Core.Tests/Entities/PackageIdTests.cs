@@ -42,7 +42,7 @@ public class PackageIdTests
         PackageId packageId = new("github.com/user/repo", "variant");
 
         // Act
-        var result = packageId.ToString();
+        string result = packageId.ToString();
 
         // Assert
         Assert.Equal("github.com/user/repo#variant", result);
@@ -52,7 +52,7 @@ public class PackageIdTests
     public void Parse_ValidString_ReturnsPackageId()
     {
         // Arrange
-        var input = "github.com/user/repo#variant";
+        string input = "github.com/user/repo#variant";
 
         // Act
         PackageId result = PackageId.Parse(input);
@@ -66,7 +66,7 @@ public class PackageIdTests
     public void Parse_InvalidString_ThrowsFormatException()
     {
         // Arrange - starts with # which makes path empty
-        var input = "#invalid";
+        string input = "#invalid";
 
         // Act & Assert
         Assert.Throws<FormatException>(() => PackageId.Parse(input));

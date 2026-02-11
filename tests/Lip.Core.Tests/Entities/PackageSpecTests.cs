@@ -29,7 +29,7 @@ public class PackageSpecTests
         PackageSpec spec = new(packageId, version);
 
         // Act
-        var result = spec.ToString();
+        string result = spec.ToString();
 
         // Assert
         Assert.Equal("github.com/user/repo@1.0.0", result);
@@ -39,7 +39,7 @@ public class PackageSpecTests
     public void Parse_ValidString_ReturnsPackageSpec()
     {
         // Arrange
-        var input = "github.com/user/repo@1.0.0";
+        string input = "github.com/user/repo@1.0.0";
 
         // Act
         PackageSpec result = PackageSpec.Parse(input);
@@ -53,7 +53,7 @@ public class PackageSpecTests
     public void Parse_InvalidString_ThrowsFormatException()
     {
         // Arrange
-        var input = "invalid-spec";
+        string input = "invalid-spec";
 
         // Act & Assert
         Assert.Throws<FormatException>(() => PackageSpec.Parse(input));

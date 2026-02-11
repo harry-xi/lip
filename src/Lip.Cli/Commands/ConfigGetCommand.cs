@@ -1,14 +1,13 @@
-using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
+using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
 
 namespace Lip.Cli.Commands;
 
-public class ConfigGetCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<ConfigGetCommand.Settings>
+public class ConfigGetCommand(ILipClient lipClient) : AsyncCommand<ConfigGetCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
-    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -20,7 +19,15 @@ public class ConfigGetCommand(ILipClient lipClient, IUserInteraction userInterac
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         string value = await _lipClient.ConfigGet(settings.Key);
-        await _userInteraction.PrintInfo(value);
+
+        Table table = new();
+        table.AddColumn("Key");
+        table.AddColumn("Value");
+
+        table.AddRow(settings.Key, value);
+
+        AnsiConsole.Write(table);
+
         return 0;
     }
 }

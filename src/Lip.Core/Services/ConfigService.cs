@@ -35,7 +35,9 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
         RuntimeConfig config = await LoadConfig();
         JsonNode json = JsonSerializer.SerializeToNode(config)!;
 
-        if (!json.AsObject().TryGetPropertyValue(key, out _))
+        if (key == "format_version"
+            || key == "format_uuid"
+            || !json.AsObject().TryGetPropertyValue(key, out _))
         {
             throw new KeyNotFoundException($"Configuration key '{key}' not found.");
         }
@@ -51,7 +53,9 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
         RuntimeConfig config = await LoadConfig();
         JsonNode json = JsonSerializer.SerializeToNode(config)!;
 
-        if (!json.AsObject().TryGetPropertyValue(key, out JsonNode? value))
+        if (key == "format_version"
+            || key == "format_uuid"
+            || !json.AsObject().TryGetPropertyValue(key, out JsonNode? value))
         {
             throw new KeyNotFoundException($"Configuration key '{key}' not found.");
         }
@@ -65,6 +69,7 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
 
         // Use reflection to find the property with the matching JsonPropertyName.
         PropertyInfo prop = typeof(RuntimeConfig).GetProperties()
+            .Where(p => p.Name != "FormatVersion" && p.Name != "FormatUuid")
             .Where(p => p.GetCustomAttribute<JsonPropertyNameAttribute>() is not null)
             .FirstOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()!.Name == key)
             ?? throw new KeyNotFoundException($"Configuration key '{key}' not found.");
@@ -87,7 +92,9 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
         RuntimeConfig config = await LoadConfig();
         JsonNode json = JsonSerializer.SerializeToNode(config)!;
 
-        if (!json.AsObject().TryGetPropertyValue(key, out _))
+        if (key == "format_version"
+            || key == "format_uuid"
+            || !json.AsObject().TryGetPropertyValue(key, out _))
         {
             throw new KeyNotFoundException($"Configuration key '{key}' not found.");
         }
@@ -102,14 +109,7 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
     {
         if (!_fileSystem.File.Exists(_configPath))
         {
-            await _userInteraction.PrintWarning(
-                $"Runtime configuration file not found at '{_configPath}'. Using default configuration.");
-
-            RuntimeConfig config = new();
-
-            await SaveConfig(config);
-
-            return config;
+            return new();
         }
 
         try
@@ -123,13 +123,9 @@ public class ConfigService(IFileSystem fileSystem, IUserInteraction userInteract
         catch (Exception ex)
         {
             await _userInteraction.PrintError($"Failed to load runtime configuration from '{_configPath}': {ex.Message}");
-            await _userInteraction.PrintWarning("Using default runtime configuration.");
+            await _userInteraction.PrintInfo("Using default runtime configuration.");
 
-            RuntimeConfig config = new();
-
-            await SaveConfig(config);
-
-            return config;
+            return new();
         }
     }
 

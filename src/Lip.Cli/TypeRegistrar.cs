@@ -53,7 +53,7 @@ public sealed class TypeResolver(
         }
 
         // 1. Check instances
-        if (_instances.TryGetValue(type, out var instance))
+        if (_instances.TryGetValue(type, out object? instance))
         {
             return instance;
         }
@@ -111,7 +111,7 @@ public sealed class TypeResolver(
         }
 
         ParameterInfo[] parameters = constructor.GetParameters();
-        var args = new object?[parameters.Length];
+        object?[] args = new object?[parameters.Length];
 
         for (int i = 0; i < parameters.Length; i++)
         {

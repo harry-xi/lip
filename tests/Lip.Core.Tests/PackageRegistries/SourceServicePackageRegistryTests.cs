@@ -26,7 +26,7 @@ public class SourceServicePackageRegistryTests
     {
         // Arrange
         PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
-        var manifestJson = """
+        string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",

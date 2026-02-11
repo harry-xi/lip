@@ -50,7 +50,7 @@ public class LipClientTests
     {
         _configService.Setup(s => s.Get("github_proxy")).ReturnsAsync("https://proxy.com");
 
-        var result = await _client.ConfigGet("github_proxy");
+        string result = await _client.ConfigGet("github_proxy");
 
         Assert.Equal("https://proxy.com", result);
     }
@@ -88,14 +88,14 @@ public class LipClientTests
         await _client.Init();
 
         Assert.True(_fileSystem.File.Exists("tooth.json"));
-        var content = _fileSystem.File.ReadAllText("tooth.json");
+        string content = _fileSystem.File.ReadAllText("tooth.json");
         Assert.Contains("github.com/user/repo", content);
     }
 
     [Fact]
     public async Task Install_ParsesAndCallsService()
     {
-        var packages = new[] { "github.com/test/repo@1.0.0" };
+        string[] packages = new[] { "github.com/test/repo@1.0.0" };
         await _client.Install(packages, false, false, false);
 
         _installService.Verify(s => s.InstallPackages(
@@ -111,7 +111,7 @@ public class LipClientTests
     [Fact]
     public async Task Install_ParsesFlexiblePackage()
     {
-        var packages = new[] { "github.com/test/repo" };
+        string[] packages = new[] { "github.com/test/repo" };
         await _client.Install(packages, false, false, false);
 
         _installService.Verify(s => s.InstallPackages(
@@ -145,7 +145,7 @@ public class LipClientTests
     [Fact]
     public async Task Uninstall_ParsesAndCallsService()
     {
-        var packages = new[] { "github.com/test/repo" };
+        string[] packages = new[] { "github.com/test/repo" };
         await _client.Uninstall(packages, false, false, false);
 
         _installService.Verify(s => s.UninstallPackages(
@@ -158,7 +158,7 @@ public class LipClientTests
     [Fact]
     public async Task Update_ParsesAndCallsService()
     {
-        var packages = new[] { "github.com/test/repo@2.0.0" };
+        string[] packages = new[] { "github.com/test/repo@2.0.0" };
         await _client.Update(packages, false, false);
 
         _installService.Verify(s => s.UpdatePackages(
@@ -173,7 +173,7 @@ public class LipClientTests
     [Fact]
     public async Task Update_ParsesFlexiblePackage()
     {
-        var packages = new[] { "github.com/test/repo" };
+        string[] packages = new[] { "github.com/test/repo" };
         await _client.Update(packages, false, false);
 
         _installService.Verify(s => s.UpdatePackages(
@@ -192,7 +192,7 @@ public class LipClientTests
         PackageManifest manifest = new() { Path = "github.com/test/repo", Version = new SemVersion(1, 0, 0) };
         _packageRegistry.Setup(r => r.GetPackageManifest(It.IsAny<PackageSpec>())).ReturnsAsync(manifest);
 
-        var result = await _client.View("github.com/test/repo@1.0.0");
+        string result = await _client.View("github.com/test/repo@1.0.0");
 
         Assert.Contains("github.com/test/repo", result);
     }
@@ -214,9 +214,9 @@ public class LipClientTests
     [Fact]
     public async Task Install_ParsesLocalPackage()
     {
-        var localPath = @"c:\path\to\package.zip";
+        string localPath = @"c:\path\to\package.zip";
         _fileSystem.AddFile(localPath, new MockFileData("content"));
-        var packages = new[] { localPath };
+        string[] packages = new[] { localPath };
 
         await _client.Install(packages, false, false, false);
 
@@ -233,8 +233,8 @@ public class LipClientTests
     [Fact]
     public async Task Install_ParsesRemotePackage()
     {
-        var remoteUrl = "https://example.com/package.zip";
-        var packages = new[] { remoteUrl };
+        string remoteUrl = "https://example.com/package.zip";
+        string[] packages = new[] { remoteUrl };
 
         await _client.Install(packages, false, false, false);
 
@@ -269,7 +269,7 @@ public class LipClientTests
 
         // Let's try to verify behavior with a likely invalid string for ALL parsers.
         // Attempting with empty string might be a good candidate if parsers validate input.
-        var packages = new[] { "" };
+        string[] packages = new[] { "" };
 
         await Assert.ThrowsAsync<AggregateException>(() => _client.Install(packages, false, false, false));
     }
@@ -277,10 +277,10 @@ public class LipClientTests
     [Fact]
     public async Task Update_ParsesLocalAndRemotePackages()
     {
-        var localPath = @"c:\path\to\package.zip";
+        string localPath = @"c:\path\to\package.zip";
         _fileSystem.AddFile(localPath, new MockFileData("content"));
-        var remoteUrl = "https://example.com/package.zip";
-        var packages = new[] { localPath, remoteUrl };
+        string remoteUrl = "https://example.com/package.zip";
+        string[] packages = new[] { localPath, remoteUrl };
 
         await _client.Update(packages, false, false);
 
@@ -296,17 +296,17 @@ public class LipClientTests
     [Fact]
     public async Task Update_ThrowsAggregateException_WhenParseFails()
     {
-        var packages = new[] { "" };
+        string[] packages = new[] { "" };
         await Assert.ThrowsAsync<AggregateException>(() => _client.Update(packages, false, false));
     }
 
     [Fact]
     public async Task Migrate_TransformsManifest()
     {
-        var inputFile = @"c:\input.json";
-        var outputFile = @"c:\output.json";
+        string inputFile = @"c:\input.json";
+        string outputFile = @"c:\output.json";
 
-        var inputJson = @"{
+        string inputJson = @"{
             ""format_version"": 2,
             ""tooth"": ""github.com/test/repo"",
             ""version"": ""1.0.0"",
@@ -317,7 +317,7 @@ public class LipClientTests
         await _client.Migrate(inputFile, outputFile);
 
         Assert.True(_fileSystem.File.Exists(outputFile));
-        var content = _fileSystem.File.ReadAllText(outputFile);
+        string content = _fileSystem.File.ReadAllText(outputFile);
         Assert.Contains("github.com/test/repo", content);
     }
 }

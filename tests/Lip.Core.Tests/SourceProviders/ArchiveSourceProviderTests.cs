@@ -32,7 +32,7 @@ public class ArchiveSourceProviderTests
         byte[] archiveBytes = memoryStream.ToArray();
 
         MockFileSystem mockFileSystem = new();
-        var path = @"C:\archive.zip";
+        string path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
@@ -63,7 +63,7 @@ public class ArchiveSourceProviderTests
         byte[] archiveBytes = memoryStream.ToArray();
 
         MockFileSystem mockFileSystem = new();
-        var path = @"C:\archive.zip";
+        string path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
@@ -72,7 +72,7 @@ public class ArchiveSourceProviderTests
         // Act
         using Stream stream = await provider.OpenRead("file1.txt");
         using StreamReader reader = new(stream);
-        var content = await reader.ReadToEndAsync();
+        string content = await reader.ReadToEndAsync();
 
         // Assert
         Assert.Equal("test content", content);
@@ -91,7 +91,7 @@ public class ArchiveSourceProviderTests
         byte[] archiveBytes = memoryStream.ToArray();
 
         MockFileSystem mockFileSystem = new();
-        var path = @"C:\archive.zip";
+        string path = @"C:\archive.zip";
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 

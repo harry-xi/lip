@@ -17,7 +17,7 @@ public class ConfigServiceTests
     public async Task List_FileNotExists_ReturnsDefaultAndSaves()
     {
         // Arrange
-        var configPath = GetConfigPath();
+        string configPath = GetConfigPath();
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(Path.GetDirectoryName(configPath)!, "placeholder.txt"), new MockFileData("") }
@@ -37,9 +37,9 @@ public class ConfigServiceTests
     public async Task Get_ValidFile_ReturnsConfig()
     {
         // Arrange
-        var configPath = GetConfigPath();
+        string configPath = GetConfigPath();
         RuntimeConfig config = new() { GithubProxy = new Url("https://proxy.com") };
-        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+        string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
 
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
@@ -59,7 +59,7 @@ public class ConfigServiceTests
     public async Task Set_CreatesFileWithConfig()
     {
         // Arrange
-        var configPath = GetConfigPath();
+        string configPath = GetConfigPath();
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
             { Path.Combine(Path.GetDirectoryName(configPath)!, "placeholder.txt"), new MockFileData("") }
@@ -72,7 +72,7 @@ public class ConfigServiceTests
 
         // Assert
         Assert.True(mockFileSystem.File.Exists(configPath));
-        var content = mockFileSystem.File.ReadAllText(configPath);
+        string content = mockFileSystem.File.ReadAllText(configPath);
         Assert.Contains("https://new.com", content);
     }
 }

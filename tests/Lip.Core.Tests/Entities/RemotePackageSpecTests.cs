@@ -10,7 +10,7 @@ public class RemotePackageSpecTests
     {
         // Arrange
         Url url = new("https://example.com/package.zip");
-        var variant = "valid_variant";
+        string variant = "valid_variant";
 
         // Act
         RemotePackageSpec spec = new(url, variant);
@@ -25,7 +25,7 @@ public class RemotePackageSpecTests
     {
         // Arrange
         Url url = new("https://example.com/package.zip");
-        var variant = "invalid-variant!";
+        string variant = "invalid-variant!";
 
         // Act & Assert
         Assert.Throws<FormatException>(() => new RemotePackageSpec(url, variant));
@@ -36,11 +36,11 @@ public class RemotePackageSpecTests
     {
         // Arrange
         Url url = new("https://example.com/package.zip");
-        var variant = "variant";
+        string variant = "variant";
         RemotePackageSpec spec = new(url, variant);
 
         // Act
-        var result = spec.ToString();
+        string result = spec.ToString();
 
         // Assert
         Assert.Equal("https://example.com/package.zip#variant", result);
@@ -50,7 +50,7 @@ public class RemotePackageSpecTests
     public void Parse_ValidStringWithVariant_ReturnsRemotePackageSpec()
     {
         // Arrange
-        var input = "https://example.com/package.zip#variant";
+        string input = "https://example.com/package.zip#variant";
 
         // Act
         RemotePackageSpec result = RemotePackageSpec.Parse(input);
@@ -64,7 +64,7 @@ public class RemotePackageSpecTests
     public void Parse_ValidStringWithoutVariant_ReturnsRemotePackageSpec()
     {
         // Arrange
-        var input = "https://example.com/package.zip";
+        string input = "https://example.com/package.zip";
 
         // Act
         RemotePackageSpec result = RemotePackageSpec.Parse(input);

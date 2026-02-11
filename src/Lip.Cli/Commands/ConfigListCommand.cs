@@ -1,13 +1,12 @@
-using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace Lip.Cli.Commands;
 
-public class ConfigListCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<ConfigListCommand.Settings>
+public class ConfigListCommand(ILipClient lipClient) : AsyncCommand<ConfigListCommand.Settings>
 {
     private readonly ILipClient _lipClient = lipClient;
-    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public class Settings : CommandSettings
     {
@@ -17,10 +16,17 @@ public class ConfigListCommand(ILipClient lipClient, IUserInteraction userIntera
     {
         IDictionary<string, string> config = await _lipClient.ConfigList();
 
-        IEnumerable<string> headers = ["Key", "Value"];
-        IEnumerable<string[]> rows = config.Select(kvp => new[] { kvp.Key, kvp.Value });
+        Table table = new();
+        table.AddColumn("Key");
+        table.AddColumn("Value");
 
-        await _userInteraction.PrintTable(headers, rows);
+        foreach (KeyValuePair<string, string> kvp in config)
+        {
+            table.AddRow(kvp.Key, kvp.Value);
+        }
+
+        AnsiConsole.Write(table);
+
         return 0;
     }
 }

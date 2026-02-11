@@ -79,7 +79,7 @@ public class InstallServiceTests
         PackageSpec pkgDepSpec = new(pkgDepId, pkgDepVer);
 
         // Root package manifest with dependency
-        var rootManifestJson = $$"""
+        string rootManifestJson = $$"""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -99,7 +99,7 @@ public class InstallServiceTests
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(rootManifestJson))));
 
         // Dep package manifest
-        var depManifestJson = """
+        string depManifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -163,7 +163,7 @@ public class InstallServiceTests
         PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
         Mock<ISourceProvider> mockSourceProvider = new();
 
-        var manifestJson = """
+        string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -255,7 +255,7 @@ public class InstallServiceTests
 
         Mock<ISourceProvider> mockSourceProvider = new();
         // Mock manifest for v2
-        var manifestJson = """
+        string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -323,7 +323,7 @@ public class InstallServiceTests
 
         // Setup new package resolution
         Mock<ISourceProvider> mockSourceProvider = new();
-        var manifestJson = """
+        string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",

@@ -81,7 +81,7 @@ public class PackageInstallerTests
             .ReturnsAsync([]);
 
         // Setup Manifest
-        var manifestJson = """
+        string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -129,7 +129,7 @@ public class PackageInstallerTests
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([]);
 
-        var manifestJson = """
+        string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -180,7 +180,7 @@ public class PackageInstallerTests
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
             .ReturnsAsync(manifest);
 
-        var filePath = @"plugins\file.txt";
+        string filePath = @"plugins\file.txt";
         _mockFileSystem.AddFile(filePath, new MockFileData("content"));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
@@ -217,7 +217,7 @@ public class PackageInstallerTests
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
             .ReturnsAsync(manifest);
 
-        var filePath = @"plugins\file.txt";
+        string filePath = @"plugins\file.txt";
         _mockFileSystem.AddFile(filePath, new MockFileData("content"));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
@@ -255,7 +255,7 @@ public class PackageInstallerTests
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
             .ReturnsAsync([]);
 
-        var extraFile = "extra.log";
+        string extraFile = "extra.log";
         _mockFileSystem.AddFile(extraFile, new MockFileData("log"));
 
         // Act

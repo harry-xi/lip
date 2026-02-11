@@ -66,6 +66,19 @@ try
 {
     return await app.RunAsync(args);
 }
+catch (AggregateException ex)
+{
+    AnsiConsole.WriteException(ex,
+        ExceptionFormats.ShortenEverything);
+
+    foreach (var inner in ex.InnerExceptions)
+    {
+        AnsiConsole.WriteException(inner,
+            ExceptionFormats.ShortenEverything);
+    }
+
+    return -1;
+}
 catch (Exception ex)
 {
     AnsiConsole.WriteException(ex,

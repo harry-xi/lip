@@ -1,25 +1,23 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
 hero:
   name: "lip"
   text: "A general package installer"
-  tagline: My great project tagline
+  tagline: Install packages from any Git repository
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Getting Started
+      link: /getting-started
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Command Reference
+      link: /commands/install
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Git-Based Packages
+    details: Install packages directly from Git repositories using Go module paths.
+  - title: Dependency Resolution
+    details: Automatic dependency solving with topological ordering.
+  - title: Cross-Platform
+    details: Available on Windows, Linux, and macOS with platform-aware variants.
 ---
-

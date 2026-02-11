@@ -9,8 +9,6 @@ env:
 jobs:
   publish-cli:
     runs-on: ${{ matrix.runs-on }}
-    outputs:
-      version: ${{ steps.get-version.outputs.VERSION }}
     permissions:
       contents: read
     strategy:
@@ -97,9 +95,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - id: get-version
+        run: |
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
+
       - uses: actions/download-artifact@v7
         with:
-          name: lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}
+          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: artifact/
 
       - run: |
@@ -108,12 +110,12 @@ jobs:
       - working-directory: artifact
         run: |
           if [[ "${{ matrix.runtime }}" == win* ]]; then
-            zip -r ../lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}.zip *
+            zip -r ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.zip *
           else
-            tar -czvf ../lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}.tar.gz *
+            tar -czvf ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.tar.gz *
           fi
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}.*
+            lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*

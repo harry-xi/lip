@@ -18,11 +18,16 @@ public class PackageManifestAssetPlacementTests
         Assert.Equal("plugins/test/", placement.Dst);
     }
 
+    public static IEnumerable<object[]> InvalidDstData =>
+        new List<object[]>
+        {
+            new object[] { Path.Combine(Path.GetPathRoot(Environment.CurrentDirectory) ?? "/", "absolute", "path") },
+            new object[] { "../parent/path" },
+            new object[] { "path/../escape" }
+        };
+
     [Theory]
-    [InlineData(@"C:\absolute\path")]
-    [InlineData("/absolute/path")]
-    [InlineData("../parent/path")]
-    [InlineData("path/../escape")]
+    [MemberData(nameof(InvalidDstData))]
     public void Constructor_InvalidDst_ThrowsArgumentException(string dst)
     {
         Assert.Throws<ArgumentException>(() => new PackageManifestAssetPlacement
@@ -43,7 +48,7 @@ public class PackageManifestAssetPlacementTests
     [Fact]
     public void IsValidDst_AbsoluteOrParentPath_ReturnsFalse()
     {
-        Assert.False(PackageManifestAssetPlacement.IsValidDst(@"C:\path"));
+        Assert.False(PackageManifestAssetPlacement.IsValidDst(Path.Combine(Path.GetPathRoot(Environment.CurrentDirectory) ?? "/", "path")));
         Assert.False(PackageManifestAssetPlacement.IsValidDst("../"));
     }
 }

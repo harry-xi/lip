@@ -10,32 +10,37 @@ public class FileSystemExtensionsTests
     public void CreateFileWithDirectory_DirectoryExists_CreatesFile()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string existingFile = Path.Combine(root, "existing", "placeholder.txt");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\existing\placeholder.txt", new MockFileData("") }
+            { existingFile, new MockFileData("") }
         });
 
         // Act
-        using FileSystemStream stream = mockFileSystem.CreateFileWithDirectory(@"C:\existing\newfile.txt");
+        using FileSystemStream stream = mockFileSystem.CreateFileWithDirectory(Path.Combine(root, "existing", "newfile.txt"));
 
         // Assert
-        Assert.True(mockFileSystem.File.Exists(@"C:\existing\newfile.txt"));
+        Assert.True(mockFileSystem.File.Exists(Path.Combine(root, "existing", "newfile.txt")));
     }
 
     [Fact]
     public void CreateFileWithDirectory_DirectoryNotExists_CreatesDirectoryAndFile()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string placeholder = Path.Combine(root, "root", "placeholder.txt");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\root\placeholder.txt", new MockFileData("") }
+            { placeholder, new MockFileData("") }
         });
 
         // Act
-        using FileSystemStream stream = mockFileSystem.CreateFileWithDirectory(@"C:\root\newdir\newfile.txt");
+        string newFile = Path.Combine(root, "root", "newdir", "newfile.txt");
+        using FileSystemStream stream = mockFileSystem.CreateFileWithDirectory(newFile);
 
         // Assert
-        Assert.True(mockFileSystem.Directory.Exists(@"C:\root\newdir"));
-        Assert.True(mockFileSystem.File.Exists(@"C:\root\newdir\newfile.txt"));
+        Assert.True(mockFileSystem.Directory.Exists(Path.Combine(root, "root", "newdir")));
+        Assert.True(mockFileSystem.File.Exists(newFile));
     }
 }

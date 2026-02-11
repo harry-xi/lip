@@ -10,12 +10,14 @@ public class DirectorySourceProviderTests
     public void Keys_ReturnsAllFiles()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string testDir = Path.Combine(root, "test");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\test\file1.txt", new MockFileData("content1") },
-            { @"C:\test\subdir\file2.txt", new MockFileData("content2") }
+            { Path.Combine(testDir, "file1.txt"), new MockFileData("content1") },
+            { Path.Combine(testDir, "subdir", "file2.txt"), new MockFileData("content2") }
         });
-        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
+        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(testDir);
         DirectorySourceProvider provider = new(dirInfo);
 
         // Act
@@ -24,18 +26,20 @@ public class DirectorySourceProviderTests
         // Assert
         Assert.Equal(2, keys.Count);
         Assert.Contains("file1.txt", keys);
-        Assert.Contains(@"subdir\file2.txt", keys);
+        Assert.Contains(@"subdir" + Path.DirectorySeparatorChar + "file2.txt", keys);
     }
 
     [Fact]
     public async Task OpenRead_ValidKey_ReturnsStream()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string testDir = Path.Combine(root, "test");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\test\file.txt", new MockFileData("test content") }
+            { Path.Combine(testDir, "file.txt"), new MockFileData("test content") }
         });
-        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
+        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(testDir);
         DirectorySourceProvider provider = new(dirInfo);
 
         // Act
@@ -51,11 +55,13 @@ public class DirectorySourceProviderTests
     public async Task OpenRead_InvalidKey_ThrowsArgumentException()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string testDir = Path.Combine(root, "test");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\test\file.txt", new MockFileData("content") }
+            { Path.Combine(testDir, "file.txt"), new MockFileData("content") }
         });
-        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(@"C:\test");
+        IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(testDir);
         DirectorySourceProvider provider = new(dirInfo);
 
         // Act & Assert

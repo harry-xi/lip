@@ -84,7 +84,6 @@ jobs:
           dotnet format --verify-no-changes
 
   test:
-    needs: build
     runs-on: ${{ matrix.runs-on }}
     permissions:
       contents: read

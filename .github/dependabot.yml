@@ -13,10 +13,8 @@ updates:
     directories:
       - Golang.Org.X.Mod
       - Golang.Org.X.Mod.Tests
-      - Lip.CLI
+      - Lip.Cli
       - Lip.Core
       - Lip.Core.Tests
-      - Lip.Migration
-      - Lip.Migration.Tests
     schedule:
       interval: "monthly"

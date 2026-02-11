@@ -5,61 +5,67 @@ description: when writing tests
 
 # Test Rules for Antigravity
 
+When writing unit tests for the `Lip.Core` project, adhere to the following rules and patterns:
+
 ## Frameworks & Libraries
-- **Test Framework**: [xUnit](https://xunit.net/)
-- **Mocking**: [Moq](https://github.com/moq/moq4)
-- **FileSystem Mocking**: [System.IO.Abstractions.TestingHelpers](https://github.com/TestableIO/System.IO.Abstractions)
-- **Assertions**: xUnit `Assert` class
+- **Test Framework**: Use **xUnit** (`[Fact]`).
+- **Mocking**: Use **Moq** (`Mock<T>`, `It.IsAny<T>`, `Verify`).
+- **Assertions**: Use **xUnit Assert** (`Assert.Equal`, `Assert.ThrowsAsync`, `Assert.Contains`).
+- **SemVer**: Use the `Semver` library for versioning (`SemVersion`, `SemVersionRange`).
 
 ## Naming Conventions
-- **Test Classes**: Must end with `Tests` (e.g., `DependencySolverTests`).
-- **Test Methods**: Should follow the pattern `MethodName_StateUnderOrScenario_ExpectedBehavior`.
-  - Example: `GetUnnecessaryPackages_ReturnsCorrectPackages`
-  - Example: `Init_WithDefaultValues_Passes`
-  - Example: `Install_ManifestNotFound_ThrowsInvalidOperationException`
+- **Test Classes**: Name test classes after the class being tested, suffixed with `Tests` (e.g., `InstallService` -> `InstallServiceTests`).
+- **Test Methods**: Use the `MethodName_StateUnder_ExpectedBehavior` pattern (e.g., `InstallPackages_NoDependencies_InstallsArtifacts`).
+  - `MethodName`: The method being tested.
+  - `StateUnder`: The condition or state essential for the test.
+  - `ExpectedBehavior`: The expected result or outcome.
 
-## Structure (AAA Pattern)
-Tests should be structured using the **Arrange, Act, Assert** pattern, often marked with comments:
+## Structure & Organization
+- **Arrange-Act-Assert**: Clearly structure tests with `// Arrange`, `// Act`, and `// Assert` comments.
+- **Constructor Setup**: Use the test class constructor to initialize mocks and the system under test (SUT).
+  - Declare mocks as `private readonly Mock<IMyDependency> _mockDependency;`.
+  - Initialize mocks and the SUT in the constructor.
+- **Async Tests**: Use `public async Task` for asynchronous tests.
+- **Namespaces**: Use file-scoped namespaces (e.g., `namespace Lip.Core.Tests.Services;`).
 
+## Mocking Best Practices
+- **Dependencies**: Mock all external dependencies injected into the SUT.
+- **Logger**: Use `Mock<ILogger<T>>` for typed loggers or `Mock<ILogger>` for generic loggers.
+- **Setup**: Use `_mockRepo.Setup(x => x.Method(...)).ReturnsAsync(...)` for async method stubs.
+- **Verification**: Use `_mockRepo.Verify(x => x.Method(...), Times.Once)` to assert interactions.
+- **Argument Matching**: Use `It.IsAny<T>()` or specific expressions like `It.Is<T>(x => x.Prop == val)` for strict matching.
+
+## Example
 ```csharp
-[Fact]
-public void Method_Scenario_Result()
+using Lip.Core.Services;
+using Moq;
+using Xunit;
+
+namespace Lip.Core.Tests.Services;
+
+public class MyServiceTests
 {
-    // Arrange.
-    var setup = "value";
+    private readonly Mock<IDependency> _mockDependency;
+    private readonly MyService _service;
 
-    // Act.
-    var result = SystemUnderTest.Action(setup);
+    public MyServiceTests()
+    {
+        _mockDependency = new Mock<IDependency>();
+        _service = new MyService(_mockDependency.Object);
+    }
 
-    // Assert.
-    Assert.Equal("expected", result);
+    [Fact]
+    public async Task DoWork_WhenConditionMet_ReturnsSuccess()
+    {
+        // Arrange
+        _mockDependency.Setup(x => x.GetData()).ReturnsAsync("data");
+
+        // Act
+        var result = await _service.DoWork();
+
+        // Assert
+        Assert.True(result);
+        _mockDependency.Verify(x => x.GetData(), Times.Once);
+    }
 }
 ```
-
-## Mocking & Dependencies
-- **Interfaces**: Mock all external dependencies (e.g., `IContext`, `IWorkspaceManager`, `IGit`, `IDownloader`, `ILogger`) using `Moq`.
-- **FileSystem**: **NEVER** use real file system paths or operations in unit tests. Use `MockFileSystem` and `MockFileData`/`MockDirectoryData`.
-  - Use `OperatingSystem.IsWindows()` checks if path separators matter, or `Path.Join` to be cross-platform safe even in mocks if needed.
-  - Initialize `MockFileSystem` with a dictionary of files for "Arrange".
-
-## Async Tests
-- Use `async Task` for asynchronous test methods.
-- Use `await` for the Act phase if the method under test is async.
-
-## Data-Driven Tests
-- Use `[Theory]` and `[InlineData]` for testing multiple input scenarios for the same method.
-
-```csharp
-[Theory]
-[InlineData("input1", true)]
-[InlineData("input2", false)]
-public void Method_Input_ReturnsExpected(string input, bool expected)
-{
-    // ...
-}
-```
-
-## Best Practices
-- **Isolation**: Tests must be independent of each other.
-- **Readability**: Use helper methods (e.g., `MakePackage`) to keep tests clean and focused on the assertion logic if setup is complex.
-- **Coverage**: Aim to cover both success paths and failure paths (e.g., exceptions using `Assert.ThrowsAsync`).

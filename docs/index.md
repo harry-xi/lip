@@ -1,9 +1,23 @@
-# About lip
+---
+layout: home
 
-lip is the general package installer that lets you install packages from any Git repository. Developers can use lip to share, manage, and install packages across different projects and platforms.
+hero:
+  name: "lip"
+  text: "A general package installer"
+  tagline: Install packages from any Git repository
+  actions:
+    - theme: brand
+      text: Getting Started
+      link: /getting-started
+    - theme: alt
+      text: Command Reference
+      link: /commands/install
 
-If you want to learn about how to use lip, check out the following resources:
-
-- [Getting Started](user-guide/getting-started.md)
-
-If you find bugs, need help, or want to talk to the developers, please report them on the [GitHub Issues](https://github.com/futrime/lip/issues) page.
+features:
+  - title: Git-Based Packages
+    details: Install packages directly from Git repositories using Go module paths.
+  - title: Dependency Resolution
+    details: Automatic dependency solving with topological ordering.
+  - title: Cross-Platform
+    details: Available on Windows, Linux, and macOS with platform-aware variants.
+---

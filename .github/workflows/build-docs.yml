@@ -17,27 +17,35 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - run: |
-          pip install -r requirements.txt
-        working-directory: docs
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
 
-      - run: |
-          mkdocs build
+      - working-directory: docs
+        run: |
+          npm ci
+
+      - working-directory: docs
+        run: |
+          npm run build
 
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: site/
+          path: docs/.vitepress/dist/
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build-docs
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build-docs
     permissions:
       id-token: write
       pages: write
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/deploy-pages@v4
         id: deployment

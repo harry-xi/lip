@@ -28,12 +28,7 @@ public class DependencyDictJsonConverter : JsonConverter<Dictionary<PackageId, S
                 throw new JsonException();
             }
 
-            string? propertyName = reader.GetString();
-            if (propertyName is null)
-            {
-                throw new JsonException();
-            }
-
+            string? propertyName = reader.GetString() ?? throw new JsonException();
             PackageId key = PackageId.Parse(propertyName);
 
             reader.Read();
@@ -42,12 +37,7 @@ public class DependencyDictJsonConverter : JsonConverter<Dictionary<PackageId, S
                 throw new JsonException();
             }
 
-            string? value = reader.GetString();
-            if (value is null)
-            {
-                throw new JsonException();
-            }
-
+            string? value = reader.GetString() ?? throw new JsonException();
             SemVersionRange range = SemVersionRange.Parse(value);
             dictionary.Add(key, range);
         }

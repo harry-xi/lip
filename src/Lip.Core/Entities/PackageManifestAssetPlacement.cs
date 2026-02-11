@@ -19,7 +19,7 @@ public record PackageManifestAssetPlacement
     [JsonPropertyName("src")]
     public required string Src { get; init; }
 
-    [JsonPropertyName("dst")]
+    [JsonPropertyName("dest")]
     public required string Dst
     {
         get;

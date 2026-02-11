@@ -15,7 +15,7 @@ public class PackageManifestMigrationTests
             new Core.Json.SemVersionJsonConverter(),
             new Core.Json.SemVersionRangeJsonConverter(),
             new Core.Json.UrlJsonConverter(),
-            new Core.Json.GlobJsonConverter()
+            new Core.Json.GlobListJsonConverter()
         }
     };
 
@@ -71,7 +71,7 @@ public class PackageManifestMigrationTests
                         {
                           "type": "dir",
                           "src": "src/",
-                          "dst": "declaration/llse/"
+                          "dest": "declaration/llse/"
                         }
                       ]
                     }
@@ -183,7 +183,7 @@ public class PackageManifestMigrationTests
                         {
                           "type": "dir",
                           "src": "LeviLamina/",
-                          "dst": "plugins/LeviLamina/"
+                          "dest": "plugins/LeviLamina/"
                         }
                       ]
                     }

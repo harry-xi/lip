@@ -20,9 +20,11 @@ public record PackageManifestVariant
     [JsonPropertyName("assets")]
     public List<PackageManifestAsset> Assets { get; init; } = [];
 
+    [JsonConverter(typeof(GlobListJsonConverter))]
     [JsonPropertyName("preserve_files")]
     public List<Glob> PreserveFiles { get; init; } = [];
 
+    [JsonConverter(typeof(GlobListJsonConverter))]
     [JsonPropertyName("remove_files")]
     public List<Glob> RemoveFiles { get; init; } = [];
 

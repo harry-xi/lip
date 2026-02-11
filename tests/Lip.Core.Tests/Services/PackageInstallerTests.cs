@@ -93,7 +93,7 @@ public class PackageInstallerTests
                             {
                                 "type": "self",
                                 "placements": [
-                                    { "type": "file", "src": "file.txt", "dst": "plugins/file.txt" }
+                                    { "type": "file", "src": "file.txt", "dest": "plugins/file.txt" }
                                 ] 
                             }
                         ]

@@ -1,4 +1,5 @@
 using Flurl;
+using Lip.Core.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -28,6 +29,7 @@ public partial record PackageManifestInfo
     [GeneratedRegex(@"^[a-z0-9-]+(:[a-z0-9-]+)?$")]
     private static partial Regex TagRegex();
 
+    [JsonConverter(typeof(UrlJsonConverter))]
     [JsonPropertyName("avatar_url")]
     public Url? AvatarUrl { get; init; }
 }

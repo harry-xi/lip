@@ -23,6 +23,7 @@ public record PackageManifestAsset
     [JsonPropertyName("type")]
     public required AssetType Type { get; init; }
 
+    [JsonConverter(typeof(Core.Json.UrlListJsonConverter))]
     [JsonPropertyName("urls")]
     public List<Url> Urls { get; init; } = [];
 

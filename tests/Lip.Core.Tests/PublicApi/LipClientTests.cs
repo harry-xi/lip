@@ -213,7 +213,8 @@ public class LipClientTests
     [Fact]
     public async Task Install_ParsesLocalPackage()
     {
-        string localPath = @"c:\path\to\package.zip";
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string localPath = Path.Combine(root, "path", "to", "package.zip");
         _fileSystem.AddFile(localPath, new MockFileData("content"));
         string[] packages = new[] { localPath };
 
@@ -222,7 +223,7 @@ public class LipClientTests
         _installService.Verify(s => s.InstallPackages(
             It.Is<IEnumerable<PackageSpec>>(p => !p.Any()),
             It.Is<IEnumerable<PackageId>>(p => !p.Any()),
-            It.Is<IEnumerable<LocalPackageSpec>>(p => p.Count() == 1 && p.First().ArchiveFile.FullName == "c:\\path\\to\\package.zip"),
+            It.Is<IEnumerable<LocalPackageSpec>>(p => p.Count() == 1 && p.First().ArchiveFile.FullName == localPath),
             It.Is<IEnumerable<RemotePackageSpec>>(p => !p.Any()),
             false,
             false,
@@ -276,7 +277,8 @@ public class LipClientTests
     [Fact]
     public async Task Update_ParsesLocalAndRemotePackages()
     {
-        string localPath = @"c:\path\to\package.zip";
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string localPath = Path.Combine(root, "path", "to", "package.zip");
         _fileSystem.AddFile(localPath, new MockFileData("content"));
         string remoteUrl = "https://example.com/package.zip";
         string[] packages = new[] { localPath, remoteUrl };
@@ -286,7 +288,7 @@ public class LipClientTests
         _installService.Verify(s => s.UpdatePackages(
             It.IsAny<IEnumerable<PackageSpec>>(),
             It.IsAny<IEnumerable<PackageId>>(),
-            It.Is<IEnumerable<LocalPackageSpec>>(p => p.Count() == 1 && p.First().ArchiveFile.FullName == @"c:\path\to\package.zip"),
+            It.Is<IEnumerable<LocalPackageSpec>>(p => p.Count() == 1 && p.First().ArchiveFile.FullName == localPath),
             It.Is<IEnumerable<RemotePackageSpec>>(p => p.Count() == 1 && p.First().ArchiveUrl.ToString() == remoteUrl),
             false,
             false), Times.Once);
@@ -302,8 +304,9 @@ public class LipClientTests
     [Fact]
     public async Task Migrate_TransformsManifest()
     {
-        string inputFile = @"c:\input.json";
-        string outputFile = @"c:\output.json";
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string inputFile = Path.Combine(root, "input.json");
+        string outputFile = Path.Combine(root, "output.json");
 
         string inputJson = @"{
             ""format_version"": 2,

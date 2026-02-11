@@ -206,6 +206,12 @@ public class PackageInstaller(
                 continue;
             }
 
+            if (!_fileSystem.File.Exists(file.FullName))
+            {
+                await _userInteraction.PrintWarning(
+                    $"File '{file.FullName}' does not exist, skipping removal.");
+            }
+
             file.Delete();
         }
 
@@ -218,7 +224,18 @@ public class PackageInstaller(
                 glob.ToString(),
                 SearchOption.AllDirectories))
             {
-                _fileSystem.File.Delete(path);
+                if (_fileSystem.File.Exists(path))
+                {
+                    _fileSystem.File.Delete(path);
+                }
+                else if (_fileSystem.Directory.Exists(path))
+                {
+                    _fileSystem.Directory.Delete(path, recursive: true);
+                }
+                else
+                {
+                    throw new UnreachableException();
+                }
             }
         }
 

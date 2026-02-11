@@ -75,7 +75,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - run: |
-          dotnet publish src/Lip.Cli -c Release -o bin -r ${{ matrix.runtime }}
+          dotnet publish src/Lip.Cli -c Release -o bin -r ${{ matrix.runtime }} --no-self-contained
 
       - uses: actions/upload-artifact@v6
         with:

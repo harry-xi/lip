@@ -22,31 +22,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runs-on:
-          - macos-15-intel
-          - macos-latest
-          - ubuntu-24.04-arm
-          - ubuntu-latest
-          - windows-11-arm
-          - windows-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - run: |
-          dotnet build
-
-  publish-cli:
-    needs: build
-    runs-on: ${{ matrix.runs-on }}
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
         runtime:
           - linux-arm64
           - linux-x64

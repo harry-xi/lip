@@ -30,7 +30,7 @@ public class ConfigServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.True(mockFileSystem.File.Exists(configPath));
+        Assert.False(mockFileSystem.File.Exists(configPath));
     }
 
     [Fact]

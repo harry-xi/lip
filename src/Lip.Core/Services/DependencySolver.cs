@@ -1,4 +1,5 @@
 using Lip.Core.Entities;
+using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
 
 using Semver;
@@ -54,12 +55,17 @@ public interface IDependencySolver
     }
 }
 
-public class DependencySolver(IPackageRegistry packageRegistry) : IDependencySolver
+public class DependencySolver(
+    IPackageRegistry packageRegistry,
+    IUserInteraction userInteraction) : IDependencySolver
 {
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
+    private readonly IUserInteraction _userInteraction = userInteraction;
 
     public async Task<IEnumerable<PackageSpec>> Solve(IEnumerable<PackageReqt> requirements)
     {
+        await _userInteraction.PrintInfo($"Resolving dependencies for: {string.Join(", ", requirements)}");
+
         Dictionary<PackageId, HashSet<SemVersion>> candidates = [];
 
         foreach (PackageReqt req in requirements)
@@ -106,13 +112,16 @@ public class DependencySolver(IPackageRegistry packageRegistry) : IDependencySol
         }
 
         // Fail-first heuristic: Pick candidate with fewest version options.
-        (PackageId? nextId, HashSet<SemVersion>? versions) = candidates.MinBy(x => x.Value.Count);
+        (PackageId nextId, HashSet<SemVersion> versions) = candidates.MinBy(x => x.Value.Count);
+
+        await _userInteraction.PrintInfo(
+            $"Considering {nextId} with {versions.Count} candidate version(s)");
 
         IOrderedEnumerable<SemVersion> sortedVersions = versions
             .Order(SemVersion.PrecedenceComparer);
 
         // Prefer newest versions.
-        foreach (SemVersion? version in sortedVersions.Reverse())
+        foreach (SemVersion version in sortedVersions.Reverse())
         {
             Dictionary<PackageId, SemVersion> nextSelected = new(selected) { [nextId] = version };
 

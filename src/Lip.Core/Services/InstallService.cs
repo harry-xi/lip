@@ -89,7 +89,7 @@ public class InstallService(
             new ArtifactsPackageRegistry(packageArtifacts),
             _packageRegistry
         ]);
-        DependencySolver dependencySolver = new(packageRegistry);
+        DependencySolver dependencySolver = new(packageRegistry, _userInteraction);
 
         IEnumerable<PackageSpec> newExplicitlyInstalledPackages =
         [
@@ -147,7 +147,7 @@ public class InstallService(
             return;
         }
 
-        DependencySolver dependencySolver = new(_packageRegistry);
+        DependencySolver dependencySolver = new(_packageRegistry, _userInteraction);
 
         IEnumerable<PackageSpec> explicitlyInstalledPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.Explicit);
@@ -203,7 +203,7 @@ public class InstallService(
             new ArtifactsPackageRegistry(packageArtifacts),
             _packageRegistry
         ]);
-        DependencySolver dependencySolver = new(packageRegistry);
+        DependencySolver dependencySolver = new(packageRegistry, _userInteraction);
 
         IEnumerable<PackageSpec> explicitlyInstalledPackages = await _workspaceService.GetInstalledPackages(
             IWorkspaceService.PackageScope.Explicit);

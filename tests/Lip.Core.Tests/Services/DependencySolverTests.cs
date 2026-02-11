@@ -17,7 +17,7 @@ public class DependencySolverTests
     {
         _mockLogger = new Mock<IUserInteraction>();
         _mockRegistry = new Mock<IPackageRegistry>();
-        _solver = new DependencySolver(_mockRegistry.Object);
+        _solver = new DependencySolver(_mockRegistry.Object, _mockLogger.Object);
     }
 
     [Fact]

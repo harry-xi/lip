@@ -4,15 +4,18 @@ on:
       - published
 
 env:
-  DOTNET_VERSION: 10.0.x
+  DOTNET_VERSION: 10.0
 
 jobs:
-  build-app:
+  publish-cli:
+    runs-on: ${{ matrix.runs-on }}
+    outputs:
+      version: ${{ steps.get-version.outputs.VERSION }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        project:
-          - Lip.CLI
         runtime:
           - linux-arm64
           - linux-x64
@@ -20,132 +23,45 @@ jobs:
           - osx-x64
           - win-arm64
           - win-x64
-        self-contained:
-          - true
-          - false
         include:
           - runtime: linux-arm64
-            runs-on: ubuntu-22.04
+            runs-on: ubuntu-24.04-arm
           - runtime: linux-x64
             runs-on: ubuntu-latest
           - runtime: osx-arm64
-            runs-on: macos-latest
+            runs-on: macos-15-intel
           - runtime: osx-x64
             runs-on: macos-latest
           - runtime: win-arm64
-            runs-on: windows-latest
+            runs-on: windows-11-arm
           - runtime: win-x64
             runs-on: windows-latest
-          - self-contained: true
-            sc-flag: -self-contained
-          - self-contained: false
-            sc-flag: ''
-    permissions:
-      contents: read
-    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v6
-
-      - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      # - if: matrix.runtime == 'linux-arm64'
-      #   run: |
-      #     sudo dpkg --add-architecture arm64
-      #     sudo bash -c 'cat > /etc/apt/sources.list.d/arm64.list <<EOF
-      #     deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted
-      #     deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main restricted
-      #     deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main restricted universe multiverse
-      #     EOF'
-      #     sudo sed -i -e 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
-      #     sudo sed -i -e 's/deb mirror/deb [arch=amd64] mirror/g' /etc/apt/sources.list
-      #     sudo apt update
-      #     sudo apt install -y clang llvm binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu zlib1g-dev:arm64
-
-      - id: get-version
-        uses: frabert/replace-string-action@9c9aeb483eab07adb9d0be75b5212cc0bcef0d4b # v2
-        with:
-          pattern: "^v"
-          string: ${{ github.event.release.tag_name }}
-          replace-with: ""
-
-      - run: >
-          dotnet publish ${{ matrix.project }}
-          --configuration Release
-          --output bin
-          --runtime ${{ matrix.runtime }}
-          --self-contained ${{ matrix.self-contained }}
-          -p:PublishSingleFile=true
-          -p:Version=${{ steps.get-version.outputs.replaced }}
-
-      - uses: actions/upload-artifact@v6
-        with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
-          path: bin/
-
-  build-cli-windows-installer:
-    needs: build-app
-    permissions:
-      contents: read
-    strategy:
-      matrix:
-        runtime:
-          - arm64
-          - x64
-        self-contained:
-          - true
-          - false
-        include:
-          - runtime: arm64
-            runs-on: windows-latest
-          - runtime: x64
-            runs-on: windows-latest
-          - self-contained: true
-            sc-flag: -self-contained
-            ds-flag: -p:DefineConstants="DisableDotNetCheck"
-          - self-contained: false
-            sc-flag: ''
-            ds-flag: ''
-    runs-on: ${{ matrix.runs-on }}
-    steps:
-      - uses: actions/checkout@v6
+          fetch-depth: 0
+          filter: tree:0
 
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - id: get-version
-        uses: frabert/replace-string-action@9c9aeb483eab07adb9d0be75b5212cc0bcef0d4b # v2
-        with:
-          pattern: "^v"
-          string: ${{ github.event.release.tag_name }}
-          replace-with: ""
+        run: |
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
 
-      # Prevent versions like 1.1.1-rc.1
-      - run: |
-          $inputString = "${{ steps.get-version.outputs.replaced }}"
-          if ($inputString -match "^(.*?)-") { $result = $matches[1] } else { $result = $inputString }
-          (Get-Content Package.wxs) -replace '0\.0\.0\.0', "$result.0" | Set-Content Package.wxs
-        shell: pwsh
-        working-directory: Lip.Installer
-
-      - uses: actions/download-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-Lip.CLI-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
-          path: bin/
-
-      - run: >
-          dotnet build Lip.Installer
-          --configuration Release
-          --output bin-installer
-          -p:Platform=${{ matrix.runtime }}
-          ${{ matrix.ds-flag }}
+      - shell: bash
+        run: |
+          dotnet publish src/Lip.Cli \
+            -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
+            -p:Version=${{ steps.get-version.outputs.VERSION }}
 
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-win-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
-          path: bin-installer/
+          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
+          path: bin/
 
   update-release-notes:
     permissions:
@@ -155,124 +71,49 @@ jobs:
       - uses: actions/checkout@v6
 
       - id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@202313ec7461b6b9e401996714484690ab1ae105 # v2
+        uses: ffurrer2/extract-release-notes@v3
 
-      - uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+      - uses: softprops/action-gh-release@v2
         with:
           body: ${{ steps.extract-release-notes.outputs.release_notes }}
 
-  upload-to-release-linux:
-    needs:
-      - build-app
-      - update-release-notes
+  upload-release-assets:
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    needs:
+      - publish-cli
+      - update-release-notes
     strategy:
       fail-fast: false
       matrix:
-        project:
-          - Lip.CLI
         runtime:
           - linux-arm64
           - linux-x64
-        sc-flag:
-          - ''
-          - -self-contained
-        include:
-          - project: Lip.CLI
-            sub-name: cli
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/download-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
-          path: artifact/
-
-      - run: |
-          cp CHANGELOG.md COPYING README.md artifact/
-
-      - run: |
-          tar -czvf ../${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.tar.gz *
-        working-directory: artifact
-
-      - uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
-        with:
-          files: |
-            ${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.tar.gz
-
-  upload-to-release-macos-and-windows:
-    needs:
-      - build-app
-      - update-release-notes
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          - Lip.CLI
-        runtime:
           - osx-arm64
           - osx-x64
           - win-arm64
           - win-x64
-        sc-flag:
-          - ''
-          - -self-contained
-        include:
-          - project: Lip.CLI
-            sub-name: cli
     steps:
       - uses: actions/checkout@v6
 
       - uses: actions/download-artifact@v7
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.project }}-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
+          name: lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}
           path: artifact/
 
       - run: |
           cp CHANGELOG.md COPYING README.md artifact/
 
-      - run: |
-          zip -r ../${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.zip *
-        working-directory: artifact
+      - working-directory: artifact
+        run: |
+          if [[ "${{ matrix.runtime }}" == win* ]]; then
+            zip -r ../lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}.zip *
+          else
+            tar -czvf ../lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}.tar.gz *
+          fi
 
-      - uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+      - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ github.event.repository.name }}-${{ matrix.sub-name }}-${{ matrix.runtime }}${{ matrix.sc-flag }}.zip
-
-  upload-to-release-windows-installer:
-    needs: build-cli-windows-installer
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lang:
-          - en-US
-          - zh-CN
-        runtime:
-          - win-arm64
-          - win-x64
-        sc-flag:
-          - ''
-          - -self-contained
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/download-artifact@v7
-        with:
-          name: ${{ github.event.repository.name }}-Lip.Installer-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ github.sha }}
-          path: artifact-installer/
-
-      - run: |
-          mv artifact-installer/${{ matrix.lang }}/Lip.Installer.msi artifact-installer/${{ github.event.repository.name }}-cli-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ matrix.lang }}.msi
-
-      - uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
-        with:
-          files: |
-            artifact-installer/${{ github.event.repository.name }}-cli-${{ matrix.runtime }}${{ matrix.sc-flag }}-${{ matrix.lang }}.msi
+            lip-${{ needs.publish-cli.outputs.version }}-${{ matrix.runtime }}.*

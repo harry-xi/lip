@@ -83,14 +83,14 @@ public class DependencySolver(IPackageRegistry packageRegistry) : IDependencySol
         Dictionary<PackageId, SemVersion> solution = await Backtrack(candidates, [], roots)
             ?? throw new InvalidOperationException("Cannot find a valid state to satisfy all dependencies.");
 
-        DependencyNode[] nodes = await Task.WhenAll(
-            solution.Select(async kvp =>
-            {
-                PackageSpec spec = new(kvp.Key, kvp.Value);
-                IEnumerable<PackageReqt> deps = await GetDependencies(spec);
+        List<DependencyNode> nodes = [];
+        foreach (KeyValuePair<PackageId, SemVersion> kvp in solution)
+        {
+            PackageSpec spec = new(kvp.Key, kvp.Value);
+            IEnumerable<PackageReqt> deps = await GetDependencies(spec);
 
-                return new DependencyNode(spec, deps);
-            }));
+            nodes.Add(new DependencyNode(spec, deps));
+        }
 
         return IDependencySolver.TopologicalSort(nodes);
     }

@@ -26,7 +26,7 @@ public class FileDownloader(IUserInteraction userInteraction) : IFileDownloader
                     ParallelDownload = true,
                     RequestConfiguration =
                     {
-                    Proxy = HttpClient.DefaultProxy
+                        Proxy = HttpClient.DefaultProxy,
                     }
                 })
                 .Build();

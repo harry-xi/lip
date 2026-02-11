@@ -27,8 +27,9 @@ public class ConsoleUserInteraction : IUserInteraction
 
     public async Task RunWithProgress(string message, Func<IProgress<double>, Task> action)
     {
-        await AnsiConsole.Progress()
-            .StartAsync(async ctx =>
+        Progress progress = AnsiConsole.Progress();
+
+        await progress.StartAsync(async ctx =>
             {
                 ProgressTask task = ctx.AddTask(message);
 

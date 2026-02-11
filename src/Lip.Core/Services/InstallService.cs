@@ -260,6 +260,8 @@ public class InstallService(
 
         foreach (PackageId packageId in flexiblePackages)
         {
+            await _userInteraction.PrintInfo($"Getting available versions for package '{packageId}'...");
+
             IEnumerable<SemVersion> versions = await _packageRegistry.GetAvailableVersions(packageId);
             SemVersion latestVersion = versions.Max(SemVersion.PrecedenceComparer)
                 ?? throw new InvalidOperationException($"Failed to find the latest version for package '{packageId}'.");

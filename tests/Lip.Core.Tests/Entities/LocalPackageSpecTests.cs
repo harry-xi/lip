@@ -9,16 +9,18 @@ public class LocalPackageSpecTests
     public void Parse_ValidPath_ReturnsSpec()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string packagePath = Path.Combine(root, "path", "to", "package.zip");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\path\to\package.zip", new MockFileData("content") }
+            { packagePath, new MockFileData("content") }
         });
 
         // Act
-        LocalPackageSpec spec = LocalPackageSpec.Parse(@"C:\path\to\package.zip", mockFileSystem);
+        LocalPackageSpec spec = LocalPackageSpec.Parse(packagePath, mockFileSystem);
 
         // Assert
-        Assert.Equal(@"C:\path\to\package.zip", spec.ArchiveFile.FullName);
+        Assert.Equal(packagePath, spec.ArchiveFile.FullName);
         Assert.Equal(string.Empty, spec.Variant);
     }
 
@@ -26,16 +28,18 @@ public class LocalPackageSpecTests
     public void Parse_ValidPathWithVariant_ReturnsSpec()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string packagePath = Path.Combine(root, "path", "to", "package.zip");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\path\to\package.zip", new MockFileData("content") }
+            { packagePath, new MockFileData("content") }
         });
 
         // Act
-        LocalPackageSpec spec = LocalPackageSpec.Parse(@"C:\path\to\package.zip#variant", mockFileSystem);
+        LocalPackageSpec spec = LocalPackageSpec.Parse($"{packagePath}#variant", mockFileSystem);
 
         // Assert
-        Assert.Equal(@"C:\path\to\package.zip", spec.ArchiveFile.FullName);
+        Assert.Equal(packagePath, spec.ArchiveFile.FullName);
         Assert.Equal("variant", spec.Variant);
     }
 
@@ -44,21 +48,25 @@ public class LocalPackageSpecTests
     {
         // Arrange
         MockFileSystem mockFileSystem = new();
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string nonexistentPath = Path.Combine(root, "nonexistent.zip");
 
         // Act & Assert
-        Assert.Throws<FileNotFoundException>(() => LocalPackageSpec.Parse(@"C:\nonexistent.zip", mockFileSystem));
+        Assert.Throws<FileNotFoundException>(() => LocalPackageSpec.Parse(nonexistentPath, mockFileSystem));
     }
 
     [Fact]
     public void Parse_InvalidVariant_ThrowsFormatException()
     {
         // Arrange
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string packagePath = Path.Combine(root, "path", "to", "package.zip");
         MockFileSystem mockFileSystem = new(new Dictionary<string, MockFileData>
         {
-            { @"C:\path\to\package.zip", new MockFileData("content") }
+            { packagePath, new MockFileData("content") }
         });
 
         // Act & Assert
-        Assert.Throws<FormatException>(() => LocalPackageSpec.Parse(@"C:\path\to\package.zip#invalid-variant!", mockFileSystem));
+        Assert.Throws<FormatException>(() => LocalPackageSpec.Parse($"{packagePath}#invalid-variant!", mockFileSystem));
     }
 }

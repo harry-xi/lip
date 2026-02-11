@@ -115,7 +115,7 @@ public class PackageInstallerTests
         await _installer.InstallPackage(artifact, false, false, false);
 
         // Assert
-        Assert.True(_mockFileSystem.File.Exists(@"plugins\file.txt"));
+        Assert.True(_mockFileSystem.File.Exists(Path.Combine("plugins", "file.txt")));
         _mockWorkspaceService.Verify(w => w.AddInstalledPackage(pkgSpec, It.IsAny<PackageManifest>(), It.IsAny<IEnumerable<IFileInfo>>(), false), Times.Once);
     }
 
@@ -180,7 +180,7 @@ public class PackageInstallerTests
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
             .ReturnsAsync(manifest);
 
-        string filePath = @"plugins\file.txt";
+        string filePath = Path.Combine("plugins", "file.txt");
         _mockFileSystem.AddFile(filePath, new MockFileData("content"));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
@@ -217,7 +217,7 @@ public class PackageInstallerTests
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
             .ReturnsAsync(manifest);
 
-        string filePath = @"plugins\file.txt";
+        string filePath = Path.Combine("plugins", "file.txt");
         _mockFileSystem.AddFile(filePath, new MockFileData("content"));
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))

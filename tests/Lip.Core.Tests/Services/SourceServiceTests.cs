@@ -15,6 +15,7 @@ public class SourceServiceTests
     private readonly Mock<IGitRunner> _mockGitRunner;
     private readonly Mock<IUserInteraction> _mockUserInteraction;
     private readonly Mock<ICacheService> _mockCacheService;
+    private readonly Mock<IFileDownloader> _mockFileDownloader;
     private readonly SourceService _service;
 
     public SourceServiceTests()
@@ -22,7 +23,9 @@ public class SourceServiceTests
         _mockGitRunner = new Mock<IGitRunner>();
         _mockUserInteraction = new Mock<IUserInteraction>();
         _mockCacheService = new Mock<ICacheService>();
+        _mockFileDownloader = new Mock<IFileDownloader>();
         _service = new SourceService(
+            _mockFileDownloader.Object,
             _mockGitRunner.Object,
             _mockUserInteraction.Object,
             _mockCacheService.Object,
@@ -111,6 +114,7 @@ public class SourceServiceTests
     public async Task Get_PackageSpec_WithGithubProxy_UsesProxy()
     {
         SourceService serviceWithProxy = new(
+            _mockFileDownloader.Object,
             _mockGitRunner.Object,
             _mockUserInteraction.Object,
             _mockCacheService.Object,

@@ -1,5 +1,4 @@
 using Flurl;
-using Flurl.Http;
 using Golang.Org.X.Mod;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
@@ -18,12 +17,14 @@ public interface ISourceService
 }
 
 public class SourceService(
+    IFileDownloader fileDownloader,
     IGitRunner gitRunner,
     IUserInteraction userInteraction,
     ICacheService cacheService,
     Url? githubProxy,
     Url goModuleProxy) : ISourceService
 {
+    private readonly IFileDownloader _fileDownloader = fileDownloader;
     private readonly IGitRunner _gitRunner = gitRunner;
     private readonly IUserInteraction _userInteraction = userInteraction;
 
@@ -74,12 +75,7 @@ public class SourceService(
     {
         IFileInfo archiveFile = await _cacheService.GetOrCreateFile(url, async cacheFile =>
         {
-            using Stream respStream = await url.GetStreamAsync();
-            using Stream fileStream = cacheFile.OpenWrite();
-
-            await _userInteraction.PrintInfo($"Downloading from '{url}'...");
-
-            await respStream.CopyToAsync(fileStream);
+            await _fileDownloader.DownloadFile(url, cacheFile);
         });
 
         return isArchive
@@ -129,12 +125,7 @@ public class SourceService(
 
         IFileInfo archiveFile = await _cacheService.GetOrCreateFile(archiveUrl, async cacheFile =>
         {
-            using Stream respStream = await archiveUrl.GetStreamAsync();
-            using Stream fileStream = cacheFile.OpenWrite();
-
-            await _userInteraction.PrintInfo($"Downloading from '{archiveUrl}'...");
-
-            await respStream.CopyToAsync(fileStream);
+            await _fileDownloader.DownloadFile(archiveUrl, cacheFile);
         });
 
         return new GoModuleArchiveSourceProvider(archiveFile);

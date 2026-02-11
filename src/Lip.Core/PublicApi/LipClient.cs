@@ -52,12 +52,14 @@ public class LipClient(
         ConfigService configService = new(fileSystem, userInteraction);
 
         CacheService cacheService = new(fileSystem, userInteraction);
+        FileDownloader fileDownloader = new(userInteraction);
         Url? githubProxy = await configService.Get<Url?>("github_proxy");
         Url goModuleProxy = await configService.Get<Url>("go_module_proxy");
         GitRunner gitRunner = new();
 
         CommandRunner commandRunner = new();
         SourceService sourceService = new(
+            fileDownloader,
             gitRunner,
             userInteraction,
             cacheService,

@@ -10,8 +10,6 @@ lip is a standalone executable. Download the latest version from the [releases p
 winget install futrime.lip
 ```
 
-Or download the `.msi` installer from the [releases page](https://github.com/futrime/lip/releases/latest).
-
 ### Linux / macOS
 
 ```shell

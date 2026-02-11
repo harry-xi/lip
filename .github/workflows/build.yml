@@ -36,8 +36,8 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - run: >
-          dotnet build -c Release
+      - run: |
+          dotnet build
 
   publish-cli:
     needs: build
@@ -69,17 +69,28 @@ jobs:
             runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-tags: true
 
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - run: |
-          dotnet publish src/Lip.Cli -c Release -o bin -r ${{ matrix.runtime }} --no-self-contained
+      - id: get-version
+        run: |
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
+
+      - shell: bash
+        run: |
+          dotnet publish src/Lip.Cli \
+            -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
+            -p:Version=${{ steps.get-version.outputs.VERSION }}
 
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ github.event.repository.name }}-cli-${{ matrix.runtime }}-${{ github.sha }}
+          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: bin/
 
   check-style:

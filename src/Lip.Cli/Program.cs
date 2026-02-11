@@ -59,6 +59,9 @@ app.Configure(config =>
     config.AddCommand<ViewCommand>("view")
         .WithDescription("Views package details");
 
+    config.AddCommand<VersionCommand>("version")
+        .WithDescription("Shows version information");
+
     config.PropagateExceptions();
 });
 

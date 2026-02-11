@@ -322,4 +322,12 @@ public class LipClientTests
         string content = _fileSystem.File.ReadAllText(outputFile);
         Assert.Contains("github.com/test/repo", content);
     }
+
+    [Fact]
+    public async Task Version_ReturnsString()
+    {
+        string result = await _client.Version();
+        Assert.NotNull(result);
+        Assert.NotEmpty(result);
+    }
 }

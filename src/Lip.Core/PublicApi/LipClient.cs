@@ -4,7 +4,9 @@ using Lip.Core.Infrastructure;
 using Lip.Core.Migration.PackageManifests;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
+using Semver;
 using System.IO.Abstractions;
+using System.Reflection;
 using System.Text.Json;
 
 namespace Lip.Core.PublicApi;
@@ -22,6 +24,7 @@ public interface ILipClient
     Task Migrate(string file, string output);
     Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies);
     Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts);
+    Task<string> Version();
     Task<string> View(string package);
 }
 
@@ -304,6 +307,18 @@ public class LipClient(
             remotePackages,
             dryRun,
             ignoreScripts);
+    }
+
+    public async Task<string> Version()
+    {
+        string text = Assembly
+            .GetEntryAssembly()?
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion!;
+
+        SemVersion version = SemVersion.Parse(text);
+
+        return version.ToString();
     }
 
     public async Task<string> View(string package)

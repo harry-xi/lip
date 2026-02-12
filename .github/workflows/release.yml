@@ -14,6 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        assembly-name:
+          - lip
+          - lipd
         runtime:
           - linux-arm64
           - linux-x64
@@ -34,6 +37,10 @@ jobs:
             runs-on: windows-11-arm
           - runtime: win-x64
             runs-on: windows-latest
+          - assembly-name: lip
+            project: Lip.Cli
+          - assembly-name: lipd
+            project: Lip.Daemon
     steps:
       - uses: actions/checkout@v6
         with:
@@ -51,7 +58,7 @@ jobs:
 
       - shell: bash
         run: |
-          dotnet publish src/Lip.Cli \
+          dotnet publish src/${{ matrix.project }} \
             -o bin \
             -r ${{ matrix.runtime }} \
             --no-self-contained \
@@ -59,7 +66,7 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
+          name: ${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: bin/
 
   update-release-notes:
@@ -86,6 +93,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        assembly-name:
+          - lip
+          - lipd
         runtime:
           - linux-arm64
           - linux-x64
@@ -102,7 +112,7 @@ jobs:
 
       - uses: actions/download-artifact@v7
         with:
-          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
+          name: ${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: artifact/
 
       - run: |
@@ -111,12 +121,12 @@ jobs:
       - working-directory: artifact
         run: |
           if [[ "${{ matrix.runtime }}" == win* ]]; then
-            zip -r ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.zip *
+            zip -r ../${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.zip *
           else
-            tar -czvf ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.tar.gz *
+            tar -czvf ../${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.tar.gz *
           fi
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*
+            ${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*

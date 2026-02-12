@@ -1,0 +1,334 @@
+{
+  "openrpc": "1.2.6",
+  "info": {
+    "title": "Lip Daemon JSON-RPC API",
+    "description": "API for interacting with the Lip package manager daemon.",
+    "version": "3.0.0"
+  },
+  "methods": [
+    {
+      "name": "CacheClean",
+      "description": "Cleans the local package cache.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "ConfigDelete",
+      "description": "Deletes a configuration key.",
+      "params": [
+        {
+          "name": "key",
+          "description": "The configuration key to delete.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "ConfigGet",
+      "description": "Gets a configuration value.",
+      "params": [
+        {
+          "name": "key",
+          "description": "The configuration key to get.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "value",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "ConfigList",
+      "description": "Lists all configuration values.",
+      "params": [],
+      "result": {
+        "name": "config",
+        "schema": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "ConfigSet",
+      "description": "Sets a configuration value.",
+      "params": [
+        {
+          "name": "key",
+          "description": "The configuration key.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "value",
+          "description": "The configuration value.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "Init",
+      "description": "Initializes a new package manifest in the current directory.",
+      "params": [],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "Install",
+      "description": "Installs packages.",
+      "params": [
+        {
+          "name": "packages",
+          "description": "List of packages to install.",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "dryRun",
+          "description": "If true, simulates the installation.",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "ignoreScripts",
+          "description": "If true, ignores package scripts.",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "noDependencies",
+          "description": "If true, skips installing dependencies.",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "List",
+      "description": "Lists installed packages.",
+      "params": [],
+      "result": {
+        "name": "packages",
+        "description": "Tuple containing explicit and implicit installed packages.",
+        "schema": {
+          "type": "array",
+          "items": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PackageSpec"
+              }
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PackageSpec"
+              }
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    {
+      "name": "Migrate",
+      "description": "Migrates a package manifest.",
+      "params": [
+        {
+          "name": "file",
+          "description": "Path to the input file.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "output",
+          "description": "Path to the output file.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "Uninstall",
+      "description": "Uninstalls packages.",
+      "params": [
+        {
+          "name": "packages",
+          "description": "List of packages to uninstall.",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "dryRun",
+          "description": "If true, simulates uninstallation.",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "ignoreScripts",
+          "description": "If true, ignores scripts.",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "noDependencies",
+          "description": "If true, skips dependencies.",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "Update",
+      "description": "Updates packages.",
+      "params": [
+        {
+          "name": "packages",
+          "description": "List of packages to update.",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "dryRun",
+          "description": "If true, simulates update.",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "ignoreScripts",
+          "description": "If true, ignores scripts.",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "Version",
+      "description": "Gets the Lip version.",
+      "params": [],
+      "result": {
+        "name": "version",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "View",
+      "description": "Views package details.",
+      "params": [
+        {
+          "name": "package",
+          "description": "The package to view.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "manifest",
+        "schema": {
+          "type": "string"
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "PackageId": {
+        "type": "object",
+        "properties": {
+          "Path": { "type": "string" },
+          "Variant": { "type": "string" }
+        }
+      },
+      "PackageSpec": {
+        "type": "object",
+        "properties": {
+          "Id": { "$ref": "#/components/schemas/PackageId" },
+          "Version": { "type": "string" } 
+        }
+      }
+    }
+  }
+}

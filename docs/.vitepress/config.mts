@@ -36,7 +36,8 @@ export default defineConfig({
         text: 'Reference',
         items: [
           { text: 'Package Manifest', link: '/reference/package-manifest' },
-          { text: 'Configuration', link: '/reference/configuration' }
+          { text: 'Configuration', link: '/reference/configuration' },
+          { text: 'lipd', link: '/reference/lipd' }
         ]
       }
     ],

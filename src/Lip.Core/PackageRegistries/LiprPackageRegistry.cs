@@ -1,4 +1,5 @@
 using Flurl;
+using Flurl.Http;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Services;

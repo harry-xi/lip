@@ -38,9 +38,6 @@ app.Configure(config =>
             .WithDescription("Deletes a configuration value");
     });
 
-    config.AddCommand<DaemonCommand>("daemon")
-        .WithDescription("Starts the JSON-RPC daemon");
-
     config.AddCommand<InitCommand>("init")
         .WithDescription("Initializes a new project");
 

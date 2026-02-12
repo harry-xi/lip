@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lip.Core\Lip.Core.csproj" />
+    <ProjectReference Include="..\Lip.Daemon\Lip.Daemon.csproj" />
   </ItemGroup>
 
 </Project>

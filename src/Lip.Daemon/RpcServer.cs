@@ -8,19 +8,17 @@ public interface IRpcServer
     Task Run();
 }
 
-public class RpcServer(ILipClient client) : IRpcServer
+public class RpcServer(ILipClient client, Stream @in, Stream @out) : IRpcServer
 {
     private readonly ILipClient _client = client;
 
     public async Task Run()
     {
-        using Stream stdin = Console.OpenStandardInput();
-        using Stream stdout = Console.OpenStandardOutput();
+        using JsonRpc rpc = JsonRpc.Attach(
+            sendingStream: @out,
+            receivingStream: @in,
+            target: _client);
 
-        JsonRpc jsonRpc = new(stdout, stdin, _client);
-
-        jsonRpc.StartListening();
-
-        await jsonRpc.Completion;
+        await rpc.Completion;
     }
 }

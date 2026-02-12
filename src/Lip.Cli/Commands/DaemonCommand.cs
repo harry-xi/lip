@@ -22,7 +22,10 @@ public class DaemonCommand(ILipClient client) : AsyncCommand<DaemonCommand.Setti
                 "Only stdio transport is supported. Please run with --stdio option.");
         }
 
-        var server = new RpcServer(client);
+        using Stream stdin = Console.OpenStandardInput();
+        using Stream stdout = Console.OpenStandardOutput();
+
+        var server = new RpcServer(client, stdin, stdout);
 
         await server.Run();
 

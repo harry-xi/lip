@@ -5,7 +5,8 @@ export default defineConfig({
   description: "A general package installer",
   themeConfig: {
     nav: [
-      { text: 'Getting Started', link: '/getting-started' },
+      { text: 'Guide', link: '/getting-started' },
+      { text: 'Concepts', link: '/concepts' },
       { text: 'Commands', link: '/commands/install' },
       { text: 'Reference', link: '/reference/package-manifest' }
     ],
@@ -14,22 +15,34 @@ export default defineConfig({
       {
         text: 'Guide',
         items: [
-          { text: 'Getting Started', link: '/getting-started' }
+          { text: 'Getting Started', link: '/getting-started' },
+          { text: 'Concepts', link: '/concepts' },
+          { text: 'FAQ', link: '/faq' }
+        ]
+      },
+      {
+        text: 'How-to Guides',
+        items: [
+            { text: 'Creating Packages', link: '/guides/creating-packages' },
+            { text: 'Migrating Packages', link: '/guides/migrating-packages' },
+            { text: 'Installing Dependencies', link: '/guides/installing-dependencies' },
+            { text: 'Managing Configuration', link: '/guides/managing-configuration' },
+            { text: 'Internal Mechanism', link: '/guides/internal-mechanism' }
         ]
       },
       {
         text: 'Commands',
         items: [
-          { text: 'lip init', link: '/commands/init' },
-          { text: 'lip install', link: '/commands/install' },
-          { text: 'lip uninstall', link: '/commands/uninstall' },
-          { text: 'lip update', link: '/commands/update' },
-          { text: 'lip list', link: '/commands/list' },
-          { text: 'lip view', link: '/commands/view' },
-          { text: 'lip version', link: '/commands/version' },
-          { text: 'lip migrate', link: '/commands/migrate' },
-          { text: 'lip cache clean', link: '/commands/cache-clean' },
-          { text: 'lip config', link: '/commands/config' }
+          { text: 'cache clean', link: '/commands/cache-clean' },
+          { text: 'config', link: '/commands/config' },
+          { text: 'init', link: '/commands/init' },
+          { text: 'install', link: '/commands/install' },
+          { text: 'list', link: '/commands/list' },
+          { text: 'migrate', link: '/commands/migrate' },
+          { text: 'uninstall', link: '/commands/uninstall' },
+          { text: 'update', link: '/commands/update' },
+          { text: 'version', link: '/commands/version' },
+          { text: 'view', link: '/commands/view' }
         ]
       },
       {

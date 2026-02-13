@@ -1,34 +1,35 @@
-# Lip Daemon (`lipd`)
+# Lip Daemon
 
-The `lipd` (lip daemon) serves as the core engine for lip operations. The command-line interface (`lip`) acts as a client that communicates with `lipd` using JSON-RPC over standard input/output (stdio).
+The Lip Daemon (`lipd`) is a standalone JSON-RPC 2.0 server that exposes the core functionality of Lip for programmatic access. It is designed to be used by external tools, such as IDE extensions, GUIs, or other automation scripts, that need to interact with Lip packages and configuration.
 
-This architecture allows for:
-- Separation of concern between UI (CLI) and logic (Daemon).
-- Potential for other clients (IDEs, GUIs) to interact with lip programmatically.
+> [!IMPORTANT]
+> `lipd` is **not** the backend for the `lip` command-line interface. The `lip` CLI operates independently using the `Lip.Core` library directly. `lipd` is a separate entry point intended for machine-to-machine communication.
 
 ## Communication Protocol
 
-- **Protocol**: JSON-RPC 2.0
-- **Transport**: Standard I/O (stdin/stdout)
+- **Protocol**: [JSON-RPC 2.0](https://www.jsonrpc.org/specification)
+- **Transport**: Standard Input/Output (stdio)
 - **Encoding**: UTF-8
 
-When you run `lipd`, it starts a JSON-RPC server listening on stdin and writing responses to stdout.
+When `lipd` starts, it listens for JSON-RPC requests on `stdin` and writes responses to `stdout`.
 
 ## Exposed Methods
 
-The daemon exposes a set of methods via the `ILipClient` interface.
+The daemon exposes the methods defined in the `ILipClient` interface.
 
 ### `Init`
 Initializes a new `tooth.json` manifest in the current directory.
+- **Parameters**: None
 - **Returns**: `void`
 
 ### `Install`
 Installs packages into the workspace.
-- **Parameters**: 
-    - `packages`: `IEnumerable<string>` - List of packages to install.
-    - `dryRun`: `bool` - If true, simulates the installation.
+- **Parameters**:
+    - `packages`: `IEnumerable<string>` - List of packages to install (e.g. `owner/repo`, `package@version`, or local paths).
+    - `dryRun`: `bool` - If true, simulates the installation without making changes.
     - `ignoreScripts`: `bool` - If true, skips running lifecycle scripts.
     - `noDependencies`: `bool` - If true, installs only the specified packages without their dependencies.
+- **Returns**: `void`
 
 ### `Uninstall`
 Uninstalls packages from the workspace.
@@ -37,6 +38,7 @@ Uninstalls packages from the workspace.
     - `dryRun`: `bool`
     - `ignoreScripts`: `bool`
     - `noDependencies`: `bool`
+- **Returns**: `void`
 
 ### `Update`
 Updates specified packages to their latest compatible versions.
@@ -44,56 +46,70 @@ Updates specified packages to their latest compatible versions.
     - `packages`: `IEnumerable<string>`
     - `dryRun`: `bool`
     - `ignoreScripts`: `bool`
+- **Returns**: `void`
 
 ### `List`
 Lists installed packages.
-- **Returns**: A tuple containing `ExplicitInstalled` and `ImplicitInstalled` package lists.
+- **Parameters**: None
+- **Returns**: A tuple object containing:
+    - `ExplicitInstalled`: List of explicitly installed packages.
+    - `ImplicitInstalled`: List of implicitly installed (dependency) packages.
 
 ### `View`
 Retrieves manifest information for a specific package.
 - **Parameters**:
     - `package`: `string` - The package identifier.
-- **Returns**: `string` (JSON serialization of `PackageManifest`).
+- **Returns**: `string` - JSON string of the package manifest.
 
 ### `CacheClean`
 Clears the global package cache.
+- **Parameters**: None
 - **Returns**: `void`
 
 ### `ConfigGet`
 Retrieves a configuration value.
-- **Parameters**: `key` (string)
-- **Returns**: `string`
+- **Parameters**: 
+    - `key`: `string`
+- **Returns**: `string` - The configuration value.
 
 ### `ConfigSet`
 Sets a configuration value.
-- **Parameters**: 
+- **Parameters**:
     - `key`: `string`
     - `value`: `string`
+- **Returns**: `void`
 
 ### `ConfigDelete`
 Removes a configuration value.
-- **Parameters**: `key` (string)
+- **Parameters**: 
+    - `key`: `string`
+- **Returns**: `void`
 
 ### `ConfigList`
 Lists all configuration values.
-- **Returns**: `IDictionary<string, string>`
+- **Parameters**: None
+- **Returns**: `IDictionary<string, string>` - Key-value pairs of configuration.
 
 ### `Migrate`
 Migrates a `tooth.json` file from an older format to the current version.
 - **Parameters**:
-    - `file`: `string` - Path to input file.
-    - `output`: `string` - Path to output file.
+    - `file`: `string` - Path to the input file.
+    - `output`: `string` - Path to the output file.
+- **Returns**: `void`
 
 ### `Version`
 Returns the version of the daemon.
+- **Parameters**: None
 - **Returns**: `string`
 
 ## Client Contract
 
-The client connecting to `lipd` (like the `lip` CLI) must implement `IClientContract` to handle notifications and callbacks from the daemon.
+Clients connecting to `lipd` must implement the `IClientContract` to handle notifications and callbacks from the daemon. These are JSON-RPC notifications sent from the daemon to the client.
 
-- `PrintInfo(string message)`
-- `PrintSuccess(string message)`
-- `PrintWarning(string message)`
-- `PrintError(string message)`
-- `ReportProgress(string id, string message, double percentage)`
+| Method | Parameters | Description |
+| :--- | :--- | :--- |
+| `PrintInfo` | `message` (string) | Displays an informational message. |
+| `PrintSuccess` | `message` (string) | Displays a success message. |
+| `PrintWarning` | `message` (string) | Displays a warning message. |
+| `PrintError` | `message` (string) | Displays an error message. |
+| `ReportProgress` | `id` (string), `message` (string), `percentage` (double) | Reports progress for a long-running operation. `percentage` is between 0.0 and 1.0. |

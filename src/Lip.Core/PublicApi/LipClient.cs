@@ -20,7 +20,7 @@ public interface ILipClient
     Task ConfigSet(string key, string value);
     Task Init();
     Task Install(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies);
-    Task<(IEnumerable<PackageSpec> ExplicitInstalled, IEnumerable<PackageSpec> ImplicitInstalled)> List();
+    Task<(IEnumerable<string> ExplicitInstalled, IEnumerable<string> ImplicitInstalled)> List();
     Task Migrate(string file, string output);
     Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies);
     Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts);
@@ -213,14 +213,14 @@ public class LipClient(
             noDependencies);
     }
 
-    public async Task<(IEnumerable<PackageSpec> ExplicitInstalled, IEnumerable<PackageSpec> ImplicitInstalled)> List()
+    public async Task<(IEnumerable<string> ExplicitInstalled, IEnumerable<string> ImplicitInstalled)> List()
     {
         IEnumerable<PackageSpec> explicitInstalled = await _workspaceService
             .GetInstalledPackages(IWorkspaceService.PackageScope.Explicit);
         IEnumerable<PackageSpec> implicitInstalled = await _workspaceService
             .GetInstalledPackages(IWorkspaceService.PackageScope.Implicit);
 
-        return (explicitInstalled, implicitInstalled);
+        return (explicitInstalled.Select(p => p.ToString()), implicitInstalled.Select(p => p.ToString()));
     }
 
     public async Task Migrate(string file, string output)

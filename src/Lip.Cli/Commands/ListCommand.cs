@@ -15,12 +15,12 @@ public class ListCommand(ILipClient lipClient) : AsyncCommand<ListCommand.Settin
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
-        (IEnumerable<PackageSpec> explicitPackages, IEnumerable<PackageSpec> implicitPackages) = await _lipClient.List();
+        (IEnumerable<string> explicitPackages, IEnumerable<string> implicitPackages) = await _lipClient.List();
 
         Tree explicitTree = new("User-Requested");
-        foreach (PackageSpec package in explicitPackages)
+        foreach (string package in explicitPackages)
         {
-            explicitTree.AddNode(package.ToString());
+            explicitTree.AddNode(package);
         }
         if (!explicitPackages.Any())
         {
@@ -28,9 +28,9 @@ public class ListCommand(ILipClient lipClient) : AsyncCommand<ListCommand.Settin
         }
 
         Tree implicitTree = new("Dependencies");
-        foreach (PackageSpec package in implicitPackages)
+        foreach (string package in implicitPackages)
         {
-            implicitTree.AddNode(package.ToString());
+            implicitTree.AddNode(package);
         }
         if (!implicitPackages.Any())
         {

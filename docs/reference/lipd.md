@@ -49,8 +49,8 @@ Updates specified packages to their latest compatible versions.
 Lists installed packages.
 - **Parameters**: None
 - **Returns**: An object containing:
-    - `ExplicitInstalled`: List of explicitly installed packages.
-    - `ImplicitInstalled`: List of implicitly installed (dependency) packages.
+    - `ExplicitInstalled`: List of strings - Explicitly installed packages.
+    - `ImplicitInstalled`: List of strings - Implicitly installed (dependency) packages.
 
 ### `View`
 Retrieves manifest information for a specific package.

@@ -134,11 +134,11 @@ public class LipClientTests
         _workspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Implicit))
             .ReturnsAsync([implicitPkg]);
 
-        (IEnumerable<PackageSpec>? explicitInstalled, IEnumerable<PackageSpec>? implicitInstalled) = await _client.List();
+        (IEnumerable<string>? explicitInstalled, IEnumerable<string>? implicitInstalled) = await _client.List();
 
         Assert.Single(explicitInstalled);
         Assert.Single(implicitInstalled);
-        Assert.Equal("github.com/test/pkg1", explicitInstalled.First().Id.ToString());
+        Assert.Contains("github.com/test/pkg1", explicitInstalled.First());
     }
 
     [Fact]

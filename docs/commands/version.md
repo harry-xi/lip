@@ -1,13 +1,17 @@
 # lip version
 
-Show version information.
+Shows version information.
 
-## Synopsis
+## Usage
 
-```shell
+```sh
 lip version
 ```
 
-## Description
+## Examples
+
+```sh
+lip version
+```
 
 Prints the semantic version of the lip executable.

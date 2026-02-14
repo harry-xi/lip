@@ -330,4 +330,40 @@ public class LipClientTests
         Assert.NotNull(result);
         Assert.NotEmpty(result);
     }
+    [Fact]
+    public async Task Versions_ReturnsVersions_WhenPackageIdProvided()
+    {
+        PackageId packageId = new("github.com/test/repo", "");
+        List<SemVersion> expectedVersions = [new(1, 0, 0), new(2, 0, 0)];
+
+        // Mocking IOrderedEnumerable return type explicitly is tricky with Moq if strict types are involved.
+        // Instead, we return an ordered version of the list which implements IOrderedEnumerable.
+        // Using ToString() because SemVersion might not verify IComparable in this context or Moq/Runtime issue.
+        _packageRegistry.Setup(r => r.GetAvailableVersions(packageId))
+            .ReturnsAsync(expectedVersions.OrderBy(v => v.ToString()));
+
+        IEnumerable<string> result = await _client.Versions("github.com/test/repo");
+
+        Assert.Equal(2, result.Count());
+        Assert.Contains("1.0.0", result);
+        Assert.Contains("2.0.0", result);
+    }
+
+    [Fact]
+    public async Task View_ResolvesLatestVersion_WhenPackageIdProvided()
+    {
+        string packageIdString = "github.com/test/repo";
+        PackageId packageId = new(packageIdString, "");
+        PackageSpec expectedSpec = new(packageId, new SemVersion(2, 0, 0));
+        PackageManifest expectedManifest = new() { Path = packageIdString, Version = new SemVersion(2, 0, 0) };
+
+        _installService.Setup(s => s.GetLatestVersion(packageId)).ReturnsAsync(expectedSpec);
+        _packageRegistry.Setup(r => r.GetPackageManifest(expectedSpec)).ReturnsAsync(expectedManifest);
+
+        string result = await _client.View(packageIdString);
+
+        Assert.Contains("2.0.0", result);
+        _installService.Verify(s => s.GetLatestVersion(packageId), Times.Once);
+        _packageRegistry.Verify(r => r.GetPackageManifest(expectedSpec), Times.Once);
+    }
 }

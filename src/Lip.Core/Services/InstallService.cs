@@ -9,6 +9,8 @@ namespace Lip.Core.Services;
 
 public interface IInstallService
 {
+    Task<PackageSpec> GetLatestVersion(PackageId packageId);
+
     Task InstallPackages(
         IEnumerable<PackageSpec> packages,
         IEnumerable<PackageId> flexiblePackages,
@@ -46,6 +48,18 @@ public class InstallService(
     private readonly IPackageRegistry _packageRegistry = packageRegistry;
     private readonly ISourceService _sourceService = sourceService;
     private readonly IWorkspaceService _workspaceService = workspaceService;
+
+    public async Task<PackageSpec> GetLatestVersion(PackageId packageId)
+    {
+        IEnumerable<SemVersion> versions = await _packageRegistry.GetAvailableVersions(packageId);
+
+        SemVersion latestVersion = versions.Max(SemVersion.PrecedenceComparer)
+            ?? throw new InvalidOperationException($"Failed to find the latest version for package '{packageId}'.");
+
+        PackageSpec packageSpec = new(packageId, latestVersion);
+
+        return packageSpec;
+    }
 
     public async Task InstallPackages(
         IEnumerable<PackageSpec> packages,
@@ -262,12 +276,9 @@ public class InstallService(
         {
             await _userInteraction.PrintInfo($"Getting available versions for package '{packageId}'...");
 
-            IEnumerable<SemVersion> versions = await _packageRegistry.GetAvailableVersions(packageId);
-            SemVersion latestVersion = versions.Max(SemVersion.PrecedenceComparer)
-                ?? throw new InvalidOperationException($"Failed to find the latest version for package '{packageId}'.");
-            PackageSpec packageSpec = new(packageId, latestVersion);
-            ISourceProvider sourceProvider = await _sourceService.Get(packageSpec);
-            PackageArtifact packageArtifact = new(packageSpec, sourceProvider);
+            PackageSpec latestPackageSpec = await GetLatestVersion(packageId);
+            ISourceProvider sourceProvider = await _sourceService.Get(latestPackageSpec);
+            PackageArtifact packageArtifact = new(latestPackageSpec, sourceProvider);
 
             packageArtifacts.Add(packageArtifact);
         }

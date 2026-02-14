@@ -62,6 +62,9 @@ app.Configure(config =>
     config.AddCommand<VersionCommand>("version")
         .WithDescription("Shows version information");
 
+    config.AddCommand<VersionsCommand>("versions")
+        .WithDescription("Shows available versions for a package");
+
     config.PropagateExceptions();
 });
 

@@ -25,6 +25,7 @@ public interface ILipClient
     Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies);
     Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts);
     Task<string> Version();
+    Task<IEnumerable<string>> Versions(string package);
     Task<string> View(string package);
 }
 
@@ -321,12 +322,44 @@ public class LipClient(
         return version.ToString();
     }
 
+    public async Task<IEnumerable<string>> Versions(string package)
+    {
+        PackageId packageId = PackageId.Parse(package);
+
+        IOrderedEnumerable<SemVersion> semVersions = await _packageRegistry.GetAvailableVersions(
+            packageId);
+
+        return semVersions.Select(v => v.ToString());
+    }
+
     public async Task<string> View(string package)
     {
-        PackageSpec packageSpec = PackageSpec.Parse(package);
+        List<Exception> exceptions = [];
 
-        PackageManifest packageManifest = await _packageRegistry.GetPackageManifest(packageSpec);
+        try
+        {
+            PackageSpec packageSpec = PackageSpec.Parse(package);
+            PackageManifest packageManifest = await _packageRegistry.GetPackageManifest(packageSpec);
+            return JsonSerializer.Serialize(packageManifest, _jsonSerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            exceptions.Add(ex);
+        }
 
-        return JsonSerializer.Serialize(packageManifest, _jsonSerializerOptions);
+        try
+        {
+            PackageId packageId = PackageId.Parse(package);
+            PackageSpec packageSpec = await _installService.GetLatestVersion(packageId);
+            PackageManifest packageManifest = await _packageRegistry.GetPackageManifest(packageSpec);
+            return JsonSerializer.Serialize(packageManifest, _jsonSerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            exceptions.Add(ex);
+        }
+
+        throw new AggregateException(
+            $"Failed to parse package '{package}' or retrieve its manifest.", exceptions);
     }
 }

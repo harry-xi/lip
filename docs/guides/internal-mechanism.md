@@ -9,7 +9,7 @@ lip provides two primary entry points:
 1.  **CLI (`lip`)**: The standalone command-line tool. It contains its own logic for package management and **does not** depend on the Daemon.
 2.  **Daemon (`lipd`)**: A separate process designed for external applications (IDEs, GUIs, scripts) to interact with lip programmatically.
 
-Both the CLI and the Daemon share the same core logic (`Lip.Core`), ensuring consistent behavior regardless of which interface is used.
+Both the CLI and the Daemon share the same core logic, ensuring consistent behavior regardless of which interface is used.
 
 The Daemon (`lipd`) communicates via **JSON-RPC over stdio**, allowing tools to integrate with lip without spawning new processes for every command or parsing text output.
 

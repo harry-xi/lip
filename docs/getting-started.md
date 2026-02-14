@@ -24,7 +24,7 @@ Initialize a new project:
 lip init
 ```
 
-This creates a `tooth.json` manifest in the current directory.
+This creates a `tooth.json` manifest file in the current directory.
 
 Install a package:
 

@@ -18,6 +18,6 @@ You can download the latest release from the GitHub releases page or use the ins
 Yes, lip can install packages from private Git repositories using your system's Git credentials (e.g., SSH keys or Credential Manager). It relies on the local Git environment for authentication.
 
 ### Where does lip store installed packages?
-lip installs package files **directly into your workspace** based on the rules defined in `tooth.json`. Unlike some package managers, it does not isolate dependencies in a `node_modules` or `vendor` folder unless the package manifest explicitly specifies those locations.
+lip installs package files **directly into your workspace** based on the rules defined in `tooth.json`. Unlike some package managers, it does not isolate dependencies in a separate folder unless the package manifest explicitly specifies those locations.
 
 The global cache is stored in your system's local application data directory (e.g., `%LOCALAPPDATA%\lip\cache` on Windows, or `~/.local/share/lip/cache` on Linux).

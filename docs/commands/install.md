@@ -16,9 +16,9 @@ lip install <PACKAGES> [options]
 
 Each package argument is parsed in the following order:
 
-1. **Package spec** — `<path>@<version>` (e.g. `github.com/user/repo@1.0.0`)
-2. **Package ID** — `<path>` or `<path>#<variant>` (resolves to latest version)
-3. **Local file** — Path to a local archive file (e.g. `./package.zip`)
+1. **Package Specification** — `<path>@<version>` (e.g. `github.com/user/repo@1.0.0`)
+2. **Package Identifier** — `<path>` or `<path>#<variant>` (resolves to latest version)
+3. **Local File** — Path to a local archive file (e.g. `./package.zip`)
 4. **Remote URL** — URL to a remote archive (e.g. `https://example.com/package.zip`)
 
 Variant can be appended with `#<variant>` (e.g. `github.com/user/repo#my_variant@1.0.0`).

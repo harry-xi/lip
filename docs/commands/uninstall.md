@@ -12,7 +12,7 @@ lip uninstall <PACKAGES> [options]
 
 | Argument | Description |
 | --- | --- |
-| `<PACKAGES>` | The packages to uninstall, specified as package IDs (`<path>` or `<path>#<variant>`). |
+| `<PACKAGES>` | The packages to uninstall, specified as Package Identifiers (`<path>` or `<path>#<variant>`). |
 
 ## Options
 

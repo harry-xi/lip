@@ -22,9 +22,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        assembly-name:
-          - lip
-          - lipd
         runtime:
           - linux-arm64
           - linux-x64
@@ -45,10 +42,6 @@ jobs:
             runs-on: windows-11-arm
           - runtime: win-x64
             runs-on: windows-latest
-          - assembly-name: lip
-            project: Lip.Cli
-          - assembly-name: lipd
-            project: Lip.Daemon
     steps:
       - uses: actions/checkout@v6
         with:
@@ -66,7 +59,15 @@ jobs:
 
       - shell: bash
         run: |
-          dotnet publish src/${{ matrix.project }} \
+          dotnet publish src/Lip.Cli \
+            -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
+            -p:Version=${{ steps.get-version.outputs.VERSION }}
+
+      - shell: bash
+        run: |
+          dotnet publish src/Lip.Daemon \
             -o bin \
             -r ${{ matrix.runtime }} \
             --no-self-contained \
@@ -74,7 +75,7 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
+          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: bin/
 
   check-style:

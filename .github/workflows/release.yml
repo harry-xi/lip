@@ -14,9 +14,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        assembly-name:
-          - lip
-          - lipd
         runtime:
           - linux-arm64
           - linux-x64
@@ -37,10 +34,6 @@ jobs:
             runs-on: windows-11-arm
           - runtime: win-x64
             runs-on: windows-latest
-          - assembly-name: lip
-            project: Lip.Cli
-          - assembly-name: lipd
-            project: Lip.Daemon
     steps:
       - uses: actions/checkout@v6
         with:
@@ -58,7 +51,15 @@ jobs:
 
       - shell: bash
         run: |
-          dotnet publish src/${{ matrix.project }} \
+          dotnet publish src/Lip.Cli \
+            -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
+            -p:Version=${{ steps.get-version.outputs.VERSION }}
+
+      - shell: bash
+        run: |
+          dotnet publish src/Lip.Daemon \
             -o bin \
             -r ${{ matrix.runtime }} \
             --no-self-contained \
@@ -66,7 +67,7 @@ jobs:
 
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
+          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: bin/
 
   update-notes:
@@ -92,9 +93,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        assembly-name:
-          - lip
-          - lipd
         runtime:
           - linux-arm64
           - linux-x64
@@ -114,7 +112,7 @@ jobs:
 
       - uses: actions/download-artifact@v7
         with:
-          name: ${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
+          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: artifact/
 
       - run: |
@@ -123,15 +121,15 @@ jobs:
       - working-directory: artifact
         run: |
           if [[ "${{ matrix.runtime }}" == win* ]]; then
-            zip -r ../${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.zip *
+            zip -r ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.zip *
           else
-            tar -czvf ../${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.tar.gz *
+            tar -czvf ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.tar.gz *
           fi
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ matrix.assembly-name }}-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*
+            lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*
 
   publish-winget:
     needs:
@@ -157,8 +155,8 @@ jobs:
           echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
 
       - run: |
-          $arm64Url = "https://github.com/futrime/lip/releases/download/v${{ steps.get-version.outputs.VERSION }}/${{ matrix.package-name }}-${{ steps.get-version.outputs.VERSION }}-win-arm64.zip"
-          $x64Url = "https://github.com/futrime/lip/releases/download/v${{ steps.get-version.outputs.VERSION }}/${{ matrix.package-name }}-${{ steps.get-version.outputs.VERSION }}-win-x64.zip"
+          $arm64Url = "https://github.com/futrime/lip/releases/download/v${{ steps.get-version.outputs.VERSION }}/lip-${{ steps.get-version.outputs.VERSION }}-win-arm64.zip"
+          $x64Url = "https://github.com/futrime/lip/releases/download/v${{ steps.get-version.outputs.VERSION }}/lip-${{ steps.get-version.outputs.VERSION }}-win-x64.zip"
 
           curl -JLO https://aka.ms/wingetcreate/latest
           .\wingetcreate.exe update "futrime.${{ matrix.package-name }}" `

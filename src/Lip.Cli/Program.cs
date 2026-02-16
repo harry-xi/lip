@@ -1,8 +1,8 @@
 ﻿using Lip.Cli;
 using Lip.Cli.Commands;
-
 using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
+using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -10,9 +10,12 @@ ConsoleUserInteraction userInteraction = new();
 
 LipClient lipClient = await LipClient.Create(userInteraction);
 
-TypeRegistrar registrar = new();
-registrar.RegisterInstance(typeof(ILipClient), lipClient);
-registrar.RegisterInstance(typeof(IUserInteraction), userInteraction);
+ServiceCollection services = new();
+
+services.AddSingleton<ILipClient>(lipClient);
+services.AddSingleton<IUserInteraction>(userInteraction);
+
+TypeRegistrar registrar = new(services);
 
 CommandApp app = new(registrar);
 

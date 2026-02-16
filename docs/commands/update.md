@@ -18,5 +18,5 @@ lip update <PACKAGES> [options]
 
 | Option | Description |
 | --- | --- |
-| `--dry-run` | Run without making any changes. |
+| `-n, --dry-run` | Run without making any changes. |
 | `--ignore-scripts` | Skip running update scripts. |

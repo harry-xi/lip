@@ -16,7 +16,7 @@ public class UpdateCommand(ILipClient lipClient, IUserInteraction userInteractio
         [Description("The packages to update")]
         public required string[] Packages { get; init; }
 
-        [CommandOption("--dry-run")]
+        [CommandOption("-n|--dry-run")]
         [Description("Run without making any changes")]
         public bool DryRun { get; init; }
 

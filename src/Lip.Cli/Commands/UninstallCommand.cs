@@ -16,7 +16,7 @@ public class UninstallCommand(ILipClient lipClient, IUserInteraction userInterac
         [Description("The packages to uninstall")]
         public required string[] Packages { get; init; }
 
-        [CommandOption("--dry-run")]
+        [CommandOption("-n|--dry-run")]
         [Description("Run without making any changes")]
         public bool DryRun { get; init; }
 

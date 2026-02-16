@@ -16,7 +16,7 @@ public class InstallCommand(ILipClient lipClient, IUserInteraction userInteracti
         [Description("The packages to install")]
         public required string[] Packages { get; init; }
 
-        [CommandOption("--dry-run")]
+        [CommandOption("-n|--dry-run")]
         [Description("Run without making any changes")]
         public bool DryRun { get; init; }
 

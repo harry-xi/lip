@@ -45,6 +45,6 @@ lip install https://example.com/package.zip
 
 ## Command Flags
 
--   `--dry-run`: Simulate the installation without making any changes. Useful to see what would happen.
+-   `-n, --dry-run`: Simulate the installation without making any changes. Useful to see what would happen.
 -   `--no-dependencies`: Install only the specified package, ignoring its dependencies.
 -   `--ignore-scripts`: Skip running any `pre-install` or `post-install` scripts defined in the package.

@@ -27,6 +27,6 @@ Variant can be appended with `#<variant>` (e.g. `github.com/user/repo#my_variant
 
 | Option | Description |
 | --- | --- |
-| `--dry-run` | Run without making any changes. |
+| `-n, --dry-run` | Run without making any changes. |
 | `--ignore-scripts` | Skip running install scripts. |
 | `--no-dependencies` | Skip installing dependencies. |

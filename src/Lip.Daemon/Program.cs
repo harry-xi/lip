@@ -1,19 +1,49 @@
-﻿using Lip.Core.PublicApi;
-using Lip.Daemon;
-using StreamJsonRpc;
+﻿using Lip.Daemon;
+using Lip.Daemon.Commands;
+using Microsoft.Extensions.DependencyInjection;
+using Semver;
+using Spectre.Console;
+using Spectre.Console.Cli;
+using System.Reflection;
 
-using JsonRpc rpc = new(
-    Console.OpenStandardInput(),
-    Console.OpenStandardOutput());
+ServiceCollection services = new();
+TypeRegistrar registrar = new(services);
+CommandApp app = new(registrar);
 
-IClientContract clientProxy = rpc.Attach<IClientContract>();
+app.Configure(config =>
+{
+    config.SetApplicationName("lipd");
 
-RpcUserInteraction userInteraction = new(clientProxy);
+    config.SetApplicationVersion(SemVersion.Parse(Assembly
+        .GetEntryAssembly()?
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+        .InformationalVersion!).ToString());
 
-LipClient client = await LipClient.Create(userInteraction);
+    config.SetExceptionHandler((ex, resolver) =>
+    {
+        IAnsiConsole console = AnsiConsole.Create(new()
+        {
+            Out = new AnsiConsoleOutput(Console.Error)
+        });
 
-rpc.AddLocalRpcTarget(client);
+        if (ex is AggregateException agg)
+        {
+            console.WriteException(agg, ExceptionFormats.ShortenEverything);
+            foreach (Exception inner in agg.InnerExceptions)
+            {
+                console.WriteException(inner, ExceptionFormats.ShortenEverything);
+            }
+        }
+        else
+        {
+            console.WriteException(ex, ExceptionFormats.ShortenEverything);
+        }
 
-rpc.StartListening();
+        return 1;
+    });
 
-await rpc.Completion;
+    config.AddCommand<RunCommand>("run")
+        .WithDescription("Runs the daemon");
+});
+
+return await app.RunAsync(args);

@@ -30,6 +30,29 @@ app.Configure(config =>
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
         .InformationalVersion!).ToString());
 
+    config.SetExceptionHandler((ex, resolver) =>
+    {
+        IAnsiConsole console = AnsiConsole.Create(new()
+        {
+            Out = new AnsiConsoleOutput(Console.Error)
+        });
+
+        if (ex is AggregateException agg)
+        {
+            console.WriteException(agg, ExceptionFormats.ShortenEverything);
+            foreach (Exception inner in agg.InnerExceptions)
+            {
+                console.WriteException(inner, ExceptionFormats.ShortenEverything);
+            }
+        }
+        else
+        {
+            console.WriteException(ex, ExceptionFormats.ShortenEverything);
+        }
+
+        return 1;
+    });
+
     config.AddBranch("cache", cache =>
     {
         cache.AddCommand<CacheCleanCommand>("clean")
@@ -71,29 +94,6 @@ app.Configure(config =>
 
     config.AddCommand<VersionsCommand>("versions")
         .WithDescription("Shows available versions for a package");
-
-    config.SetExceptionHandler((ex, resolver) =>
-    {
-        IAnsiConsole console = AnsiConsole.Create(new()
-        {
-            Out = new AnsiConsoleOutput(Console.Error)
-        });
-
-        if (ex is AggregateException agg)
-        {
-            console.WriteException(agg, ExceptionFormats.ShortenEverything);
-            foreach (Exception inner in agg.InnerExceptions)
-            {
-                console.WriteException(inner, ExceptionFormats.ShortenEverything);
-            }
-        }
-        else
-        {
-            console.WriteException(ex, ExceptionFormats.ShortenEverything);
-        }
-
-        return 1;
-    });
 });
 
 return await app.RunAsync(args);

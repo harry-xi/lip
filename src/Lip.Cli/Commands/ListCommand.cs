@@ -29,7 +29,6 @@ public class ListCommand(ILipClient lipClient) : AsyncCommand<ListCommand.Settin
         if (settings.Json)
         {
             AnsiConsole.Write(new Text(JsonSerializer.Serialize(packages, _jsonSerializerOptions)));
-            return 0;
         }
         else
         {
@@ -55,8 +54,8 @@ public class ListCommand(ILipClient lipClient) : AsyncCommand<ListCommand.Settin
 
             AnsiConsole.Write(explicitTree);
             AnsiConsole.Write(implicitTree);
-
-            return 0;
         }
+
+        return 0;
     }
 }

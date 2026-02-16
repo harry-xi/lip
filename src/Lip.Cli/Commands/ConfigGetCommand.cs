@@ -27,7 +27,6 @@ public class ConfigGetCommand(ILipClient lipClient) : AsyncCommand<ConfigGetComm
         if (settings.Json)
         {
             AnsiConsole.Write(new Text(value));
-            return 0;
         }
         else
         {
@@ -38,8 +37,8 @@ public class ConfigGetCommand(ILipClient lipClient) : AsyncCommand<ConfigGetComm
             table.AddRow(settings.Key, value);
 
             AnsiConsole.Write(table);
-
-            return 0;
         }
+
+        return 0;
     }
 }

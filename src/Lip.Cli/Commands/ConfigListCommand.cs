@@ -29,7 +29,6 @@ public class ConfigListCommand(ILipClient lipClient) : AsyncCommand<ConfigListCo
         if (settings.Json)
         {
             AnsiConsole.Write(new Text(JsonSerializer.Serialize(config, _jsonSerializerOptions)));
-            return 0;
         }
         else
         {
@@ -43,8 +42,8 @@ public class ConfigListCommand(ILipClient lipClient) : AsyncCommand<ConfigListCo
             }
 
             AnsiConsole.Write(table);
-
-            return 0;
         }
+
+        return 0;
     }
 }

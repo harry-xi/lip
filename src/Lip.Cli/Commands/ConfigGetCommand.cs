@@ -14,20 +14,32 @@ public class ConfigGetCommand(ILipClient lipClient) : AsyncCommand<ConfigGetComm
         [CommandArgument(0, "<KEY>")]
         [Description("The configuration key to get")]
         public required string Key { get; init; }
+
+        [CommandOption("--json")]
+        [Description("Output as JSON")]
+        public bool Json { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         string value = await _lipClient.ConfigGet(settings.Key);
 
-        Table table = new();
-        table.AddColumn("Key");
-        table.AddColumn("Value");
+        if (settings.Json)
+        {
+            AnsiConsole.Write(new Text(value));
+            return 0;
+        }
+        else
+        {
+            Table table = new();
+            table.AddColumn("Key");
+            table.AddColumn("Value");
 
-        table.AddRow(settings.Key, value);
+            table.AddRow(settings.Key, value);
 
-        AnsiConsole.Write(table);
+            AnsiConsole.Write(table);
 
-        return 0;
+            return 0;
+        }
     }
 }

@@ -1,32 +1,50 @@
 using Lip.Core.PublicApi;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using System.ComponentModel;
+using System.Text.Json;
 
 namespace Lip.Cli.Commands;
 
 public class ConfigListCommand(ILipClient lipClient) : AsyncCommand<ConfigListCommand.Settings>
 {
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true
+    };
+
     private readonly ILipClient _lipClient = lipClient;
 
     public class Settings : CommandSettings
     {
+        [CommandOption("--json")]
+        [Description("Output as JSON")]
+        public bool Json { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         IDictionary<string, string> config = await _lipClient.ConfigList();
 
-        Table table = new();
-        table.AddColumn("Key");
-        table.AddColumn("Value");
-
-        foreach (KeyValuePair<string, string> kvp in config)
+        if (settings.Json)
         {
-            table.AddRow(kvp.Key, kvp.Value);
+            AnsiConsole.Write(new Text(JsonSerializer.Serialize(config, _jsonSerializerOptions)));
+            return 0;
         }
+        else
+        {
+            Table table = new();
+            table.AddColumn("Key");
+            table.AddColumn("Value");
 
-        AnsiConsole.Write(table);
+            foreach (KeyValuePair<string, string> kvp in config)
+            {
+                table.AddRow(kvp.Key, kvp.Value);
+            }
 
-        return 0;
+            AnsiConsole.Write(table);
+
+            return 0;
+        }
     }
 }

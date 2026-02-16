@@ -78,7 +78,7 @@ app.Configure(config =>
         if (ex is AggregateException agg)
         {
             console.WriteException(agg, ExceptionFormats.ShortenEverything);
-            foreach (var inner in agg.InnerExceptions)
+            foreach (Exception inner in agg.InnerExceptions)
             {
                 console.WriteException(inner, ExceptionFormats.ShortenEverything);
             }

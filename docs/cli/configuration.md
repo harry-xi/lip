@@ -20,4 +20,4 @@ The file is created automatically with default values when lip first runs.
 
 ## Management
 
-Use [`lip config`](../commands/config.md) to manage configuration values.
+Use [`lip config`](commands/config.md) to manage configuration values.

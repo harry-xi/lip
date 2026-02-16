@@ -8,13 +8,13 @@ hero:
   actions:
     - theme: brand
       text: Getting Started
-      link: /getting-started
+      link: /intro/quick_start
     - theme: alt
       text: Core Concepts
-      link: /concepts
+      link: /concepts/architecture
     - theme: alt
       text: View Commands
-      link: /commands/install
+      link: /cli/commands/install
 
 features:
   - title: Git-Based Packages

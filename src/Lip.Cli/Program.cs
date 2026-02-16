@@ -70,17 +70,22 @@ app.Configure(config =>
 
     config.SetExceptionHandler((ex, resolver) =>
     {
+        IAnsiConsole console = AnsiConsole.Create(new()
+        {
+            Out = new AnsiConsoleOutput(Console.Error)
+        });
+
         if (ex is AggregateException agg)
         {
-            AnsiConsole.WriteException(agg, ExceptionFormats.ShortenEverything);
+            console.WriteException(agg, ExceptionFormats.ShortenEverything);
             foreach (var inner in agg.InnerExceptions)
             {
-                AnsiConsole.WriteException(inner, ExceptionFormats.ShortenEverything);
+                console.WriteException(inner, ExceptionFormats.ShortenEverything);
             }
         }
         else
         {
-            AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+            console.WriteException(ex, ExceptionFormats.ShortenEverything);
         }
 
         return 1;

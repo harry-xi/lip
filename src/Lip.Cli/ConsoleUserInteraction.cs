@@ -5,29 +5,34 @@ namespace Lip.Cli;
 
 public class ConsoleUserInteraction : IUserInteraction
 {
+    private static readonly IAnsiConsole _console = AnsiConsole.Create(new()
+    {
+        Out = new AnsiConsoleOutput(Console.Error)
+    });
+
     public async Task PrintInfo(string message)
     {
-        AnsiConsole.WriteLine(message);
+        _console.WriteLine(message);
     }
 
     public async Task PrintSuccess(string message)
     {
-        AnsiConsole.MarkupLine($"[green]✓ {message}[/]");
+        _console.MarkupLine($"[green]✓ {message}[/]");
     }
 
     public async Task PrintWarning(string message)
     {
-        AnsiConsole.MarkupLine($"[#FFA500]⚠[/] [yellow]{message}[/]");
+        _console.MarkupLine($"[#FFA500]⚠[/] [yellow]{message}[/]");
     }
 
     public async Task PrintError(string message)
     {
-        AnsiConsole.MarkupLine($"[bold red]✗ {message}[/]");
+        _console.MarkupLine($"[bold red]✗ {message}[/]");
     }
 
     public async Task RunWithProgress(string message, Func<IProgress<double>, Task> action)
     {
-        Progress progress = AnsiConsole.Progress();
+        Progress progress = _console.Progress();
 
         await progress.StartAsync(async ctx =>
             {

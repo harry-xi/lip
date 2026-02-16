@@ -6,9 +6,9 @@ using Lip.Core.PublicApi;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-LipClient lipClient = await LipClient.Create(new ConsoleUserInteraction());
-// Register ConsoleUserInteraction as IUserInteraction
 ConsoleUserInteraction userInteraction = new();
+
+LipClient lipClient = await LipClient.Create(userInteraction);
 
 TypeRegistrar registrar = new();
 registrar.RegisterInstance(typeof(ILipClient), lipClient);

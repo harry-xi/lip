@@ -83,11 +83,11 @@ catch (AggregateException ex)
             ExceptionFormats.ShortenEverything);
     }
 
-    return -1;
+    return 1;
 }
 catch (Exception ex)
 {
     AnsiConsole.WriteException(ex,
         ExceptionFormats.ShortenEverything);
-    return -1;
+    return 1;
 }

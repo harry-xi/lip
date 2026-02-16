@@ -3,8 +3,10 @@ using Lip.Cli.Commands;
 using Lip.Core.Infrastructure;
 using Lip.Core.PublicApi;
 using Microsoft.Extensions.DependencyInjection;
+using Semver;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using System.Reflection;
 
 ConsoleUserInteraction userInteraction = new();
 
@@ -22,6 +24,11 @@ CommandApp app = new(registrar);
 app.Configure(config =>
 {
     config.SetApplicationName("lip");
+
+    config.SetApplicationVersion(SemVersion.Parse(Assembly
+        .GetEntryAssembly()?
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+        .InformationalVersion!).ToString());
 
     config.AddBranch("cache", cache =>
     {
@@ -61,9 +68,6 @@ app.Configure(config =>
 
     config.AddCommand<ViewCommand>("view")
         .WithDescription("Views package details");
-
-    config.AddCommand<VersionCommand>("version")
-        .WithDescription("Shows version information");
 
     config.AddCommand<VersionsCommand>("versions")
         .WithDescription("Shows available versions for a package");

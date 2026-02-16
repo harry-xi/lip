@@ -24,7 +24,6 @@ public interface ILipClient
     Task Migrate(string file, string output);
     Task Uninstall(IEnumerable<string> packages, bool dryRun, bool ignoreScripts, bool noDependencies);
     Task Update(IEnumerable<string> packages, bool dryRun, bool ignoreScripts);
-    Task<string> Version();
     Task<IEnumerable<string>> Versions(string package);
     Task<string> View(string package);
 }
@@ -308,18 +307,6 @@ public class LipClient(
             remotePackages,
             dryRun,
             ignoreScripts);
-    }
-
-    public async Task<string> Version()
-    {
-        string text = Assembly
-            .GetEntryAssembly()?
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion!;
-
-        SemVersion version = SemVersion.Parse(text);
-
-        return version.ToString();
     }
 
     public async Task<IEnumerable<string>> Versions(string package)

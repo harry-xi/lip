@@ -324,13 +324,6 @@ public class LipClientTests
     }
 
     [Fact]
-    public async Task Version_ReturnsString()
-    {
-        string result = await _client.Version();
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
-    }
-    [Fact]
     public async Task Versions_ReturnsVersions_WhenPackageIdProvided()
     {
         PackageId packageId = new("github.com/test/repo", "");

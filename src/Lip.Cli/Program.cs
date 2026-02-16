@@ -65,29 +65,23 @@ app.Configure(config =>
     config.AddCommand<VersionsCommand>("versions")
         .WithDescription("Shows available versions for a package");
 
-    config.PropagateExceptions();
+    config.SetExceptionHandler((ex, resolver) =>
+    {
+        if (ex is AggregateException agg)
+        {
+            AnsiConsole.WriteException(agg, ExceptionFormats.ShortenEverything);
+            foreach (var inner in agg.InnerExceptions)
+            {
+                AnsiConsole.WriteException(inner, ExceptionFormats.ShortenEverything);
+            }
+        }
+        else
+        {
+            AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+        }
+
+        return 1;
+    });
 });
 
-try
-{
-    return await app.RunAsync(args);
-}
-catch (AggregateException ex)
-{
-    AnsiConsole.WriteException(ex,
-        ExceptionFormats.ShortenEverything);
-
-    foreach (var inner in ex.InnerExceptions)
-    {
-        AnsiConsole.WriteException(inner,
-            ExceptionFormats.ShortenEverything);
-    }
-
-    return 1;
-}
-catch (Exception ex)
-{
-    AnsiConsole.WriteException(ex,
-        ExceptionFormats.ShortenEverything);
-    return 1;
-}
+return await app.RunAsync(args);

@@ -2,7 +2,7 @@ using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 
 using Lip.Core.Services;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Moq;
 using Semver;
 using System.IO.Abstractions;
@@ -40,7 +40,7 @@ public class PackageInstallerTests
     {
         // Arrange
         PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
-        PackageArtifact artifact = new(pkgSpec, new Mock<ISourceProvider>().Object);
+        PackageArtifact artifact = new(pkgSpec, new Mock<ISource>().Object);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([pkgSpec]);
@@ -101,15 +101,15 @@ public class PackageInstallerTests
                 ]
             }
             """;
-        Mock<ISourceProvider> mockSourceProvider = new();
-        mockSourceProvider.Setup(p => p.OpenRead("tooth.json"))
+        Mock<ISource> mockSource = new();
+        mockSource.Setup(p => p.OpenRead("tooth.json"))
             .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
 
-        mockSourceProvider.Setup(p => p.Keys).Returns(["file.txt"]);
-        mockSourceProvider.Setup(p => p.OpenRead("file.txt"))
+        mockSource.Setup(p => p.Keys).Returns(["file.txt"]);
+        mockSource.Setup(p => p.OpenRead("file.txt"))
             .ReturnsAsync(new MemoryStream("content"u8.ToArray()));
 
-        PackageArtifact artifact = new(pkgSpec, mockSourceProvider.Object);
+        PackageArtifact artifact = new(pkgSpec, mockSource.Object);
 
         // Act
         await _installer.InstallPackage(artifact, false, false, false);
@@ -146,12 +146,12 @@ public class PackageInstallerTests
             }
             """;
 
-        Mock<ISourceProvider> mockSourceProvider = new();
-        mockSourceProvider.Setup(p => p.OpenRead("tooth.json"))
+        Mock<ISource> mockSource = new();
+        mockSource.Setup(p => p.OpenRead("tooth.json"))
             .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
-        mockSourceProvider.Setup(p => p.Keys).Returns([]);
+        mockSource.Setup(p => p.Keys).Returns([]);
 
-        PackageArtifact artifact = new(pkgSpec, mockSourceProvider.Object);
+        PackageArtifact artifact = new(pkgSpec, mockSource.Object);
 
         // Act
         await _installer.InstallPackage(artifact, false, false, false);

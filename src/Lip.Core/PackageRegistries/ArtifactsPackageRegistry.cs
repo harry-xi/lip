@@ -21,7 +21,7 @@ public class ArtifactsPackageRegistry(IEnumerable<PackageArtifact> packageArtifa
             .Where(pa => pa.Spec == packageSpec)
             .Select(async pa =>
             {
-                using Stream stream = await pa.SourceProvider.OpenRead("tooth.json");
+                using Stream stream = await pa.Source.OpenRead("tooth.json");
 
                 return await PackageManifest.FromStream(stream);
             })

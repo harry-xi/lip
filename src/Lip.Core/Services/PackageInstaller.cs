@@ -2,7 +2,7 @@ using DotNet.Globbing;
 using Flurl;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 
 using System.Diagnostics;
 using System.IO.Abstractions;
@@ -62,7 +62,7 @@ public class PackageInstaller(
         await _userInteraction.PrintInfo(
             $"Installing package {packageArtifact.Spec.Id} version {packageArtifact.Spec.Version}");
 
-        using Stream manifestStream = await packageArtifact.SourceProvider.OpenRead("tooth.json");
+        using Stream manifestStream = await packageArtifact.Source.OpenRead("tooth.json");
         PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
         PackageManifestVariant variant = manifest.GetVariant(packageArtifact.Spec.Id.Variant);
 
@@ -82,17 +82,17 @@ public class PackageInstaller(
 
         foreach (PackageManifestAsset asset in variant.Assets)
         {
-            ISourceProvider assetSourceProvider = asset.Type switch
+            ISource assetSource = asset.Type switch
             {
-                PackageManifestAsset.AssetType.Self => packageArtifact.SourceProvider,
-                PackageManifestAsset.AssetType.Uncompressed => await GetSourceProvider(asset.Urls, isArchive: false),
-                PackageManifestAsset.AssetType.Tar => await GetSourceProvider(asset.Urls, isArchive: true),
-                PackageManifestAsset.AssetType.Tgz => await GetSourceProvider(asset.Urls, isArchive: true),
-                PackageManifestAsset.AssetType.Zip => await GetSourceProvider(asset.Urls, isArchive: true),
+                PackageManifestAsset.AssetType.Self => packageArtifact.Source,
+                PackageManifestAsset.AssetType.Uncompressed => await GetSource(asset.Urls, isArchive: false),
+                PackageManifestAsset.AssetType.Tar => await GetSource(asset.Urls, isArchive: true),
+                PackageManifestAsset.AssetType.Tgz => await GetSource(asset.Urls, isArchive: true),
+                PackageManifestAsset.AssetType.Zip => await GetSource(asset.Urls, isArchive: true),
                 _ => throw new UnreachableException(),
             };
 
-            foreach (string key in assetSourceProvider.Keys)
+            foreach (string key in assetSource.Keys)
             {
                 List<IFileInfo> targetLocations = [];
                 foreach (PackageManifestAssetPlacement placement in asset.Placements)
@@ -133,7 +133,7 @@ public class PackageInstaller(
 
                 foreach (IFileInfo targetLocation in targetLocations)
                 {
-                    using Stream sourceStream = await assetSourceProvider.OpenRead(key);
+                    using Stream sourceStream = await assetSource.OpenRead(key);
                     using Stream targetStream = _fileSystem.CreateFileWithDirectory(targetLocation.FullName);
                     await sourceStream.CopyToAsync(targetStream);
 
@@ -254,7 +254,7 @@ public class PackageInstaller(
         await _workspaceService.RemoveInstalledPackage(existingPackageSpec);
     }
 
-    private async Task<ISourceProvider> GetSourceProvider(IEnumerable<Url> urls, bool isArchive)
+    private async Task<ISource> GetSource(IEnumerable<Url> urls, bool isArchive)
     {
         List<Exception> exceptions = [];
 

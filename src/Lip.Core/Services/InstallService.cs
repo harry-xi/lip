@@ -1,7 +1,7 @@
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 
 using Semver;
 
@@ -266,8 +266,8 @@ public class InstallService(
 
         foreach (PackageSpec packageSpec in packages)
         {
-            ISourceProvider sourceProvider = await _sourceService.Get(packageSpec);
-            PackageArtifact packageArtifact = new(packageSpec, sourceProvider);
+            ISource source = await _sourceService.Get(packageSpec);
+            PackageArtifact packageArtifact = new(packageSpec, source);
 
             packageArtifacts.Add(packageArtifact);
         }
@@ -277,36 +277,36 @@ public class InstallService(
             await _userInteraction.PrintInfo($"Getting available versions for package '{packageId}'...");
 
             PackageSpec latestPackageSpec = await GetLatestVersion(packageId);
-            ISourceProvider sourceProvider = await _sourceService.Get(latestPackageSpec);
-            PackageArtifact packageArtifact = new(latestPackageSpec, sourceProvider);
+            ISource source = await _sourceService.Get(latestPackageSpec);
+            PackageArtifact packageArtifact = new(latestPackageSpec, source);
 
             packageArtifacts.Add(packageArtifact);
         }
 
         foreach (LocalPackageSpec localPackageSpec in localPackages)
         {
-            ISourceProvider sourceProvider = await _sourceService.Get(localPackageSpec);
+            ISource source = await _sourceService.Get(localPackageSpec);
 
-            using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
+            using Stream manifestStream = await source.OpenRead("tooth.json");
             PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
 
             PackageId packageId = new(manifest.Path, localPackageSpec.Variant);
             PackageSpec packageSpec = new(packageId, manifest.Version);
-            PackageArtifact packageArtifact = new(packageSpec, sourceProvider);
+            PackageArtifact packageArtifact = new(packageSpec, source);
 
             packageArtifacts.Add(packageArtifact);
         }
 
         foreach (RemotePackageSpec remotePackageSpec in remotePackages)
         {
-            ISourceProvider sourceProvider = await _sourceService.Get(remotePackageSpec);
+            ISource source = await _sourceService.Get(remotePackageSpec);
 
-            using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
+            using Stream manifestStream = await source.OpenRead("tooth.json");
             PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
 
             PackageId packageId = new(manifest.Path, remotePackageSpec.Variant);
             PackageSpec packageSpec = new(packageId, manifest.Version);
-            PackageArtifact packageArtifact = new(packageSpec, sourceProvider);
+            PackageArtifact packageArtifact = new(packageSpec, source);
 
             packageArtifacts.Add(packageArtifact);
         }

@@ -1,10 +1,10 @@
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
-namespace Lip.Core.Tests.SourceProviders;
+namespace Lip.Core.Tests.Sources;
 
-public class DirectorySourceProviderTests
+public class DirectorySourceTests
 {
     [Fact]
     public void Keys_ReturnsAllFiles()
@@ -18,7 +18,7 @@ public class DirectorySourceProviderTests
             { Path.Combine(testDir, "subdir", "file2.txt"), new MockFileData("content2") }
         });
         IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(testDir);
-        DirectorySourceProvider provider = new(dirInfo);
+        DirectorySource provider = new(dirInfo);
 
         // Act
         List<string> keys = provider.Keys.ToList();
@@ -40,7 +40,7 @@ public class DirectorySourceProviderTests
             { Path.Combine(testDir, "file.txt"), new MockFileData("test content") }
         });
         IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(testDir);
-        DirectorySourceProvider provider = new(dirInfo);
+        DirectorySource provider = new(dirInfo);
 
         // Act
         using Stream stream = await provider.OpenRead("file.txt");
@@ -62,7 +62,7 @@ public class DirectorySourceProviderTests
             { Path.Combine(testDir, "file.txt"), new MockFileData("content") }
         });
         IDirectoryInfo dirInfo = mockFileSystem.DirectoryInfo.New(testDir);
-        DirectorySourceProvider provider = new(dirInfo);
+        DirectorySource provider = new(dirInfo);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => provider.OpenRead("nonexistent.txt"));

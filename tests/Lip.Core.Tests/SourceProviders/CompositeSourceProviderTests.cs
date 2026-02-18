@@ -1,21 +1,21 @@
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Moq;
 
-namespace Lip.Core.Tests.SourceProviders;
+namespace Lip.Core.Tests.Sources;
 
-public class CompositeSourceProviderTests
+public class CompositeSourceTests
 {
     [Fact]
     public void Keys_AggregatesAndDistinctsKeys()
     {
         // Arrange
-        Mock<ISourceProvider> mockProvider1 = new();
+        Mock<ISource> mockProvider1 = new();
         mockProvider1.Setup(p => p.Keys).Returns(["file1.txt", "common.txt"]);
 
-        Mock<ISourceProvider> mockProvider2 = new();
+        Mock<ISource> mockProvider2 = new();
         mockProvider2.Setup(p => p.Keys).Returns(["file2.txt", "common.txt"]);
 
-        CompositeSourceProvider provider = new([mockProvider1.Object, mockProvider2.Object]);
+        CompositeSource provider = new([mockProvider1.Object, mockProvider2.Object]);
 
         // Act
         List<string> keys = provider.Keys.ToList();
@@ -31,15 +31,15 @@ public class CompositeSourceProviderTests
     public async Task OpenRead_ReturnsFromFirstProviderWithKey()
     {
         // Arrange
-        Mock<ISourceProvider> mockProvider1 = new();
+        Mock<ISource> mockProvider1 = new();
         mockProvider1.Setup(p => p.Keys).Returns(["file1.txt"]);
         mockProvider1.Setup(p => p.OpenRead("file1.txt"))
             .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes("content1")));
 
-        Mock<ISourceProvider> mockProvider2 = new();
+        Mock<ISource> mockProvider2 = new();
         mockProvider2.Setup(p => p.Keys).Returns(["file2.txt"]);
 
-        CompositeSourceProvider provider = new([mockProvider1.Object, mockProvider2.Object]);
+        CompositeSource provider = new([mockProvider1.Object, mockProvider2.Object]);
 
         // Act
         using Stream stream = await provider.OpenRead("file1.txt");
@@ -54,7 +54,7 @@ public class CompositeSourceProviderTests
     public async Task OpenRead_KeyNotFound_ThrowsArgumentException()
     {
         // Arrange
-        CompositeSourceProvider provider = new([]);
+        CompositeSource provider = new([]);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => provider.OpenRead("missing"));

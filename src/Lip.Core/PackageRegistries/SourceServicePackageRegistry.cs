@@ -1,6 +1,6 @@
 using Lip.Core.Entities;
 using Lip.Core.Services;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Semver;
 
 namespace Lip.Core.PackageRegistries;
@@ -16,9 +16,9 @@ public class SourceServicePackageRegistry(ISourceService sourceService) : IPacka
 
     public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)
     {
-        ISourceProvider sourceProvider = await _sourceService.Get(packageSpec);
+        ISource source = await _sourceService.Get(packageSpec);
 
-        using Stream manifestStream = await sourceProvider.OpenRead("tooth.json");
+        using Stream manifestStream = await source.OpenRead("tooth.json");
         PackageManifest manifest = await PackageManifest.FromStream(manifestStream);
 
         return manifest;

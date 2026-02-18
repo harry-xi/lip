@@ -1,5 +1,5 @@
 using Lip.Core.Entities;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Moq;
 using Semver;
 
@@ -14,13 +14,13 @@ public class PackageArtifactTests
         PackageId packageId = new("github.com/user/repo", string.Empty);
         SemVersion version = new(1, 0, 0);
         PackageSpec spec = new(packageId, version);
-        Mock<ISourceProvider> mockSourceProvider = new();
+        Mock<ISource> mockSource = new();
 
         // Act
-        PackageArtifact artifact = new(spec, mockSourceProvider.Object);
+        PackageArtifact artifact = new(spec, mockSource.Object);
 
         // Assert
         Assert.Same(spec, artifact.Spec);
-        Assert.Same(mockSourceProvider.Object, artifact.SourceProvider);
+        Assert.Same(mockSource.Object, artifact.Source);
     }
 }

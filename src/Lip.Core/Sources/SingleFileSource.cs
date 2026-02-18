@@ -1,8 +1,8 @@
 using System.IO.Abstractions;
 
-namespace Lip.Core.SourceProviders;
+namespace Lip.Core.Sources;
 
-public class SingleFileSourceProvider(IFileInfo fileInfo) : ISourceProvider
+public class SingleFileSource(IFileInfo fileInfo) : ISource
 {
     private readonly IFileInfo _fileInfo = fileInfo;
 

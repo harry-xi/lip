@@ -2,7 +2,7 @@ using Flurl;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Services;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Moq;
 using Semver;
 using System.IO.Abstractions;
@@ -46,7 +46,7 @@ public class SourceServiceTests
     }
 
     [Fact]
-    public async Task Get_LocalPackageSpec_FileExists_ReturnsArchiveSourceProvider()
+    public async Task Get_LocalPackageSpec_FileExists_ReturnsArchiveSource()
     {
         string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
         string packagePath = Path.Combine(root, "package.zip");
@@ -57,9 +57,9 @@ public class SourceServiceTests
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(packagePath);
         LocalPackageSpec localSpec = new(fileInfo, string.Empty);
 
-        ISourceProvider result = await _service.Get(localSpec);
+        ISource result = await _service.Get(localSpec);
 
-        Assert.IsType<ArchiveSourceProvider>(result);
+        Assert.IsType<ArchiveSource>(result);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class SourceServiceTests
     }
 
     [Fact]
-    public async Task Get_PackageSpec_GitSucceeds_ReturnsDirectorySourceProvider()
+    public async Task Get_PackageSpec_GitSucceeds_ReturnsDirectorySource()
     {
         PackageSpec pkgSpec = new(new PackageId("github.com/test/repo", string.Empty), new SemVersion(1, 0, 0));
         string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
@@ -92,13 +92,13 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.IsAny<string>(), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ReturnsAsync(mockDir);
 
-        ISourceProvider result = await _service.Get(pkgSpec);
+        ISource result = await _service.Get(pkgSpec);
 
-        Assert.IsType<DirectorySourceProvider>(result);
+        Assert.IsType<DirectorySource>(result);
     }
 
     [Fact]
-    public async Task Get_PackageSpec_GitFails_GoModuleProxySucceeds_ReturnsGoModuleArchiveSourceProvider()
+    public async Task Get_PackageSpec_GitFails_GoModuleProxySucceeds_ReturnsGoModuleArchiveSource()
     {
         PackageSpec pkgSpec = new(new PackageId("example.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
         string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
@@ -113,9 +113,9 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        ISourceProvider result = await _service.Get(pkgSpec);
+        ISource result = await _service.Get(pkgSpec);
 
-        Assert.IsType<GoModuleArchiveSourceProvider>(result);
+        Assert.IsType<GoModuleArchiveSource>(result);
     }
 
     [Fact]
@@ -142,9 +142,9 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateDirectory(It.Is<string>(k => k.Contains("ghproxy.com")), It.IsAny<Func<IDirectoryInfo, Task>>()))
             .ReturnsAsync(mockDir);
 
-        ISourceProvider result = await serviceWithProxy.Get(pkgSpec);
+        ISource result = await serviceWithProxy.Get(pkgSpec);
 
-        Assert.IsType<DirectorySourceProvider>(result);
+        Assert.IsType<DirectorySource>(result);
     }
 
     [Fact]
@@ -163,13 +163,13 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        ISourceProvider result = await _service.Get(pkgSpec);
+        ISource result = await _service.Get(pkgSpec);
 
-        Assert.IsType<GoModuleArchiveSourceProvider>(result);
+        Assert.IsType<GoModuleArchiveSource>(result);
     }
 
     [Fact]
-    public async Task Get_RemotePackageSpec_ReturnsArchiveSourceProvider()
+    public async Task Get_RemotePackageSpec_ReturnsArchiveSource()
     {
         string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
         string remotePath = Path.Combine(root, "cache", "remote.zip");
@@ -182,13 +182,13 @@ public class SourceServiceTests
 
         RemotePackageSpec remoteSpec = new(new Url("https://example.com/package.zip"), string.Empty);
 
-        ISourceProvider result = await _service.Get(remoteSpec);
+        ISource result = await _service.Get(remoteSpec);
 
-        Assert.IsType<ArchiveSourceProvider>(result);
+        Assert.IsType<ArchiveSource>(result);
     }
 
     [Fact]
-    public async Task Get_Url_IsArchiveTrue_ReturnsArchiveSourceProvider()
+    public async Task Get_Url_IsArchiveTrue_ReturnsArchiveSource()
     {
         string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
         string filePath = Path.Combine(root, "cache", "file.zip");
@@ -199,13 +199,13 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        ISourceProvider result = await _service.Get(new Url("https://example.com/file.zip"), isArchive: true);
+        ISource result = await _service.Get(new Url("https://example.com/file.zip"), isArchive: true);
 
-        Assert.IsType<ArchiveSourceProvider>(result);
+        Assert.IsType<ArchiveSource>(result);
     }
 
     [Fact]
-    public async Task Get_Url_IsArchiveFalse_ReturnsSingleFileSourceProvider()
+    public async Task Get_Url_IsArchiveFalse_ReturnsSingleFileSource()
     {
         string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
         string filePath = Path.Combine(root, "cache", "file.txt");
@@ -216,8 +216,8 @@ public class SourceServiceTests
         _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
             .ReturnsAsync(mockFile);
 
-        ISourceProvider result = await _service.Get(new Url("https://example.com/file.txt"), isArchive: false);
+        ISource result = await _service.Get(new Url("https://example.com/file.txt"), isArchive: false);
 
-        Assert.IsType<SingleFileSourceProvider>(result);
+        Assert.IsType<SingleFileSource>(result);
     }
 }

@@ -1,10 +1,10 @@
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
-namespace Lip.Core.Tests.SourceProviders;
+namespace Lip.Core.Tests.Sources;
 
-public class SingleFileSourceProviderTests
+public class SingleFileSourceTests
 {
     [Fact]
     public void Keys_ReturnsEmptyStringKey()
@@ -15,7 +15,7 @@ public class SingleFileSourceProviderTests
             { @"C:\test\file.txt", new MockFileData("content") }
         });
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(@"C:\test\file.txt");
-        SingleFileSourceProvider provider = new(fileInfo);
+        SingleFileSource provider = new(fileInfo);
 
         // Act
         List<string> keys = provider.Keys.ToList();
@@ -34,7 +34,7 @@ public class SingleFileSourceProviderTests
             { @"C:\test\file.txt", new MockFileData("file content") }
         });
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(@"C:\test\file.txt");
-        SingleFileSourceProvider provider = new(fileInfo);
+        SingleFileSource provider = new(fileInfo);
 
         // Act
         using Stream stream = await provider.OpenRead("");
@@ -54,7 +54,7 @@ public class SingleFileSourceProviderTests
             { @"C:\test\file.txt", new MockFileData("content") }
         });
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(@"C:\test\file.txt");
-        SingleFileSourceProvider provider = new(fileInfo);
+        SingleFileSource provider = new(fileInfo);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => provider.OpenRead("anykey"));

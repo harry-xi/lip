@@ -1,9 +1,9 @@
 using SharpCompress.Archives;
 using System.IO.Abstractions;
 
-namespace Lip.Core.SourceProviders;
+namespace Lip.Core.Sources;
 
-public class ArchiveSourceProvider(IFileInfo archiveFileInfo) : ISourceProvider
+public class ArchiveSource(IFileInfo archiveFileInfo) : ISource
 {
     private readonly IFileInfo _archiveFileInfo = archiveFileInfo;
 

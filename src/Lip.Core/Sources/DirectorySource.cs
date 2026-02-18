@@ -1,8 +1,8 @@
 using System.IO.Abstractions;
 
-namespace Lip.Core.SourceProviders;
+namespace Lip.Core.Sources;
 
-public class DirectorySourceProvider(IDirectoryInfo directoryInfo) : ISourceProvider
+public class DirectorySource(IDirectoryInfo directoryInfo) : ISource
 {
     private readonly IDirectoryInfo _directoryInfo = directoryInfo;
 

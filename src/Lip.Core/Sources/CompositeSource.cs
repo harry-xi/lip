@@ -1,8 +1,8 @@
-namespace Lip.Core.SourceProviders;
+namespace Lip.Core.Sources;
 
-public class CompositeSourceProvider(IEnumerable<ISourceProvider> providers) : ISourceProvider
+public class CompositeSource(IEnumerable<ISource> providers) : ISource
 {
-    private readonly IEnumerable<ISourceProvider> _providers = providers;
+    private readonly IEnumerable<ISource> _providers = providers;
 
     public IEnumerable<string> Keys => _providers
         .SelectMany(p => p.Keys)
@@ -10,7 +10,7 @@ public class CompositeSourceProvider(IEnumerable<ISourceProvider> providers) : I
 
     public async Task<Stream> OpenRead(string key)
     {
-        foreach (ISourceProvider provider in _providers)
+        foreach (ISource provider in _providers)
         {
             if (provider.Keys.Contains(key))
             {

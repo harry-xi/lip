@@ -1,12 +1,12 @@
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.IO.Compression;
 using System.Text;
 
-namespace Lip.Core.Tests.SourceProviders;
+namespace Lip.Core.Tests.Sources;
 
-public class ArchiveSourceProviderTests
+public class ArchiveSourceTests
 {
     [Fact]
     public async Task Keys_ReturnsAllFileKeys()
@@ -36,7 +36,7 @@ public class ArchiveSourceProviderTests
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        ArchiveSourceProvider provider = new(fileInfo);
+        ArchiveSource provider = new(fileInfo);
 
         // Act
         List<string> keys = provider.Keys.ToList();
@@ -67,7 +67,7 @@ public class ArchiveSourceProviderTests
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        ArchiveSourceProvider provider = new(fileInfo);
+        ArchiveSource provider = new(fileInfo);
 
         // Act
         using Stream stream = await provider.OpenRead("file1.txt");
@@ -95,7 +95,7 @@ public class ArchiveSourceProviderTests
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        ArchiveSourceProvider provider = new(fileInfo);
+        ArchiveSource provider = new(fileInfo);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => provider.OpenRead("nonexistent"));

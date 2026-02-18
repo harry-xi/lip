@@ -2,7 +2,7 @@ using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Moq;
 using Semver;
 
@@ -44,9 +44,9 @@ public class InstallServiceTests
         SemVersion pkgVer = new(1, 0, 0);
         PackageSpec pkgSpec = new(pkgId, pkgVer);
 
-        Mock<ISourceProvider> mockSourceProvider = new();
+        Mock<ISource> mockSource = new();
         _mockSourceService.Setup(s => s.Get(pkgSpec))
-            .ReturnsAsync(mockSourceProvider.Object);
+            .ReturnsAsync(mockSource.Object);
 
         // Act
         await _service.InstallPackages(
@@ -60,7 +60,7 @@ public class InstallServiceTests
 
         // Assert
         _mockPackageInstaller.Verify(i => i.InstallPackage(
-            It.Is<PackageArtifact>(pa => pa.Spec == pkgSpec && pa.SourceProvider == mockSourceProvider.Object),
+            It.Is<PackageArtifact>(pa => pa.Spec == pkgSpec && pa.Source == mockSource.Object),
             false,
             true,
             false), Times.Once);
@@ -94,7 +94,7 @@ public class InstallServiceTests
                 ]
             }
             """;
-        Mock<ISourceProvider> rootProvider = new();
+        Mock<ISource> rootProvider = new();
         rootProvider.Setup(p => p.OpenRead("tooth.json"))
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(rootManifestJson))));
 
@@ -108,7 +108,7 @@ public class InstallServiceTests
                 "variants": [ {} ]
             }
             """;
-        Mock<ISourceProvider> depProvider = new();
+        Mock<ISource> depProvider = new();
         depProvider.Setup(p => p.OpenRead("tooth.json"))
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(depManifestJson))));
 
@@ -161,7 +161,7 @@ public class InstallServiceTests
     {
         // Arrange
         PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
-        Mock<ISourceProvider> mockSourceProvider = new();
+        Mock<ISource> mockSource = new();
 
         string manifestJson = """
             {
@@ -172,10 +172,10 @@ public class InstallServiceTests
                 "variants": [ {} ]
             }
             """;
-        mockSourceProvider.Setup(p => p.OpenRead("tooth.json"))
+        mockSource.Setup(p => p.OpenRead("tooth.json"))
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson))));
 
-        _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSourceProvider.Object);
+        _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSource.Object);
 
         // Act
         await _service.InstallPackages([pkgSpec], [], [], [], dryRun: true, false, false);
@@ -253,7 +253,7 @@ public class InstallServiceTests
         _mockPackageRegistry.Setup(r => r.GetAvailableVersions(pkgId))
             .ReturnsAsync(new[] { v1, v2 }.Order(SemVersion.PrecedenceComparer));
 
-        Mock<ISourceProvider> mockSourceProvider = new();
+        Mock<ISource> mockSource = new();
         // Mock manifest for v2
         string manifestJson = """
             {
@@ -264,10 +264,10 @@ public class InstallServiceTests
                 "variants": [{}]
             }
             """;
-        mockSourceProvider.Setup(p => p.OpenRead("tooth.json"))
+        mockSource.Setup(p => p.OpenRead("tooth.json"))
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson))));
 
-        _mockSourceService.Setup(s => s.Get(pkgSpecV2)).ReturnsAsync(mockSourceProvider.Object);
+        _mockSourceService.Setup(s => s.Get(pkgSpecV2)).ReturnsAsync(mockSource.Object);
 
         await _service.InstallPackages([], [pkgId], [], [], false, false, false);
 
@@ -282,8 +282,8 @@ public class InstallServiceTests
     public async Task InstallPackages_AlreadyExplicitlyInstalled_ThrowsException()
     {
         PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1));
-        Mock<ISourceProvider> mockSourceProvider = new();
-        _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSourceProvider.Object);
+        Mock<ISource> mockSource = new();
+        _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSource.Object);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.Explicit))
             .ReturnsAsync([pkgSpec]);
@@ -298,8 +298,8 @@ public class InstallServiceTests
         PackageSpec pkgSpec1 = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1));
         PackageSpec pkgSpec2 = new(new PackageId("github.com/test/pkg", ""), new SemVersion(2));
 
-        Mock<ISourceProvider> mockSourceProvider = new();
-        _mockSourceService.Setup(s => s.Get(It.IsAny<PackageSpec>())).ReturnsAsync(mockSourceProvider.Object);
+        Mock<ISource> mockSource = new();
+        _mockSourceService.Setup(s => s.Get(It.IsAny<PackageSpec>())).ReturnsAsync(mockSource.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _service.InstallPackages([pkgSpec1, pkgSpec2], [], [], [], false, false, true)); // noDependencies=true to skip solver
@@ -322,7 +322,7 @@ public class InstallServiceTests
             .ReturnsAsync([oldSpec]);
 
         // Setup new package resolution
-        Mock<ISourceProvider> mockSourceProvider = new();
+        Mock<ISource> mockSource = new();
         string manifestJson = """
             {
                 "format_version": 3,
@@ -332,9 +332,9 @@ public class InstallServiceTests
                 "variants": [{}]
             }
             """;
-        mockSourceProvider.Setup(p => p.OpenRead("tooth.json"))
+        mockSource.Setup(p => p.OpenRead("tooth.json"))
             .Returns(() => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson))));
-        _mockSourceService.Setup(s => s.Get(newSpec)).ReturnsAsync(mockSourceProvider.Object);
+        _mockSourceService.Setup(s => s.Get(newSpec)).ReturnsAsync(mockSource.Object);
 
         // Act
         await _service.UpdatePackages([newSpec], [], [], [], false, false);
@@ -354,8 +354,8 @@ public class InstallServiceTests
     public async Task UpdatePackages_NotInstalled_ThrowsException()
     {
         PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(2));
-        Mock<ISourceProvider> mockSourceProvider = new();
-        _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSourceProvider.Object);
+        Mock<ISource> mockSource = new();
+        _mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSource.Object);
 
         _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
             .ReturnsAsync([]); // Nothing installed

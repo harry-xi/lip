@@ -1,6 +1,6 @@
-namespace Lip.Core.SourceProviders;
+namespace Lip.Core.Sources;
 
-public interface ISourceProvider
+public interface ISource
 {
     public IEnumerable<string> Keys { get; }
 

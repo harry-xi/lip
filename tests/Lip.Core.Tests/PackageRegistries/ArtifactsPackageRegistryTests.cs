@@ -1,6 +1,6 @@
 using Lip.Core.Entities;
 using Lip.Core.PackageRegistries;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Moq;
 using Semver;
 
@@ -15,9 +15,9 @@ public class ArtifactsPackageRegistryTests
         PackageId pkgId1 = new("github.com/foo/bar", "");
         PackageId pkgId2 = new("github.com/foo/baz", "");
 
-        PackageArtifact artifact1 = new(new PackageSpec(pkgId1, new SemVersion(1, 0, 0)), Mock.Of<ISourceProvider>());
-        PackageArtifact artifact2 = new(new PackageSpec(pkgId1, new SemVersion(1, 1, 0)), Mock.Of<ISourceProvider>());
-        PackageArtifact artifact3 = new(new PackageSpec(pkgId2, new SemVersion(2, 0, 0)), Mock.Of<ISourceProvider>());
+        PackageArtifact artifact1 = new(new PackageSpec(pkgId1, new SemVersion(1, 0, 0)), Mock.Of<ISource>());
+        PackageArtifact artifact2 = new(new PackageSpec(pkgId1, new SemVersion(1, 1, 0)), Mock.Of<ISource>());
+        PackageArtifact artifact3 = new(new PackageSpec(pkgId2, new SemVersion(2, 0, 0)), Mock.Of<ISource>());
 
         ArtifactsPackageRegistry registry = new([artifact1, artifact2, artifact3]);
 
@@ -51,10 +51,10 @@ public class ArtifactsPackageRegistryTests
             """;
         MemoryStream manifestStream = new(System.Text.Encoding.UTF8.GetBytes(manifestJson));
 
-        Mock<ISourceProvider> mockSourceProvider = new();
-        mockSourceProvider.Setup(p => p.OpenRead("tooth.json")).ReturnsAsync(manifestStream);
+        Mock<ISource> mockSource = new();
+        mockSource.Setup(p => p.OpenRead("tooth.json")).ReturnsAsync(manifestStream);
 
-        PackageArtifact artifact = new(pkgSpec, mockSourceProvider.Object);
+        PackageArtifact artifact = new(pkgSpec, mockSource.Object);
         ArtifactsPackageRegistry registry = new([artifact]);
 
         // Act

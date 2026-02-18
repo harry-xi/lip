@@ -1,12 +1,12 @@
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.IO.Compression;
 using System.Text;
 
-namespace Lip.Core.Tests.SourceProviders;
+namespace Lip.Core.Tests.Sources;
 
-public class GoModuleArchiveSourceProviderTests
+public class GoModuleArchiveSourceTests
 {
     [Fact]
     public async Task Keys_FiltersAndExtractsKeys()
@@ -42,7 +42,7 @@ public class GoModuleArchiveSourceProviderTests
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        GoModuleArchiveSourceProvider provider = new(fileInfo);
+        GoModuleArchiveSource provider = new(fileInfo);
 
         // Act
         List<string> keys = provider.Keys.ToList();
@@ -73,7 +73,7 @@ public class GoModuleArchiveSourceProviderTests
         mockFileSystem.AddFile(path, new MockFileData(archiveBytes));
         IFileInfo fileInfo = mockFileSystem.FileInfo.New(path);
 
-        GoModuleArchiveSourceProvider provider = new(fileInfo);
+        GoModuleArchiveSource provider = new(fileInfo);
 
         // Act
         using Stream stream = await provider.OpenRead("file.txt");

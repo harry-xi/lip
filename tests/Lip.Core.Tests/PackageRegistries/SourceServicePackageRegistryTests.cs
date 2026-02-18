@@ -1,7 +1,7 @@
 using Lip.Core.Entities;
 using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Moq;
 using Semver;
 
@@ -38,11 +38,11 @@ public class SourceServicePackageRegistryTests
             """;
         MemoryStream manifestStream = new(System.Text.Encoding.UTF8.GetBytes(manifestJson));
 
-        Mock<ISourceProvider> mockSourceProvider = new();
-        mockSourceProvider.Setup(p => p.OpenRead("tooth.json")).ReturnsAsync(manifestStream);
+        Mock<ISource> mockSource = new();
+        mockSource.Setup(p => p.OpenRead("tooth.json")).ReturnsAsync(manifestStream);
 
         Mock<ISourceService> mockSourceService = new();
-        mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSourceProvider.Object);
+        mockSourceService.Setup(s => s.Get(pkgSpec)).ReturnsAsync(mockSource.Object);
 
         SourceServicePackageRegistry registry = new(mockSourceService.Object);
 

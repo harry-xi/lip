@@ -2,7 +2,7 @@ using Flurl;
 using Golang.Org.X.Mod;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 using Semver;
 using System.IO.Abstractions;
 
@@ -10,10 +10,10 @@ namespace Lip.Core.Services;
 
 public interface ISourceService
 {
-    Task<ISourceProvider> Get(LocalPackageSpec localPackageSpec);
-    Task<ISourceProvider> Get(PackageSpec packageSpec);
-    Task<ISourceProvider> Get(RemotePackageSpec remotePackageSpec);
-    Task<ISourceProvider> Get(Url url, bool isArchive);
+    Task<ISource> Get(LocalPackageSpec localPackageSpec);
+    Task<ISource> Get(PackageSpec packageSpec);
+    Task<ISource> Get(RemotePackageSpec remotePackageSpec);
+    Task<ISource> Get(Url url, bool isArchive);
 }
 
 public class SourceService(
@@ -33,21 +33,21 @@ public class SourceService(
     private readonly Url? _githubProxy = githubProxy;
     private readonly Url _goModuleProxy = goModuleProxy;
 
-    public async Task<ISourceProvider> Get(LocalPackageSpec localPackageSpec)
+    public async Task<ISource> Get(LocalPackageSpec localPackageSpec)
     {
         if (!localPackageSpec.ArchiveFile.Exists)
         {
             throw new FileNotFoundException($"The specified local package file does not exist: {localPackageSpec.ArchiveFile.FullName}");
         }
 
-        return new ArchiveSourceProvider(localPackageSpec.ArchiveFile);
+        return new ArchiveSource(localPackageSpec.ArchiveFile);
     }
 
-    public async Task<ISourceProvider> Get(PackageSpec packageSpec)
+    public async Task<ISource> Get(PackageSpec packageSpec)
     {
         List<Exception> exceptions = [];
 
-        foreach (Func<Task<ISourceProvider>> sourceFunc in new Func<Task<ISourceProvider>>[]
+        foreach (Func<Task<ISource>> sourceFunc in new Func<Task<ISource>>[]
         {
             () => GetPackageViaGoModuleProxy(packageSpec),
             () => GetPackageViaGit(packageSpec),
@@ -66,12 +66,12 @@ public class SourceService(
         throw new AggregateException($"Failed to retrieve package '{packageSpec}' from all sources.", exceptions);
     }
 
-    public async Task<ISourceProvider> Get(RemotePackageSpec remotePackageSpec)
+    public async Task<ISource> Get(RemotePackageSpec remotePackageSpec)
     {
         return await Get(remotePackageSpec.ArchiveUrl, isArchive: true);
     }
 
-    public async Task<ISourceProvider> Get(Url url, bool isArchive)
+    public async Task<ISource> Get(Url url, bool isArchive)
     {
         IFileInfo archiveFile = await _cacheService.GetOrCreateFile(url, async cacheFile =>
         {
@@ -79,11 +79,11 @@ public class SourceService(
         });
 
         return isArchive
-            ? new ArchiveSourceProvider(archiveFile)
-            : new SingleFileSourceProvider(archiveFile);
+            ? new ArchiveSource(archiveFile)
+            : new SingleFileSource(archiveFile);
     }
 
-    private async Task<ISourceProvider> GetPackageViaGit(PackageSpec packageSpec)
+    private async Task<ISource> GetPackageViaGit(PackageSpec packageSpec)
     {
         Url repoUrl = Url.Parse($"https://{packageSpec.Id.Path}.git");
 
@@ -107,10 +107,10 @@ public class SourceService(
             await _gitRunner.Clone(repoUrl, cacheDir.FullName, branch: @ref);
         });
 
-        return new DirectorySourceProvider(repoDir);
+        return new DirectorySource(repoDir);
     }
 
-    private async Task<ISourceProvider> GetPackageViaGoModuleProxy(PackageSpec packageSpec)
+    private async Task<ISource> GetPackageViaGoModuleProxy(PackageSpec packageSpec)
     {
         SemVersion version = (packageSpec.Version.Major >= 2)
             ? packageSpec.Version.WithMetadata("incompatible")
@@ -128,6 +128,6 @@ public class SourceService(
             await _fileDownloader.DownloadFile(archiveUrl, cacheFile);
         });
 
-        return new GoModuleArchiveSourceProvider(archiveFile);
+        return new GoModuleArchiveSource(archiveFile);
     }
 }

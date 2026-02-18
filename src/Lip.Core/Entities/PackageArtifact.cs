@@ -1,7 +1,7 @@
-using Lip.Core.SourceProviders;
+using Lip.Core.Sources;
 
 namespace Lip.Core.Entities;
 
 public record PackageArtifact(
     PackageSpec Spec,
-    ISourceProvider SourceProvider);
+    ISource Source);

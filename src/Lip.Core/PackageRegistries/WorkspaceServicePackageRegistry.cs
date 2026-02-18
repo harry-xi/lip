@@ -14,7 +14,6 @@ public class WorkspaceServicePackageRegistry(IWorkspaceService workspaceService)
             .SingleOrDefault(p => p.Id == packageId) is not PackageSpec packageSpec)
         {
             return Enumerable.Empty<SemVersion>().Order(SemVersion.PrecedenceComparer);
-
         }
 
         return new[] { packageSpec.Version }.Order(SemVersion.PrecedenceComparer);

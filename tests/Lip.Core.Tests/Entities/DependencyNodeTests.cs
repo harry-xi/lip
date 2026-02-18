@@ -12,10 +12,10 @@ public class DependencyNodeTests
         PackageId packageId = new("github.com/user/repo", string.Empty);
         SemVersion version = new(1, 0, 0);
         PackageSpec spec = new(packageId, version);
-        List<PackageReqt> reqts = new()
-        {
+        List<PackageReqt> reqts =
+        [
             new PackageReqt(new PackageId("github.com/other/dep", string.Empty), SemVersionRange.Parse("1.0.0"))
-        };
+        ];
 
         // Act
         DependencyNode node = new(spec, reqts);

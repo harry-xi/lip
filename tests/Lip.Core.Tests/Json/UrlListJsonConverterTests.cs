@@ -24,7 +24,7 @@ public class UrlListJsonConverterTests
     [Fact]
     public void Write_ValidUrlList_WritesArray()
     {
-        List<Url> urls = new() { new Url("https://example.com/1"), new Url("https://example.com/2") };
+        List<Url> urls = [new Url("https://example.com/1"), new Url("https://example.com/2")];
         string result = JsonSerializer.Serialize(urls, _options);
         Assert.Equal("[\"https://example.com/1\",\"https://example.com/2\"]", result);
     }

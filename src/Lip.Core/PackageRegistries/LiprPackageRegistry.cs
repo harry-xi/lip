@@ -1,9 +1,11 @@
 using Flurl;
+using Flurl.Http;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Services;
 using Semver;
 using System.IO.Abstractions;
+using System.Text.Json;
 
 namespace Lip.Core.PackageRegistries;
 
@@ -15,7 +17,15 @@ public class LiprPackageRegistry(IFileDownloader fileDownloader, ICacheService c
 
     public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
     {
-        throw new NotSupportedException();
+        Url url = Url.Parse($"https://lipr.levimc.org/index.json");
+
+        using Stream stream = await url.GetStreamAsync();
+
+        PackageIndex index = JsonSerializer.Deserialize<PackageIndex>(stream)!;
+
+        return index.Packages
+            .Single(p => p.Path == packageId.Path).Versions
+            .Order(SemVersion.PrecedenceComparer);
     }
 
     public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)

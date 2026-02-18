@@ -28,7 +28,7 @@ public class WorkspaceServiceTests
         SemVersion version = new(1, 0, 0);
         PackageSpec pkgSpec = new(pkgId, version);
         PackageManifest manifest = new() { Path = "github.com/foo/bar", Version = version, Variants = [new()] };
-        List<string> files = new() { @"C:\lip\plugins\foo.dll" };
+        List<string> files = [@"C:\lip\plugins\foo.dll"];
         List<IFileInfo> fileInfoList = files.Select(f => _fileSystem.FileInfo.New(f)).ToList();
 
         await _service.AddInstalledPackage(pkgSpec, manifest, fileInfoList, true);

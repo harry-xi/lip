@@ -17,14 +17,14 @@ public class GitPackageRegistryTests
         Url repoUrl = Url.Parse("https://github.com/test/pkg.git");
 
         Mock<IGitRunner> mockGitRunner = new();
-        List<(string Sha, string Ref)> refs = new()
-        {
+        List<(string Sha, string Ref)> refs =
+        [
             ("hash1", "refs/tags/v1.0.0"),
             ("hash2", "refs/tags/v1.1.0-beta.1"),
             ("hash3", "refs/tags/v2.0.0"),
             ("hash4", "refs/tags/not-a-version"),
             ("hash5", "refs/heads/main")
-        };
+        ];
 
         mockGitRunner.Setup(r => r.LsRemote(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
             .ReturnsAsync(refs);

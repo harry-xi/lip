@@ -1,43 +1,63 @@
 {
 	"$schema": "https://json-schema.org/draft-07/schema#",
 	"type": "object",
-	"patternProperties": {
-		"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]+$": {
-			"type": "object",
-			"properties": {
-				"info": {
-					"type": "object",
-					"properties": {
-						"name": {
-							"type": "string"
-						},
-						"description": {
-							"type": "string"
-						},
-						"tags": {
-							"type": "array",
-							"items": {
-								"type": "string",
-								"pattern": "^[a-z0-9-]+(:[a-z0-9-]+)?$"
+	"properties": {
+		"format_version": {
+			"type": "integer",
+			"const": 3
+		},
+		"format_uuid": {
+			"type": "string",
+			"const": "289f771f-2c9a-4d73-9f3f-8492495a924d"
+		},
+		"packages": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"tooth": {
+						"type": "string",
+						"pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)*[a-z0-9][a-z0-9-]*[a-z0-9](?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*$"
+					},
+					"info": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string"
+							},
+							"description": {
+								"type": "string"
+							},
+							"tags": {
+								"type": "array",
+								"items": {
+									"type": "string",
+									"pattern": "^[a-z0-9-]+(:[a-z0-9-]+)?$"
+								}
+							},
+							"avatar_url": {
+								"type": "string"
 							}
-						},
-						"avatar_url": {
-							"type": "string"
+						}
+					},
+					"versions": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
 						}
 					}
 				},
-				"versions": {
-					"type": "array",
-					"items": {
-						"type": "string",
-						"pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
-					}
-				}
-			},
-			"required": [
-				"info",
-				"versions"
-			]
+				"required": [
+					"info",
+					"versions"
+				]
+			}
 		}
-	}
+	},
+	"required": [
+		"format_version",
+		"format_uuid",
+		"packages"
+	]
 }

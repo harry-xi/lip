@@ -24,7 +24,7 @@ public class GlobListJsonConverterTests
     [Fact]
     public void Write_ValidGlobList_WritesArray()
     {
-        List<Glob> globs = new() { Glob.Parse("*.txt"), Glob.Parse("**/*.cs") };
+        List<Glob> globs = [Glob.Parse("*.txt"), Glob.Parse("**/*.cs")];
         string result = JsonSerializer.Serialize(globs, _options);
         Assert.Equal("[\"*.txt\",\"**/*.cs\"]", result);
     }

@@ -1,3 +1,4 @@
+using Flurl.Http.Testing;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
@@ -12,12 +13,33 @@ namespace Lip.Core.Tests.PackageRegistries;
 public class LiprPackageRegistryTests
 {
     [Fact]
-    public async Task GetAvailableVersions_ThrowsNotSupportedException()
+    public async Task GetAvailableVersions_ReturnsSortedVersionsFromIndex()
     {
+        using HttpTest httpTest = new();
         var mockDownloader = new Mock<IFileDownloader>();
         var mockCache = new Mock<ICacheService>();
         LiprPackageRegistry registry = new(mockDownloader.Object, mockCache.Object);
-        await Assert.ThrowsAsync<NotSupportedException>(() => registry.GetAvailableVersions(PackageId.Parse("github.com/test/repo")));
+
+        httpTest.RespondWith("""
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "packages": [
+                    {
+                        "tooth": "github.com/test/repo",
+                        "info": { "name": "Test Package" },
+                        "versions": ["1.2.0", "1.0.0", "1.1.0"]
+                    }
+                ]
+            }
+            """);
+
+        List<SemVersion> versions = (await registry.GetAvailableVersions(PackageId.Parse("github.com/test/repo"))).ToList();
+
+        Assert.Equal(3, versions.Count);
+        Assert.Equal(SemVersion.Parse("1.0.0"), versions[0]);
+        Assert.Equal(SemVersion.Parse("1.1.0"), versions[1]);
+        Assert.Equal(SemVersion.Parse("1.2.0"), versions[2]);
     }
 
     [Fact]

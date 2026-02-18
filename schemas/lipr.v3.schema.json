@@ -38,7 +38,20 @@
 							"avatar_url": {
 								"type": "string"
 							}
-						}
+						},
+						"required": [
+							"name",
+							"description",
+							"tags",
+							"avatar_url"
+						 ]
+					},
+					"stars": {
+						"type": "integer"
+					},
+					"updated": {
+						"type": "string",
+						"format": "date-time"
 					},
 					"versions": {
 						"type": "array",
@@ -50,6 +63,8 @@
 				},
 				"required": [
 					"info",
+					"stars",
+					"updated",
 					"versions"
 				]
 			}

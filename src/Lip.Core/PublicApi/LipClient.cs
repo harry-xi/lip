@@ -6,7 +6,6 @@ using Lip.Core.PackageRegistries;
 using Lip.Core.Services;
 using Semver;
 using System.IO.Abstractions;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Lip.Core.PublicApi;

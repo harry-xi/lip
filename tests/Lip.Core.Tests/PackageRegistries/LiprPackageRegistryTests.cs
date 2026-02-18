@@ -65,7 +65,7 @@ public class LiprPackageRegistryTests
         Assert.Equal(version, result.Version);
 
         // Verify that GetOrCreateFile was called with the correct URL
-        string expectedUrl = $"https://lipr.levimc.org/{pkgId.Path}/v{version}/tooth.json";
+        string expectedUrl = $"https://lipr.levimc.org/{pkgId.Path}/{version}/tooth.json";
         mockCache.Verify(c => c.GetOrCreateFile(
             expectedUrl,
             It.IsAny<Func<IFileInfo, Task>>()),

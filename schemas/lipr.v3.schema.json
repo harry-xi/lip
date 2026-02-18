@@ -1,0 +1,43 @@
+{
+	"$schema": "https://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"patternProperties": {
+		"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]+$": {
+			"type": "object",
+			"properties": {
+				"info": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"type": "string"
+						},
+						"description": {
+							"type": "string"
+						},
+						"tags": {
+							"type": "array",
+							"items": {
+								"type": "string",
+								"pattern": "^[a-z0-9-]+(:[a-z0-9-]+)?$"
+							}
+						},
+						"avatar_url": {
+							"type": "string"
+						}
+					}
+				},
+				"versions": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+					}
+				}
+			},
+			"required": [
+				"info",
+				"versions"
+			]
+		}
+	}
+}

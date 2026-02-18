@@ -1,5 +1,4 @@
 using Flurl;
-using Flurl.Http;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
 using Lip.Core.Services;
@@ -22,7 +21,7 @@ public class LiprPackageRegistry(IFileDownloader fileDownloader, ICacheService c
     public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)
     {
         Url url = Url.Parse(
-            $"https://lipr.levimc.org/{packageSpec.Id.Path}/v{packageSpec.Version}/tooth.json");
+            $"https://lipr.levimc.org/{packageSpec.Id.Path}/{packageSpec.Version}/tooth.json");
 
         IFileInfo file = await _cacheService.GetOrCreateFile(url, async cacheFile =>
         {

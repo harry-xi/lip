@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.0] - 2026-02-21
+
+### Added
+
+- Support latest lipr index format with package metadata and version info in dict form
+- Support getting versions from lipr
+- Support latest lipr schema
+- Add CLI for lipd
+- Add `--version` option to show version information
+- Support shorthand option for `--dry-run` across install, uninstall, and update commands
+- Add `--json` for `lip versions` command
+- Support `--json` output for config and list commands
+- Add `lip versions` and support package id in `lip view`
+- Publish to winget when releasing
+
+### Changed
+
+- Update variant label format
+- Rename schemas
+- Rename source provider to source
+- Log messages to stderr instead of stdout
+- Use Microsoft.Extensions.DependencyInjection for type registration and resolution
+- Better exception handling in CLI app
+- Merge lip and lipd releases into one
+- Update lipr schema to include stars and updated fields
+- Documentation improvements
+
+### Fixed
+
+- Avoid duplicate ConsoleUserInteraction instance creation
+- Return consistent error code in exception handling
+- `lip` client `list()` method should return string
+
 ## [0.33.0-beta.2] - 2026-02-13
 
 ### Added
@@ -654,6 +687,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#218]: https://github.com/futrime/lip/issues/218
 [#282]: https://github.com/futrime/lip/issues/282
 
+[0.33.0]: https://github.com/futrime/lip/compare/v0.33.0-beta.2...v0.33.0
 [0.33.0-beta.2]: https://github.com/futrime/lip/compare/v0.33.0-beta.1...v0.33.0-beta.2
 [0.33.0-beta.1]: https://github.com/futrime/lip/compare/v0.32.0...v0.33.0-beta.1
 [0.32.0]: https://github.com/futrime/lip/compare/v0.31.0...v0.32.0

@@ -10,7 +10,7 @@ public class RemotePackageSpecTests
     {
         // Arrange
         Url url = new("https://example.com/package.zip");
-        string variant = "valid_variant";
+        string variant = "valid-variant";
 
         // Act
         RemotePackageSpec spec = new(url, variant);

@@ -23,15 +23,14 @@ public class LiprPackageRegistry(IFileDownloader fileDownloader, ICacheService c
 
         PackageIndex index = JsonSerializer.Deserialize<PackageIndex>(stream)!;
 
-        return index.Packages
-            .Single(p => p.Path == packageId.Path).Versions
+        return index.Packages[packageId.Path].Versions.Keys
             .Order(SemVersion.PrecedenceComparer);
     }
 
     public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)
     {
         Url url = Url.Parse(
-            $"https://lipr.levimc.org/{packageSpec.Id.Path}/{packageSpec.Version}/tooth.json");
+            $"https://lipr.levimc.org/{packageSpec.Id.Path}/@v/{packageSpec.Version}/tooth.json");
 
         IFileInfo file = await _cacheService.GetOrCreateFile(url, async cacheFile =>
         {

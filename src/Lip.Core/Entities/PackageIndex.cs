@@ -38,5 +38,5 @@ public record PackageIndex
     }
 
     [JsonPropertyName("packages")]
-    public required List<PackageIndexPackage> Packages { get; init; }
+    public required Dictionary<string, PackageIndexPackage> Packages { get; init; }
 }

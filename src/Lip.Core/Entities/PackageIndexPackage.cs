@@ -6,13 +6,16 @@ namespace Lip.Core.Entities;
 
 public record PackageIndexPackage
 {
-    [JsonPropertyName("tooth")]
-    public required string Path { get; init; }
-
     [JsonPropertyName("info")]
     public required PackageManifestInfo Info { get; init; }
 
-    [JsonConverter(typeof(SemVersionListJsonConverter))]
+    [JsonPropertyName("updated_at")]
+    public required DateTime UpdatedAt { get; init; }
+
+    [JsonPropertyName("stars")]
+    public required int Stars { get; init; }
+
+    [JsonConverter(typeof(SemVersionKeyStringListDictJsonConverter))]
     [JsonPropertyName("versions")]
-    public required List<SemVersion> Versions { get; init; }
+    public required Dictionary<SemVersion, List<string>> Versions { get; init; }
 }

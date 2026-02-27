@@ -79,7 +79,7 @@ jobs:
           path: bin/
 
   check-style:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:

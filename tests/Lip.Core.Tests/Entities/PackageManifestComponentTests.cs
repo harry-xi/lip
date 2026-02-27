@@ -78,7 +78,7 @@ public class PackageManifestInfoTests
         Assert.Equal("", info.Name);
         Assert.Equal("", info.Description);
         Assert.Empty(info.Tags);
-        Assert.Null(info.AvatarUrl);
+        Assert.Equal("", info.AvatarUrl);
     }
 
     [Fact]

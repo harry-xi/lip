@@ -56,7 +56,7 @@ public class PackageManifestMigrationTests
                 "name": "HelperLib",
                 "description": "TypeScript.d.ts file with auto-completion and code hints for LiteLScript developers",
                 "tags": [],
-                "avatar_url": null
+                "avatar_url": ""
               },
               "variants": [
                 {
@@ -159,7 +159,7 @@ public class PackageManifestMigrationTests
                 "name": "LeviLamina",
                 "description": "A lightweight, modular and versatile mod loader for Minecraft Bedrock Edition.",
                 "tags": [],
-                "avatar_url": null
+                "avatar_url": ""
               },
               "variants": [
                 {

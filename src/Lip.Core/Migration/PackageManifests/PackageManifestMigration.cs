@@ -98,8 +98,8 @@ public static class PackageManifestMigration
                 Description = manifestV2.Info.Description,
                 Tags = manifestV2.Info.Tags,
                 AvatarUrl = manifestV2.Info.AvatarUrl is null
-                    ? null
-                    : new Flurl.Url(System.Text.RegularExpressions.Regex.Replace(manifestV2.Info.AvatarUrl, @"\$\(([^)]+?)\)", "{{$1}}"))
+                    ? ""
+                    : System.Text.RegularExpressions.Regex.Replace(manifestV2.Info.AvatarUrl, @"\$\(([^)]+?)\)", "{{$1}}")
             },
             Variants = []
         };

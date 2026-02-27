@@ -318,15 +318,23 @@
       "PackageId": {
         "type": "object",
         "properties": {
-          "Path": { "type": "string" },
-          "Variant": { "type": "string" }
+          "Path": {
+            "type": "string"
+          },
+          "Variant": {
+            "type": "string"
+          }
         }
       },
       "PackageSpec": {
         "type": "object",
         "properties": {
-          "Id": { "$ref": "#/components/schemas/PackageId" },
-          "Version": { "type": "string" } 
+          "Id": {
+            "$ref": "#/components/schemas/PackageId"
+          },
+          "Version": {
+            "type": "string"
+          }
         }
       }
     }

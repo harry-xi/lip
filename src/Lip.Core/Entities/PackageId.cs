@@ -33,6 +33,6 @@ public partial record PackageId(string Path, string Variant)
     [GeneratedRegex(@"^(?<path>[^#]+)(?:#(?<label>[^#]*))?$")]
     private static partial Regex SelfRegex();
 
-    [GeneratedRegex(@"^([a-z0-9-]+(/[a-z0-9-]+)?)?$")]
+    [GeneratedRegex(@"^([a-z0-9_]+(/[a-z0-9_]+)?)?$")]
     private static partial Regex VariantRegex();
 }

@@ -76,7 +76,7 @@ public record PackageManifest
         List<PackageManifestVariant> matchingVariants = [];
         foreach (PackageManifestVariant variant in Variants)
         {
-            if (!(label == variant.Label) && !Glob.Parse(variant.Label).IsMatch(label))
+            if (label != variant.Label)
             {
                 continue;
             }

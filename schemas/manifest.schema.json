@@ -11,12 +11,10 @@
       "const": "289f771f-2c9a-4d73-9f3f-8492495a924d"
     },
     "tooth": {
-      "type": "string",
-      "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)*[a-z0-9][a-z0-9-]*[a-z0-9](?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*$"
+      "type": "string"
     },
     "version": {
-      "type": "string",
-      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+      "type": "string"
     },
     "info": {
       "type": "object",
@@ -46,17 +44,15 @@
         "properties": {
           "label": {
             "type": "string",
-            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$"
+            "pattern": "^([a-z0-9_]+(/[a-z0-9_]+)?)?$"
           },
           "platform": {
             "type": "string"
           },
           "dependencies": {
             "type": "object",
-            "patternProperties": {
-              "^.*$": {
-                "type": "string"
-              }
+            "additionalProperties": {
+              "type": "string"
             }
           },
           "assets": {

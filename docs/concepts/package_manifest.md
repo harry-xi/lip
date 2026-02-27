@@ -73,11 +73,11 @@ The package manifest file `tooth.json` defines a lip package.
 
 ### Variant
 
-A variant defines platform-specific or labeled package configurations. When resolving a variant, lip merges all variants whose `label` and `platform` match (supports glob patterns).
+A variant defines platform-specific or labeled package configurations. When resolving a variant, lip merges all variants whose `label` and `platform` match.
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `label` | `string` | `""` | Variant label. Supports glob matching. |
+| `label` | `string` | `""` | Variant label. |
 | `platform` | `string` | `""` | Target platform ([.NET RID](https://learn.microsoft.com/dotnet/core/rid-catalog)). Empty matches all. Supports glob matching. |
 | `dependencies` | `object` | `{}` | Map of package ID to [semver range](https://github.com/maxhauser/semver#ranges). |
 | `assets` | `array` | `[]` | Asset definitions. See [Asset](#asset). |

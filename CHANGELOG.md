@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.1] - 2026-02-27
+
+### Changed
+
+- Adapt to latest lipr format
+
+### Fixed
+
+- Fix variant label support
+- Fix downloading via GitHub proxies
+- Fix irregular error printing for aggregate exceptions
+- Fix `$ref` usage in schema docs
+
 ## [0.33.0] - 2026-02-21
 
 ### Added
@@ -687,6 +700,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#218]: https://github.com/futrime/lip/issues/218
 [#282]: https://github.com/futrime/lip/issues/282
 
+[0.33.1]: https://github.com/futrime/lip/compare/v0.33.0...v0.33.1
 [0.33.0]: https://github.com/futrime/lip/compare/v0.33.0-beta.2...v0.33.0
 [0.33.0-beta.2]: https://github.com/futrime/lip/compare/v0.33.0-beta.1...v0.33.0-beta.2
 [0.33.0-beta.1]: https://github.com/futrime/lip/compare/v0.32.0...v0.33.0-beta.1

@@ -15,7 +15,7 @@ The file is created automatically with default values when lip first runs.
 
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
-| `github_proxy` | `string?` | `null` | Proxy URL for GitHub API requests. |
+| `github_proxy` | `string?` | `null` | Proxy URL for GitHub requests and downloads. |
 | `go_module_proxy` | `string` | `"https://goproxy.io"` | Go module proxy URL for package resolution. |
 
 ## Management

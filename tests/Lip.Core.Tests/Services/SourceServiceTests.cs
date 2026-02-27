@@ -220,4 +220,95 @@ public class SourceServiceTests
 
         Assert.IsType<SingleFileSource>(result);
     }
+
+    [Fact]
+    public async Task Get_Url_GithubProxyConfigured_ProxyFails_FallsBackToOriginalUrl()
+    {
+        SourceService serviceWithProxy = new(
+            _mockFileDownloader.Object,
+            _mockGitRunner.Object,
+            _mockUserInteraction.Object,
+            _mockCacheService.Object,
+            githubProxy: new Url("https://github.bibk.top"),
+            goModuleProxy: new Url("https://proxy.golang.org"));
+
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string filePath = Path.Combine(root, "cache", "file.zip");
+        MockFileSystem mockFs = new();
+        mockFs.AddFile(filePath, new MockFileData("content"));
+        IFileInfo mockFile = mockFs.FileInfo.New(filePath);
+
+        _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
+            .Returns(async (string key, Func<IFileInfo, Task> factory) =>
+            {
+                await factory(mockFile);
+                return mockFile;
+            });
+
+        MockSequence sequence = new();
+
+        _mockFileDownloader.InSequence(sequence)
+            .Setup(d => d.DownloadFile(
+                It.Is<Url>(u => u.Host == "github.bibk.top"),
+                It.IsAny<IFileInfo>()))
+            .ThrowsAsync(new HttpRequestException("proxy failed"));
+
+        _mockFileDownloader.InSequence(sequence)
+            .Setup(d => d.DownloadFile(
+                It.Is<Url>(u => u.Host == "github.com"),
+                It.IsAny<IFileInfo>()))
+            .Returns(Task.CompletedTask);
+
+        ISource result = await serviceWithProxy.Get(
+            new Url("https://github.com/LiteLDev/LeviLamina/releases/download/v1.9.6/levilamina.zip"),
+            isArchive: true);
+
+        Assert.IsType<ArchiveSource>(result);
+        _mockFileDownloader.Verify(d => d.DownloadFile(
+            It.Is<Url>(u => u.Host == "github.bibk.top"),
+            It.IsAny<IFileInfo>()), Times.Once);
+        _mockFileDownloader.Verify(d => d.DownloadFile(
+            It.Is<Url>(u => u.Host == "github.com"),
+            It.IsAny<IFileInfo>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Get_Url_WithProxyAndNonGithubUrl_DoesNotRewriteUrl()
+    {
+        SourceService serviceWithProxy = new(
+            _mockFileDownloader.Object,
+            _mockGitRunner.Object,
+            _mockUserInteraction.Object,
+            _mockCacheService.Object,
+            githubProxy: new Url("https://github.bibk.top"),
+            goModuleProxy: new Url("https://proxy.golang.org"));
+
+        string root = Path.GetPathRoot(Environment.CurrentDirectory) ?? "/";
+        string filePath = Path.Combine(root, "cache", "file.zip");
+        MockFileSystem mockFs = new();
+        mockFs.AddFile(filePath, new MockFileData("content"));
+        IFileInfo mockFile = mockFs.FileInfo.New(filePath);
+
+        _mockCacheService.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
+            .Returns(async (string key, Func<IFileInfo, Task> factory) =>
+            {
+                await factory(mockFile);
+                return mockFile;
+            });
+
+        _mockFileDownloader.Setup(d => d.DownloadFile(It.IsAny<Url>(), It.IsAny<IFileInfo>()))
+            .Returns(Task.CompletedTask);
+
+        Url originalUrl = new("https://example.com/file.zip");
+
+        ISource result = await serviceWithProxy.Get(originalUrl, isArchive: true);
+
+        Assert.IsType<ArchiveSource>(result);
+        _mockFileDownloader.Verify(d => d.DownloadFile(
+            It.Is<Url>(u => u.ToString() == originalUrl.ToString()),
+            It.IsAny<IFileInfo>()), Times.Once);
+        _mockFileDownloader.Verify(d => d.DownloadFile(
+            It.Is<Url>(u => u.Host == "github.bibk.top"),
+            It.IsAny<IFileInfo>()), Times.Never);
+    }
 }

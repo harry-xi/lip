@@ -116,13 +116,13 @@ public class WorkspaceStatePackageTests
             Files = [],
             IsExplicit = true,
             Manifest = manifest,
-            Variant = "win-x64"
+            Variant = "win_x64"
         };
 
         PackageSpec spec = pkg.GetPackageSpec();
 
         Assert.Equal("github.com/test/pkg", spec.Id.Path);
-        Assert.Equal("win-x64", spec.Id.Variant);
+        Assert.Equal("win_x64", spec.Id.Variant);
         Assert.Equal(new SemVersion(1, 0, 0), spec.Version);
     }
 

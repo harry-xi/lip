@@ -6,7 +6,7 @@ public class PackageIdTests
 {
     [Theory]
     [InlineData("github.com/user/repo", "")]
-    [InlineData("github.com/user/pkg", "win-x64")]
+    [InlineData("github.com/user/pkg", "win_x64")]
     public void Constructor_ValidInputs_CreatesInstance(string path, string variant)
     {
         // Act

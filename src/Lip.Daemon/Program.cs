@@ -26,12 +26,23 @@ app.Configure(config =>
             Out = new AnsiConsoleOutput(Console.Error)
         });
 
-        if (ex is AggregateException agg)
+        if (ex is AggregateException aggregateException)
         {
-            console.WriteException(agg, ExceptionFormats.ShortenEverything);
-            foreach (Exception inner in agg.InnerExceptions)
+            AggregateException flattenedException = aggregateException.Flatten();
+
+            if (flattenedException.InnerExceptions.Count == 1)
             {
-                console.WriteException(inner, ExceptionFormats.ShortenEverything);
+                console.WriteException(flattenedException.InnerExceptions[0], ExceptionFormats.ShortenEverything);
+            }
+            else
+            {
+                console.MarkupLine($"[red]Unhandled aggregate exception ({flattenedException.InnerExceptions.Count} inner exceptions)[/]");
+
+                for (int index = 0; index < flattenedException.InnerExceptions.Count; index++)
+                {
+                    console.MarkupLine($"[red]--- Inner #{index + 1} ---[/]");
+                    console.WriteException(flattenedException.InnerExceptions[index], ExceptionFormats.ShortenEverything);
+                }
             }
         }
         else

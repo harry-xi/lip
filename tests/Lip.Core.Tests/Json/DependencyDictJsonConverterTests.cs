@@ -8,7 +8,7 @@ public class DependencyDictJsonConverterTests
 {
     private static readonly JsonSerializerOptions _options = new()
     {
-        Converters = { new Core.Json.DependencyDictJsonConverter() }
+        Converters = { new Core.Json.PackageIdToSemVersionRangeDictionary() }
     };
 
     [Fact]

@@ -13,7 +13,6 @@ public class PackageManifestMigrationTests
         Converters =
         {
             new Core.Json.SemVersionJsonConverter(),
-            new Core.Json.SemVersionRangeJsonConverter(),
             new Core.Json.UrlJsonConverter(),
             new Core.Json.GlobListJsonConverter()
         }

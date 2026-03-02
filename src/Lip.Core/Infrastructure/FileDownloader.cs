@@ -1,5 +1,6 @@
 using Downloader;
 using Flurl;
+using Flurl.Http;
 using System.IO.Abstractions;
 
 namespace Lip.Core.Infrastructure;
@@ -15,6 +16,13 @@ public class FileDownloader(IUserInteraction userInteraction) : IFileDownloader
 
     public async Task DownloadFile(Url url, IFileInfo destination)
     {
+        IFlurlResponse response = await url.AllowAnyHttpStatus().GetAsync();
+
+        if (response.StatusCode != 200)
+        {
+            throw new HttpRequestException($"Failed to download {url}: HTTP {response.StatusCode}");
+        }
+
         await _userInteraction.RunWithProgress($"Downloading {url}", async progress =>
         {
             await using IDownload downloader = DownloadBuilder.New()

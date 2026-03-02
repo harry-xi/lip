@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Lip.Core.Json;
 
-public class DependencyDictJsonConverter : JsonConverter<Dictionary<PackageId, SemVersionRange>>
+public class PackageIdToSemVersionRangeDictionary : JsonConverter<Dictionary<PackageId, SemVersionRange>>
 {
     public override Dictionary<PackageId, SemVersionRange>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

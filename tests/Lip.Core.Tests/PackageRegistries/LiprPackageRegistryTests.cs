@@ -1,12 +1,7 @@
 using Flurl.Http.Testing;
 using Lip.Core.Entities;
-using Lip.Core.Infrastructure;
 using Lip.Core.PackageRegistries;
-using Lip.Core.Services;
-using Moq;
 using Semver;
-using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Core.Tests.PackageRegistries;
 
@@ -16,9 +11,7 @@ public class LiprPackageRegistryTests
     public async Task GetAvailableVersions_ReturnsSortedVersionsFromIndex()
     {
         using HttpTest httpTest = new();
-        var mockDownloader = new Mock<IFileDownloader>();
-        var mockCache = new Mock<ICacheService>();
-        LiprPackageRegistry registry = new(mockDownloader.Object, mockCache.Object);
+        LiprPackageRegistry registry = new();
 
         httpTest.RespondWith("""
             {
@@ -33,12 +26,14 @@ public class LiprPackageRegistryTests
                             "avatar_url": "https://lamina.levimc.org/logo.svg"
                         },
                         "updated_at": "2026-02-26T15:57:48Z",
-                        "stars": 1509,
-                        "versions": {
-                            "1.9.2": ["", "client"],
-                            "1.8.0-rc.2": ["", "client"],
-                            "1.9.0": ["", "client"],
-                            "1.7.7": [""]
+                        "stargazer_count": 1509,
+                        "variants": {
+                            "": {
+                                "versions": ["1.9.2", "1.8.0-rc.2", "1.9.0", "1.7.7"]
+                            },
+                            "client": {
+                                "versions": ["1.9.2", "1.8.0-rc.2", "1.9.0"]
+                            }
                         }
                     }
                 }
@@ -57,10 +52,8 @@ public class LiprPackageRegistryTests
     [Fact]
     public async Task GetPackageManifest_ReturnsDeserializedManifest()
     {
-        // Arrange
-        var mockDownloader = new Mock<IFileDownloader>();
-        var mockCache = new Mock<ICacheService>();
-        LiprPackageRegistry registry = new(mockDownloader.Object, mockCache.Object);
+        using HttpTest httpTest = new();
+        LiprPackageRegistry registry = new();
 
         PackageId pkgId = new("github.com/LiteLDev/LeviLamina", "");
         SemVersion version = new(1, 9, 2);
@@ -122,18 +115,7 @@ public class LiprPackageRegistryTests
             }
             """;
 
-        var mockFileSystem = new MockFileSystem();
-        var mockFile = new Mock<IFileInfo>();
-
-        // Setup OpenRead to return a stream from the mock file system
-        var path = @"C:\fake\path\tooth.json";
-        mockFileSystem.AddFile(path, new MockFileData(manifestJson));
-        mockFile.Setup(f => f.OpenRead())
-            .Returns(mockFileSystem.File.OpenRead(path));
-
-        mockCache.Setup(c => c.GetOrCreateFile(It.IsAny<string>(), It.IsAny<Func<IFileInfo, Task>>()))
-            .Callback<string, Func<IFileInfo, Task>>((key, factory) => factory(mockFile.Object))
-            .ReturnsAsync(mockFile.Object);
+        httpTest.RespondWith(manifestJson);
 
         // Act
         PackageManifest result = await registry.GetPackageManifest(pkgSpec);
@@ -148,11 +130,7 @@ public class LiprPackageRegistryTests
             SemVersionRange.Parse("1.3.*"),
             result.Variants[1].Dependencies[PackageId.Parse("github.com/LiteLDev/CrashLogger#client")]);
 
-        // Verify that GetOrCreateFile was called with the correct URL
-        string expectedUrl = $"https://lipr.levimc.org/{pkgId.Path}/@v/{version}/tooth.json";
-        mockCache.Verify(c => c.GetOrCreateFile(
-            expectedUrl,
-            It.IsAny<Func<IFileInfo, Task>>()),
-            Times.Once);
+        string expectedUrl = $"https://lipr.levimc.org/{pkgId.Path}@{version}/tooth.json";
+        httpTest.ShouldHaveCalled(expectedUrl).WithVerb(HttpMethod.Get).Times(1);
     }
 }

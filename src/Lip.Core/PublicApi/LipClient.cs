@@ -79,7 +79,7 @@ public class LipClient(
            new WorkspaceServicePackageRegistry(workspaceService),
            new GitPackageRegistry(gitRunner, githubProxy),
            new GoModuleProxyPackageRegistry(goModuleProxy),
-           new LiprPackageRegistry(fileDownloader, cacheService),
+           new LiprPackageRegistry(),
            new SourceServicePackageRegistry(sourceService),
         ]);
 

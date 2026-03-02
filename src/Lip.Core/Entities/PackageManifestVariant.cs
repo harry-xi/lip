@@ -8,12 +8,18 @@ namespace Lip.Core.Entities;
 public record PackageManifestVariant
 {
     [JsonPropertyName("label")]
-    public string Label { get; init; } = "";
+    public string Label
+    {
+        get;
+        init => field = PackageId.IsValidVariant(value)
+            ? value
+            : throw new FormatException($"Invalid label: {value}");
+    } = "";
 
     [JsonPropertyName("platform")]
     public string Platform { get; init; } = "";
 
-    [JsonConverter(typeof(DependencyDictJsonConverter))]
+    [JsonConverter(typeof(PackageIdToSemVersionRangeDictionary))]
     [JsonPropertyName("dependencies")]
     public Dictionary<PackageId, SemVersionRange> Dependencies { get; init; } = [];
 

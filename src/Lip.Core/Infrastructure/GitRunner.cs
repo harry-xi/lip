@@ -25,8 +25,6 @@ public class GitRunner : IGitRunner
         string? branch = null,
         int? depth = null)
     {
-        using Stream stdInStream = Console.OpenStandardInput();
-        using Stream stdOutStream = Console.OpenStandardOutput();
         using Stream stdErrStream = Console.OpenStandardError();
 
         await Cli.Wrap("git")
@@ -39,8 +37,8 @@ public class GitRunner : IGitRunner
                 repo,
                 .. (dir is not null) ? new[] { dir } : []
             ])
-            .WithStandardInputPipe(PipeSource.FromStream(stdInStream))
-            .WithStandardOutputPipe(PipeTarget.ToStream(stdOutStream))
+            .WithStandardInputPipe(PipeSource.Null)
+            .WithStandardOutputPipe(PipeTarget.ToStream(stdErrStream))
             .WithStandardErrorPipe(PipeTarget.ToStream(stdErrStream))
             .ExecuteAsync();
     }
@@ -50,7 +48,6 @@ public class GitRunner : IGitRunner
         bool refs = false,
         bool tags = false)
     {
-        using Stream stdInStream = Console.OpenStandardInput();
         using MemoryStream outStream = new();
         using Stream stdErrStream = Console.OpenStandardError();
 
@@ -61,7 +58,7 @@ public class GitRunner : IGitRunner
                 .. tags ? new List<string> { "--tags" } : [],
                 repository
             ])
-            .WithStandardInputPipe(PipeSource.FromStream(stdInStream))
+            .WithStandardInputPipe(PipeSource.Null)
             .WithStandardOutputPipe(PipeTarget.ToStream(outStream))
             .WithStandardErrorPipe(PipeTarget.ToStream(stdErrStream))
             .ExecuteAsync();

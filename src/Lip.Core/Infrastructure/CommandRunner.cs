@@ -11,8 +11,6 @@ public class CommandRunner : ICommandRunner
 {
     public async Task Run(string command)
     {
-        using Stream stdInStream = Console.OpenStandardInput();
-        using Stream stdOutStream = Console.OpenStandardOutput();
         using Stream stdErrStream = Console.OpenStandardError();
 
         CommandResult result = await Cli.Wrap(OperatingSystem.IsWindows() ? "cmd.exe" : "sh")
@@ -20,8 +18,8 @@ public class CommandRunner : ICommandRunner
                 OperatingSystem.IsWindows() ? "/c" : "-c",
                 command
             ])
-            .WithStandardInputPipe(PipeSource.FromStream(stdInStream))
-            .WithStandardOutputPipe(PipeTarget.ToStream(stdOutStream))
+            .WithStandardInputPipe(PipeSource.Null)
+            .WithStandardOutputPipe(PipeTarget.ToStream(stdErrStream))
             .WithStandardErrorPipe(PipeTarget.ToStream(stdErrStream))
             .ExecuteAsync();
 

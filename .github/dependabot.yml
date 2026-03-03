@@ -16,5 +16,6 @@ updates:
       - Lip.Cli
       - Lip.Core
       - Lip.Core.Tests
+      - Lip.Core.RegressionTests
     schedule:
       interval: "monthly"

@@ -4,8 +4,6 @@ namespace Lip.Core.RegressionTests.Infrastructure;
 
 public class GitRunnerTests
 {
-    private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
     [Theory]
     [InlineData("https://github.com/LiteLDev/bds.git", 158)]
     [InlineData("https://github.com/LiteLDev/LegacyScriptEngine.git", 110)]
@@ -35,7 +33,7 @@ public class GitRunnerTests
     {
         GitRunner runner = new();
 
-        string cloneDir = Path.Join(_tempDir, Guid.NewGuid().ToString());
+        string cloneDir = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString());
 
         await runner.Clone(
             repository,

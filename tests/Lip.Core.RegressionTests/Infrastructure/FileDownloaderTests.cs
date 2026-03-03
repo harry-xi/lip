@@ -7,8 +7,6 @@ namespace Lip.Core.RegressionTests.Infrastructure;
 
 public class FileDownloaderTests
 {
-    private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
     private static IUserInteraction CreateNoOpUserInteraction()
     {
         Mock<IUserInteraction> mock = new();
@@ -22,41 +20,29 @@ public class FileDownloaderTests
     public async Task DownloadFile_ValidUrl_WritesFile()
     {
         FileDownloader downloader = new(CreateNoOpUserInteraction());
-        FileSystem fileSystem = new();
 
-        string tempPath = Path.Combine(_tempDir, Guid.NewGuid().ToString());
+        string tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-        IFileInfo destination = fileSystem.FileInfo.New(tempPath);
-
-        // Use the Go module proxy version list endpoint, which the existing
-        // regression tests already depend on.
         await downloader.DownloadFile(
             new Url("https://raw.githubusercontent.com/LiteLDev/LeviLamina/main/README.md"),
-            destination);
+            new FileSystem().FileInfo.New(tempPath));
 
-        destination.Refresh();
-
-        Assert.True(destination.Exists);
-        Assert.True(destination.Length > 0);
+        Assert.True(File.Exists(tempPath));
+        Assert.True(new FileInfo(tempPath).Length > 0);
     }
 
     [Fact]
     public async Task DownloadFile_NonExistentUrl_ThrowsHttpRequestException()
     {
         FileDownloader downloader = new(CreateNoOpUserInteraction());
-        FileSystem fileSystem = new();
 
-        string tempPath = Path.Combine(_tempDir, Guid.NewGuid().ToString());
-
-        IFileInfo destination = fileSystem.FileInfo.New(tempPath);
+        string tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
         await Assert.ThrowsAsync<HttpRequestException>(
             () => downloader.DownloadFile(
                 new Url("https://raw.githubusercontent.com/LiteLDev/LeviLamina/main/THIS_FILE_DOES_NOT_EXIST.md"),
-                destination));
+                new FileSystem().FileInfo.New(tempPath)));
 
-        destination.Refresh();
-
-        Assert.False(destination.Exists);
+        Assert.False(File.Exists(tempPath));
     }
 }

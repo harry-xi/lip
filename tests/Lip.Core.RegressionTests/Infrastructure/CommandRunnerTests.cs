@@ -1,4 +1,3 @@
-using CliWrap.Exceptions;
 using Lip.Core.Infrastructure;
 
 namespace Lip.Core.RegressionTests.Infrastructure;

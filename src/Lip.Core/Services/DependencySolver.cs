@@ -125,7 +125,7 @@ public class DependencySolver(
         {
             Dictionary<PackageId, SemVersion> nextSelected = new(selected) { [nextId] = version };
 
-            Dictionary<PackageId, HashSet<SemVersion>> nextCandidates = new(candidates);
+            Dictionary<PackageId, HashSet<SemVersion>> nextCandidates = [with(candidates)];
             nextCandidates.Remove(nextId);
 
             if (await TryPropagate(nextId, version, nextSelected, nextCandidates))

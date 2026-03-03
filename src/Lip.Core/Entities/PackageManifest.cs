@@ -113,10 +113,10 @@ public record PackageManifest
             RemoveFiles = [.. matchingVariants.SelectMany(variant => variant.RemoveFiles)],
             Scripts = new()
             {
-                PreInstall = matchingVariants.Single(v => v.Scripts.PreInstall.Count > 0)?.Scripts.PreInstall ?? [],
-                PostInstall = matchingVariants.Single(v => v.Scripts.PostInstall.Count > 0)?.Scripts.PostInstall ?? [],
-                PreUninstall = matchingVariants.Single(v => v.Scripts.PreUninstall.Count > 0)?.Scripts.PreUninstall ?? [],
-                PostUninstall = matchingVariants.Single(v => v.Scripts.PostUninstall.Count > 0)?.Scripts.PostUninstall ?? [],
+                PreInstall = matchingVariants.SingleOrDefault(v => v.Scripts.PreInstall.Count > 0)?.Scripts.PreInstall ?? [],
+                PostInstall = matchingVariants.SingleOrDefault(v => v.Scripts.PostInstall.Count > 0)?.Scripts.PostInstall ?? [],
+                PreUninstall = matchingVariants.SingleOrDefault(v => v.Scripts.PreUninstall.Count > 0)?.Scripts.PreUninstall ?? [],
+                PostUninstall = matchingVariants.SingleOrDefault(v => v.Scripts.PostUninstall.Count > 0)?.Scripts.PostUninstall ?? [],
             }
         };
     }

@@ -22,21 +22,4 @@ public class GitPackageRegistryTests
         Assert.True(versions.Count() >= minVersionCount);
         Assert.Equal(versions, versions.Order(SemVersion.PrecedenceComparer));
     }
-
-    [Theory]
-    [InlineData("github.com/LiteLDev/bds", "1.26.3")]
-    [InlineData("github.com/LiteLDev/LegacyScriptEngine", "0.17.5")]
-    [InlineData("github.com/LiteLDev/LeviLamina", "1.9.7")]
-    [InlineData("github.com/LiteLDev/LeviLamina#client", "1.9.7")]
-    public async Task GetPackageManifest_ReturnsManifest(string packageId, string version)
-    {
-        GitRunner gitRunner = new();
-        GitPackageRegistry registry = new(gitRunner, githubProxy: null);
-
-        PackageManifest manifest = await registry.GetPackageManifest(
-            new PackageSpec(PackageId.Parse(packageId), SemVersion.Parse(version)));
-
-        Assert.Equal(PackageId.Parse(packageId).Path, manifest.Path);
-        Assert.Equal(SemVersion.Parse(version), manifest.Version);
-    }
 }

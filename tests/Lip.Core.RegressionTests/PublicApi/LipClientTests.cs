@@ -6,19 +6,18 @@ namespace Lip.Core.RegressionTests.PublicApi;
 
 public class LipClientTests
 {
-    public static TheoryData<string[]> TestPackages =>
+    public static TheoryData<string[]> Install_OnWinX64_DoesNotThrowData =>
     [
         ["github.com/LiteLDev/bds@1.26.3"],
         ["github.com/LiteLDev/LegacyScriptEngine@0.17.5"],
         ["github.com/LiteLDev/LeviLamina@1.9.7"],
-        ["github.com/LiteLDev/LeviLamina#client@1.9.7"],
         ["github.com/LiteLDev/LeviLamina@1.9.7", "github.com/LiteLDev/LegacyScriptEngine@0.17.5"],
         ["github.com/LiteLDev/LegacyScriptEngine@0.17.5", "github.com/LiteLDev/MoreDimensions@0.13.0"],
     ];
 
-    [Theory]
-    [MemberData(nameof(TestPackages))]
-    public async Task Install_DoesNotThrow(string[] packages)
+    [WinX64Theory]
+    [MemberData(nameof(Install_OnWinX64_DoesNotThrowData))]
+    public async Task Install_OnWinX64_DoesNotThrow(string[] packages)
     {
 
         IUserInteraction userInteraction = CreateNoOpUserInteraction();

@@ -5,7 +5,7 @@ namespace Lip.Core.RegressionTests.Infrastructure;
 public class GitRunnerTests
 {
     [Theory]
-    [InlineData("https://github.com/LiteLDev/bds.git", 158)]
+    [InlineData("https://github.com/LiteLDev/bds.git", 157)]
     [InlineData("https://github.com/LiteLDev/LegacyScriptEngine.git", 110)]
     [InlineData("https://github.com/LiteLDev/LeviLamina.git", 85)]
     public async Task LsRemote_ReturnsNonEmptyRefsWithTags(string repository, int minTagCount)

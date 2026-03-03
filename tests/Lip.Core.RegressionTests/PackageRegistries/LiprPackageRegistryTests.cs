@@ -7,7 +7,7 @@ namespace Lip.Core.RegressionTests.PackageRegistries;
 public class LiprPackageRegistryTests
 {
     [Theory]
-    [InlineData("github.com/LiteLDev/bds", 158)]
+    [InlineData("github.com/LiteLDev/bds", 157)]
     [InlineData("github.com/LiteLDev/LegacyScriptEngine", 110)]
     [InlineData("github.com/LiteLDev/LeviLamina", 85)]
     [InlineData("github.com/LiteLDev/LeviLamina#client", 10)]

@@ -2,19 +2,9 @@ using Lip.Core.Infrastructure;
 
 namespace Lip.Core.RegressionTests.Infrastructure;
 
-public class GitRunnerTests : IDisposable
+public class GitRunnerTests
 {
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-    public void Dispose()
-    {
-        if (Directory.Exists(_tempDir))
-        {
-            Directory.Delete(_tempDir, recursive: true);
-        }
-
-        GC.SuppressFinalize(this);
-    }
 
     [Theory]
     [InlineData("https://github.com/LiteLDev/bds.git", 158)]

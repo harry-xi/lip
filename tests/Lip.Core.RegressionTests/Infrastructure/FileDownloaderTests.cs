@@ -5,19 +5,9 @@ using System.IO.Abstractions;
 
 namespace Lip.Core.RegressionTests.Infrastructure;
 
-public class FileDownloaderTests : IDisposable
+public class FileDownloaderTests
 {
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-    public void Dispose()
-    {
-        if (Directory.Exists(_tempDir))
-        {
-            Directory.Delete(_tempDir, recursive: true);
-        }
-
-        GC.SuppressFinalize(this);
-    }
 
     private static IUserInteraction CreateNoOpUserInteraction()
     {

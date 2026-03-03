@@ -1,32 +1,29 @@
+using System.Text.Json;
 using Flurl;
 using Flurl.Http;
 using Lip.Core.Entities;
 using Semver;
-using System.Text.Json;
 
 namespace Lip.Core.PackageRegistries;
 
-public class LiprPackageRegistry : IPackageRegistry
-{
-    public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId)
-    {
-        Url url = Url.Parse($"https://lipr.levimc.org/index.json");
+public class LiprPackageRegistry : IPackageRegistry {
+  public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId) {
+    Url url = Url.Parse($"https://lipr.levimc.org/index.json");
 
-        using Stream stream = await url.GetStreamAsync();
+    using Stream stream = await url.GetStreamAsync();
 
-        PackageIndex index = (await JsonSerializer.DeserializeAsync<PackageIndex>(stream))!;
+    PackageIndex index = (await JsonSerializer.DeserializeAsync<PackageIndex>(stream))!;
 
-        return index.Packages[packageId.Path].Variants[packageId.Variant].Versions
-            .Order(SemVersion.PrecedenceComparer);
-    }
+    return index.Packages[packageId.Path].Variants[packageId.Variant].Versions
+        .Order(SemVersion.PrecedenceComparer);
+  }
 
-    public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec)
-    {
-        Url url = Url.Parse(
-            $"https://lipr.levimc.org/{packageSpec.Id.Path}@{packageSpec.Version}/tooth.json");
+  public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec) {
+    Url url = Url.Parse(
+        $"https://lipr.levimc.org/{packageSpec.Id.Path}@{packageSpec.Version}/tooth.json");
 
-        using Stream manifestStream = await url.GetStreamAsync();
+    using Stream manifestStream = await url.GetStreamAsync();
 
-        return await PackageManifest.FromStream(manifestStream);
-    }
+    return await PackageManifest.FromStream(manifestStream);
+  }
 }

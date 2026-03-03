@@ -1,87 +1,81 @@
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using Lip.Core.Entities;
 using Lip.Core.Infrastructure;
-
 using Lip.Core.Services;
 using Lip.Core.Sources;
 using Moq;
 using Semver;
-using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 
 namespace Lip.Core.Tests.Services;
 
-public class PackageInstallerTests
-{
-    private readonly Mock<ICommandRunner> _mockCommandRunner;
-    private readonly MockFileSystem _mockFileSystem;
-    private readonly Mock<IUserInteraction> _userInteraction;
-    private readonly Mock<ISourceService> _mockSourceService;
-    private readonly Mock<IWorkspaceService> _mockWorkspaceService;
-    private readonly PackageInstaller _installer;
+public class PackageInstallerTests {
+  private readonly Mock<ICommandRunner> _mockCommandRunner;
+  private readonly MockFileSystem _mockFileSystem;
+  private readonly Mock<IUserInteraction> _userInteraction;
+  private readonly Mock<ISourceService> _mockSourceService;
+  private readonly Mock<IWorkspaceService> _mockWorkspaceService;
+  private readonly PackageInstaller _installer;
 
-    public PackageInstallerTests()
-    {
-        _mockCommandRunner = new Mock<ICommandRunner>();
-        _mockFileSystem = new MockFileSystem();
-        _userInteraction = new Mock<IUserInteraction>();
-        _mockSourceService = new Mock<ISourceService>();
-        _mockWorkspaceService = new Mock<IWorkspaceService>();
+  public PackageInstallerTests() {
+    _mockCommandRunner = new Mock<ICommandRunner>();
+    _mockFileSystem = new MockFileSystem();
+    _userInteraction = new Mock<IUserInteraction>();
+    _mockSourceService = new Mock<ISourceService>();
+    _mockWorkspaceService = new Mock<IWorkspaceService>();
 
-        _installer = new PackageInstaller(
-            _mockCommandRunner.Object,
-            _mockFileSystem,
-            _userInteraction.Object,
-            _mockSourceService.Object,
-            _mockWorkspaceService.Object);
-    }
+    _installer = new PackageInstaller(
+        _mockCommandRunner.Object,
+        _mockFileSystem,
+        _userInteraction.Object,
+        _mockSourceService.Object,
+        _mockWorkspaceService.Object);
+  }
 
-    [Fact]
-    public async Task InstallPackage_AlreadyInstalled_ThrowsException()
-    {
-        // Arrange
-        PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
-        PackageArtifact artifact = new(pkgSpec, new Mock<ISource>().Object);
+  [Fact]
+  public async Task InstallPackage_AlreadyInstalled_ThrowsException() {
+    // Arrange
+    PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", string.Empty), new SemVersion(1, 0, 0));
+    PackageArtifact artifact = new(pkgSpec, new Mock<ISource>().Object);
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([pkgSpec]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([pkgSpec]);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _installer.InstallPackage(
-            artifact,
-            dryRun: false,
-            explicitInstall: false,
-            ignoreScripts: false));
-    }
+    // Act & Assert
+    await Assert.ThrowsAsync<InvalidOperationException>(() => _installer.InstallPackage(
+        artifact,
+        dryRun: false,
+        explicitInstall: false,
+        ignoreScripts: false));
+  }
 
-    [Fact]
-    public async Task UninstallPackage_NotInstalled_ThrowsException()
-    {
-        // Arrange
-        PackageId pkgId = new("github.com/test/pkg", string.Empty);
+  [Fact]
+  public async Task UninstallPackage_NotInstalled_ThrowsException() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", string.Empty);
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([]);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _installer.UninstallPackage(
-            pkgId,
-            dryRun: false,
-            ignoreScripts: false));
-    }
-    [Fact]
-    public async Task InstallPackage_ValidArtifact_InstallsFiles()
-    {
-        // Arrange
-        PackageId pkgId = new("github.com/test/pkg", "");
-        SemVersion pkgVer = new(1, 0, 0);
-        PackageSpec pkgSpec = new(pkgId, pkgVer);
+    // Act & Assert
+    await Assert.ThrowsAsync<InvalidOperationException>(() => _installer.UninstallPackage(
+        pkgId,
+        dryRun: false,
+        ignoreScripts: false));
+  }
+  [Fact]
+  public async Task InstallPackage_ValidArtifact_InstallsFiles() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", "");
+    SemVersion pkgVer = new(1, 0, 0);
+    PackageSpec pkgSpec = new(pkgId, pkgVer);
 
-        // Setup WorkspaceService to allow install
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([]);
+    // Setup WorkspaceService to allow install
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([]);
 
-        // Setup Manifest
-        string manifestJson = """
+    // Setup Manifest
+    string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -101,35 +95,34 @@ public class PackageInstallerTests
                 ]
             }
             """;
-        Mock<ISource> mockSource = new();
-        mockSource.Setup(p => p.OpenRead("tooth.json"))
-            .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
+    Mock<ISource> mockSource = new();
+    mockSource.Setup(p => p.OpenRead("tooth.json"))
+        .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
 
-        mockSource.Setup(p => p.Keys).Returns(["file.txt"]);
-        mockSource.Setup(p => p.OpenRead("file.txt"))
-            .ReturnsAsync(new MemoryStream("content"u8.ToArray()));
+    mockSource.Setup(p => p.Keys).Returns(["file.txt"]);
+    mockSource.Setup(p => p.OpenRead("file.txt"))
+        .ReturnsAsync(new MemoryStream("content"u8.ToArray()));
 
-        PackageArtifact artifact = new(pkgSpec, mockSource.Object);
+    PackageArtifact artifact = new(pkgSpec, mockSource.Object);
 
-        // Act
-        await _installer.InstallPackage(artifact, false, false, false);
+    // Act
+    await _installer.InstallPackage(artifact, false, false, false);
 
-        // Assert
-        Assert.True(_mockFileSystem.File.Exists(Path.Combine("plugins", "file.txt")));
-        _mockWorkspaceService.Verify(w => w.AddInstalledPackage(pkgSpec, It.IsAny<PackageManifest>(), It.IsAny<IEnumerable<IFileInfo>>(), false), Times.Once);
-    }
+    // Assert
+    Assert.True(_mockFileSystem.File.Exists(Path.Combine("plugins", "file.txt")));
+    _mockWorkspaceService.Verify(w => w.AddInstalledPackage(pkgSpec, It.IsAny<PackageManifest>(), It.IsAny<IEnumerable<IFileInfo>>(), false), Times.Once);
+  }
 
-    [Fact]
-    public async Task InstallPackage_RunsScripts()
-    {
-        // Arrange
-        PackageId pkgId = new("github.com/test/pkg", "");
-        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
+  [Fact]
+  public async Task InstallPackage_RunsScripts() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", "");
+    PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([]);
 
-        string manifestJson = """
+    string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -146,122 +139,116 @@ public class PackageInstallerTests
             }
             """;
 
-        Mock<ISource> mockSource = new();
-        mockSource.Setup(p => p.OpenRead("tooth.json"))
-            .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
-        mockSource.Setup(p => p.Keys).Returns([]);
+    Mock<ISource> mockSource = new();
+    mockSource.Setup(p => p.OpenRead("tooth.json"))
+        .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
+    mockSource.Setup(p => p.Keys).Returns([]);
 
-        PackageArtifact artifact = new(pkgSpec, mockSource.Object);
+    PackageArtifact artifact = new(pkgSpec, mockSource.Object);
 
-        // Act
-        await _installer.InstallPackage(artifact, false, false, false);
+    // Act
+    await _installer.InstallPackage(artifact, false, false, false);
 
-        // Assert
-        _mockCommandRunner.Verify(c => c.Run("echo pre"), Times.Once);
-        _mockCommandRunner.Verify(c => c.Run("echo post"), Times.Once);
-    }
+    // Assert
+    _mockCommandRunner.Verify(c => c.Run("echo pre"), Times.Once);
+    _mockCommandRunner.Verify(c => c.Run("echo post"), Times.Once);
+  }
 
-    [Fact]
-    public async Task UninstallPackage_RemovesFiles()
-    {
-        // Arrange
-        PackageId pkgId = new("github.com/test/pkg", "");
-        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
+  [Fact]
+  public async Task UninstallPackage_RemovesFiles() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", "");
+    PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([pkgSpec]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([pkgSpec]);
 
-        PackageManifest manifest = new()
-        {
-            Path = "github.com/test/pkg",
-            Version = new SemVersion(1, 0, 0),
-            Variants = [new()]
-        };
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
-            .ReturnsAsync(manifest);
+    PackageManifest manifest = new() {
+      Path = "github.com/test/pkg",
+      Version = new SemVersion(1, 0, 0),
+      Variants = [new()]
+    };
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
+        .ReturnsAsync(manifest);
 
-        string filePath = Path.Combine("plugins", "file.txt");
-        _mockFileSystem.AddFile(filePath, new MockFileData("content"));
+    string filePath = Path.Combine("plugins", "file.txt");
+    _mockFileSystem.AddFile(filePath, new MockFileData("content"));
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
-            .ReturnsAsync([_mockFileSystem.FileInfo.New(filePath)]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
+        .ReturnsAsync([_mockFileSystem.FileInfo.New(filePath)]);
 
-        // Act
-        await _installer.UninstallPackage(pkgId, false, false);
+    // Act
+    await _installer.UninstallPackage(pkgId, false, false);
 
-        // Assert
-        Assert.False(_mockFileSystem.File.Exists(filePath));
-        _mockWorkspaceService.Verify(w => w.RemoveInstalledPackage(pkgSpec), Times.Once);
-    }
+    // Assert
+    Assert.False(_mockFileSystem.File.Exists(filePath));
+    _mockWorkspaceService.Verify(w => w.RemoveInstalledPackage(pkgSpec), Times.Once);
+  }
 
-    [Fact]
-    public async Task UninstallPackage_PreserveFiles_KeepsFiles()
-    {
-        // Arrange
-        PackageId pkgId = new("github.com/test/pkg", "");
-        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
+  [Fact]
+  public async Task UninstallPackage_PreserveFiles_KeepsFiles() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", "");
+    PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([pkgSpec]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([pkgSpec]);
 
-        PackageManifest manifest = new()
-        {
-            Path = "github.com/test/pkg",
-            Version = new SemVersion(1, 0, 0),
-            Variants = [
-                new() {
+    PackageManifest manifest = new() {
+      Path = "github.com/test/pkg",
+      Version = new SemVersion(1, 0, 0),
+      Variants = [
+            new() {
                     PreserveFiles = [DotNet.Globbing.Glob.Parse("*.txt")]
                 }
-            ]
-        };
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
-            .ReturnsAsync(manifest);
+        ]
+    };
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
+        .ReturnsAsync(manifest);
 
-        string filePath = Path.Combine("plugins", "file.txt");
-        _mockFileSystem.AddFile(filePath, new MockFileData("content"));
+    string filePath = Path.Combine("plugins", "file.txt");
+    _mockFileSystem.AddFile(filePath, new MockFileData("content"));
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
-            .ReturnsAsync([_mockFileSystem.FileInfo.New(filePath)]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
+        .ReturnsAsync([_mockFileSystem.FileInfo.New(filePath)]);
 
-        // Act
-        await _installer.UninstallPackage(pkgId, false, false);
+    // Act
+    await _installer.UninstallPackage(pkgId, false, false);
 
-        // Assert
-        Assert.True(_mockFileSystem.File.Exists(filePath)); // Should exist
-    }
+    // Assert
+    Assert.True(_mockFileSystem.File.Exists(filePath)); // Should exist
+  }
 
-    [Fact]
-    public async Task UninstallPackage_RemoveFiles_RemovesExtraFiles()
-    {
-        // Arrange
-        PackageId pkgId = new("github.com/test/pkg", "");
-        PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
+  [Fact]
+  public async Task UninstallPackage_RemoveFiles_RemovesExtraFiles() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", "");
+    PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
 
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
-            .ReturnsAsync([pkgSpec]);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([pkgSpec]);
 
-        PackageManifest manifest = new()
-        {
-            Path = "github.com/test/pkg",
-            Version = new SemVersion(1, 0, 0),
-            Variants = [
-                new() {
+    PackageManifest manifest = new() {
+      Path = "github.com/test/pkg",
+      Version = new SemVersion(1, 0, 0),
+      Variants = [
+            new() {
                     RemoveFiles = [DotNet.Globbing.Glob.Parse("extra.log")]
                 }
-            ]
-        };
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
-            .ReturnsAsync(manifest);
-        _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
-            .ReturnsAsync([]);
+        ]
+    };
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
+        .ReturnsAsync(manifest);
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
+        .ReturnsAsync([]);
 
-        string extraFile = "extra.log";
-        _mockFileSystem.AddFile(extraFile, new MockFileData("log"));
+    string extraFile = "extra.log";
+    _mockFileSystem.AddFile(extraFile, new MockFileData("log"));
 
-        // Act
-        await _installer.UninstallPackage(pkgId, false, false);
+    // Act
+    await _installer.UninstallPackage(pkgId, false, false);
 
-        // Assert
-        Assert.False(_mockFileSystem.File.Exists(extraFile));
-    }
+    // Assert
+    Assert.False(_mockFileSystem.File.Exists(extraFile));
+  }
 }

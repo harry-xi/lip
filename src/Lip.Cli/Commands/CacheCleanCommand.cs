@@ -4,19 +4,16 @@ using Spectre.Console.Cli;
 
 namespace Lip.Cli.Commands;
 
-public class CacheCleanCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<CacheCleanCommand.Settings>
-{
-    private readonly ILipClient _lipClient = lipClient;
-    private readonly IUserInteraction _userInteraction = userInteraction;
+public class CacheCleanCommand(ILipClient lipClient, IUserInteraction userInteraction) : AsyncCommand<CacheCleanCommand.Settings> {
+  private readonly ILipClient _lipClient = lipClient;
+  private readonly IUserInteraction _userInteraction = userInteraction;
 
-    public class Settings : CommandSettings
-    {
-    }
+  public class Settings : CommandSettings {
+  }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
-    {
-        await _lipClient.CacheClean();
-        await _userInteraction.PrintSuccess("Cache cleaned successfully.");
-        return 0;
-    }
+  public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    await _lipClient.CacheClean();
+    await _userInteraction.PrintSuccess("Cache cleaned successfully.");
+    return 0;
+  }
 }

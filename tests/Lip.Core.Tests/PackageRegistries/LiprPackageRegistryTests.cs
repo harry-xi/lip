@@ -5,15 +5,13 @@ using Semver;
 
 namespace Lip.Core.Tests.PackageRegistries;
 
-public class LiprPackageRegistryTests
-{
-    [Fact]
-    public async Task GetAvailableVersions_ReturnsSortedVersionsFromIndex()
-    {
-        using HttpTest httpTest = new();
-        LiprPackageRegistry registry = new();
+public class LiprPackageRegistryTests {
+  [Fact]
+  public async Task GetAvailableVersions_ReturnsSortedVersionsFromIndex() {
+    using HttpTest httpTest = new();
+    LiprPackageRegistry registry = new();
 
-        httpTest.RespondWith("""
+    httpTest.RespondWith("""
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -40,26 +38,25 @@ public class LiprPackageRegistryTests
             }
             """);
 
-        List<SemVersion> versions = (await registry.GetAvailableVersions(PackageId.Parse("github.com/LiteLDev/LeviLamina"))).ToList();
+    List<SemVersion> versions = [.. (await registry.GetAvailableVersions(PackageId.Parse("github.com/LiteLDev/LeviLamina")))];
 
-        Assert.Equal(4, versions.Count);
-        Assert.Equal(SemVersion.Parse("1.7.7", SemVersionStyles.Any), versions[0]);
-        Assert.Equal(SemVersion.Parse("1.8.0-rc.2", SemVersionStyles.Any), versions[1]);
-        Assert.Equal(SemVersion.Parse("1.9.0", SemVersionStyles.Any), versions[2]);
-        Assert.Equal(SemVersion.Parse("1.9.2", SemVersionStyles.Any), versions[3]);
-    }
+    Assert.Equal(4, versions.Count);
+    Assert.Equal(SemVersion.Parse("1.7.7", SemVersionStyles.Any), versions[0]);
+    Assert.Equal(SemVersion.Parse("1.8.0-rc.2", SemVersionStyles.Any), versions[1]);
+    Assert.Equal(SemVersion.Parse("1.9.0", SemVersionStyles.Any), versions[2]);
+    Assert.Equal(SemVersion.Parse("1.9.2", SemVersionStyles.Any), versions[3]);
+  }
 
-    [Fact]
-    public async Task GetPackageManifest_ReturnsDeserializedManifest()
-    {
-        using HttpTest httpTest = new();
-        LiprPackageRegistry registry = new();
+  [Fact]
+  public async Task GetPackageManifest_ReturnsDeserializedManifest() {
+    using HttpTest httpTest = new();
+    LiprPackageRegistry registry = new();
 
-        PackageId pkgId = new("github.com/LiteLDev/LeviLamina", "");
-        SemVersion version = new(1, 9, 2);
-        PackageSpec pkgSpec = new(pkgId, version);
+    PackageId pkgId = new("github.com/LiteLDev/LeviLamina", "");
+    SemVersion version = new(1, 9, 2);
+    PackageSpec pkgSpec = new(pkgId, version);
 
-        string manifestJson = """
+    string manifestJson = """
             {
                 "format_version": 3,
                 "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -115,22 +112,22 @@ public class LiprPackageRegistryTests
             }
             """;
 
-        httpTest.RespondWith(manifestJson);
+    httpTest.RespondWith(manifestJson);
 
-        // Act
-        PackageManifest result = await registry.GetPackageManifest(pkgSpec);
+    // Act
+    PackageManifest result = await registry.GetPackageManifest(pkgSpec);
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal("github.com/LiteLDev/LeviLamina", result.Path);
-        Assert.Equal(version, result.Version);
-        Assert.Equal(2, result.Variants.Count);
-        Assert.Equal("client", result.Variants[1].Label);
-        Assert.Equal(
-            SemVersionRange.Parse("1.3.*"),
-            result.Variants[1].Dependencies[PackageId.Parse("github.com/LiteLDev/CrashLogger#client")]);
+    // Assert
+    Assert.NotNull(result);
+    Assert.Equal("github.com/LiteLDev/LeviLamina", result.Path);
+    Assert.Equal(version, result.Version);
+    Assert.Equal(2, result.Variants.Count);
+    Assert.Equal("client", result.Variants[1].Label);
+    Assert.Equal(
+        SemVersionRange.Parse("1.3.*"),
+        result.Variants[1].Dependencies[PackageId.Parse("github.com/LiteLDev/CrashLogger#client")]);
 
-        string expectedUrl = $"https://lipr.levimc.org/{pkgId.Path}@{version}/tooth.json";
-        httpTest.ShouldHaveCalled(expectedUrl).WithVerb(HttpMethod.Get).Times(1);
-    }
+    string expectedUrl = $"https://lipr.levimc.org/{pkgId.Path}@{version}/tooth.json";
+    httpTest.ShouldHaveCalled(expectedUrl).WithVerb(HttpMethod.Get).Times(1);
+  }
 }

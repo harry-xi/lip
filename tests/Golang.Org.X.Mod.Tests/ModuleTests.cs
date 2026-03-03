@@ -1,9 +1,8 @@
 namespace Golang.Org.X.Mod.Tests;
 
-public class ModuleTests
-{
-    public static TheoryData<string, bool, bool, bool> CheckPathTests => new()
-    {
+public class ModuleTests {
+  public static TheoryData<string, bool, bool, bool> CheckPathTests => new()
+  {
         {"x.y/z", true, true, true},
         {"x.y", true, true, true},
 
@@ -122,81 +121,78 @@ public class ModuleTests
         {"x☺y", false, false, false},
     };
 
-    [Theory]
-    [MemberData(nameof(CheckPathTests))]
+  [Theory]
+  [MemberData(nameof(CheckPathTests))]
 #pragma warning disable xUnit1026 // Theory methods should use all of their parameters
-    public void CheckPath_ValidInput_ReturnsExpectedOutput(string path, bool ok, bool importOK, bool fileOK)
+  public void CheckPath_ValidInput_ReturnsExpectedOutput(string path, bool ok, bool importOK, bool fileOK)
 #pragma warning restore xUnit1026 // Theory methods should use all of their parameters
-    {
-        // Act.
-        Exception? err = Module.CheckPath(path);
+  {
+    // Act.
+    Exception? err = Module.CheckPath(path);
 
-        // Assert.
-        Assert.Equal(ok, err is null);
-    }
+    // Assert.
+    Assert.Equal(ok, err is null);
+  }
 
-    [Theory]
-    [InlineData("ascii.com/abcdefghijklmnopqrstuvwxyz.-/~_0123456789", "ascii.com/abcdefghijklmnopqrstuvwxyz.-/~_0123456789")]
-    [InlineData("github.com/GoogleCloudPlatform/omega", "github.com/!google!cloud!platform/omega")]
-    public void EscapePath_ValidInput_ReturnsExpectedOutput(string path, string expectedEsc)
-    {
-        // Act.
-        (string? esc, Exception? err) = Module.EscapePath(path);
+  [Theory]
+  [InlineData("ascii.com/abcdefghijklmnopqrstuvwxyz.-/~_0123456789", "ascii.com/abcdefghijklmnopqrstuvwxyz.-/~_0123456789")]
+  [InlineData("github.com/GoogleCloudPlatform/omega", "github.com/!google!cloud!platform/omega")]
+  public void EscapePath_ValidInput_ReturnsExpectedOutput(string path, string expectedEsc) {
+    // Act.
+    (string? esc, Exception? err) = Module.EscapePath(path);
 
-        // Assert.
-        Assert.Null(err);
-        Assert.Equal(expectedEsc, esc);
-    }
+    // Assert.
+    Assert.Null(err);
+    Assert.Equal(expectedEsc, esc);
+  }
 
-    [Theory]
-    [MemberData(nameof(CheckPathTests))]
+  [Theory]
+  [MemberData(nameof(CheckPathTests))]
 #pragma warning disable xUnit1026 // Theory methods should use all of their parameters
-    public void EscapePath_InvalidPaths_ReturnsError(string path, bool ok, bool importOK, bool fileOK)
+  public void EscapePath_InvalidPaths_ReturnsError(string path, bool ok, bool importOK, bool fileOK)
 #pragma warning restore xUnit1026 // Theory methods should use all of their parameters
-    {
-        // We want to reuse the CheckPath tests, but we need to skip the valid paths.
-        if (ok)
-        {
-            return;
-        }
-
-        // Act.
-        (string _, Exception? err) = Module.EscapePath(path);
-
-        // Assert.
-        Assert.NotNull(err);
+  {
+    // We want to reuse the CheckPath tests, but we need to skip the valid paths.
+    if (ok) {
+      return;
     }
 
-    [Theory]
-    [InlineData("x.y/z", "")]
-    [InlineData("x.y/z", "/v2")]
-    [InlineData("x.y/z", "/v3")]
-    [InlineData("x.y/v", "")]
-    [InlineData("gopkg.in/yaml", ".v0")]
-    [InlineData("gopkg.in/yaml", ".v1")]
-    [InlineData("gopkg.in/yaml", ".v2")]
-    [InlineData("gopkg.in/yaml", ".v3")]
-    public void SplitPathVersion_ValidInput_ReturnsExpectedOutput(string expectedPathPrefix, string expectedVersion)
-    {
-        // Act.
-        (string? pathPrefix, string? version, bool ok) = Module.SplitPathVersion(expectedPathPrefix + expectedVersion);
+    // Act.
+    (string _, Exception? err) = Module.EscapePath(path);
 
-        // Assert.
-        Assert.Equal(expectedPathPrefix, pathPrefix);
-        Assert.Equal(expectedVersion, version);
-        Assert.True(ok);
-    }
+    // Assert.
+    Assert.NotNull(err);
+  }
 
-    [Theory]
-    [MemberData(nameof(CheckPathTests))]
+  [Theory]
+  [InlineData("x.y/z", "")]
+  [InlineData("x.y/z", "/v2")]
+  [InlineData("x.y/z", "/v3")]
+  [InlineData("x.y/v", "")]
+  [InlineData("gopkg.in/yaml", ".v0")]
+  [InlineData("gopkg.in/yaml", ".v1")]
+  [InlineData("gopkg.in/yaml", ".v2")]
+  [InlineData("gopkg.in/yaml", ".v3")]
+  public void SplitPathVersion_ValidInput_ReturnsExpectedOutput(string expectedPathPrefix, string expectedVersion) {
+    // Act.
+    (string? pathPrefix, string? version, bool ok) = Module.SplitPathVersion(expectedPathPrefix + expectedVersion);
+
+    // Assert.
+    Assert.Equal(expectedPathPrefix, pathPrefix);
+    Assert.Equal(expectedVersion, version);
+    Assert.True(ok);
+  }
+
+  [Theory]
+  [MemberData(nameof(CheckPathTests))]
 #pragma warning disable xUnit1026 // Theory methods should use all of their parameters
-    public void SplitPathVersion_MoreValidPaths_ReturnsExpectedOutput(string path, bool expectedOk, bool importOK, bool fileOK)
+  public void SplitPathVersion_MoreValidPaths_ReturnsExpectedOutput(string path, bool expectedOk, bool importOK, bool fileOK)
 #pragma warning restore xUnit1026 // Theory methods should use all of their parameters
-    {
-        // Act.
-        (string? pathPrefix, string? version, bool ok) = Module.SplitPathVersion(path);
+  {
+    // Act.
+    (string? pathPrefix, string? version, _) = Module.SplitPathVersion(path);
 
-        // Assert.
-        Assert.Equal(path, pathPrefix + version);
-    }
+    // Assert.
+    Assert.Equal(path, pathPrefix + version);
+  }
 }

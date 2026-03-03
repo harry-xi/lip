@@ -4,30 +4,27 @@ using StreamJsonRpc;
 
 namespace Lip.Daemon.Commands;
 
-public class RunCommand : AsyncCommand<RunCommand.Settings>
-{
-    public class Settings : CommandSettings
-    {
-    }
+public class RunCommand : AsyncCommand<RunCommand.Settings> {
+  public class Settings : CommandSettings {
+  }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
-    {
-        using JsonRpc rpc = new(
-            Console.OpenStandardOutput(),
-            Console.OpenStandardInput());
+  public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    using JsonRpc rpc = new(
+        Console.OpenStandardOutput(),
+        Console.OpenStandardInput());
 
-        IClientContract clientProxy = rpc.Attach<IClientContract>();
+    IClientContract clientProxy = rpc.Attach<IClientContract>();
 
-        RpcUserInteraction userInteraction = new(clientProxy);
+    RpcUserInteraction userInteraction = new(clientProxy);
 
-        LipClient client = await LipClient.Create(userInteraction);
+    LipClient client = await LipClient.Create(userInteraction);
 
-        rpc.AddLocalRpcTarget(client);
+    rpc.AddLocalRpcTarget(client);
 
-        rpc.StartListening();
+    rpc.StartListening();
 
-        await rpc.Completion;
+    await rpc.Completion;
 
-        return 0;
-    }
+    return 0;
+  }
 }

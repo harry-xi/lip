@@ -86,7 +86,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - run: |
-          dotnet format --verify-no-changes
+          dotnet format \
+            --severity info \
+            --verify-no-changes
 
   test:
     runs-on: ${{ matrix.runs-on }}

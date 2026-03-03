@@ -1,29 +1,26 @@
+using System.Text.Json;
 using Lip.Core.Entities;
 using Lip.Core.Migration.PackageManifests;
-using System.Text.Json;
 
 namespace Lip.Core.Tests.Migration.PackageManifests;
 
-public class PackageManifestMigrationTests
-{
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        Converters =
-        {
+public class PackageManifestMigrationTests {
+  private static readonly JsonSerializerOptions _jsonSerializerOptions = new() {
+    WriteIndented = true,
+    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+    Converters =
+      {
             new Core.Json.SemVersionJsonConverter(),
             new Core.Json.UrlJsonConverter(),
             new Core.Json.GlobListJsonConverter()
         }
-    };
+  };
 
 
-    [Fact]
-    public void Migrate_ValidV1Json_ReturnsMigratedV3Json()
-    {
-        // Arrange
-        string jsonTextV1 = """
+  [Fact]
+  public void Migrate_ValidV1Json_ReturnsMigratedV3Json() {
+    // Arrange
+    string jsonTextV1 = """
             {
                 "format_version": 1,
                 "tooth": "github.com/LiteLScript-Dev/HelperLib",
@@ -43,9 +40,9 @@ public class PackageManifestMigrationTests
             }
             """;
 
-        using JsonDocument jsonDocumentV1 = JsonDocument.Parse(jsonTextV1);
+    using JsonDocument jsonDocumentV1 = JsonDocument.Parse(jsonTextV1);
 
-        string expectedJsonTextV3 = $$"""
+    string expectedJsonTextV3 = $$"""
             {
               "format_version": 3,
               "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -88,19 +85,18 @@ public class PackageManifestMigrationTests
             }
             """;
 
-        // Act
-        PackageManifest result = PackageManifestMigration.Migrate(jsonDocumentV1);
-        string resultJson = JsonSerializer.Serialize(result, _jsonSerializerOptions);
+    // Act
+    PackageManifest result = PackageManifestMigration.Migrate(jsonDocumentV1);
+    string resultJson = JsonSerializer.Serialize(result, _jsonSerializerOptions);
 
-        // Assert
-        AssertJsonEqual(expectedJsonTextV3, resultJson);
-    }
+    // Assert
+    AssertJsonEqual(expectedJsonTextV3, resultJson);
+  }
 
-    [Fact]
-    public void Migrate_ValidV2Json_ReturnsMigratedV3Json()
-    {
-        // Arrange
-        string textV2 = """
+  [Fact]
+  public void Migrate_ValidV2Json_ReturnsMigratedV3Json() {
+    // Arrange
+    string textV2 = """
             {
                 "format_version": 2,
                 "tooth": "github.com/LiteLDev/LeviLamina",
@@ -148,7 +144,7 @@ public class PackageManifestMigrationTests
             }
             """;
 
-        string expectedJsonTextV3 = $$"""
+    string expectedJsonTextV3 = $$"""
             {
               "format_version": 3,
               "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
@@ -206,45 +202,42 @@ public class PackageManifestMigrationTests
             }
             """;
 
-        using JsonDocument docV2 = JsonDocument.Parse(textV2);
+    using JsonDocument docV2 = JsonDocument.Parse(textV2);
 
-        // Act
-        PackageManifest result = PackageManifestMigration.Migrate(docV2);
-        string resultJson = JsonSerializer.Serialize(result, _jsonSerializerOptions);
+    // Act
+    PackageManifest result = PackageManifestMigration.Migrate(docV2);
+    string resultJson = JsonSerializer.Serialize(result, _jsonSerializerOptions);
 
-        // Assert
-        AssertJsonEqual(expectedJsonTextV3, resultJson);
-    }
+    // Assert
+    AssertJsonEqual(expectedJsonTextV3, resultJson);
+  }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(4)] // Assume 4 is invalid for now
-    public void Migrate_InvalidFormatVersion_ThrowsNotSupportedException(int version)
-    {
-        string text = $$"""
+  [Theory]
+  [InlineData(0)]
+  [InlineData(4)] // Assume 4 is invalid for now
+  public void Migrate_InvalidFormatVersion_ThrowsNotSupportedException(int version) {
+    string text = $$"""
             {
                 "format_version": {{version}}
             }
             """;
-        using JsonDocument doc = JsonDocument.Parse(text);
+    using JsonDocument doc = JsonDocument.Parse(text);
 
-        Assert.Throws<NotSupportedException>(() => PackageManifestMigration.Migrate(doc));
+    Assert.Throws<NotSupportedException>(() => PackageManifestMigration.Migrate(doc));
+  }
+
+  private static void AssertJsonEqual(string expected, string actual) {
+    using JsonDocument expectedDoc = JsonDocument.Parse(expected);
+    using JsonDocument actualDoc = JsonDocument.Parse(actual);
+
+    string expectedNormalized = JsonSerializer.Serialize(expectedDoc.RootElement, _jsonSerializerOptions);
+    string actualNormalized = JsonSerializer.Serialize(actualDoc.RootElement, _jsonSerializerOptions);
+
+    if (expectedNormalized.ReplaceLineEndings() != actualNormalized.ReplaceLineEndings()) {
+      System.IO.File.WriteAllText("expected_debug.json", expectedNormalized);
+      System.IO.File.WriteAllText("actual_debug.json", actualNormalized);
     }
 
-    private void AssertJsonEqual(string expected, string actual)
-    {
-        using JsonDocument expectedDoc = JsonDocument.Parse(expected);
-        using JsonDocument actualDoc = JsonDocument.Parse(actual);
-
-        string expectedNormalized = JsonSerializer.Serialize(expectedDoc.RootElement, _jsonSerializerOptions);
-        string actualNormalized = JsonSerializer.Serialize(actualDoc.RootElement, _jsonSerializerOptions);
-
-        if (expectedNormalized.ReplaceLineEndings() != actualNormalized.ReplaceLineEndings())
-        {
-            System.IO.File.WriteAllText("expected_debug.json", expectedNormalized);
-            System.IO.File.WriteAllText("actual_debug.json", actualNormalized);
-        }
-
-        Assert.Equal(expectedNormalized.ReplaceLineEndings(), actualNormalized.ReplaceLineEndings());
-    }
+    Assert.Equal(expectedNormalized.ReplaceLineEndings(), actualNormalized.ReplaceLineEndings());
+  }
 }

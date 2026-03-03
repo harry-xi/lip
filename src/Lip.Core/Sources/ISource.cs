@@ -1,8 +1,7 @@
 namespace Lip.Core.Sources;
 
-public interface ISource
-{
-    public IEnumerable<string> Keys { get; }
+public interface ISource {
+  public IEnumerable<string> Keys { get; }
 
-    public Task<Stream> OpenRead(string key);
+  public Task<Stream> OpenRead(string key);
 }

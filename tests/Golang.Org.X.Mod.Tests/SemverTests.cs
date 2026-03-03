@@ -1,9 +1,8 @@
 namespace Golang.Org.X.Mod.Tests;
 
-public class SemverTests
-{
-    public static TheoryData<string, string> Tests => new()
-    {
+public class SemverTests {
+  public static TheoryData<string, string> Tests => new()
+  {
         { "bad", "" },
         { "v1-alpha.beta.gamma", "" },
         { "v1-pre", "" },
@@ -38,36 +37,32 @@ public class SemverTests
         { "v1.2.3+meta-pre.sha.256a", "v1.2.3" }
     };
 
-    [Theory]
-    [MemberData(nameof(Tests))]
-    public void Build_ValidInput_ReturnsExpectedOutput(string input, string output)
-    {
-        // Assert.
-        string want = string.Empty;
-        if (!string.IsNullOrEmpty(output))
-        {
-            int index = input.IndexOf('+');
-            if (index >= 0)
-            {
-                want = input[index..];
-            }
-        }
-
-        // Act.
-        string build = Semver.Build(input);
-
-        // Assert.
-        Assert.Equal(want, build);
+  [Theory]
+  [MemberData(nameof(Tests))]
+  public void Build_ValidInput_ReturnsExpectedOutput(string input, string output) {
+    // Assert.
+    string want = string.Empty;
+    if (!string.IsNullOrEmpty(output)) {
+      int index = input.IndexOf('+');
+      if (index >= 0) {
+        want = input[index..];
+      }
     }
 
-    [Theory]
-    [MemberData(nameof(Tests))]
-    public void Canonical_ValidInput_ReturnsExpectedOutput(string input, string output)
-    {
-        // Act.
-        string canonical = Semver.Canonical(input);
+    // Act.
+    string build = Semver.Build(input);
 
-        // Assert.
-        Assert.Equal(output, canonical);
-    }
+    // Assert.
+    Assert.Equal(want, build);
+  }
+
+  [Theory]
+  [MemberData(nameof(Tests))]
+  public void Canonical_ValidInput_ReturnsExpectedOutput(string input, string output) {
+    // Act.
+    string canonical = Semver.Canonical(input);
+
+    // Assert.
+    Assert.Equal(output, canonical);
+  }
 }

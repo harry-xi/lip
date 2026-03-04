@@ -87,7 +87,6 @@ jobs:
 
       - run: |
           dotnet format \
-            --severity info \
             --verify-no-changes
 
   test:

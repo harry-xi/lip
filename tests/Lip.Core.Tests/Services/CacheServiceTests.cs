@@ -21,6 +21,7 @@ public class CacheServiceTests {
 
     // Act
     IDirectoryInfo result = await service.GetOrCreateDirectory("test-key", async dir => {
+      mockFileSystem.Directory.CreateDirectory(dir.FullName);
       factoryCalled = true;
       await Task.CompletedTask;
     });
@@ -69,6 +70,7 @@ public class CacheServiceTests {
 
     // Act
     IFileInfo result = await service.GetOrCreateFile("test-key", async file => {
+      mockFileSystem.File.Create(file.FullName).Dispose();
       factoryCalled = true;
       await Task.CompletedTask;
     });

@@ -90,7 +90,7 @@ public class PackageInstaller(
               if (placement.Src == key) {
                 targetLocations.Add(_fileSystem.FileInfo.New(placement.Dst));
               } else if (Glob.Parse(placement.Src).IsMatch(key)) {
-                string targetPath = _fileSystem.Path.Combine(
+                string targetPath = Path.Combine(
                     placement.Dst,
                     Path.GetFileName(key));
                 targetLocations.Add(_fileSystem.FileInfo.New(targetPath));
@@ -101,7 +101,7 @@ public class PackageInstaller(
             case PackageManifestAssetPlacement.PlacementType.Directory:
               if (Path.GetRelativePath(placement.Src, key) is string relativePath
                   && !relativePath.StartsWith("..")) {
-                string targetPath = _fileSystem.Path.Combine(
+                string targetPath = Path.Combine(
                     placement.Dst,
                     relativePath);
                 targetLocations.Add(_fileSystem.FileInfo.New(targetPath));

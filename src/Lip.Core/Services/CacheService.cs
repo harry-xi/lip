@@ -15,19 +15,21 @@ public interface ICacheService {
 
 public class CacheService(IFileSystem fileSystem, IUserInteraction userInteraction) : ICacheService {
   private readonly IDirectoryInfo _cacheDirectory = fileSystem.DirectoryInfo.New(
-      Path.Combine(
+      Path.Join(
           Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
           "lip",
           "cache"));
+  private readonly IDirectoryInfo _tempDirectory = fileSystem.DirectoryInfo.New(
+      Path.Join(
+          Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+          "lip",
+          "temp"));
 
   private readonly IFileSystem _fileSystem = fileSystem;
   private readonly IUserInteraction _userInteraction = userInteraction;
 
   public async Task Clean() {
     if (!_cacheDirectory.Exists) {
-      await _userInteraction.PrintWarning(
-          $"Cache directory '{_cacheDirectory.FullName}' does not exist, skipping clean.");
-
       return;
     }
 
@@ -37,30 +39,70 @@ public class CacheService(IFileSystem fileSystem, IUserInteraction userInteracti
   public async Task<IDirectoryInfo> GetOrCreateDirectory(string key, Func<IDirectoryInfo, Task> factory) {
     string safeKey = Uri.EscapeDataString(key);
 
-    IDirectoryInfo cacheInfo = _fileSystem.DirectoryInfo.New(Path.Combine(
-        _cacheDirectory.FullName, safeKey));
+    IDirectoryInfo cacheDir = _fileSystem.DirectoryInfo.New(Path.Join(_cacheDirectory.FullName, safeKey));
 
-    if (!cacheInfo.Exists) {
-      _fileSystem.Directory.CreateDirectory(cacheInfo.FullName);
+    if (cacheDir.Exists) {
+      await _userInteraction.PrintInfo($"Cache hit for key '{key}'.");
 
-      await factory(cacheInfo);
+      return cacheDir;
+    }
+    cacheDir.Parent?.Create();
+
+    await _userInteraction.PrintInfo($"Caching directory for key '{key}'...");
+
+    IDirectoryInfo tempDir = _fileSystem.DirectoryInfo.New(Path.Join(_tempDirectory.FullName, Guid.NewGuid().ToString()));
+    tempDir.Parent?.Create();
+
+    try {
+      await factory(tempDir);
+
+      _fileSystem.Directory.Move(tempDir.FullName, cacheDir.FullName);
+    }
+    catch (IOException) when (cacheDir.Exists) {
+      // Another process has already created the cache directory, so we can ignore this exception.
+    }
+    finally {
+      if (tempDir.Exists) {
+        tempDir.Delete(recursive: true);
+      }
     }
 
-    return cacheInfo;
+    cacheDir.Refresh();
+
+    return cacheDir;
   }
 
   public async Task<IFileInfo> GetOrCreateFile(string key, Func<IFileInfo, Task> factory) {
     string safeKey = Uri.EscapeDataString(key);
 
-    IFileInfo cacheInfo = _fileSystem.FileInfo.New(Path.Combine(
-        _cacheDirectory.FullName, safeKey));
+    IFileInfo cacheFile = _fileSystem.FileInfo.New(Path.Join(_cacheDirectory.FullName, safeKey));
 
-    if (!cacheInfo.Exists) {
-      _fileSystem.CreateFileWithDirectory(cacheInfo.FullName).Dispose();
+    if (cacheFile.Exists) {
+      await _userInteraction.PrintInfo($"Cache hit for key '{key}'.");
 
-      await factory(cacheInfo);
+      return cacheFile;
+    }
+    cacheFile.Directory?.Create();
+
+    await _userInteraction.PrintInfo($"Caching file for key '{key}'...");
+
+    IFileInfo tempFile = _fileSystem.FileInfo.New(Path.Join(_tempDirectory.FullName, Guid.NewGuid().ToString()));
+    tempFile.Directory?.Create();
+
+    try {
+      await factory(tempFile);
+
+      _fileSystem.File.Move(tempFile.FullName, cacheFile.FullName);
+    }
+    catch (IOException) when (cacheFile.Exists) {
+      // Another process has already created the cache file, so we can ignore this exception.
+    }
+    finally {
+      tempFile.Delete();
     }
 
-    return cacheInfo;
+    cacheFile.Refresh();
+
+    return cacheFile;
   }
 }

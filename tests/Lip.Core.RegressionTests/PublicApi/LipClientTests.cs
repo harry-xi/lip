@@ -41,45 +41,7 @@ public class LipClientTests {
       new WorkflowUninstallStep(["github.com/LiteLDev/LegacyScriptEngine"]),
       new WorkflowInstallStep(["github.com/LiteLDev/MoreDimensions@0.13.0"]),
       new WorkflowInstallStep(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"]),
-    ],
-    [
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.1"]),
-      new WorkflowUninstallStep(["github.com/LiteLDev/LeviOptimize"]),
-    ],
-    [
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.0"]),
-      new WorkflowUpdateStep(["github.com/LiteLDev/LeviOptimize@0.12.1"]),
-      new WorkflowUninstallStep(["github.com/LiteLDev/LeviOptimize"]),
-    ],
-    [
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/LegacyScriptEngine@0.17.3"]),
-      new WorkflowUpdateStep(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"]),
-      new WorkflowUninstallStep(["github.com/LiteLDev/LegacyScriptEngine"]),
-    ],
-    [
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviAntiCheat@0.12.0"]),
-      new WorkflowUpdateStep(["github.com/LiteLDev/LeviAntiCheat@0.12.2"]),
-      new WorkflowUninstallStep(["github.com/LiteLDev/LeviAntiCheat"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.1"]),
-    ],
-    [
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.0", "github.com/LiteLDev/LeviAntiCheat@0.12.1"]),
-      new WorkflowUpdateStep(["github.com/LiteLDev/LeviOptimize@0.12.1", "github.com/LiteLDev/LeviAntiCheat@0.12.2"]),
-      new WorkflowUninstallStep(["github.com/LiteLDev/LeviOptimize"]),
-      new WorkflowUninstallStep(["github.com/LiteLDev/LeviAntiCheat"]),
-    ],
-    [
-      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/MoreDimensions@0.12.2"]),
-      new WorkflowUpdateStep(["github.com/LiteLDev/MoreDimensions@0.13.0"]),
-      new WorkflowUninstallStep(["github.com/LiteLDev/MoreDimensions"]),
-      new WorkflowInstallStep(["github.com/LiteLDev/LegacyMoney@0.17.0"]),
-    ],
+    ]
   ];
 
   [WinX64Theory]

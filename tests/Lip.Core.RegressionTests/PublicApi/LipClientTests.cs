@@ -5,12 +5,10 @@ using Moq;
 namespace Lip.Core.RegressionTests.PublicApi;
 
 public class LipClientTests {
-  public enum WorkflowStepAction {
-    Install,
-    Uninstall
-  }
-
-  public record WorkflowStep(List<string> Packages, WorkflowStepAction Action);
+  public record WorkflowBaseStep();
+  public record WorkflowInstallStep(List<string> Packages) : WorkflowBaseStep;
+  public record WorkflowUninstallStep(List<string> Packages) : WorkflowBaseStep;
+  public record WorkflowUpdateStep(List<string> Packages) : WorkflowBaseStep;
 
   public static TheoryData<List<string>> Install_OnWinX64_DoesNotThrowData =>
   [
@@ -36,25 +34,57 @@ public class LipClientTests {
     await lipClient.Install(packages, dryRun: false, ignoreScripts: false, noDependencies: false);
   }
 
-  public static TheoryData<List<WorkflowStep>> ComplexWorkflow_OnWinX64_DoesNotThrowData =>
+  public static TheoryData<List<WorkflowBaseStep>> ComplexWorkflow_OnWinX64_DoesNotThrowData =>
   [
     [
-      new(["github.com/LiteLDev/LeviLamina@1.9.7", "github.com/LiteLDev/LegacyScriptEngine@0.17.5"], WorkflowStepAction.Install),
-      new(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"], WorkflowStepAction.Uninstall),
-      new(["github.com/LiteLDev/MoreDimensions@0.13.0"], WorkflowStepAction.Install),
-      new(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"], WorkflowStepAction.Install),
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7", "github.com/LiteLDev/LegacyScriptEngine@0.17.5"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/LegacyScriptEngine"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/MoreDimensions@0.13.0"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"]),
     ],
     [
-      new(["github.com/LiteLDev/bds@1.26.3"], WorkflowStepAction.Install),
-      new(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"], WorkflowStepAction.Install),
-      new(["github.com/LiteLDev/LeviLamina@1.9.7"], WorkflowStepAction.Install),
-      new(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"], WorkflowStepAction.Uninstall),
-    ]
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.1"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/LeviOptimize"]),
+    ],
+    [
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.0"]),
+      new WorkflowUpdateStep(["github.com/LiteLDev/LeviOptimize@0.12.1"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/LeviOptimize"]),
+    ],
+    [
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LegacyScriptEngine@0.17.3"]),
+      new WorkflowUpdateStep(["github.com/LiteLDev/LegacyScriptEngine@0.17.5"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/LegacyScriptEngine"]),
+    ],
+    [
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviAntiCheat@0.12.0"]),
+      new WorkflowUpdateStep(["github.com/LiteLDev/LeviAntiCheat@0.12.2"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/LeviAntiCheat"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.1"]),
+    ],
+    [
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviOptimize@0.12.0", "github.com/LiteLDev/LeviAntiCheat@0.12.1"]),
+      new WorkflowUpdateStep(["github.com/LiteLDev/LeviOptimize@0.12.1", "github.com/LiteLDev/LeviAntiCheat@0.12.2"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/LeviOptimize"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/LeviAntiCheat"]),
+    ],
+    [
+      new WorkflowInstallStep(["github.com/LiteLDev/LeviLamina@1.9.7"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/MoreDimensions@0.12.2"]),
+      new WorkflowUpdateStep(["github.com/LiteLDev/MoreDimensions@0.13.0"]),
+      new WorkflowUninstallStep(["github.com/LiteLDev/MoreDimensions"]),
+      new WorkflowInstallStep(["github.com/LiteLDev/LegacyMoney@0.17.0"]),
+    ],
   ];
 
   [WinX64Theory]
   [MemberData(nameof(ComplexWorkflow_OnWinX64_DoesNotThrowData))]
-  public async Task ComplexWorkflow_OnWinX64_DoesNotThrow(List<WorkflowStep> steps) {
+  public async Task ComplexWorkflow_OnWinX64_DoesNotThrow(List<WorkflowBaseStep> steps) {
     IUserInteraction userInteraction = CreateMockUserInteraction();
 
     string workspaceDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -65,17 +95,21 @@ public class LipClientTests {
     LipClient lipClient = await LipClient.Create(userInteraction);
 
     foreach (var step in steps) {
-      switch (step.Action) {
-        case WorkflowStepAction.Install:
-          await lipClient.Install(step.Packages, dryRun: false, ignoreScripts: false, noDependencies: false);
+      switch (step) {
+        case WorkflowInstallStep installStep:
+          await lipClient.Install(installStep.Packages, dryRun: false, ignoreScripts: false, noDependencies: false);
           break;
 
-        case WorkflowStepAction.Uninstall:
-          await lipClient.Uninstall(step.Packages, dryRun: false, ignoreScripts: false, noDependencies: false);
+        case WorkflowUninstallStep uninstallStep:
+          await lipClient.Uninstall(uninstallStep.Packages, dryRun: false, ignoreScripts: false, noDependencies: false);
+          break;
+
+        case WorkflowUpdateStep updateStep:
+          await lipClient.Update(updateStep.Packages, dryRun: false, ignoreScripts: false);
           break;
 
         default:
-          throw new NotSupportedException($"Unsupported action: {step.Action}");
+          throw new NotSupportedException("Unknown workflow step type");
       }
     }
   }

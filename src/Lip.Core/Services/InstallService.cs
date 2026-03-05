@@ -129,6 +129,12 @@ public class InstallService(
             ignoreScripts);
       }
     }
+
+    await ReconcilePackageExplicitness(
+        newInstalledPackages,
+        newExplicitlyInstalledPackages,
+        explicitlyInstalledPackages,
+        dryRun);
   }
 
   public async Task UninstallPackages(
@@ -170,6 +176,12 @@ public class InstallService(
         await _packageInstaller.UninstallPackage(installedPackage.Id, dryRun, ignoreScripts);
       }
     }
+
+    await ReconcilePackageExplicitness(
+        newInstalledPackages,
+        newExplicitlyInstalledPackages,
+        explicitlyInstalledPackages,
+        dryRun);
   }
 
   public async Task UpdatePackages(
@@ -229,6 +241,50 @@ public class InstallService(
             dryRun,
             explicitInstall: newExplicitlyInstalledPackages.Contains(newPackage),
             ignoreScripts);
+      }
+    }
+
+    await ReconcilePackageExplicitness(
+        newInstalledPackages,
+        newExplicitlyInstalledPackages,
+        explicitlyInstalledPackages,
+        dryRun);
+  }
+
+  private async Task ReconcilePackageExplicitness(
+      IEnumerable<PackageSpec> installedPackages,
+      IEnumerable<PackageSpec> explicitlyInstalledPackages,
+      IEnumerable<PackageSpec> previousExplicitlyInstalledPackages,
+      bool dryRun) {
+    foreach (PackageSpec newPackage in installedPackages) {
+      bool isExplicit = explicitlyInstalledPackages.Contains(newPackage);
+      bool wasExplicit = previousExplicitlyInstalledPackages.Contains(newPackage);
+
+      if (isExplicit && !wasExplicit) {
+        if (dryRun) {
+          await _userInteraction.PrintInfo(
+              $"Dry run: would mark package '{newPackage.Id}' version {newPackage.Version} as explicitly installed.");
+
+          continue;
+        }
+
+        await _userInteraction.PrintInfo(
+            $"Marking package '{newPackage.Id}' version {newPackage.Version} as explicitly installed.");
+
+        await _workspaceService.UpdateInstalledPackageExplicitness(newPackage, isExplicit: true);
+
+      } else if (!isExplicit && wasExplicit) {
+        if (dryRun) {
+          await _userInteraction.PrintInfo(
+              $"Dry run: would mark package '{newPackage.Id}' version {newPackage.Version} as not explicitly installed.");
+
+          continue;
+        }
+
+        await _userInteraction.PrintInfo(
+            $"Marking package '{newPackage.Id}' version {newPackage.Version} as not explicitly installed.");
+
+        await _workspaceService.UpdateInstalledPackageExplicitness(newPackage, isExplicit: false);
       }
     }
   }

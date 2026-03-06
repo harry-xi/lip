@@ -72,12 +72,14 @@ public class LipClient(
         sourceService,
         workspaceService);
     CompositePackageRegistry packageRegistry = new([
-       new WorkspaceServicePackageRegistry(workspaceService),
-           new GitPackageRegistry(gitRunner, githubProxy),
-           new GoModuleProxyPackageRegistry(goModuleProxy),
-           new LiprPackageRegistry(),
-           new SourceServicePackageRegistry(sourceService),
-        ]);
+      [new WorkspaceServicePackageRegistry(workspaceService)],
+      [
+        new GoModuleProxyPackageRegistry(goModuleProxy),
+        new LiprPackageRegistry(),
+        new GitPackageRegistry(gitRunner, githubProxy),
+      ],
+      [new SourceServicePackageRegistry(sourceService)],
+    ]);
 
     InstallService installService = new(
         userInteraction,

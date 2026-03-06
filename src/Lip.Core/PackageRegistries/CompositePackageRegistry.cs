@@ -1,27 +1,27 @@
-using System.Collections.Concurrent;
 using Lip.Core.Entities;
 using Semver;
 
 namespace Lip.Core.PackageRegistries;
 
-public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) : IPackageRegistry {
-  private readonly IEnumerable<IPackageRegistry> _registries = registries;
-
+public class CompositePackageRegistry(IEnumerable<IEnumerable<IPackageRegistry>> registryGroups) : IPackageRegistry {
   public async Task<IOrderedEnumerable<SemVersion>> GetAvailableVersions(PackageId packageId) {
-    ConcurrentBag<Exception> exceptions = [];
+    List<Exception> exceptions = [];
 
     List<IEnumerable<SemVersion>> results = [];
-    foreach (IPackageRegistry registry in _registries) {
-      try {
-        results.Add(await registry.GetAvailableVersions(packageId));
-      }
-      catch (Exception ex) {
-        exceptions.Add(ex);
+    foreach (IEnumerable<IPackageRegistry> registryGroup in registryGroups) {
+      foreach (IPackageRegistry registry in registryGroup) {
+        try {
+          results.Add(await registry.GetAvailableVersions(packageId));
+          break; // Stop trying other registries in this group if one succeeds.
+        }
+        catch (Exception ex) {
+          exceptions.Add(ex);
+        }
       }
     }
 
     // Throw if all registries failed.
-    if (exceptions.Count == _registries.Count()) {
+    if (results.Count == 0 && exceptions.Count > 0) {
       throw new AggregateException(
           $"Failed to retrieve available versions for package {packageId} from any registry.", exceptions);
     }
@@ -37,7 +37,7 @@ public class CompositePackageRegistry(IEnumerable<IPackageRegistry> registries) 
   public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec) {
     List<Exception> exceptions = [];
 
-    foreach (IPackageRegistry registry in _registries) {
+    foreach (IPackageRegistry registry in registryGroups.SelectMany(g => g)) {
       try {
         return await registry.GetPackageManifest(packageSpec);
       }

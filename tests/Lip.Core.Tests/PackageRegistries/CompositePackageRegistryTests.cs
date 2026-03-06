@@ -18,10 +18,10 @@ public class CompositePackageRegistryTests {
     mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
         .ReturnsAsync(new[] { new SemVersion(1, 1, 0), new SemVersion(2, 0, 0) }.Order(SemVersion.PrecedenceComparer));
 
-    CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
+    CompositePackageRegistry composite = new([[mockRegistry1.Object], [mockRegistry2.Object]]);
 
     // Act
-    List<SemVersion> result = [.. (await composite.GetAvailableVersions(pkgId))];
+    List<SemVersion> result = [.. await composite.GetAvailableVersions(pkgId)];
 
     // Assert
     Assert.Equal(3, result.Count);
@@ -42,10 +42,10 @@ public class CompositePackageRegistryTests {
     mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
         .ReturnsAsync(new[] { new SemVersion(1, 0, 0) }.OrderBy(v => v, SemVersion.PrecedenceComparer));
 
-    CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
+    CompositePackageRegistry composite = new([[mockRegistry1.Object], [mockRegistry2.Object]]);
 
     // Act
-    List<SemVersion> result = [.. (await composite.GetAvailableVersions(pkgId))];
+    List<SemVersion> result = [.. await composite.GetAvailableVersions(pkgId)];
 
     // Assert
     Assert.Single(result);
@@ -64,7 +64,7 @@ public class CompositePackageRegistryTests {
     mockRegistry2.Setup(r => r.GetAvailableVersions(pkgId))
         .ThrowsAsync(new Exception("Registry 2 failed"));
 
-    CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
+    CompositePackageRegistry composite = new([[mockRegistry1.Object], [mockRegistry2.Object]]);
 
     // Act & Assert
     await Assert.ThrowsAsync<AggregateException>(() => composite.GetAvailableVersions(pkgId));
@@ -81,7 +81,7 @@ public class CompositePackageRegistryTests {
 
     mockRegistry1.Setup(r => r.GetPackageManifest(pkgSpec)).ReturnsAsync(manifest);
 
-    CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
+    CompositePackageRegistry composite = new([[mockRegistry1.Object], [mockRegistry2.Object]]);
 
     // Act
     PackageManifest result = await composite.GetPackageManifest(pkgSpec);
@@ -104,7 +104,7 @@ public class CompositePackageRegistryTests {
     mockRegistry2.Setup(r => r.GetPackageManifest(pkgSpec))
         .ThrowsAsync(new Exception("Failed 2"));
 
-    CompositePackageRegistry composite = new([mockRegistry1.Object, mockRegistry2.Object]);
+    CompositePackageRegistry composite = new([[mockRegistry1.Object], [mockRegistry2.Object]]);
 
     // Act & Assert
     await Assert.ThrowsAsync<AggregateException>(() => composite.GetPackageManifest(pkgSpec));
@@ -116,7 +116,7 @@ public class CompositePackageRegistryTests {
     // Looking at implementation logic (implied from typical usage), if empty, it probably throws AggregateException or similar because it tries nothing.
 
     PackageSpec pkgSpec = new(new PackageId("github.com/test/pkg", ""), new SemVersion(1, 0, 0));
-    CompositePackageRegistry composite = new([]);
+    CompositePackageRegistry composite = new(Array.Empty<IEnumerable<IPackageRegistry>>());
 
     // Based on implementation of iterating and throwing exceptions if all fail, an empty list means 0 exceptions but loop finishes.
     // We should verify what happens when 0 registries are passed.

@@ -93,8 +93,8 @@ public class InstallService(
 
     CompositePackageRegistry packageRegistry = new(
     [
-        new ArtifactsPackageRegistry(packageArtifacts),
-            _packageRegistry
+        [new ArtifactsPackageRegistry(packageArtifacts)],
+        [_packageRegistry]
     ]);
     DependencySolver dependencySolver = new(packageRegistry, _userInteraction);
 
@@ -207,8 +207,8 @@ public class InstallService(
 
     CompositePackageRegistry packageRegistry = new(
     [
-        new ArtifactsPackageRegistry(packageArtifacts),
-            _packageRegistry
+      [new ArtifactsPackageRegistry(packageArtifacts)],
+      [_packageRegistry]
     ]);
     DependencySolver dependencySolver = new(packageRegistry, _userInteraction);
 

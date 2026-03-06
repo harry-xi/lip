@@ -61,12 +61,14 @@ jobs:
         run: |
           dotnet publish src/Lip.Cli \
             -o bin \
+            -p:DebugType=embedded \
             -p:Version=${{ steps.get-version.outputs.VERSION }}
 
       - shell: bash
         run: |
           dotnet publish src/Lip.Daemon \
             -o bin \
+            -p:DebugType=embedded \
             -p:Version=${{ steps.get-version.outputs.VERSION }}
 
       - uses: actions/upload-artifact@v7

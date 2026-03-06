@@ -155,20 +155,20 @@
       "params": [],
       "result": {
         "name": "packages",
-        "description": "Tuple containing explicit and implicit installed packages.",
+        "description": "Tuple containing explicit and implicit installed package specs as strings.",
         "schema": {
           "type": "array",
           "items": [
             {
               "type": "array",
               "items": {
-                "$ref": "#/components/schemas/PackageSpec"
+                "type": "string"
               }
             },
             {
               "type": "array",
               "items": {
-                "$ref": "#/components/schemas/PackageSpec"
+                "type": "string"
               }
             }
           ],
@@ -283,13 +283,24 @@
       }
     },
     {
-      "name": "Version",
-      "description": "Gets the lip version.",
-      "params": [],
+      "name": "Versions",
+      "description": "Shows available versions for a package.",
+      "params": [
+        {
+          "name": "package",
+          "description": "The package to list versions for.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
       "result": {
-        "name": "version",
+        "name": "versions",
         "schema": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -311,32 +322,115 @@
           "type": "string"
         }
       }
-    }
-  ],
-  "components": {
-    "schemas": {
-      "PackageId": {
-        "type": "object",
-        "properties": {
-          "Path": {
-            "type": "string"
-          },
-          "Variant": {
+    },
+    {
+      "name": "PrintInfo",
+      "description": "Notification from daemon to print an informational message.",
+      "params": [
+        {
+          "name": "message",
+          "description": "The message to display.",
+          "schema": {
             "type": "string"
           }
         }
-      },
-      "PackageSpec": {
-        "type": "object",
-        "properties": {
-          "Id": {
-            "$ref": "#/components/schemas/PackageId"
-          },
-          "Version": {
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "PrintSuccess",
+      "description": "Notification from daemon to print a success message.",
+      "params": [
+        {
+          "name": "message",
+          "description": "The message to display.",
+          "schema": {
             "type": "string"
           }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "PrintWarning",
+      "description": "Notification from daemon to print a warning message.",
+      "params": [
+        {
+          "name": "message",
+          "description": "The message to display.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "PrintError",
+      "description": "Notification from daemon to print an error message.",
+      "params": [
+        {
+          "name": "message",
+          "description": "The message to display.",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "name": "ReportProgress",
+      "description": "Notification from daemon to report progress for a running operation.",
+      "params": [
+        {
+          "name": "id",
+          "description": "The progress operation identifier.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "message",
+          "description": "A human-readable progress message.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "percentage",
+          "description": "Progress value reported by the running operation.",
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "null"
         }
       }
     }
-  }
+  ]
 }

@@ -9,8 +9,7 @@ For a complete and rigorous definition of all available methods, parameters, and
 [**lipd.v3.openrpc.json**](https://github.com/futrime/lip/blob/main/schemas/lipd.v3.openrpc.json)
 
 This schema defines:
--   All available RPC methods (e.g., `Install`, `List`, `Version`).
+-   All available RPC methods (e.g., `Install`, `List`, `Versions`).
 -   Input parameters and their types.
 -   Return values.
 -   Notifications sent by the server.
-

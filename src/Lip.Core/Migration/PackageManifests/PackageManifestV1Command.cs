@@ -10,7 +10,7 @@ public record PackageManifestV1Command {
   public required List<string> Commands { get; set; }
 
   [JsonPropertyName("GOOS")]
-  public required string GOOS { get; set; }
+  public string? GOOS { get; set; }
 
   [JsonPropertyName("GOARCH")]
   public string? GOARCH { get; set; }

@@ -106,6 +106,10 @@ A variant defines platform-specific or labeled package configurations. When reso
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `pre_install` | `string[]` | `[]` | Commands to run before installation. |
+| `install` | `string[]` | `[]` | Alias for `post_install`. Runs after package files are placed. |
 | `post_install` | `string[]` | `[]` | Commands to run after installation. |
 | `pre_uninstall` | `string[]` | `[]` | Commands to run before uninstallation. |
+| `uninstall` | `string[]` | `[]` | Alias for `pre_uninstall`. Runs before installed files are removed. |
 | `post_uninstall` | `string[]` | `[]` | Commands to run after uninstallation. |
+
+Prefer `post_install` and `pre_uninstall` in new manifests. `install` and `uninstall` are supported as compatibility aliases for the same lifecycle phase. If both forms are present, lip runs both lists in that phase.

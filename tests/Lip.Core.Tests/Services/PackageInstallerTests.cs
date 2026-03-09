@@ -155,6 +155,80 @@ public class PackageInstallerTests {
   }
 
   [Fact]
+  public async Task InstallPackage_InstallAliasRunsAfterFilesArePlaced() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", "");
+    PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
+
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([]);
+
+    string filePath = Path.Combine("plugins", "file.txt");
+    string manifestJson = """
+            {
+                "format_version": 3,
+                "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+                "tooth": "github.com/test/pkg",
+                "version": "1.0.0",
+                "variants": [
+                    {
+                        "assets": [
+                            {
+                                "type": "self",
+                                "placements": [
+                                    { "type": "file", "src": "file.txt", "dest": "plugins/file.txt" }
+                                ]
+                            }
+                        ],
+                        "scripts": {
+                            "pre_install": ["echo pre"],
+                            "install": ["echo install"],
+                            "post_install": ["echo post"]
+                        }
+                    }
+                ]
+            }
+            """;
+
+    Mock<ISource> mockSource = new();
+    mockSource.Setup(p => p.OpenRead("tooth.json"))
+        .ReturnsAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(manifestJson)));
+    mockSource.Setup(p => p.Keys).Returns(["file.txt"]);
+    mockSource.Setup(p => p.OpenRead("file.txt"))
+        .ReturnsAsync(new MemoryStream("content"u8.ToArray()));
+
+    List<string> executionOrder = [];
+    _mockCommandRunner.Setup(c => c.Run(It.IsAny<string>()))
+        .Returns<string>(command => {
+          if (command == "echo pre") {
+            Assert.False(_mockFileSystem.File.Exists(filePath));
+          }
+
+          if (command is "echo install" or "echo post") {
+            Assert.True(_mockFileSystem.File.Exists(filePath));
+          }
+
+          executionOrder.Add(command);
+          return Task.CompletedTask;
+        });
+    _mockWorkspaceService.Setup(w => w.AddInstalledPackage(
+            pkgSpec,
+            It.IsAny<PackageManifest>(),
+            It.IsAny<IEnumerable<IFileInfo>>(),
+            false))
+        .Callback(() => executionOrder.Add("state"))
+        .Returns(Task.CompletedTask);
+
+    PackageArtifact artifact = new(pkgSpec, mockSource.Object);
+
+    // Act
+    await _installer.InstallPackage(artifact, false, false, false);
+
+    // Assert
+    Assert.Equal(["echo pre", "echo install", "echo post", "state"], executionOrder);
+  }
+
+  [Fact]
   public async Task UninstallPackage_RemovesFiles() {
     // Arrange
     PackageId pkgId = new("github.com/test/pkg", "");
@@ -217,6 +291,63 @@ public class PackageInstallerTests {
 
     // Assert
     Assert.True(_mockFileSystem.File.Exists(filePath)); // Should exist
+  }
+
+  [Fact]
+  public async Task UninstallPackage_UninstallAliasRunsBeforeFilesAreRemoved() {
+    // Arrange
+    PackageId pkgId = new("github.com/test/pkg", "");
+    PackageSpec pkgSpec = new(pkgId, new SemVersion(1, 0, 0));
+
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackages(IWorkspaceService.PackageScope.All))
+        .ReturnsAsync([pkgSpec]);
+
+    PackageManifest manifest = new() {
+      Path = "github.com/test/pkg",
+      Version = new SemVersion(1, 0, 0),
+      Variants = [
+            new() {
+                    Scripts = new PackageManifestScripts {
+                      PreUninstall = ["echo pre"],
+                      Uninstall = ["echo uninstall"],
+                      PostUninstall = ["echo post"]
+                    }
+                }
+        ]
+    };
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageManifest(pkgSpec))
+        .ReturnsAsync(manifest);
+
+    string filePath = Path.Combine("plugins", "file.txt");
+    _mockFileSystem.AddFile(filePath, new MockFileData("content"));
+
+    _mockWorkspaceService.Setup(w => w.GetInstalledPackageFiles(pkgSpec))
+        .ReturnsAsync([_mockFileSystem.FileInfo.New(filePath)]);
+
+    List<string> executionOrder = [];
+    _mockCommandRunner.Setup(c => c.Run(It.IsAny<string>()))
+        .Returns<string>(command => {
+          if (command is "echo pre" or "echo uninstall") {
+            Assert.True(_mockFileSystem.File.Exists(filePath));
+          }
+
+          if (command == "echo post") {
+            Assert.False(_mockFileSystem.File.Exists(filePath));
+          }
+
+          executionOrder.Add(command);
+          return Task.CompletedTask;
+        });
+    _mockWorkspaceService.Setup(w => w.RemoveInstalledPackage(pkgSpec))
+        .Callback(() => executionOrder.Add("state"))
+        .Returns(Task.CompletedTask);
+
+    // Act
+    await _installer.UninstallPackage(pkgId, false, false);
+
+    // Assert
+    Assert.Equal(["echo pre", "echo uninstall", "echo post", "state"], executionOrder);
+    Assert.False(_mockFileSystem.File.Exists(filePath));
   }
 
   [Fact]

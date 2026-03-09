@@ -19,5 +19,5 @@ lip uninstall <PACKAGES> [options]
 | Option | Description |
 | --- | --- |
 | `-n, --dry-run` | Run without making any changes. |
-| `--ignore-scripts` | Skip running uninstall scripts. |
+| `--ignore-scripts` | Skip running `pre_uninstall`, `uninstall`, and `post_uninstall` scripts. |
 | `--no-dependencies` | Skip removing dependencies. |

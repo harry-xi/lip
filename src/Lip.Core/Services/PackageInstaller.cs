@@ -127,6 +127,10 @@ public class PackageInstaller(
     // Step 3: Run post-install scripts.
 
     if (!ignoreScripts) {
+      foreach (string script in variant.Scripts.Install) {
+        await _commandRunner.Run(script);
+      }
+
       foreach (string script in variant.Scripts.PostInstall) {
         await _commandRunner.Run(script);
       }
@@ -169,6 +173,10 @@ public class PackageInstaller(
 
     if (!ignoreScripts) {
       foreach (string script in variant.Scripts.PreUninstall) {
+        await _commandRunner.Run(script);
+      }
+
+      foreach (string script in variant.Scripts.Uninstall) {
         await _commandRunner.Run(script);
       }
     }

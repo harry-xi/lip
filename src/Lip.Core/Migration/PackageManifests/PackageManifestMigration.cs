@@ -36,20 +36,52 @@ public static partial class PackageManifestMigration {
             : []
     };
 
+    List<PackageManifestV2Platform> platforms = [];
+
+    PackageManifestV2Platform GetOrCreatePlatform(string goos, string? goarch) {
+      PackageManifestV2Platform? platform = platforms.SingleOrDefault(p => p.GOOS == goos && p.GOARCH == goarch);
+      if (platform is not null) {
+        return platform;
+      }
+
+      PackageManifestV2Platform result = new() {
+        GOOS = goos,
+        GOARCH = goarch
+      };
+      platforms.Add(result);
+      return result;
+    }
+
+    static bool HasCommands(PackageManifestV2Commands commands) {
+      return commands.PreInstall is not null
+             || commands.PostInstall is not null
+             || commands.PreUninstall is not null
+             || commands.PostUninstall is not null;
+    }
+
     PackageManifestV2Commands? commands = null;
     if (manifestV1.Commands is not null) {
-      PackageManifestV2Commands result = new();
+      PackageManifestV2Commands rootCommands = new();
       foreach (PackageManifestV1Command cmd in manifestV1.Commands) {
+        PackageManifestV2Commands targetCommands;
+        if (string.IsNullOrEmpty(cmd.GOOS)) {
+          targetCommands = rootCommands;
+        } else {
+          PackageManifestV2Platform platform = GetOrCreatePlatform(cmd.GOOS, cmd.GOARCH);
+          platform.Commands ??= new();
+          targetCommands = platform.Commands;
+        }
+
         if (cmd.Type.Equals("install", StringComparison.OrdinalIgnoreCase)) {
-          result.PostInstall ??= [];
-          result.PostInstall.AddRange(cmd.Commands);
+          targetCommands.PostInstall ??= [];
+          targetCommands.PostInstall.AddRange(cmd.Commands);
         } else if (cmd.Type.Equals("uninstall", StringComparison.OrdinalIgnoreCase)) {
-          result.PostUninstall ??= [];
-          result.PostUninstall.AddRange(cmd.Commands);
+          targetCommands.PreUninstall ??= [];
+          targetCommands.PreUninstall.AddRange(cmd.Commands);
         }
       }
-      if (result.PostInstall is not null || result.PostUninstall is not null) {
-        commands = result;
+      if (HasCommands(rootCommands)) {
+        commands = rootCommands;
       }
     }
 
@@ -70,7 +102,7 @@ public static partial class PackageManifestMigration {
               Place = [.. manifestV1.Placement.Select(p => new PackageManifestV2Place { Src = p.Source, Dest = p.Destination.TrimEnd('*') })]
             }
             : null,
-      Platforms = null
+      Platforms = platforms.Count > 0 ? platforms : null
     };
   }
 

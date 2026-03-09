@@ -130,6 +130,12 @@
                   "type": "string"
                 }
               },
+              "install": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "post_install": {
                 "type": "array",
                 "items": {
@@ -137,6 +143,12 @@
                 }
               },
               "pre_uninstall": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "uninstall": {
                 "type": "array",
                 "items": {
                   "type": "string"

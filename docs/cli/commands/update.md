@@ -19,4 +19,4 @@ lip update <PACKAGES> [options]
 | Option | Description |
 | --- | --- |
 | `-n, --dry-run` | Run without making any changes. |
-| `--ignore-scripts` | Skip running update scripts. |
+| `--ignore-scripts` | Skip running install and uninstall lifecycle scripts while updating packages. |

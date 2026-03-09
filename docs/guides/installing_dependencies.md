@@ -47,4 +47,4 @@ lip install https://example.com/package.zip
 
 -   `-n, --dry-run`: Simulate the installation without making any changes. Useful to see what would happen.
 -   `--no-dependencies`: Install only the specified package, ignoring its dependencies.
--   `--ignore-scripts`: Skip running any `pre-install` or `post-install` scripts defined in the package.
+-   `--ignore-scripts`: Skip running any `pre_install`, `install`, or `post_install` lifecycle scripts defined in the package.

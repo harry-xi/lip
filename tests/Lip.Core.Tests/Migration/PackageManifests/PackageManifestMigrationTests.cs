@@ -76,8 +76,150 @@ public class PackageManifestMigrationTests {
                   "remove_files": [],
                   "scripts": {
                     "pre_install": [],
+                    "install": [],
                     "post_install": [],
                     "pre_uninstall": [],
+                    "uninstall": [],
+                    "post_uninstall": []
+                  }
+                }
+              ]
+            }
+            """;
+
+    // Act
+    PackageManifest result = PackageManifestMigration.Migrate(jsonDocumentV1);
+    string resultJson = JsonSerializer.Serialize(result, _jsonSerializerOptions);
+
+    // Assert
+    AssertJsonEqual(expectedJsonTextV3, resultJson);
+  }
+
+  [Fact]
+  public void Migrate_V1Commands_PreserveLegacyLifecyclePhases() {
+    // Arrange
+    string jsonTextV1 = """
+            {
+                "format_version": 1,
+                "tooth": "github.com/LiteLScript-Dev/HelperLib",
+                "version": "2.14.1",
+                "commands": [
+                    {
+                        "type": "install",
+                        "commands": ["echo install"],
+                        "GOOS": "windows",
+                        "GOARCH": "amd64"
+                    },
+                    {
+                        "type": "uninstall",
+                        "commands": ["echo uninstall"],
+                        "GOOS": "windows",
+                        "GOARCH": "amd64"
+                    }
+                ]
+            }
+            """;
+
+    using JsonDocument jsonDocumentV1 = JsonDocument.Parse(jsonTextV1);
+
+    string expectedJsonTextV3 = $$"""
+            {
+              "format_version": 3,
+              "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+              "tooth": "github.com/LiteLScript-Dev/HelperLib",
+              "version": "2.14.1",
+              "info": {
+                "name": "",
+                "description": "",
+                "tags": [],
+                "avatar_url": ""
+              },
+              "variants": [
+                {
+                  "label": "",
+                  "platform": "win-x64",
+                  "dependencies": {},
+                  "assets": [],
+                  "preserve_files": [],
+                  "remove_files": [],
+                  "scripts": {
+                    "pre_install": [],
+                    "install": [],
+                    "post_install": [
+                      "echo install"
+                    ],
+                    "pre_uninstall": [
+                      "echo uninstall"
+                    ],
+                    "uninstall": [],
+                    "post_uninstall": []
+                  }
+                }
+              ]
+            }
+            """;
+
+    // Act
+    PackageManifest result = PackageManifestMigration.Migrate(jsonDocumentV1);
+    string resultJson = JsonSerializer.Serialize(result, _jsonSerializerOptions);
+
+    // Assert
+    AssertJsonEqual(expectedJsonTextV3, resultJson);
+  }
+
+  [Fact]
+  public void Migrate_V1Commands_WithoutGoos_AreTreatedAsGlobalForCompatibility() {
+    // Arrange
+    string jsonTextV1 = """
+            {
+                "format_version": 1,
+                "tooth": "github.com/LiteLScript-Dev/HelperLib",
+                "version": "2.14.1",
+                "commands": [
+                    {
+                        "type": "install",
+                        "commands": ["echo install"]
+                    },
+                    {
+                        "type": "uninstall",
+                        "commands": ["echo uninstall"]
+                    }
+                ]
+            }
+            """;
+
+    using JsonDocument jsonDocumentV1 = JsonDocument.Parse(jsonTextV1);
+
+    string expectedJsonTextV3 = $$"""
+            {
+              "format_version": 3,
+              "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
+              "tooth": "github.com/LiteLScript-Dev/HelperLib",
+              "version": "2.14.1",
+              "info": {
+                "name": "",
+                "description": "",
+                "tags": [],
+                "avatar_url": ""
+              },
+              "variants": [
+                {
+                  "label": "",
+                  "platform": "",
+                  "dependencies": {},
+                  "assets": [],
+                  "preserve_files": [],
+                  "remove_files": [],
+                  "scripts": {
+                    "pre_install": [],
+                    "install": [],
+                    "post_install": [
+                      "echo install"
+                    ],
+                    "pre_uninstall": [
+                      "echo uninstall"
+                    ],
+                    "uninstall": [],
                     "post_uninstall": []
                   }
                 }
@@ -189,10 +331,12 @@ public class PackageManifestMigrationTests {
                   ],
                   "scripts": {
                     "pre_install": [],
+                    "install": [],
                     "post_install": [
                         ".\\PeEditor.exe -mb"
                     ],
                     "pre_uninstall": [],
+                    "uninstall": [],
                     "post_uninstall": [
                         "IF EXIST bedrock_server.exe (DEL bedrock_server.exe.bak) ELSE (REN bedrock_server.exe.bak bedrock_server.exe)"
                     ]

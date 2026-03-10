@@ -2,8 +2,6 @@
 
 A general package installer
 
-**lip** is a general package installer. You can use **lip** to install packages from any Git repository.
-
 ## Usage
 
 Check out [the documentation](https://lip.levimc.org/) for more information.

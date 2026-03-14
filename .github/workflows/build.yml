@@ -118,10 +118,10 @@ jobs:
         shell: bash
 
       - run: |
-          dotnet build src/Lip.Installer
-          -c Release
-          -o bin-installer
-          -p:Platform=${{ matrix.runtime }}
+          dotnet build src/Lip.Installer \
+            -c Release \
+            -o bin-installer \
+            -p:Platform=${{ matrix.runtime }}
 
       - run: |
           mv bin-installer/en-US/Lip.Installer.msi bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi

@@ -188,9 +188,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lang:
-          - en-US
-          - zh-CN
         runtime:
           - win-arm64
           - win-x64
@@ -210,12 +207,12 @@ jobs:
           path: artifact-installer/
 
       - run: |
-          mv artifact-installer/${{ matrix.lang }}/Lip.Installer.msi artifact-installer/lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}-${{ matrix.lang }}.msi
+          mv artifact-installer/en-US/Lip.Installer.msi artifact-installer/lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifact-installer/lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}-${{ matrix.lang }}.msi
+            artifact-installer/lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
   publish-winget:
     runs-on: windows-latest

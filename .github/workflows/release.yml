@@ -103,7 +103,7 @@ jobs:
           name: lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
           path: bin/
 
-      - run: sed -i "s/0.0.0/${{ steps.get-version.outputs.VERSION }}/g" "$FILENAME"
+      - run: sed -i "s/0.0.0/${{ steps.get-version.outputs.VERSION }}/g" "src/Lip.Installer/Lip.Installer.wixproj"
         shell: bash
 
       - run: >

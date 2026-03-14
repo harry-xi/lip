@@ -117,16 +117,18 @@ jobs:
           sed -i "s/0.0.0/${version%%-*}/g" "src/Lip.Installer/Package.wxs"
         shell: bash
 
-      - run: >
+      - run: |
           dotnet build src/Lip.Installer
           -c Release
           -o bin-installer
           -p:Platform=${{ matrix.runtime }}
 
+      - run: |
+          mv bin-installer/en-US/Lip.Installer.msi bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
+
       - uses: actions/upload-artifact@v7
         with:
-          name: lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
-          path: bin-installer/
+          path: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
   check-style:
     runs-on: ubuntu-latest

@@ -115,10 +115,16 @@ jobs:
           -o bin-installer
           -p:Platform=${{ matrix.runtime }}
 
+      - run: |
+          mv bin-installer/en-US/Lip.Installer.msi bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
+
       - uses: actions/upload-artifact@v7
         with:
-          name: lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
-          path: bin-installer/
+          path: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
   update-notes:
     permissions:
@@ -180,39 +186,6 @@ jobs:
         with:
           files: |
             lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*
-
-  upload-windows-installer:
-    needs: build-windows-installer
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        runtime:
-          - win-arm64
-          - win-x64
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
-
-      - id: get-version
-        run: |
-          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
-          path: artifact-installer/
-
-      - run: |
-          mv artifact-installer/en-US/Lip.Installer.msi artifact-installer/lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            artifact-installer/lip-installer-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
   publish-winget:
     runs-on: windows-latest

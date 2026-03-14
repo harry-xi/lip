@@ -103,13 +103,13 @@ jobs:
           name: lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
           path: bin/
 
-      - run: sed -i "s/0.0.0/${{ steps.get-version.outputs.VERSION }}/g" "src/Lip.Installer/Lip.Installer.wixproj"
+      - run: sed -i "s/0.0.0/${{ steps.get-version.outputs.VERSION }}/g" "src/Lip.Installer/Package.wxs"
         shell: bash
 
       - run: >
           dotnet build src/Lip.Installer
-          --configuration Release
-          --output bin-installer
+          -c Release
+          -o bin-installer
           -p:Platform=${{ matrix.runtime }}
 
       - uses: actions/upload-artifact@v7

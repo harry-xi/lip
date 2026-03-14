@@ -117,10 +117,10 @@ jobs:
           sed -i "s/0.0.0/${version%%-*}/g" "src/Lip.Installer/Package.wxs"
         shell: bash
 
-      - run: |
-          dotnet build src/Lip.Installer \
-            -c Release \
-            -o bin-installer \
+      - run: >
+          dotnet build src/Lip.Installer
+            -c Release
+            -o bin-installer
             -p:Platform=${{ matrix.runtime }}
 
       - run: |

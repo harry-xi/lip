@@ -121,6 +121,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
+          archive: false
           path: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
       - uses: softprops/action-gh-release@v2

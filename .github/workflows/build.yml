@@ -76,6 +76,62 @@ jobs:
           name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: bin/
 
+  build-windows-installer:
+    needs: build
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        runtime:
+          - arm64
+          - x64
+        include:
+          - runtime: arm64
+            runs-on: windows-11-arm
+          - runtime: x64
+            runs-on: windows-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - id: get-version
+        shell: bash
+        run: |
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
+          path: bin/
+
+      - name: Generate clean version 
+        run: |
+          version=${{ steps.get-version.outputs.VERSION }}
+          sed -i "s/0.0.0/${version%%-*}/g" "src/Lip.Installer/Package.wxs"
+        shell: bash
+
+      - shell: bash
+        run: |
+          dotnet build src/Lip.Installer \
+            -c Release \
+            -o bin-installer \
+            -p:Platform=${{ matrix.runtime }}
+
+      - run: |
+          mv bin-installer/en-US/Lip.Installer.msi bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
+
   check-style:
     runs-on: ubuntu-latest
     permissions:

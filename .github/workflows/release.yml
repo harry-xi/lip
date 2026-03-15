@@ -71,7 +71,7 @@ jobs:
   build-windows-installer:
     needs: build
     permissions:
-      contents: read
+      contents: write
     strategy:
       matrix:
         runtime:

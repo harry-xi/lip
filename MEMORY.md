@@ -11,17 +11,36 @@
 - Manifest, runtime config, and workspace state all use format version `3` with UUID `289f771f-2c9a-4d73-9f3f-8492495a924d`.
 - Package argument parsing in `LipClient` tries, in order: exact `PackageSpec`, flexible `PackageId`, local archive path, then remote archive URL.
 - Package source retrieval prefers Go module proxy first and Git second; download URLs may be rewritten through `github_proxy`, and `go_module_proxy` defaults to `https://goproxy.io`.
+- Git fallback currently caches cloned repositories as directories via `CacheService.GetOrCreateDirectory`; this is fragile because `.git` contents can make `cache clean` deletion fail and directory-structured cache entries are riskier than file-archive cache artifacts.
 - Package registry lookup is layered: installed workspace packages first, then remote registries (`GoModuleProxyPackageRegistry`, `LiprPackageRegistry`, `GitPackageRegistry`), then source-derived manifests.
 - With dependencies enabled, install/uninstall/update recompute the full desired dependency graph from explicitly installed packages, uninstall removed packages in reverse topological order, then install new ones in topological order.
 - `--no-dependencies` bypasses dependency solving and is explicitly treated as potentially leaving a broken workspace.
 - Package variants are merged by label and current RID platform match; platform matching supports glob patterns and requires at least one full label+platform match.
 - Package install order is: run pre-install scripts, place asset files, run install/post-install scripts, then record workspace state. Uninstall runs pre-uninstall/uninstall scripts, removes tracked files except `preserve_files`, applies `remove_files`, runs post-uninstall scripts, then removes state.
 - CI expectations for code changes are `dotnet format --verify-no-changes` and `dotnet test`; docs are a separate VitePress project under `docs/` built with `npm run build`.
+- Native npm distribution is driven from `npm/`; the single `@futrime/lip` package exposes root launchers `lip.js` and `lipd.js`, bundles both `lip` and `lipd` for all six supported platforms in root-level platform folders like `linux-x64/` and `win32-x64/`, and the release workflow rewrites the package version from the release tag before publishing.
+- GitHub release automation now uploads GitHub Release archives directly inside each `build` matrix run after artifact upload; `publish-npm` still downloads all six `build` artifacts, copies their binaries into the staged `@futrime/lip` package, and publishes one npm package version derived from `git describe --tags`.
+- For the single-package npm distribution, `dotnet publish` must include both `-r <runtime>` and `--no-self-contained`; this keeps `PublishSingleFile=true` outputs framework-dependent and small enough for npm publish. Without `--no-self-contained`, each binary grows to roughly 75-90 MB and the combined npm tarball becomes too large for npm CLI publish.
 
 ## Recent
 
-- 2026-03-23: Initialized `MEMORY.md` `Memo` by reading the repo structure, core services, docs, schemas, and CI; recorded stable architecture, state/config locations, dependency-resolution behavior, and a `tooth.json` docs drift caveat.
-- 2026-03-23: Merged two conflicting `AGENTS.md` templates into one repo-specific policy file, removed Python/Notion workflow rules, and aligned instructions with the repo's `.NET` and docs build workflows.
-- 2026-03-23: Fixed `MEMORY.md` structure to match policy: `Memo`, `Recent`, then `History`, and normalized `Memo` casing.
+- 2026-03-23: Published `@futrime/lip@0.34.2-fd.0` to npm with tag `fd` after rebuilding all six platform binaries using `dotnet publish -r <runtime> --no-self-contained`; npm currently also reports `latest` as `0.34.2-fd.0`.
+- 2026-03-23: Flattened npm package native payloads from `bin/<platform>` to root-level platform folders like `linux-x64/`; updated launchers, npm `files`, and release CI copy paths accordingly.
+- 2026-03-23: Moved npm launchers to `npm/lip.js` and `npm/lipd.js`, and updated release CI so the single `@futrime/lip` package now bundles both `lip` and `lipd` binaries for every supported platform.
+- 2026-03-23: Merged the `upload-assets` release workflow job into the `build` matrix so each platform build now uploads its own GitHub Release archive directly, and `publish-winget` depends on `build` instead of a separate asset-upload phase.
+- 2026-03-23: Simplified npm distribution to a single `@futrime/lip` package that bundles all six platform binaries; removed platform subpackage manifests and changed release CI to stage one package from all build artifacts.
+- 2026-03-23: Cleaned `MEMORY.md` npm notes to keep only durable workflow facts and avoid transient command-line setup details.
+- 2026-03-23: Minimized npm release CI in `.github/workflows/release.yml` by deriving npm versions from the release tag and publishing platform packages directly from `build` artifacts instead of downloading GitHub Release archives.
+- 2026-03-23: Refactored `.github/workflows/release.yml` so the npm publish jobs use separate GitHub Actions steps for package staging, asset download, package version rewriting, binary extraction, and `npm publish`.
+- 2026-03-23: Simplified npm release CI by deleting `npm/scripts/stage-pnpm-release.sh` and `npm/scripts/publish-pnpm-release.sh`; `.github/workflows/release.yml` now uses a matrix job for platform packages plus a follow-up job for `@futrime/lip`.
+- 2026-03-23: Wired npm publishing into `.github/workflows/release.yml` as a `publish-npm` job that runs after release assets are uploaded and uses the `NPM_TOKEN` secret for npm auth.
 
 ## History
+
+- 2026-03-23: Removed the temporary root `package.json` and `pnpm-workspace.yaml`; npm publishing is now driven directly by the scripts under `npm/scripts/`.
+- 2026-03-23: Moved the npm publish helper scripts under `npm/scripts/` and confirmed staging still works from the new location.
+- 2026-03-23: The original `@futrime/lip@0.34.2` npm record was later unpublished, which blocks re-publishing the same version; the framework-dependent replacement was published as `0.34.2-fd.0` instead.
+- 2026-03-23: Added a `pnpm`-based native npm distribution layout for `@futrime/lip` plus six platform packages, staging binaries from GitHub Release assets instead of local builds; verified all seven packages pass `pnpm publish --dry-run` for `v0.34.2`, with actual publish currently blocked only by missing npm auth.
+- 2026-03-23: Initialized repo memory from code/docs/CI and recorded the Git source fallback caveat about directory-based cache entries making `cache clean` brittle on `.git` contents.
+- 2026-03-23: Merged two conflicting `AGENTS.md` templates into one repo-specific policy file, removed Python/Notion workflow rules, and aligned instructions with the repo's `.NET` and docs build workflows.
+- 2026-03-23: Fixed `MEMORY.md` structure to match policy, with `Memo`, `Recent`, `History`, and normalized `Memo` casing.

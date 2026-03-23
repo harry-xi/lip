@@ -1,0 +1,31 @@
+{
+  "name": "@futrime/lip",
+  "version": "0.0.0-dev",
+  "license": "GPL-3.0-only",
+  "description": "A general package installer",
+  "homepage": "https://github.com/futrime/lip",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/futrime/lip.git"
+  },
+  "bugs": {
+    "url": "https://github.com/futrime/lip/issues"
+  },
+  "bin": {
+    "lip": "lip.js",
+    "lipd": "lipd.js"
+  },
+  "files": [
+    "lip.js",
+    "lipd.js",
+    "linux-*/*",
+    "darwin-*/*",
+    "win32-*/*"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -11,9 +11,6 @@ on:
       - 'tests/**'
   workflow_dispatch:
 
-env:
-  DOTNET_VERSION: 10.0
-
 jobs:
   build:
     runs-on: ${{ matrix.runs-on }}
@@ -22,22 +19,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runtime:
-          - linux-arm64
-          - linux-x64
-          - osx-arm64
-          - osx-x64
-          - win-arm64
-          - win-x64
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-24.04-arm
           - runtime: linux-x64
             runs-on: ubuntu-latest
           - runtime: osx-arm64
-            runs-on: macos-15-intel
-          - runtime: osx-x64
             runs-on: macos-latest
+          - runtime: osx-x64
+            runs-on: macos-15-intel
           - runtime: win-arm64
             runs-on: windows-11-arm
           - runtime: win-x64
@@ -50,7 +40,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: 10
 
       - id: get-version
         shell: bash
@@ -61,6 +51,8 @@ jobs:
         run: |
           dotnet publish src/Lip.Cli \
             -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
             -p:DebugType=embedded \
             -p:Version=${{ steps.get-version.outputs.VERSION }}
 
@@ -68,6 +60,8 @@ jobs:
         run: |
           dotnet publish src/Lip.Daemon \
             -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
             -p:DebugType=embedded \
             -p:Version=${{ steps.get-version.outputs.VERSION }}
 
@@ -75,62 +69,6 @@ jobs:
         with:
           name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: bin/
-
-  build-windows-installer:
-    needs: build
-    permissions:
-      contents: read
-    strategy:
-      matrix:
-        runtime:
-          - arm64
-          - x64
-        include:
-          - runtime: arm64
-            runs-on: windows-11-arm
-          - runtime: x64
-            runs-on: windows-latest
-    runs-on: ${{ matrix.runs-on }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
-
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - id: get-version
-        shell: bash
-        run: |
-          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
-          path: bin/
-
-      - name: Generate clean version 
-        run: |
-          version=${{ steps.get-version.outputs.VERSION }}
-          sed -i "s/0.0.0/${version%%-*}/g" "src/Lip.Installer/Package.wxs"
-        shell: bash
-
-      - shell: bash
-        run: |
-          dotnet build src/Lip.Installer \
-            -c Release \
-            -o bin-installer \
-            -p:Platform=${{ matrix.runtime }}
-
-      - run: |
-          mv bin-installer/en-US/Lip.Installer.msi bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
-
-      - uses: actions/upload-artifact@v7
-        with:
-          archive: false
-          path: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
   check-style:
     runs-on: ubuntu-latest
@@ -141,7 +79,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: 10
 
       - run: |
           dotnet format \
@@ -166,7 +104,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: 10
 
       - run: |
           dotnet test

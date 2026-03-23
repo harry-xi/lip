@@ -3,33 +3,37 @@ on:
     types:
       - published
 
-env:
-  DOTNET_VERSION: 10.0
-
 jobs:
+  create-release-notes:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: extract-release-notes
+        uses: ffurrer2/extract-release-notes@v3
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.extract-release-notes.outputs.release_notes }}
+
   build:
     runs-on: ${{ matrix.runs-on }}
     permissions:
-      contents: read
+      contents: write
     strategy:
       fail-fast: false
       matrix:
-        runtime:
-          - linux-arm64
-          - linux-x64
-          - osx-arm64
-          - osx-x64
-          - win-arm64
-          - win-x64
         include:
           - runtime: linux-arm64
             runs-on: ubuntu-24.04-arm
           - runtime: linux-x64
             runs-on: ubuntu-latest
           - runtime: osx-arm64
-            runs-on: macos-15-intel
-          - runtime: osx-x64
             runs-on: macos-latest
+          - runtime: osx-x64
+            runs-on: macos-15-intel
           - runtime: win-arm64
             runs-on: windows-11-arm
           - runtime: win-x64
@@ -42,7 +46,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: 10
 
       - id: get-version
         shell: bash
@@ -53,6 +57,8 @@ jobs:
         run: |
           dotnet publish src/Lip.Cli \
             -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
             -p:DebugType=embedded \
             -p:Version=${{ steps.get-version.outputs.VERSION }}
 
@@ -60,6 +66,8 @@ jobs:
         run: |
           dotnet publish src/Lip.Daemon \
             -o bin \
+            -r ${{ matrix.runtime }} \
+            --no-self-contained \
             -p:DebugType=embedded \
             -p:Version=${{ steps.get-version.outputs.VERSION }}
 
@@ -68,15 +76,34 @@ jobs:
           name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
           path: bin/
 
+      - shell: bash
+        run: |
+          cp -R bin/. .tmp/
+          cp CHANGELOG.md COPYING README.md .tmp/
+
+      - if: startsWith(matrix.runtime, 'win-')
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path .tmp/* `
+            -DestinationPath lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.zip
+
+      - if: ${{ !startsWith(matrix.runtime, 'win-') }}
+        shell: bash
+        run: |
+          tar -czvf lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.tar.gz -C .tmp .
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*
+
   build-windows-installer:
     needs: build
     permissions:
       contents: write
     strategy:
       matrix:
-        runtime:
-          - arm64
-          - x64
         include:
           - runtime: arm64
             runs-on: windows-11-arm
@@ -91,7 +118,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: 10
 
       - id: get-version
         shell: bash
@@ -103,8 +130,7 @@ jobs:
           name: lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}
           path: bin/
 
-      - name: Generate clean version 
-        run: |
+      - run: |
           version=${{ steps.get-version.outputs.VERSION }}
           sed -i "s/0.0.0/${version%%-*}/g" "src/Lip.Installer/Package.wxs"
         shell: bash
@@ -113,56 +139,33 @@ jobs:
         run: |
           dotnet build src/Lip.Installer \
             -c Release \
-            -o bin-installer \
+            -o .tmp \
             -p:Platform=${{ matrix.runtime }}
 
       - run: |
-          mv bin-installer/en-US/Lip.Installer.msi bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
-
-      - uses: actions/upload-artifact@v7
-        with:
-          archive: false
-          path: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
+          mv .tmp/en-US/Lip.Installer.msi .tmp/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: bin-installer/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
+          files: .tmp/en-US/lip-${{ steps.get-version.outputs.VERSION }}-win-${{ matrix.runtime }}.msi
 
-  update-notes:
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@v3
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          body: ${{ steps.extract-release-notes.outputs.release_notes }}
-
-  upload-assets:
+  publish-npm:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     needs:
       - build
-    strategy:
-      fail-fast: false
-      matrix:
-        runtime:
-          - linux-arm64
-          - linux-x64
-          - osx-arm64
-          - osx-x64
-          - win-arm64
-          - win-x64
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           filter: tree:0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
 
       - id: get-version
         run: |
@@ -170,31 +173,50 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
-          path: artifact/
+          pattern: lip-${{ steps.get-version.outputs.VERSION }}-*
+          path: .tmp/artifacts
 
       - run: |
-          cp CHANGELOG.md COPYING README.md artifact/
+          cp -R npm/. .tmp/npm/
 
-      - working-directory: artifact
-        run: |
-          if [[ "${{ matrix.runtime }}" == win* ]]; then
-            zip -r ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.zip *
-          else
-            tar -czvf ../lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.tar.gz *
-          fi
+      - run: |
+          node -e '
+            const fs = require("node:fs");
+            const file = process.argv[1];
+            const version = process.argv[2];
+            const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
+            pkg.version = version;
+            fs.writeFileSync(file, `${JSON.stringify(pkg, null, 2)}\n`);
+          ' ".tmp/npm/package.json" "${{ steps.get-version.outputs.VERSION }}"
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}.*
+      - run: |
+          chmod +x .tmp/npm/lip.js .tmp/npm/lipd.js
+          for target in \
+            "linux-x64:linux-x64:lip:lipd" \
+            "linux-arm64:linux-arm64:lip:lipd" \
+            "osx-x64:darwin-x64:lip:lipd" \
+            "osx-arm64:darwin-arm64:lip:lipd" \
+            "win-x64:win32-x64:lip.exe:lipd.exe" \
+            "win-arm64:win32-arm64:lip.exe:lipd.exe"
+          do
+            IFS=: read -r runtime npm_dir cli_binary daemon_binary <<< "$target"
+            mkdir -p ".tmp/npm/$npm_dir"
+            cp ".tmp/artifacts/lip-${{ steps.get-version.outputs.VERSION }}-$runtime/$cli_binary" ".tmp/npm/$npm_dir/$cli_binary"
+            cp ".tmp/artifacts/lip-${{ steps.get-version.outputs.VERSION }}-$runtime/$daemon_binary" ".tmp/npm/$npm_dir/$daemon_binary"
+            if [[ "$cli_binary" != *.exe ]]; then
+              chmod +x ".tmp/npm/$npm_dir/$cli_binary" ".tmp/npm/$npm_dir/$daemon_binary"
+            fi
+          done
+
+      - run: |
+          npm publish .tmp/npm
 
   publish-winget:
     runs-on: windows-latest
     env:
       WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_CREATE_GITHUB_TOKEN }}
     needs:
-      - upload-assets
+      - build
     steps:
       - uses: actions/checkout@v6
         with:

@@ -127,6 +127,7 @@ jobs:
     permissions:
       contents: write
     strategy:
+      fail-fast: false
       matrix:
         include:
           - runtime: win-arm64
@@ -152,7 +153,6 @@ jobs:
           path: inno/lip.iss
           options: >-
             /DAppVersion=${{ needs.get-version.outputs.version }}
-            /DRuntime=${{ matrix.runtime }}
             /DBuildArch=${{ matrix.build-arch }}
 
       - uses: softprops/action-gh-release@v2
@@ -162,11 +162,12 @@ jobs:
 
   publish-npm:
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
     needs:
       - build
       - get-version
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v6
 

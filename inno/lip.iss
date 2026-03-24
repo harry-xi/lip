@@ -2,13 +2,19 @@
 #define SourceDir "..\\.tmp\\artifacts"
 #define OutputDir "..\\.tmp\\nsis"
 
+#if BuildArch == "arm64"
+  #define RuntimeSuffix "win-arm64"
+#else
+  #define RuntimeSuffix "win-x64"
+#endif
+
 [Setup]
 AppId={{C9BEB1D4-E698-4D84-A644-9E0C4B2E72BD}
 AppName={#AppName}
 AppVersion={#AppVersion}
 DefaultDirName={autopf}\{#AppName}
 OutputDir={#OutputDir}
-OutputBaseFilename=lip-{#AppVersion}-{#Runtime}-setup
+OutputBaseFilename=lip-{#AppVersion}-{#RuntimeSuffix}-setup
 Compression=lzma
 SolidCompression=yes
 ArchitecturesAllowed={#BuildArch}

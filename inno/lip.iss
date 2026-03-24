@@ -2,12 +2,6 @@
 #define SourceDir "..\\.tmp\\artifacts"
 #define OutputDir "..\\.tmp\\nsis"
 
-#if Runtime == "win-arm64"
-  #define BuildArch "arm64"
-#else
-  #define BuildArch "x64compatible"
-#endif
-
 [Setup]
 AppId={{C9BEB1D4-E698-4D84-A644-9E0C4B2E72BD}
 AppName={#AppName}

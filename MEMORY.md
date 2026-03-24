@@ -21,10 +21,13 @@
 - Native npm distribution is driven from `npm/`; the single `@futrime/lip` package exposes root launchers `lip.js` and `lipd.js`, bundles both `lip` and `lipd` for all six supported platforms in root-level platform folders like `linux-x64/` and `win32-x64/`, and the release workflow rewrites the package version from the release event tag before publishing.
 - GitHub release automation now uploads GitHub Release archives directly inside each `build` matrix run after artifact upload; `publish-npm` still downloads all six `build` artifacts, copies their binaries into the staged `@futrime/lip` package, and publishes one npm package version derived from `github.event.release.tag_name` with a shell-side `v` prefix trim.
 - For the single-package npm distribution, `dotnet publish` must include both `-r <runtime>` and `--no-self-contained`; this keeps `PublishSingleFile=true` outputs framework-dependent and small enough for npm publish. Without `--no-self-contained`, each binary grows to roughly 75-90 MB and the combined npm tarball becomes too large for npm CLI publish.
+- npm CLI 11 rejects prerelease publishes unless `npm publish` includes an explicit `--tag`; for versions like `0.34.2-fd.1`, release CI should publish with dist-tag `fd` rather than relying on npm defaults.
 - Windows installer packaging no longer uses the removed `src/Lip.Installer` WiX project; release CI now builds `lip-<version>-<runtime>-setup.exe` from `inno/lip.iss`, which expects downloaded binaries under `.tmp/artifacts` and writes installers to `.tmp/nsis`.
+- `inno/lip.iss` must not branch on an undeclared `Runtime` preprocessor symbol; release CI should pass the resolved Windows installer architecture explicitly (for example `BuildArch=arm64` or `x64compatible`) into Inno Setup.
 
 ## Recent
 
+- 2026-03-24: Fixed release CI for prerelease tags by publishing npm prereleases with an explicit dist-tag derived from the SemVer prerelease label (for example `0.34.2-fd.1` -> `--tag fd`) and by passing Inno Setup `BuildArch` from the workflow instead of branching on an undeclared `Runtime` symbol inside `inno/lip.iss`.
 - 2026-03-24: Windows release packaging in `.github/workflows/release.yml` now uses the `create-windows-installer` matrix job plus a minimal `inno/lip.iss` with fixed relative paths `.tmp/artifacts` and `.tmp/nsis`, auto-adds the install directory to system PATH, and uploads `lip-<version>-<runtime>-setup.exe` installers for both `win-x64` and `win-arm64`.
 - 2026-03-24: `.github/workflows/release.yml` now derives all release job versions from `github.event.release.tag_name` via `echo "VERSION=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')" >> "$GITHUB_OUTPUT"` and removed extra `actions/checkout` fetch options that were only needed for `git describe --tags`.
 - 2026-03-24: `lip.sln` now exists at the repo root, so standard verification should target `lip.sln` instead of individual `.csproj` paths.
@@ -34,10 +37,10 @@
 - 2026-03-23: Merged the `upload-assets` release workflow job into the `build` matrix so each platform build now uploads its own GitHub Release archive directly, and `publish-winget` depends on `build` instead of a separate asset-upload phase.
 - 2026-03-23: Simplified npm distribution to a single `@futrime/lip` package that bundles all six platform binaries; removed platform subpackage manifests and changed release CI to stage one package from all build artifacts.
 - 2026-03-23: Cleaned `MEMORY.md` npm notes to keep only durable workflow facts and avoid transient command-line setup details.
-- 2026-03-23: Minimized npm release CI in `.github/workflows/release.yml` by deriving npm versions from the release tag and publishing platform packages directly from `build` artifacts instead of downloading GitHub Release archives.
 
 ## History
 
+- 2026-03-23: Minimized npm release CI in `.github/workflows/release.yml` by deriving npm versions from the release tag and publishing platform packages directly from `build` artifacts instead of downloading GitHub Release archives.
 - 2026-03-23: Refactored `.github/workflows/release.yml` so the npm publish jobs use separate GitHub Actions steps for package staging, asset download, package version rewriting, binary extraction, and `npm publish`.
 - 2026-03-23: Simplified npm release CI by deleting `npm/scripts/stage-pnpm-release.sh` and `npm/scripts/publish-pnpm-release.sh`; `.github/workflows/release.yml` now uses a matrix job for platform packages plus a follow-up job for `@futrime/lip`.
 - 2026-03-23: Wired npm publishing into `.github/workflows/release.yml` as a `publish-npm` job that runs after release assets are uploaded and uses the `NPM_TOKEN` secret for npm auth.

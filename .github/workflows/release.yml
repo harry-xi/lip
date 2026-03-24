@@ -131,8 +131,10 @@ jobs:
         include:
           - runtime: win-arm64
             runs-on: windows-11-arm
+            build-arch: arm64
           - runtime: win-x64
             runs-on: windows-latest
+            build-arch: x64compatible
     steps:
       - uses: actions/checkout@v6
 
@@ -151,6 +153,7 @@ jobs:
           options: >-
             /DAppVersion=${{ needs.get-version.outputs.version }}
             /DRuntime=${{ matrix.runtime }}
+            /DBuildArch=${{ matrix.build-arch }}
 
       - uses: softprops/action-gh-release@v2
         with:
@@ -210,7 +213,15 @@ jobs:
             fi
           done
 
-      - run: |
+      - if: contains(needs.get-version.outputs.version, '-')
+        run: |
+          version='${{ needs.get-version.outputs.version }}'
+          tag="${version#*-}"
+          tag="${tag%%.*}"
+          npm publish .tmp/npm --tag "$tag"
+
+      - if: ${{ !contains(needs.get-version.outputs.version, '-') }}
+        run: |
           npm publish .tmp/npm
 
   publish-winget:

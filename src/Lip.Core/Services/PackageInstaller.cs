@@ -99,7 +99,8 @@ public class PackageInstaller(
               break;
 
             case PackageManifestAssetPlacement.PlacementType.Directory:
-              if (Path.GetRelativePath(placement.Src ?? ".", key) is string relativePath
+              // Keep compatibility with older versions of the manifest where src could be empty.
+              if (Path.GetRelativePath(string.IsNullOrEmpty(placement.Src) ? "." : placement.Src, key) is string relativePath
                   && !relativePath.StartsWith("..")) {
                 string targetPath = Path.Combine(
                     placement.Dst,

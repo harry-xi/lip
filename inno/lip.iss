@@ -1,11 +1,20 @@
 #define AppName "lip"
 #define SourceDir "..\\.tmp\\artifacts"
 #define OutputDir "..\\.tmp\\nsis"
+#ifndef DotNetRuntimeChannel
+  #define DotNetRuntimeChannel "10.0"
+#endif
+
+#ifndef DotNetRuntimeMajor
+  #define DotNetRuntimeMajor "10"
+#endif
 
 #if BuildArch == "arm64"
   #define RuntimeSuffix "win-arm64"
+  #define DotNetRuntimeArch "arm64"
 #else
   #define RuntimeSuffix "win-x64"
+  #define DotNetRuntimeArch "x64"
 #endif
 
 [Setup]
@@ -28,6 +37,12 @@ Source: "{#SourceDir}\lipd.exe"; DestDir: "{app}"; Flags: ignoreversion
 [Code]
 const
   EnvironmentKey = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+  DotNetInstallLocationRegistryKey = 'SOFTWARE\dotnet\Setup\InstalledVersions\{#DotNetRuntimeArch}';
+  DotNetRuntimeVersionUrl = 'https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeChannel}/latest.version';
+  DotNetRuntimeInstallArgs = '/install /quiet /norestart';
+
+var
+  DotNetRuntimeNeedsRestart: Boolean;
 
 function NormalizePathValue(Value: string): string;
 begin
@@ -72,6 +87,172 @@ begin
     Delete(SearchValue, Length(SearchValue), 1);
 
   Result := SearchValue;
+end;
+
+function DotNetRootDir: string;
+begin
+  Result := ExpandConstant('{commonpf}\dotnet');
+end;
+
+function GetRegisteredDotNetRootDir: string;
+begin
+  if not RegQueryStringValue(HKLM32, DotNetInstallLocationRegistryKey, 'InstallLocation', Result) then
+    Result := '';
+end;
+
+function DotNetSharedRuntimeDir(const RootDir: string): string;
+begin
+  Result := AddBackslash(RootDir) + 'shared\Microsoft.NETCore.App';
+end;
+
+function HasDotNetRuntimeInstalled: Boolean;
+var
+  FindRec: TFindRec;
+  RuntimeRootDir: string;
+  RuntimeSharedDir: string;
+begin
+  Result := False;
+
+  RuntimeRootDir := GetRegisteredDotNetRootDir;
+  if RuntimeRootDir = '' then
+  begin
+    if '{#DotNetRuntimeArch}' = 'x64' then
+      RuntimeRootDir := DotNetRootDir + '\x64'
+    else
+      RuntimeRootDir := DotNetRootDir;
+  end;
+
+  RuntimeSharedDir := DotNetSharedRuntimeDir(RuntimeRootDir);
+  if not DirExists(RuntimeSharedDir) then
+    exit;
+
+  if not FindFirst(RuntimeSharedDir + '\{#DotNetRuntimeMajor}.*', FindRec) then
+    exit;
+
+  try
+    repeat
+      if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
+      begin
+        Result := True;
+        exit;
+      end;
+    until not FindNext(FindRec);
+  finally
+    FindClose(FindRec);
+  end;
+end;
+
+function LoadTrimmedStringFromFile(const FileName: string): string;
+var
+  Content: AnsiString;
+begin
+  if not LoadStringFromFile(FileName, Content) then
+    RaiseException(Format('Failed to read "%s".', [FileName]));
+
+  Result := Trim(String(Content));
+end;
+
+function GetDotNetRuntimeVersion: string;
+const
+  VersionFileName = 'dotnet-runtime-{#DotNetRuntimeChannel}-latest.version';
+var
+  VersionFilePath: string;
+begin
+  DownloadTemporaryFile(DotNetRuntimeVersionUrl, VersionFileName, '', nil);
+  VersionFilePath := ExpandConstant('{tmp}\') + VersionFileName;
+  Result := LoadTrimmedStringFromFile(VersionFilePath);
+
+  if Result = '' then
+    RaiseException('Downloaded .NET Runtime version file was empty.');
+end;
+
+function GetDotNetRuntimeInstallerFileName(const Version: string): string;
+begin
+  Result := Format(
+    'dotnet-runtime-%s-win-{#DotNetRuntimeArch}.exe',
+    [Version]
+  );
+end;
+
+function GetDotNetRuntimeInstallerUrl(const Version: string): string;
+begin
+  Result := Format(
+    'https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeChannel}/%s/%s',
+    [Version, GetDotNetRuntimeInstallerFileName(Version)]
+  );
+end;
+
+function EnsureDotNetRuntimeInstalled: string;
+var
+  ExitCode: Integer;
+  InstallerUrl: string;
+  InstallerPath: string;
+  RuntimeVersion: string;
+begin
+  Result := '';
+
+  if HasDotNetRuntimeInstalled then
+    exit;
+
+  try
+    Log('Missing .NET Runtime {#DotNetRuntimeMajor}.x, downloading prerequisite installer.');
+    RuntimeVersion := GetDotNetRuntimeVersion;
+    InstallerUrl := GetDotNetRuntimeInstallerUrl(RuntimeVersion);
+
+    Log(Format('Downloading %s', [InstallerUrl]));
+    DownloadTemporaryFile(
+      InstallerUrl,
+      GetDotNetRuntimeInstallerFileName(RuntimeVersion),
+      '',
+      nil
+    );
+
+    InstallerPath := ExpandConstant('{tmp}\') + GetDotNetRuntimeInstallerFileName(RuntimeVersion);
+
+    Log(Format('Running .NET Runtime installer: %s %s', [InstallerPath, DotNetRuntimeInstallArgs]));
+    if not Exec(
+      InstallerPath,
+      DotNetRuntimeInstallArgs,
+      '',
+      SW_SHOWNORMAL,
+      ewWaitUntilTerminated,
+      ExitCode
+    ) then
+    begin
+      Result := Format(
+        'Failed to launch the Microsoft .NET Runtime installer: %s',
+        [SysErrorMessage(ExitCode)]
+      );
+      exit;
+    end;
+
+    if (ExitCode <> 0) and (ExitCode <> 3010) then
+    begin
+      Result := Format(
+        'The Microsoft .NET Runtime installer exited with code %d.',
+        [ExitCode]
+      );
+      exit;
+    end;
+
+    DotNetRuntimeNeedsRestart := ExitCode = 3010;
+
+    if not HasDotNetRuntimeInstalled then
+      Result := 'The Microsoft .NET Runtime installer finished, but .NET Runtime 10.x was still not detected.';
+  except
+    Result := GetExceptionMessage;
+  end;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := EnsureDotNetRuntimeInstalled;
+  NeedsRestart := DotNetRuntimeNeedsRestart and (Result <> '');
+end;
+
+function NeedRestart: Boolean;
+begin
+  Result := DotNetRuntimeNeedsRestart;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);

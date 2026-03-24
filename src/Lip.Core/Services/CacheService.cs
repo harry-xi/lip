@@ -33,6 +33,24 @@ public class CacheService(IFileSystem fileSystem, IUserInteraction userInteracti
       return;
     }
 
+    // Recursively remove read-only attribute from all files and directories before deleting
+    void RemoveReadOnlyRecursive(IDirectoryInfo dir) {
+      // Remove read-only from current directory
+      if (dir.Attributes.HasFlag(System.IO.FileAttributes.ReadOnly)) {
+        dir.Attributes &= ~System.IO.FileAttributes.ReadOnly;
+      }
+      // Remove read-only from all files
+      foreach (var file in dir.GetFiles()) {
+        if (file.IsReadOnly) {
+          file.IsReadOnly = false;
+        }
+      }
+      // Recurse into subdirectories
+      foreach (var subDir in dir.GetDirectories()) {
+        RemoveReadOnlyRecursive(subDir);
+      }
+    }
+    RemoveReadOnlyRecursive(_cacheDirectory);
     _cacheDirectory.Delete(recursive: true);
   }
 

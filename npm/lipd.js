@@ -4,6 +4,7 @@ const { spawn } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const process = require("node:process");
+const { maybeAddDotnetRootEnv, DOTNET_MAJOR } = require("./dotnet-bootstrap");
 
 const target = `${process.platform}:${process.arch}`;
 const supportedTargets = new Set([
@@ -31,7 +32,13 @@ if (!fs.existsSync(binaryPath)) {
   process.exit(1);
 }
 
-const child = spawn(binaryPath, process.argv.slice(2), { stdio: "inherit" });
+const childEnv = { ...process.env };
+maybeAddDotnetRootEnv(childEnv, DOTNET_MAJOR);
+
+const child = spawn(binaryPath, process.argv.slice(2), {
+  stdio: "inherit",
+  env: childEnv
+});
 child.on("error", (error) => {
   console.error(error.message);
   process.exit(1);

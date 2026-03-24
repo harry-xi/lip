@@ -15,9 +15,14 @@
     "lip": "lip.js",
     "lipd": "lipd.js"
   },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
   "files": [
+    "dotnet-bootstrap.js",
     "lip.js",
     "lipd.js",
+    "postinstall.js",
     "linux-*/*",
     "darwin-*/*",
     "win32-*/*"

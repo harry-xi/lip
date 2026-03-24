@@ -2,7 +2,7 @@
 
 ## Memo
 
-- `lip.sln` contains five main code projects: `Lip.Core` (domain/services), `Lip.Cli` (user CLI), `Lip.Daemon` (`lipd` JSON-RPC daemon over stdio), `Golang.Org.X.Mod` (Go module path/version helpers), and `Lip.Installer` (WiX installer).
+- `lip.sln` exists at the repo root and currently includes the main code projects under `src/` plus test projects under `tests/`; `Lip.Installer` is referenced by the release workflow but its project files may not always be present in the working tree.
 - `Lip.Cli/Program.cs` is a thin Spectre.Console front end; most operational wiring happens in `LipClient.Create`, which constructs `ConfigService`, `CacheService`, `SourceService`, `WorkspaceService`, `PackageInstaller`, `CompositePackageRegistry`, and `InstallService`.
 - Workspace state is persisted in `tooth_lock.json` in the current working directory; it stores installed package manifests, variant labels, explicit/implicit status, and tracked file paths.
 - Global runtime config is persisted in `liprc.json` under `Environment.SpecialFolder.ApplicationData` in `lip/liprc.json`; cache and temp data live under `Environment.SpecialFolder.LocalApplicationData` in `lip/cache` and `lip/temp`.
@@ -17,13 +17,17 @@
 - `--no-dependencies` bypasses dependency solving and is explicitly treated as potentially leaving a broken workspace.
 - Package variants are merged by label and current RID platform match; platform matching supports glob patterns and requires at least one full label+platform match.
 - Package install order is: run pre-install scripts, place asset files, run install/post-install scripts, then record workspace state. Uninstall runs pre-uninstall/uninstall scripts, removes tracked files except `preserve_files`, applies `remove_files`, runs post-uninstall scripts, then removes state.
-- CI expectations for code changes are `dotnet format --verify-no-changes` and `dotnet test`; docs are a separate VitePress project under `docs/` built with `npm run build`.
-- Native npm distribution is driven from `npm/`; the single `@futrime/lip` package exposes root launchers `lip.js` and `lipd.js`, bundles both `lip` and `lipd` for all six supported platforms in root-level platform folders like `linux-x64/` and `win32-x64/`, and the release workflow rewrites the package version from the release tag before publishing.
-- GitHub release automation now uploads GitHub Release archives directly inside each `build` matrix run after artifact upload; `publish-npm` still downloads all six `build` artifacts, copies their binaries into the staged `@futrime/lip` package, and publishes one npm package version derived from `git describe --tags`.
+- CI expectations for code changes are `dotnet format --verify-no-changes lip.sln` and `dotnet test lip.sln`; docs are a separate VitePress project under `docs/` built with `npm run build`.
+- Native npm distribution is driven from `npm/`; the single `@futrime/lip` package exposes root launchers `lip.js` and `lipd.js`, bundles both `lip` and `lipd` for all six supported platforms in root-level platform folders like `linux-x64/` and `win32-x64/`, and the release workflow rewrites the package version from the release event tag before publishing.
+- GitHub release automation now uploads GitHub Release archives directly inside each `build` matrix run after artifact upload; `publish-npm` still downloads all six `build` artifacts, copies their binaries into the staged `@futrime/lip` package, and publishes one npm package version derived from `github.event.release.tag_name` with a shell-side `v` prefix trim.
 - For the single-package npm distribution, `dotnet publish` must include both `-r <runtime>` and `--no-self-contained`; this keeps `PublishSingleFile=true` outputs framework-dependent and small enough for npm publish. Without `--no-self-contained`, each binary grows to roughly 75-90 MB and the combined npm tarball becomes too large for npm CLI publish.
+- Windows installer packaging no longer uses the removed `src/Lip.Installer` WiX project; release CI now builds `lip-<version>-<runtime>-setup.exe` from `inno/lip.iss`, which expects downloaded binaries under `.tmp/artifacts` and writes installers to `.tmp/nsis`.
 
 ## Recent
 
+- 2026-03-24: Windows release packaging in `.github/workflows/release.yml` now uses the `create-windows-installer` matrix job plus a minimal `inno/lip.iss` with fixed relative paths `.tmp/artifacts` and `.tmp/nsis`, auto-adds the install directory to system PATH, and uploads `lip-<version>-<runtime>-setup.exe` installers for both `win-x64` and `win-arm64`.
+- 2026-03-24: `.github/workflows/release.yml` now derives all release job versions from `github.event.release.tag_name` via `echo "VERSION=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')" >> "$GITHUB_OUTPUT"` and removed extra `actions/checkout` fetch options that were only needed for `git describe --tags`.
+- 2026-03-24: `lip.sln` now exists at the repo root, so standard verification should target `lip.sln` instead of individual `.csproj` paths.
 - 2026-03-23: Published `@futrime/lip@0.34.2-fd.0` to npm with tag `fd` after rebuilding all six platform binaries using `dotnet publish -r <runtime> --no-self-contained`; npm currently also reports `latest` as `0.34.2-fd.0`.
 - 2026-03-23: Flattened npm package native payloads from `bin/<platform>` to root-level platform folders like `linux-x64/`; updated launchers, npm `files`, and release CI copy paths accordingly.
 - 2026-03-23: Moved npm launchers to `npm/lip.js` and `npm/lipd.js`, and updated release CI so the single `@futrime/lip` package now bundles both `lip` and `lipd` binaries for every supported platform.
@@ -31,12 +35,12 @@
 - 2026-03-23: Simplified npm distribution to a single `@futrime/lip` package that bundles all six platform binaries; removed platform subpackage manifests and changed release CI to stage one package from all build artifacts.
 - 2026-03-23: Cleaned `MEMORY.md` npm notes to keep only durable workflow facts and avoid transient command-line setup details.
 - 2026-03-23: Minimized npm release CI in `.github/workflows/release.yml` by deriving npm versions from the release tag and publishing platform packages directly from `build` artifacts instead of downloading GitHub Release archives.
-- 2026-03-23: Refactored `.github/workflows/release.yml` so the npm publish jobs use separate GitHub Actions steps for package staging, asset download, package version rewriting, binary extraction, and `npm publish`.
-- 2026-03-23: Simplified npm release CI by deleting `npm/scripts/stage-pnpm-release.sh` and `npm/scripts/publish-pnpm-release.sh`; `.github/workflows/release.yml` now uses a matrix job for platform packages plus a follow-up job for `@futrime/lip`.
-- 2026-03-23: Wired npm publishing into `.github/workflows/release.yml` as a `publish-npm` job that runs after release assets are uploaded and uses the `NPM_TOKEN` secret for npm auth.
 
 ## History
 
+- 2026-03-23: Refactored `.github/workflows/release.yml` so the npm publish jobs use separate GitHub Actions steps for package staging, asset download, package version rewriting, binary extraction, and `npm publish`.
+- 2026-03-23: Simplified npm release CI by deleting `npm/scripts/stage-pnpm-release.sh` and `npm/scripts/publish-pnpm-release.sh`; `.github/workflows/release.yml` now uses a matrix job for platform packages plus a follow-up job for `@futrime/lip`.
+- 2026-03-23: Wired npm publishing into `.github/workflows/release.yml` as a `publish-npm` job that runs after release assets are uploaded and uses the `NPM_TOKEN` secret for npm auth.
 - 2026-03-23: Removed the temporary root `package.json` and `pnpm-workspace.yaml`; npm publishing is now driven directly by the scripts under `npm/scripts/`.
 - 2026-03-23: Moved the npm publish helper scripts under `npm/scripts/` and confirmed staging still works from the new location.
 - 2026-03-23: The original `@futrime/lip@0.34.2` npm record was later unpublished, which blocks re-publishing the same version; the framework-dependent replacement was published as `0.34.2-fd.0` instead.

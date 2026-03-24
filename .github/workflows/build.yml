@@ -34,18 +34,10 @@ jobs:
             runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
 
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10
-
-      - id: get-version
-        shell: bash
-        run: |
-          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> "$GITHUB_OUTPUT"
 
       - shell: bash
         run: |
@@ -53,8 +45,7 @@ jobs:
             -o bin \
             -r ${{ matrix.runtime }} \
             --no-self-contained \
-            -p:DebugType=embedded \
-            -p:Version=${{ steps.get-version.outputs.VERSION }}
+            -p:DebugType=embedded
 
       - shell: bash
         run: |
@@ -62,12 +53,11 @@ jobs:
             -o bin \
             -r ${{ matrix.runtime }} \
             --no-self-contained \
-            -p:DebugType=embedded \
-            -p:Version=${{ steps.get-version.outputs.VERSION }}
+            -p:DebugType=embedded
 
       - uses: actions/upload-artifact@v7
         with:
-          name: lip-${{ steps.get-version.outputs.VERSION }}-${{ matrix.runtime }}
+          name: lip-${{ github.sha }}-${{ matrix.runtime }}
           path: bin/
 
   check-style:
@@ -93,10 +83,10 @@ jobs:
       fail-fast: false
       matrix:
         runs-on:
-          - macos-15-intel
-          - macos-latest
           - ubuntu-24.04-arm
           - ubuntu-latest
+          - macos-latest
+          - macos-15-intel
           - windows-11-arm
           - windows-latest
     steps:

@@ -45,6 +45,7 @@ For any non-trivial task:
 
 - Match the language, tone, and structure already used in the target file unless the user asks for a change.
 - Prefer small, surgical edits over broad rewrites when updating existing files.
+- When changing package management, build tooling, or release/docs workflows, update related CI and workflow files in the same change.
 - Always use `pnpm` for JavaScript package management and script execution in this repo.
 - Use `dotnet` as the default build, test, and formatting tool for the main codebase.
 - After code changes, run `dotnet format --verify-no-changes` and `dotnet test` when feasible.

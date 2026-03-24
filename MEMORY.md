@@ -17,7 +17,7 @@
 - `--no-dependencies` bypasses dependency solving and is explicitly treated as potentially leaving a broken workspace.
 - Package variants are merged by label and current RID platform match; platform matching supports glob patterns and requires at least one full label+platform match.
 - Package install order is: run pre-install scripts, place asset files, run install/post-install scripts, then record workspace state. Uninstall runs pre-uninstall/uninstall scripts, removes tracked files except `preserve_files`, applies `remove_files`, runs post-uninstall scripts, then removes state.
-- CI expectations for code changes are `dotnet format --verify-no-changes lip.sln` and `dotnet test lip.sln`; docs are a separate VitePress project under `docs/` built with `npm run build`.
+- CI expectations for code changes are `dotnet format --verify-no-changes lip.sln` and `dotnet test lip.sln`; docs are a separate VitePress project under `docs/` built with `pnpm build`.
 - Docs tooling now uses `pnpm`; `docs/` should keep `package.json` plus `pnpm-lock.yaml`, not `package-lock.json`, and docs verification should be run with `pnpm build`.
 - Native npm distribution is driven from `npm/`; the single `@futrime/lip` package exposes root launchers `lip.js` and `lipd.js`, bundles both `lip` and `lipd` for all six supported platforms in root-level platform folders like `linux-x64/` and `win32-x64/`, and the release workflow rewrites the package version from the release event tag before publishing.
 - Public install docs now standardize on the npm package for all platforms, documenting both `npm install -g @futrime/lip` and one-off `npx @futrime/lip ...` usage; Windows-only alternatives are limited to `winget` and release `setup.exe`, and the old `scripts/install.sh` plus build-from-source installation docs were removed.
@@ -31,6 +31,7 @@
 
 ## Recent
 
+- 2026-03-24: Updated `.github/workflows/build-docs.yml` to install docs dependencies with `pnpm install --frozen-lockfile` and build with `pnpm build`, keeping CI aligned with the repo-wide pnpm rule and `docs/pnpm-lock.yaml`.
 - 2026-03-24: Switched the docs workspace lockfile from `package-lock.json` to `pnpm-lock.yaml` so the repo's JavaScript workflow consistently uses `pnpm`.
 - 2026-03-24: Added `npx @futrime/lip ...` to the install docs as a supported one-off execution path because the published npm package exposes `lip` through its `bin` entry and bundles native binaries for each supported platform.
 - 2026-03-24: Removed the Linux/macOS shell installer script `scripts/install.sh` and rewrote install docs to prefer `npm install -g @futrime/lip` everywhere, with Windows-specific `winget` and `setup.exe` alternatives only.

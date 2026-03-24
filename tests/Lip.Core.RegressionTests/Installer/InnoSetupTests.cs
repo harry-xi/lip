@@ -24,10 +24,12 @@ public class InnoSetupTests {
   }
 
   [Fact]
-  public void ReleaseWorkflow_PassesDotNetRuntimeInstallerDefinesToInnoSetup() {
-    string workflow = File.ReadAllText(ReleaseWorkflowPath);
+  public void InnoSetup_ProvidesDefaultDotNetRuntimeVersionDefines() {
+    string script = File.ReadAllText(InnoScriptPath);
 
-    Assert.Contains("/DDotNetRuntimeChannel=10.0", workflow);
-    Assert.Contains("/DDotNetRuntimeMajor=10", workflow);
+    Assert.Contains("#ifndef DotNetRuntimeChannel", script);
+    Assert.Contains("#define DotNetRuntimeChannel \"10.0\"", script);
+    Assert.Contains("#ifndef DotNetRuntimeMajor", script);
+    Assert.Contains("#define DotNetRuntimeMajor \"10\"", script);
   }
 }

@@ -29,7 +29,7 @@
 
 ## Recent
 
-- 2026-03-24: `inno/lip.iss` now installs .NET Runtime 10 online as a Windows setup prerequisite before copying app files, using the 32-bit registry `HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\<arch>\InstallLocation` to detect global runtime installs and release workflow defines `DotNetRuntimeChannel=10.0` plus `DotNetRuntimeMajor=10` to parameterize the Inno build.
+- 2026-03-24: `inno/lip.iss` now installs .NET Runtime 10 online as a Windows setup prerequisite before copying app files, using the 32-bit registry `HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\<arch>\InstallLocation` to detect global runtime installs and script-local default `DotNetRuntimeChannel=10.0` plus `DotNetRuntimeMajor=10` defines to parameterize the Inno build.
 - 2026-03-24: `CHANGELOG.md` now documents `0.34.3` as the stable release that restores framework-dependent single-file publish output for release artifacts and formalizes the new native npm package plus Inno Setup installers in user-facing release notes.
 - 2026-03-24: `Minionguyjpro/Inno-Setup-Action@v1.2.7` reads `with.options` via `getMultilineInput()`, so workflow `options:` must use a literal block (`|`) rather than folded YAML (`>-`) when passing multiple `/D...` compiler arguments; otherwise Inno Setup receives one combined argument and later defines like `BuildArch` stay undefined.
 - 2026-03-24: `publish-npm` now requests `id-token: write` and no longer injects `NODE_AUTH_TOKEN`, so npm release auth is expected to come from a configured trusted publisher; `create-windows-installer` also uses `fail-fast: false` and derives archive filename suffixes from `BuildArch` inside `inno/lip.iss` instead of an undeclared `Runtime` symbol.

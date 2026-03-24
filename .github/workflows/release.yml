@@ -154,8 +154,6 @@ jobs:
           options: |
             /DAppVersion=${{ needs.get-version.outputs.version }}
             /DBuildArch=${{ matrix.build-arch }}
-            /DDotNetRuntimeChannel=10.0
-            /DDotNetRuntimeMajor=10
 
       - uses: softprops/action-gh-release@v2
         with:

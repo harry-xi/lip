@@ -99,7 +99,7 @@ public class PackageInstaller(
               break;
 
             case PackageManifestAssetPlacement.PlacementType.Directory:
-              if (Path.GetRelativePath(placement.Src, key) is string relativePath
+              if (Path.GetRelativePath(placement.Src ?? ".", key) is string relativePath
                   && !relativePath.StartsWith("..")) {
                 string targetPath = Path.Combine(
                     placement.Dst,

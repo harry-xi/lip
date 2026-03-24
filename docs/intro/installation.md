@@ -2,56 +2,30 @@
 
 `lip` is a general package installer. To get started, you need to install the `lip` executable on your system.
 
-## Pre-built Binaries
+## npm
 
-You can download the latest pre-built binaries from the [Releases page](https://github.com/futrime/lip/releases/latest).
+The default installation method for all platforms is npm:
 
-1. Download the archive matching your operating system and architecture.
-2. Extract the archive.
-3. Add the extracted directory to your system's `PATH` environment variable.
+```shell
+npm install -g @futrime/lip
+```
 
-## Install Scripts
+This installs both `lip` and `lipd` and works on Windows, Linux, and macOS.
 
-### Windows (Winget)
+If you only want to run `lip` without installing it globally, you can also use `npx`:
 
-The easiest way to install `lip` on Windows is via winget:
+```shell
+npx @futrime/lip --help
+```
+
+This is useful for trying `lip` or running one-off commands.
+
+## winget
 
 ```shell
 winget install futrime.lip
 ```
 
-### GNU/Linux and macOS
+## Windows setup
 
-You can use the installation script to download and install `lip` automatically:
-
-```shell
-curl -fsSL https://raw.githubusercontent.com/futrime/lip/HEAD/scripts/install.sh | sh
-```
-
-## Building from Source
-
-If you prefer to build `lip` from source, ensure you have the following installed:
-
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [Git](https://git-scm.com/)
-
-### Steps
-
-1. **Clone the repository:**
-
-   ```shell
-   git clone https://github.com/futrime/lip.git
-   cd lip
-   ```
-
-2. **Build and Publish:**
-
-   Run the following command to build the CLI tool:
-
-   ```shell
-   dotnet publish src/Lip.Cli/Lip.Cli.csproj -c Release -o out
-   ```
-
-3. **Install:**
-
-   The `lip` executable will be located in the `out` directory. Add this directory to your `PATH` or move the executable to a directory already in your `PATH` (e.g., `/usr/local/bin` on Linux/macOS).
+Download the latest `lip-<version>-<runtime>-setup.exe` from the [Releases page](https://github.com/futrime/lip/releases/latest) and run it.

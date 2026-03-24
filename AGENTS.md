@@ -45,8 +45,9 @@ For any non-trivial task:
 
 - Match the language, tone, and structure already used in the target file unless the user asks for a change.
 - Prefer small, surgical edits over broad rewrites when updating existing files.
+- Always use `pnpm` for JavaScript package management and script execution in this repo.
 - Use `dotnet` as the default build, test, and formatting tool for the main codebase.
 - After code changes, run `dotnet format --verify-no-changes` and `dotnet test` when feasible.
-- If you change `docs/` content or VitePress config, run the docs build from `docs/` with `npm`.
+- If you change `docs/` content or VitePress config, run the docs build from `docs/` with `pnpm`.
 - Before any requested commit, save relevant updates to `MEMORY.md`.
 - For any requested commit, write a detailed commit body with the session goal, tasks, key rationale, findings, and results.

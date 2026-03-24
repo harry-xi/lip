@@ -28,6 +28,7 @@
 
 ## Recent
 
+- 2026-03-24: `Minionguyjpro/Inno-Setup-Action@v1.2.7` reads `with.options` via `getMultilineInput()`, so workflow `options:` must use a literal block (`|`) rather than folded YAML (`>-`) when passing multiple `/D...` compiler arguments; otherwise Inno Setup receives one combined argument and later defines like `BuildArch` stay undefined.
 - 2026-03-24: `publish-npm` now requests `id-token: write` and no longer injects `NODE_AUTH_TOKEN`, so npm release auth is expected to come from a configured trusted publisher; `create-windows-installer` also uses `fail-fast: false` and derives archive filename suffixes from `BuildArch` inside `inno/lip.iss` instead of an undeclared `Runtime` symbol.
 - 2026-03-24: Fixed release CI for prerelease tags by publishing npm prereleases with an explicit dist-tag derived from the SemVer prerelease label (for example `0.34.2-fd.1` -> `--tag fd`) and by passing Inno Setup `BuildArch` from the workflow instead of branching on an undeclared `Runtime` symbol inside `inno/lip.iss`.
 - 2026-03-24: Windows release packaging in `.github/workflows/release.yml` now uses the `create-windows-installer` matrix job plus a minimal `inno/lip.iss` with fixed relative paths `.tmp/artifacts` and `.tmp/nsis`, auto-adds the install directory to system PATH, and uploads `lip-<version>-<runtime>-setup.exe` installers for both `win-x64` and `win-arm64`.

@@ -151,7 +151,7 @@ jobs:
       - uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
         with:
           path: inno/lip.iss
-          options: >-
+          options: |
             /DAppVersion=${{ needs.get-version.outputs.version }}
             /DBuildArch=${{ matrix.build-arch }}
 

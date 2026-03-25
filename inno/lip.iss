@@ -158,7 +158,15 @@ end;
 
 function GetDotNetRuntimeInstallerUrl(const Version: string): string;
 begin
-  Result := Format('https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeVersion}/%s/%s', [Version, GetDotNetRuntimeInstallerFileName(Version)]);
+  Result := Format('https://builds.dotnet.microsoft.com/dotnet/Runtime/%s/%s', [Version, GetDotNetRuntimeInstallerFileName(Version)]);
+end;
+
+var
+  ProgressPage: TOutputProgressWizardPage;
+function OnDownloadProgress(const Url, Filename: String; const Progress, ProgressMax: Int64): Boolean;
+begin
+  ProgressPage.SetProgress(Progress, ProgressMax);
+  Result := True;
 end;
 
 function EnsureDotNetRuntimeInstalled: string;
@@ -166,6 +174,7 @@ var
   ExitCode: Integer;
   InstallerUrl: string;
   InstallerPath: string;
+  DotNetRuntimeVersion: string;
 begin
   Result := '';
 
@@ -174,14 +183,17 @@ begin
 
   try
     Log('Missing .NET Runtime {#DotNetRuntimeMajor}.x, downloading prerequisite installer.');
+    DotNetRuntimeVersion := '{#DotNetRuntimeVersion}'
     InstallerUrl := GetDotNetRuntimeInstallerUrl(DotNetRuntimeVersion);
 
+    ProgressPage := CreateOutputProgressPage('Download .NET', GetDotNetRuntimeInstallerFileName(DotNetRuntimeVersion))
     Log(Format('Downloading %s', [InstallerUrl]));
+    ProgressPage.Show;
     DownloadTemporaryFile(
       InstallerUrl,
       GetDotNetRuntimeInstallerFileName(DotNetRuntimeVersion),
       '',
-      nil
+      @OnDownloadProgress
     );
 
     InstallerPath := ExpandConstant('{tmp}\') + GetDotNetRuntimeInstallerFileName(DotNetRuntimeVersion);

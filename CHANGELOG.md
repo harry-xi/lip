@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.4] - 2026-03-25
+
+### Added
+
+- Installer will install .NET runtime prerequisite
+- Npm will bootstrap .NET runtime on install
+- Added Chinese Simplified translation for Windows installer
+
+### Changed
+
+- Bumped Scriban to 7.0.3
+
+### Fixed
+
+- Fixed unable to clean read-only cache files
+- Fixed compatibility issue in placement with tooth package made with older version of lip(0.32.0 e.g.)
+
 ## [0.34.4-beta.2] - 2026-03-25
 
 ### Added
@@ -12,8 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Installer will install .NET runtime prerequisite
 - Npm will bootstrap .NET runtime on install
 
+### Changed
+
+- Bumped Scriban to 6.6.0
+
 ### Fixed
 
+- Fixed unable to clean read-only cache files
 - Fixed compatibility issue in placement with tooth package made with older version of lip(0.32.0 e.g.)
 
 ## [0.34.3] - 2026-03-24
@@ -770,6 +792,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#218]: https://github.com/futrime/lip/issues/218
 [#282]: https://github.com/futrime/lip/issues/282
 
+[0.34.4]: https://github.com/futrime/lip/compare/v0.34.4-beta.2...v0.34.4
 [0.34.4-beta.2]: https://github.com/futrime/lip/compare/v0.34.3...v0.34.4-beta.2
 [0.34.3]: https://github.com/futrime/lip/compare/v0.34.2...v0.34.3
 [0.34.2]: https://github.com/futrime/lip/compare/v0.34.1...v0.34.2

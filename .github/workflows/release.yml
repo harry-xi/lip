@@ -146,7 +146,7 @@ jobs:
 
       - shell: bash
         run: |
-          mkdir -p .tmp/nsis
+          mkdir -p .tmp/inno
 
       - uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
         with:
@@ -158,7 +158,7 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            .tmp/nsis/lip-${{ needs.get-version.outputs.version }}-${{ matrix.runtime }}-setup.exe
+            .tmp/inno/lip-${{ needs.get-version.outputs.version }}-${{ matrix.runtime }}-setup.exe
 
   publish-npm:
     runs-on: ubuntu-latest

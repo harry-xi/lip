@@ -1,6 +1,6 @@
 #define AppName "lip"
 #define SourceDir "..\\.tmp\\artifacts"
-#define OutputDir "..\\.tmp\\nsis"
+#define OutputDir "..\\.tmp\\inno"
 #ifndef DotNetRuntimeChannel
   #define DotNetRuntimeChannel "10.0"
 #endif
@@ -152,9 +152,9 @@ begin
   Result := Trim(String(Content));
 end;
 
-function GetDotNetRuntimeVersion: string;
 const
   VersionFileName = 'dotnet-runtime-{#DotNetRuntimeChannel}-latest.version';
+function GetDotNetRuntimeVersion: string;
 var
   VersionFilePath: string;
 begin
@@ -168,18 +168,12 @@ end;
 
 function GetDotNetRuntimeInstallerFileName(const Version: string): string;
 begin
-  Result := Format(
-    'dotnet-runtime-%s-win-{#DotNetRuntimeArch}.exe',
-    [Version]
-  );
+  Result := Format('dotnet-runtime-%s-win-{#DotNetRuntimeArch}.exe', [Version]);
 end;
 
 function GetDotNetRuntimeInstallerUrl(const Version: string): string;
 begin
-  Result := Format(
-    'https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeChannel}/%s/%s',
-    [Version, GetDotNetRuntimeInstallerFileName(Version)]
-  );
+  Result := Format('https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeChannel}/%s/%s', [Version, GetDotNetRuntimeInstallerFileName(Version)]);
 end;
 
 function EnsureDotNetRuntimeInstalled: string;
@@ -219,19 +213,13 @@ begin
       ExitCode
     ) then
     begin
-      Result := Format(
-        'Failed to launch the Microsoft .NET Runtime installer: %s',
-        [SysErrorMessage(ExitCode)]
-      );
+      Result := Format('Failed to launch the Microsoft .NET Runtime installer: %s', [SysErrorMessage(ExitCode)]);
       exit;
     end;
 
     if (ExitCode <> 0) and (ExitCode <> 3010) then
     begin
-      Result := Format(
-        'The Microsoft .NET Runtime installer exited with code %d.',
-        [ExitCode]
-      );
+      Result := Format('The Microsoft .NET Runtime installer exited with code %d.', [ExitCode]);
       exit;
     end;
 

@@ -9,6 +9,14 @@
   #define DotNetRuntimeMajor "10"
 #endif
 
+#ifndef BuildArch
+  #define BuildArch "x64compatible"
+#endif
+
+#ifndef AppVersion
+  #define AppVersion "0.0.0"
+#endif
+
 #if BuildArch == "arm64"
   #define RuntimeSuffix "win-arm64"
   #define DotNetRuntimeArch "arm64"
@@ -29,6 +37,10 @@ SolidCompression=yes
 ArchitecturesAllowed={#BuildArch}
 ArchitecturesInstallIn64BitMode={#BuildArch}
 ChangesEnvironment=yes
+
+[Languages] 
+Name: "en"; MessagesFile: "compiler:Default.isl,en-US.isl"
+Name: "zhcn"; MessagesFile: "zh-CN.isl,zh-CN_custom.isl"
 
 [Files]
 Source: "{#SourceDir}\lip.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -186,7 +198,7 @@ begin
     DotNetRuntimeVersion := '{#DotNetRuntimeVersion}'
     InstallerUrl := GetDotNetRuntimeInstallerUrl(DotNetRuntimeVersion);
 
-    ProgressPage := CreateOutputProgressPage('Download .NET', GetDotNetRuntimeInstallerFileName(DotNetRuntimeVersion))
+    ProgressPage := CreateOutputProgressPage(CustomMessage('DownloadDotNet'), GetDotNetRuntimeInstallerFileName(DotNetRuntimeVersion))
     Log(Format('Downloading %s', [InstallerUrl]));
     ProgressPage.Show;
     DownloadTemporaryFile(
@@ -208,20 +220,20 @@ begin
       ExitCode
     ) then
     begin
-      Result := Format('Failed to launch the Microsoft .NET Runtime installer: %s', [SysErrorMessage(ExitCode)]);
+      Result := Format(CustomMessage('LauncherDotNetInstallerFail'), [SysErrorMessage(ExitCode)]);
       exit;
     end;
 
     if (ExitCode <> 0) and (ExitCode <> 3010) then
     begin
-      Result := Format('The Microsoft .NET Runtime installer exited with code %d.', [ExitCode]);
+      Result := Format(CustomMessage('DotNetInstallerExit'), [ExitCode]);
       exit;
     end;
 
     DotNetRuntimeNeedsRestart := ExitCode = 3010;
 
     if not HasDotNetRuntimeInstalled then
-      Result := 'The Microsoft .NET Runtime installer finished, but .NET Runtime 10.x was still not detected.';
+      Result := CustomMessage('DotNetNotDetected');
   except
     Result := GetExceptionMessage;
   end;

@@ -1,8 +1,8 @@
 #define AppName "lip"
 #define SourceDir "..\\.tmp\\artifacts"
 #define OutputDir "..\\.tmp\\inno"
-#ifndef DotNetRuntimeChannel
-  #define DotNetRuntimeChannel "10.0"
+#ifndef DotNetRuntimeVersion
+  #define DotNetRuntimeVersion "10.0.5"
 #endif
 
 #ifndef DotNetRuntimeMajor
@@ -38,7 +38,6 @@ Source: "{#SourceDir}\lipd.exe"; DestDir: "{app}"; Flags: ignoreversion
 const
   EnvironmentKey = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
   DotNetInstallLocationRegistryKey = 'SOFTWARE\dotnet\Setup\InstalledVersions\{#DotNetRuntimeArch}';
-  DotNetRuntimeVersionUrl = 'https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeChannel}/latest.version';
   DotNetRuntimeInstallArgs = '/install /quiet /norestart';
 
 var
@@ -152,20 +151,6 @@ begin
   Result := Trim(String(Content));
 end;
 
-const
-  VersionFileName = 'dotnet-runtime-{#DotNetRuntimeChannel}-latest.version';
-function GetDotNetRuntimeVersion: string;
-var
-  VersionFilePath: string;
-begin
-  DownloadTemporaryFile(DotNetRuntimeVersionUrl, VersionFileName, '', nil);
-  VersionFilePath := ExpandConstant('{tmp}\') + VersionFileName;
-  Result := LoadTrimmedStringFromFile(VersionFilePath);
-
-  if Result = '' then
-    RaiseException('Downloaded .NET Runtime version file was empty.');
-end;
-
 function GetDotNetRuntimeInstallerFileName(const Version: string): string;
 begin
   Result := Format('dotnet-runtime-%s-win-{#DotNetRuntimeArch}.exe', [Version]);
@@ -173,7 +158,7 @@ end;
 
 function GetDotNetRuntimeInstallerUrl(const Version: string): string;
 begin
-  Result := Format('https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeChannel}/%s/%s', [Version, GetDotNetRuntimeInstallerFileName(Version)]);
+  Result := Format('https://builds.dotnet.microsoft.com/dotnet/Runtime/{#DotNetRuntimeVersion}/%s/%s', [Version, GetDotNetRuntimeInstallerFileName(Version)]);
 end;
 
 function EnsureDotNetRuntimeInstalled: string;
@@ -181,7 +166,6 @@ var
   ExitCode: Integer;
   InstallerUrl: string;
   InstallerPath: string;
-  RuntimeVersion: string;
 begin
   Result := '';
 
@@ -190,18 +174,17 @@ begin
 
   try
     Log('Missing .NET Runtime {#DotNetRuntimeMajor}.x, downloading prerequisite installer.');
-    RuntimeVersion := GetDotNetRuntimeVersion;
-    InstallerUrl := GetDotNetRuntimeInstallerUrl(RuntimeVersion);
+    InstallerUrl := GetDotNetRuntimeInstallerUrl(DotNetRuntimeVersion);
 
     Log(Format('Downloading %s', [InstallerUrl]));
     DownloadTemporaryFile(
       InstallerUrl,
-      GetDotNetRuntimeInstallerFileName(RuntimeVersion),
+      GetDotNetRuntimeInstallerFileName(DotNetRuntimeVersion),
       '',
       nil
     );
 
-    InstallerPath := ExpandConstant('{tmp}\') + GetDotNetRuntimeInstallerFileName(RuntimeVersion);
+    InstallerPath := ExpandConstant('{tmp}\') + GetDotNetRuntimeInstallerFileName(DotNetRuntimeVersion);
 
     Log(Format('Running .NET Runtime installer: %s %s', [InstallerPath, DotNetRuntimeInstallArgs]));
     if not Exec(

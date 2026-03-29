@@ -3,6 +3,26 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "lip",
   description: "A general package installer",
+  head: [
+    [
+      'script',
+      {},
+      `(() => {
+        if (typeof window === 'undefined') return;
+        const path = window.location.pathname;
+        if (path !== '/' && path !== '/index.html') return;
+        
+        const langs = navigator.languages && navigator.languages.length > 0
+          ? navigator.languages
+          : [navigator.language || ''];
+        
+        const isZh = langs.some((lang) => /^zh(?:-|$)/i.test(lang));
+        if (isZh) {
+          window.location.replace('/zh/');
+        }
+       })();`
+    ]
+  ],
   locales: {
     root: {
       label: 'English',

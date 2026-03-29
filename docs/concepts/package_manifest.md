@@ -2,6 +2,9 @@
 
 The package manifest file `tooth.json` defines a lip package.
 
+> [!TIP]
+> <span v-pre>You can use variables from other fields in any string field by wrapping the variable name in `{{}}` like `{{version}}` and `{{info.name}}`. For example, `{{version}}` will be replaced with the value of the `version` field.</span>
+
 ## Example
 
 ```json

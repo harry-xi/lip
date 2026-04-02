@@ -20,7 +20,7 @@ public class LiprPackageRegistry : IPackageRegistry {
 
   public async Task<PackageManifest> GetPackageManifest(PackageSpec packageSpec) {
     Url url = Url.Parse(
-        $"https://lipr.levimc.org/{packageSpec.Id.Path}@{packageSpec.Version}/tooth.json");
+        $"https://lipr.levimc.org/packages/{packageSpec.Id.Path}@{packageSpec.Version}/tooth.json");
 
     using Stream manifestStream = await url.GetStreamAsync();
 

@@ -127,7 +127,7 @@ public class LiprPackageRegistryTests {
         SemVersionRange.Parse("1.3.*"),
         result.Variants[1].Dependencies[PackageId.Parse("github.com/LiteLDev/CrashLogger#client")]);
 
-    string expectedUrl = $"https://lipr.levimc.org/{pkgId.Path}@{version}/tooth.json";
+    string expectedUrl = $"https://lipr.levimc.org/packages/{pkgId.Path}@{version}/tooth.json";
     httpTest.ShouldHaveCalled(expectedUrl).WithVerb(HttpMethod.Get).Times(1);
   }
 }

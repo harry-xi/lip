@@ -6,10 +6,10 @@ namespace Lip.Core.RegressionTests.PackageRegistries;
 
 public class LiprPackageRegistryTests {
   [Theory]
-  [InlineData("github.com/LiteLDev/bds", 157)]
-  [InlineData("github.com/LiteLDev/LegacyScriptEngine", 110)]
-  [InlineData("github.com/LiteLDev/LeviLamina", 85)]
-  [InlineData("github.com/LiteLDev/LeviLamina#client", 10)]
+  [InlineData("github.com/LiteLDev/MoreDimensions", 21)]
+  [InlineData("github.com/LiteLDev/LegacyScriptEngine", 124)]
+  [InlineData("github.com/LiteLDev/LeviLamina", 90)]
+  [InlineData("github.com/LiteLDev/LeviLamina#client", 17)]
   public async Task GetAvailableVersions_ReturnsSortedMinCount(string packageId, int minVersionCount) {
     LiprPackageRegistry registry = new();
 
@@ -20,10 +20,10 @@ public class LiprPackageRegistryTests {
   }
 
   [Theory]
-  [InlineData("github.com/LiteLDev/bds", "1.26.3")]
-  [InlineData("github.com/LiteLDev/LegacyScriptEngine", "0.17.5")]
-  [InlineData("github.com/LiteLDev/LeviLamina", "1.9.7")]
-  [InlineData("github.com/LiteLDev/LeviLamina#client", "1.9.7")]
+  [InlineData("github.com/LiteLDev/MoreDimensions", "0.13.0")]
+  [InlineData("github.com/LiteLDev/LegacyScriptEngine", "0.17.13")]
+  [InlineData("github.com/LiteLDev/LeviLamina", "1.9.9")]
+  [InlineData("github.com/LiteLDev/LeviLamina#client", "1.9.9")]
   public async Task GetPackageManifest_ReturnsManifest(string packageId, string version) {
     LiprPackageRegistry registry = new();
 

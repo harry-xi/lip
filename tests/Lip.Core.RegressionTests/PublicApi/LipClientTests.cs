@@ -34,11 +34,11 @@ public class LipClientTests {
 
   public static TheoryData<List<string>> Install_OnWinX64_DoesNotThrowData =>
   [
-    ["github.com/LiteLDev/bds@1.26.3"],
-    ["github.com/LiteLDev/LegacyScriptEngine@0.17.5"],
-    ["github.com/LiteLDev/LeviLamina@1.9.7"],
-    ["github.com/LiteLDev/LeviLamina@1.9.7", "github.com/LiteLDev/LegacyScriptEngine@0.17.5"],
-    ["github.com/LiteLDev/LegacyScriptEngine@0.17.5", "github.com/LiteLDev/MoreDimensions@0.13.0"],
+    ["github.com/LiteLDev/MoreDimensions@0.13.0"],
+    ["github.com/LiteLDev/LegacyScriptEngine@0.17.13"],
+    ["github.com/LiteLDev/LeviLamina@1.9.9"],
+    ["github.com/LiteLDev/LeviLamina@1.9.9", "github.com/LiteLDev/LegacyScriptEngine@0.17.13"],
+    ["github.com/LiteLDev/LegacyScriptEngine@0.17.13", "github.com/LiteLDev/MoreDimensions@0.13.0"],
   ];
 
   [WinX64Theory]

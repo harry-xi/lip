@@ -7,10 +7,10 @@ namespace Lip.Core.RegressionTests.PackageRegistries;
 
 public class GitPackageRegistryTests {
   [Theory]
-  [InlineData("github.com/LiteLDev/bds", 157)]
-  [InlineData("github.com/LiteLDev/LegacyScriptEngine", 110)]
-  [InlineData("github.com/LiteLDev/LeviLamina", 85)]
-  [InlineData("github.com/LiteLDev/LeviLamina#client", 10)]
+  [InlineData("github.com/LiteLDev/MoreDimensions", 21)]
+  [InlineData("github.com/LiteLDev/LegacyScriptEngine", 124)]
+  [InlineData("github.com/LiteLDev/LeviLamina", 90)]
+  [InlineData("github.com/LiteLDev/LeviLamina#client", 17)]
   public async Task GetAvailableVersions_ReturnsSortedMinCount(string packageId, int minVersionCount) {
     GitRunner gitRunner = new();
     GitPackageRegistry registry = new(gitRunner, githubProxy: null);

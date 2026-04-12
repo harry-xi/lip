@@ -23,7 +23,7 @@ public class GitRunnerTests {
   }
 
   [Theory]
-  [InlineData("https://github.com/LiteLDev/MoreDimensions.git", "v1.13.0")]
+  [InlineData("https://github.com/LiteLDev/MoreDimensions.git", "v0.13.0")]
   [InlineData("https://github.com/LiteLDev/LegacyScriptEngine.git", "v0.17.13")]
   [InlineData("https://github.com/LiteLDev/LeviLamina.git", "v1.9.9")]
   public async Task Clone_GitRepoDirExists(string repository, string branch) {

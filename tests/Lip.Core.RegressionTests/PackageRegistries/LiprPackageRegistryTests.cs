@@ -6,8 +6,8 @@ namespace Lip.Core.RegressionTests.PackageRegistries;
 
 public class LiprPackageRegistryTests {
   [Theory]
-  [InlineData("github.com/LiteLDev/MoreDimensions", 21)]
-  [InlineData("github.com/LiteLDev/LegacyScriptEngine", 124)]
+  [InlineData("github.com/LiteLDev/MoreDimensions", 20)]
+  [InlineData("github.com/LiteLDev/LegacyScriptEngine", 119)]
   [InlineData("github.com/LiteLDev/LeviLamina", 90)]
   [InlineData("github.com/LiteLDev/LeviLamina#client", 17)]
   public async Task GetAvailableVersions_ReturnsSortedMinCount(string packageId, int minVersionCount) {

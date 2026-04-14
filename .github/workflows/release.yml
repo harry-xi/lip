@@ -231,10 +231,12 @@ jobs:
       - create-portable-archives
       - get-version
     runs-on: windows-latest
-    env:
-      WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_CREATE_GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v6
+  
+      - run: gh repo sync lip-winget-bot/winget-pkgs -b master
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_CREATE_GITHUB_TOKEN }}
 
       - run: |
           $arm64Url = "https://github.com/futrime/lip/releases/download/v${{ needs.get-version.outputs.version }}/lip-${{ needs.get-version.outputs.version }}-win-arm64.zip"
@@ -245,3 +247,5 @@ jobs:
             --submit `
             --urls "$arm64Url" "$x64Url" `
             --version "${{ needs.get-version.outputs.version }}" 
+        env:
+          WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_CREATE_GITHUB_TOKEN }}

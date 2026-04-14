@@ -12,7 +12,7 @@ public class GoModuleProxyPackageRegistryTests {
   [InlineData("github.com/LiteLDev/LeviLamina", 90)]
   [InlineData("github.com/LiteLDev/LeviLamina#client", 17)]
   public async Task GetAvailableVersions_ReturnsSortedMinCount(string packageId, int minVersionCount) {
-    GoModuleProxyPackageRegistry registry = new(new Url("https://goproxy.io"));
+    GoModuleProxyPackageRegistry registry = new(new Url("https://proxy.golang.org"));
 
     IOrderedEnumerable<SemVersion> versions = await registry.GetAvailableVersions(PackageId.Parse(packageId));
 

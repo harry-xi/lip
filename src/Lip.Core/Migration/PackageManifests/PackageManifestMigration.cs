@@ -113,8 +113,7 @@ public static partial class PackageManifestMigration {
       { "path", manifestV2.Tooth }
     };
 
-    string RenderTemplate(string? template)
-    {
+    string RenderTemplate(string? template) {
       if (template is null) return "";
       // Convert $(variable) format to {{variable}} format for Scriban
       string converted = TemplateVariableRegex().Replace(template, "{{$1}}");

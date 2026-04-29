@@ -314,7 +314,7 @@ public class PackageManifestMigrationTests {
                     {
                       "type": "zip",
                       "urls": [
-                        "https://github.com/LiteLDev/LeviLamina/releases/download/v{{"{{version}}"}}/levilamina-release-windows-x64.zip"
+                        "https://github.com/LiteLDev/LeviLamina/releases/download/v1.1.0/levilamina-release-windows-x64.zip"
                       ],
                       "placements": [
                         {

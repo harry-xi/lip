@@ -107,6 +107,20 @@ public static partial class PackageManifestMigration {
   }
 
   private static PackageManifest MigrateV2ToV3(PackageManifestV2 manifestV2) {
+    Dictionary<string, object> model = new()
+    {
+      { "version", manifestV2.Version },
+      { "path", manifestV2.Tooth }
+    };
+
+    string RenderTemplate(string? template)
+    {
+      if (template is null) return "";
+      // Convert $(variable) format to {{variable}} format for Scriban
+      string converted = TemplateVariableRegex().Replace(template, "{{$1}}");
+      return Scriban.Template.Parse(converted).Render(model);
+    }
+
     PackageManifest manifest = new() {
       Path = manifestV2.Tooth,
       Version = SemVersion.Parse(manifestV2.Version, SemVersionStyles.Any),
@@ -114,9 +128,7 @@ public static partial class PackageManifestMigration {
         Name = manifestV2.Info.Name,
         Description = manifestV2.Info.Description,
         Tags = manifestV2.Info.Tags,
-        AvatarUrl = manifestV2.Info.AvatarUrl is null
-                ? ""
-                : TemplateVariableRegex().Replace(manifestV2.Info.AvatarUrl, "{{$1}}")
+        AvatarUrl = RenderTemplate(manifestV2.Info.AvatarUrl)
       },
       Variants = []
     };
@@ -158,7 +170,7 @@ public static partial class PackageManifestMigration {
             List<PackageManifestAsset> assets = [];
             string? assetUrl = p.AssetUrl ?? manifestV2.AssetUrl;
             if (assetUrl is not null) {
-              string url = TemplateVariableRegex().Replace(assetUrl, "{{$1}}");
+              string url = RenderTemplate(assetUrl);
               PackageManifestAsset.AssetType type = url.Split('.').Last() switch {
                 "tar" => PackageManifestAsset.AssetType.Tar,
                 "tgz" => PackageManifestAsset.AssetType.Tgz,
@@ -171,8 +183,8 @@ public static partial class PackageManifestMigration {
               List<PackageManifestV2Place>? places = p.Files?.Place ?? manifestV2.Files?.Place;
               if (places is not null) {
                 foreach (PackageManifestV2Place pl in places) {
-                  string src = TemplateVariableRegex().Replace(pl.Src, "{{$1}}")?.TrimEnd('*') ?? "";
-                  string dst = TemplateVariableRegex().Replace(pl.Dest, "{{$1}}") ?? "";
+                  string src = RenderTemplate(pl.Src)?.TrimEnd('*') ?? "";
+                  string dst = RenderTemplate(pl.Dest) ?? "";
                   placements.Add(new PackageManifestAssetPlacement {
                     Src = src,
                     Dst = dst,
@@ -194,10 +206,10 @@ public static partial class PackageManifestMigration {
             PackageManifestV2Commands? cmds = p.Commands ?? manifestV2.Commands;
             if (cmds is not null) {
               scripts = new PackageManifestScripts {
-                PreInstall = cmds.PreInstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? [],
-                PostInstall = cmds.PostInstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? [],
-                PreUninstall = cmds.PreUninstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? [],
-                PostUninstall = cmds.PostUninstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? []
+                PreInstall = cmds.PreInstall?.Select(s => RenderTemplate(s)).ToList() ?? [],
+                PostInstall = cmds.PostInstall?.Select(s => RenderTemplate(s)).ToList() ?? [],
+                PreUninstall = cmds.PreUninstall?.Select(s => RenderTemplate(s)).ToList() ?? [],
+                PostUninstall = cmds.PostUninstall?.Select(s => RenderTemplate(s)).ToList() ?? []
               };
             }
 
@@ -205,8 +217,8 @@ public static partial class PackageManifestMigration {
               Platform = $"{prefix}-{suffix}",
               Dependencies = dependencies,
               Assets = assets,
-              PreserveFiles = (p.Files?.Preserve ?? manifestV2.Files?.Preserve)?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
-              RemoveFiles = (p.Files?.Remove ?? manifestV2.Files?.Remove)?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
+              PreserveFiles = (p.Files?.Preserve ?? manifestV2.Files?.Preserve)?.Select(s => RenderTemplate(s)).Select(s => Glob.Parse(s)).ToList() ?? [],
+              RemoveFiles = (p.Files?.Remove ?? manifestV2.Files?.Remove)?.Select(s => RenderTemplate(s)).Select(s => Glob.Parse(s)).ToList() ?? [],
               Scripts = scripts
             });
           }
@@ -230,7 +242,7 @@ public static partial class PackageManifestMigration {
           List<PackageManifestAsset> assets = [];
           switch (manifestV2.AssetUrl) {
             case not null: {
-                string url = TemplateVariableRegex().Replace(manifestV2.AssetUrl, "{{$1}}");
+                string url = RenderTemplate(manifestV2.AssetUrl);
                 PackageManifestAsset.AssetType type = url.Split('.').Last() switch {
                   "tar" => PackageManifestAsset.AssetType.Tar,
                   "tgz" => PackageManifestAsset.AssetType.Tgz,
@@ -242,8 +254,8 @@ public static partial class PackageManifestMigration {
                 List<PackageManifestAssetPlacement> placements = [];
                 if (manifestV2.Files?.Place is not null) {
                   foreach (PackageManifestV2Place pl in manifestV2.Files.Place) {
-                    string src = TemplateVariableRegex().Replace(pl.Src, "{{$1}}")?.TrimEnd('*') ?? "";
-                    string dst = TemplateVariableRegex().Replace(pl.Dest, "{{$1}}") ?? "";
+                    string src = RenderTemplate(pl.Src)?.TrimEnd('*') ?? "";
+                    string dst = RenderTemplate(pl.Dest) ?? "";
                     placements.Add(new PackageManifestAssetPlacement {
                       Src = src,
                       Dst = dst,
@@ -266,8 +278,8 @@ public static partial class PackageManifestMigration {
                 List<PackageManifestAssetPlacement> placements = [];
                 if (manifestV2.Files?.Place is not null) {
                   foreach (PackageManifestV2Place pl in manifestV2.Files.Place) {
-                    string src = TemplateVariableRegex().Replace(pl.Src, "{{$1}}")?.TrimEnd('*') ?? "";
-                    string dst = TemplateVariableRegex().Replace(pl.Dest, "{{$1}}") ?? "";
+                    string src = RenderTemplate(pl.Src)?.TrimEnd('*') ?? "";
+                    string dst = RenderTemplate(pl.Dest) ?? "";
                     placements.Add(new PackageManifestAssetPlacement {
                       Src = src,
                       Dst = dst,
@@ -290,18 +302,18 @@ public static partial class PackageManifestMigration {
           PackageManifestScripts scripts = new();
           if (manifestV2.Commands is not null) {
             scripts = new PackageManifestScripts {
-              PreInstall = manifestV2.Commands.PreInstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? [],
-              PostInstall = manifestV2.Commands.PostInstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? [],
-              PreUninstall = manifestV2.Commands.PreUninstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? [],
-              PostUninstall = manifestV2.Commands.PostUninstall?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).ToList() ?? []
+              PreInstall = manifestV2.Commands.PreInstall?.Select(s => RenderTemplate(s)).ToList() ?? [],
+              PostInstall = manifestV2.Commands.PostInstall?.Select(s => RenderTemplate(s)).ToList() ?? [],
+              PreUninstall = manifestV2.Commands.PreUninstall?.Select(s => RenderTemplate(s)).ToList() ?? [],
+              PostUninstall = manifestV2.Commands.PostUninstall?.Select(s => RenderTemplate(s)).ToList() ?? []
             };
           }
 
           manifest.Variants.Add(new PackageManifestVariant {
             Dependencies = dependencies,
             Assets = assets,
-            PreserveFiles = manifestV2.Files?.Preserve?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
-            RemoveFiles = manifestV2.Files?.Remove?.Select(s => TemplateVariableRegex().Replace(s, "{{$1}}")).Select(s => Glob.Parse(s)).ToList() ?? [],
+            PreserveFiles = manifestV2.Files?.Preserve?.Select(s => RenderTemplate(s)).Select(s => Glob.Parse(s)).ToList() ?? [],
+            RemoveFiles = manifestV2.Files?.Remove?.Select(s => RenderTemplate(s)).Select(s => Glob.Parse(s)).ToList() ?? [],
             Scripts = scripts
           });
           break;
